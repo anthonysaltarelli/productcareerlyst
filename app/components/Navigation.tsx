@@ -8,7 +8,7 @@ export const Navigation = async () => {
   } = await supabase.auth.getUser()
 
   return (
-    <nav className="sticky top-0 z-50 bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100">
+    <nav className="sticky top-0 z-50 bg-white shadow-[0_8px_0_0_rgba(147,51,234,0.15)] border-b-2 border-purple-200">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
