@@ -1,4 +1,130 @@
-export default function CoursesPage() {
+import { createClient } from '@/lib/supabase/server';
+import Link from 'next/link';
+
+interface Course {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  length: string;
+  prioritization: number;
+  lesson_count: number;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  description: string;
+  slug: string;
+  display_order: number;
+  courses: Course[];
+}
+
+const getCoursesWithCategories = async (): Promise<Category[]> => {
+  const supabase = await createClient();
+  
+  // Get all categories with their courses
+  const { data: categories, error } = await supabase
+    .from('categories')
+    .select(`
+      id,
+      name,
+      description,
+      slug,
+      display_order,
+      courses (
+        id,
+        title,
+        slug,
+        description,
+        length,
+        prioritization
+      )
+    `)
+    .order('display_order', { ascending: true });
+
+  if (error || !categories) {
+    return [];
+  }
+
+  // Get lesson counts for each course
+  const categoriesWithCounts = await Promise.all(
+    categories.map(async (category) => {
+      const coursesWithCounts = await Promise.all(
+        (category.courses || []).map(async (course: any) => {
+          const { count } = await supabase
+            .from('lessons')
+            .select('*', { count: 'exact', head: true })
+            .eq('course_id', course.id);
+
+          return {
+            ...course,
+            lesson_count: count || 0
+          };
+        })
+      );
+
+      // Sort courses by prioritization
+      coursesWithCounts.sort((a, b) => a.prioritization - b.prioritization);
+
+      return {
+        ...category,
+        courses: coursesWithCounts
+      };
+    })
+  );
+
+  return categoriesWithCounts.filter(cat => cat.courses.length > 0);
+};
+
+const colorSchemes = [
+  {
+    gradient: 'from-blue-200 to-cyan-200',
+    border: 'border-blue-300',
+    shadow: 'shadow-[0_10px_0_0_rgba(37,99,235,0.3)] hover:shadow-[0_6px_0_0_rgba(37,99,235,0.3)]'
+  },
+  {
+    gradient: 'from-purple-200 to-pink-200',
+    border: 'border-purple-300',
+    shadow: 'shadow-[0_10px_0_0_rgba(147,51,234,0.3)] hover:shadow-[0_6px_0_0_rgba(147,51,234,0.3)]'
+  },
+  {
+    gradient: 'from-green-200 to-emerald-200',
+    border: 'border-green-300',
+    shadow: 'shadow-[0_10px_0_0_rgba(22,163,74,0.3)] hover:shadow-[0_6px_0_0_rgba(22,163,74,0.3)]'
+  },
+  {
+    gradient: 'from-orange-200 to-yellow-200',
+    border: 'border-orange-300',
+    shadow: 'shadow-[0_10px_0_0_rgba(234,88,12,0.3)] hover:shadow-[0_6px_0_0_rgba(234,88,12,0.3)]'
+  },
+  {
+    gradient: 'from-violet-200 to-purple-200',
+    border: 'border-violet-300',
+    shadow: 'shadow-[0_10px_0_0_rgba(124,58,237,0.3)] hover:shadow-[0_6px_0_0_rgba(124,58,237,0.3)]'
+  },
+  {
+    gradient: 'from-pink-200 to-rose-200',
+    border: 'border-pink-300',
+    shadow: 'shadow-[0_10px_0_0_rgba(236,72,153,0.3)] hover:shadow-[0_6px_0_0_rgba(236,72,153,0.3)]'
+  },
+  {
+    gradient: 'from-teal-200 to-cyan-200',
+    border: 'border-teal-300',
+    shadow: 'shadow-[0_10px_0_0_rgba(20,184,166,0.3)] hover:shadow-[0_6px_0_0_rgba(20,184,166,0.3)]'
+  }
+];
+
+const categoryEmojis: Record<string, string> = {
+  'career-preparation': '🎯',
+  'interview-mastery': '💼',
+  'product-fundamentals': '🎓',
+  'compensation': '💰'
+};
+
+export default async function CoursesPage() {
+  const categories = await getCoursesWithCategories();
+
   return (
     <div className="p-8 md:p-12">
       {/* Page Header */}
@@ -15,154 +141,74 @@ export default function CoursesPage() {
       </div>
 
       {/* Course Categories */}
+      {categories.length > 0 ? (
       <div className="space-y-8">
-        {/* Interview Prep Courses */}
-        <div>
+          {categories.map((category, categoryIndex) => (
+            <div key={category.id}>
           <h2 className="text-2xl font-black text-gray-800 mb-4">
-            🎯 Interview Mastery
+                {categoryEmojis[category.slug] || '📖'} {category.name}
           </h2>
+              {category.description && (
+                <p className="text-gray-600 font-medium mb-4">{category.description}</p>
+              )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {category.courses.map((course, courseIndex) => {
+                  const colorScheme = colorSchemes[(categoryIndex * 3 + courseIndex) % colorSchemes.length];
+                  return (
             <CourseCard
-              title="Product Design Interviews"
-              description="Master the product design interview format used by FAANG companies"
-              duration="4 hours"
-              lessons={12}
-              color="from-blue-200 to-cyan-200"
-              borderColor="border-blue-300"
-              shadowColor="rgba(37,99,235,0.3)"
-              progress={0}
-            />
-            <CourseCard
-              title="Metrics & Analytics"
-              description="Learn to analyze product metrics and make data-driven decisions"
-              duration="3 hours"
-              lessons={10}
-              color="from-purple-200 to-pink-200"
-              borderColor="border-purple-300"
-              shadowColor="rgba(147,51,234,0.3)"
-              progress={0}
-            />
-            <CourseCard
-              title="Strategy & Execution"
-              description="Build frameworks for strategic thinking and product execution"
-              duration="5 hours"
-              lessons={15}
-              color="from-green-200 to-emerald-200"
-              borderColor="border-green-300"
-              shadowColor="rgba(22,163,74,0.3)"
-              progress={0}
-            />
-            <CourseCard
-              title="Behavioral Interview Prep"
-              description="Craft compelling stories using STAR method for behavioral questions"
-              duration="2 hours"
-              lessons={8}
-              color="from-orange-200 to-yellow-200"
-              borderColor="border-orange-300"
-              shadowColor="rgba(234,88,12,0.3)"
-              progress={0}
-            />
+                      key={course.id}
+                      course={course}
+                      colorScheme={colorScheme}
+                    />
+                  );
+                })}
+              </div>
+          </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-[2rem] p-8 text-center">
+          <span className="text-6xl mb-4 block">🗄️</span>
+          <h2 className="text-2xl font-black text-gray-800 mb-4">Database Setup Required</h2>
+          <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
+            No courses found. You need to create the database tables and seed the course data.
+          </p>
+          <div className="bg-white border border-yellow-300 rounded-lg p-6 max-w-2xl mx-auto text-left mb-6">
+            <h3 className="font-bold text-lg mb-3">Quick Setup:</h3>
+            <ol className="list-decimal list-inside space-y-3 text-gray-700">
+              <li className="font-medium">
+                Open your Supabase SQL Editor
+                <p className="text-sm text-gray-600 mt-1 ml-6">
+                  Go to: Dashboard → SQL Editor
+                </p>
+              </li>
+              <li className="font-medium">
+                Run the schema SQL
+                <p className="text-sm text-gray-600 mt-1 ml-6">
+                  Copy and paste contents from <code className="bg-yellow-100 px-2 py-1 rounded font-mono text-xs">database/schema.sql</code>
+                </p>
+              </li>
+              <li className="font-medium">
+                Run the seed data SQL
+                <p className="text-sm text-gray-600 mt-1 ml-6">
+                  Copy and paste contents from <code className="bg-yellow-100 px-2 py-1 rounded font-mono text-xs">database/seed_data.sql</code>
+                </p>
+              </li>
+              <li className="font-medium">
+                Refresh this page
+                <p className="text-sm text-gray-600 mt-1 ml-6">
+                  You should see 7 courses with 120+ lessons!
+                </p>
+              </li>
+            </ol>
+          </div>
+          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 max-w-2xl mx-auto text-sm text-gray-700">
+            <p>
+              📖 See <code className="bg-indigo-100 px-2 py-1 rounded font-mono text-xs">LEARNING_PLATFORM_SETUP.md</code> for detailed instructions
+            </p>
           </div>
         </div>
-
-        {/* Career Growth Courses */}
-        <div>
-          <h2 className="text-2xl font-black text-gray-800 mb-4">
-            📈 Career Advancement
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <CourseCard
-              title="From PM to Senior PM"
-              description="Navigate the promotion path and demonstrate senior-level impact"
-              duration="6 hours"
-              lessons={18}
-              color="from-violet-200 to-purple-200"
-              borderColor="border-violet-300"
-              shadowColor="rgba(124,58,237,0.3)"
-              progress={0}
-            />
-            <CourseCard
-              title="Stakeholder Management"
-              description="Master the art of influencing without authority"
-              duration="3 hours"
-              lessons={9}
-              color="from-pink-200 to-rose-200"
-              borderColor="border-pink-300"
-              shadowColor="rgba(236,72,153,0.3)"
-              progress={0}
-            />
-            <CourseCard
-              title="Building Promotion Cases"
-              description="Document your impact and build an irrefutable promotion packet"
-              duration="2 hours"
-              lessons={7}
-              color="from-teal-200 to-cyan-200"
-              borderColor="border-teal-300"
-              shadowColor="rgba(20,184,166,0.3)"
-              progress={0}
-            />
-            <CourseCard
-              title="Salary Negotiation"
-              description="Negotiate compensation like a pro and maximize your worth"
-              duration="2 hours"
-              lessons={6}
-              color="from-amber-200 to-yellow-200"
-              borderColor="border-amber-300"
-              shadowColor="rgba(245,158,11,0.3)"
-              progress={0}
-            />
-          </div>
-        </div>
-
-        {/* PM Fundamentals */}
-        <div>
-          <h2 className="text-2xl font-black text-gray-800 mb-4">
-            🎓 PM Fundamentals
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <CourseCard
-              title="Product Management 101"
-              description="Essential foundations for aspiring and new product managers"
-              duration="8 hours"
-              lessons={24}
-              color="from-blue-200 to-indigo-200"
-              borderColor="border-blue-300"
-              shadowColor="rgba(59,130,246,0.3)"
-              progress={0}
-            />
-            <CourseCard
-              title="Writing Effective PRDs"
-              description="Create product requirement documents that drive execution"
-              duration="3 hours"
-              lessons={10}
-              color="from-emerald-200 to-green-200"
-              borderColor="border-emerald-300"
-              shadowColor="rgba(16,185,129,0.3)"
-              progress={0}
-            />
-            <CourseCard
-              title="Roadmap Planning"
-              description="Build compelling roadmaps that align teams and stakeholders"
-              duration="4 hours"
-              lessons={12}
-              color="from-fuchsia-200 to-pink-200"
-              borderColor="border-fuchsia-300"
-              shadowColor="rgba(217,70,239,0.3)"
-              progress={0}
-            />
-            <CourseCard
-              title="User Research & Discovery"
-              description="Conduct research that uncovers real user needs and insights"
-              duration="5 hours"
-              lessons={14}
-              color="from-rose-200 to-red-200"
-              borderColor="border-rose-300"
-              shadowColor="rgba(244,63,94,0.3)"
-              progress={0}
-            />
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Coming Soon Banner */}
       <div className="mt-8 p-8 rounded-[2.5rem] bg-gradient-to-br from-slate-700 to-slate-900 shadow-[0_15px_0_0_rgba(15,23,42,0.4)] border-2 border-slate-800 text-center">
@@ -174,59 +220,39 @@ export default function CoursesPage() {
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 const CourseCard = ({
-  title,
-  description,
-  duration,
-  lessons,
-  color,
-  borderColor,
-  shadowColor,
-  progress,
+  course,
+  colorScheme
 }: {
-  title: string
-  description: string
-  duration: string
-  lessons: number
-  color: string
-  borderColor: string
-  shadowColor: string
-  progress: number
+  course: Course;
+  colorScheme: {
+    gradient: string;
+    border: string;
+    shadow: string;
+  };
 }) => {
   return (
-    <div
-      className={`p-6 rounded-[2rem] bg-gradient-to-br ${color} shadow-[0_10px_0_0_${shadowColor}] border-2 ${borderColor} hover:translate-y-1 hover:shadow-[0_6px_0_0_${shadowColor}] transition-all duration-200 cursor-pointer`}
-    >
-      <h3 className="text-xl font-bold text-gray-800 mb-2">{title}</h3>
-      <p className="text-gray-700 font-medium text-sm mb-4">{description}</p>
+    <Link href={`/dashboard/courses/${course.slug}`}>
+      <div
+        className={`p-6 rounded-[2rem] bg-gradient-to-br ${colorScheme.gradient} ${colorScheme.shadow} border-2 ${colorScheme.border} hover:translate-y-1 transition-all duration-200 cursor-pointer h-full`}
+      >
+        <h3 className="text-xl font-bold text-gray-800 mb-2">{course.title}</h3>
+        <p className="text-gray-700 font-medium text-sm mb-4 line-clamp-2">
+          {course.description}
+        </p>
 
       <div className="flex items-center gap-4 text-sm font-bold text-gray-600 mb-4">
-        <span>⏱️ {duration}</span>
-        <span>📝 {lessons} lessons</span>
-      </div>
-
-      {progress > 0 ? (
-        <div>
-          <div className="flex justify-between text-xs font-bold text-gray-600 mb-2">
-            <span>Progress</span>
-            <span>{progress}%</span>
-          </div>
-          <div className="w-full h-3 bg-white/60 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-green-500 to-emerald-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+          <span>⏱️ {course.length}</span>
+          <span>📝 {course.lesson_count} lessons</span>
         </div>
-      ) : (
+
         <button className="w-full px-6 py-3 rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-gray-300 font-black text-gray-800 transition-all duration-200">
           Start Course →
         </button>
-      )}
     </div>
-  )
-}
-
+    </Link>
+  );
+};
