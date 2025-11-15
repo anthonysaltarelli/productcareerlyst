@@ -54,6 +54,19 @@ npm run lint
 - Server components by default
 - File-based routing in the `/app` directory
 - TypeScript path alias `@/*` maps to project root
+- **CRITICAL**: In Next.js 16, `params` in dynamic routes is a Promise and MUST be awaited:
+  ```typescript
+  // ✅ CORRECT
+  export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params;
+    // use slug...
+  }
+
+  // ❌ WRONG - will cause runtime errors
+  export default async function Page({ params }: { params: { slug: string } }) {
+    const course = await getCourse(params.slug); // Error: params is a Promise!
+  }
+  ```
 
 ### Styling System
 - **Tailwind CSS 4** with PostCSS integration

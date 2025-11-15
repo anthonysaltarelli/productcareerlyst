@@ -71,8 +71,9 @@ const getCourseWithLessons = async (slug: string): Promise<Course | null> => {
   };
 };
 
-export default async function CoursePage({ params }: { params: { slug: string } }) {
-  const course = await getCourseWithLessons(params.slug);
+export default async function CoursePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const course = await getCourseWithLessons(slug);
 
   if (!course) {
     // Return a helpful error page instead of 404
@@ -82,7 +83,7 @@ export default async function CoursePage({ params }: { params: { slug: string } 
           <span className="text-6xl mb-4 block">⚠️</span>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Course Not Found</h1>
           <p className="text-gray-700 mb-6">
-            Looking for course: <code className="bg-yellow-100 px-2 py-1 rounded font-mono text-sm">{params.slug}</code>
+            Looking for course: <code className="bg-yellow-100 px-2 py-1 rounded font-mono text-sm">{slug}</code>
           </p>
           <div className="bg-white border border-yellow-300 rounded-lg p-6 mb-6 text-left">
             <h2 className="font-bold text-lg mb-3">Possible reasons:</h2>
@@ -119,7 +120,7 @@ export default async function CoursePage({ params }: { params: { slug: string } 
   const firstLesson = course.lessons[0];
 
   if (firstLesson) {
-    redirect(`/dashboard/courses/${params.slug}/lessons/${firstLesson.id}`);
+    redirect(`/dashboard/courses/${slug}/lessons/${firstLesson.id}`);
   }
 
   return (
@@ -135,7 +136,7 @@ export default async function CoursePage({ params }: { params: { slug: string } 
             course.lessons.map((lesson) => (
               <Link
                 key={lesson.id}
-                href={`/dashboard/courses/${params.slug}/lessons/${lesson.id}`}
+                href={`/dashboard/courses/${slug}/lessons/${lesson.id}`}
                 className="block p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
               >
                 <div className="flex items-center justify-between">

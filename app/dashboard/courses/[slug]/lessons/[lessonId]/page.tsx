@@ -84,12 +84,13 @@ const getLessonWithCourse = async (lessonId: string): Promise<{ lesson: Lesson; 
   };
 };
 
-export default async function LessonPage({ 
-  params 
-}: { 
-  params: { slug: string; lessonId: string } 
+export default async function LessonPage({
+  params
+}: {
+  params: Promise<{ slug: string; lessonId: string }>
 }) {
-  const data = await getLessonWithCourse(params.lessonId);
+  const { slug, lessonId } = await params;
+  const data = await getLessonWithCourse(lessonId);
 
   if (!data) {
     notFound();
@@ -114,7 +115,7 @@ export default async function LessonPage({
           </li>
           <li>/</li>
           <li>
-            <Link href={`/dashboard/courses/${params.slug}`} className="hover:text-indigo-600">
+            <Link href={`/dashboard/courses/${slug}`} className="hover:text-indigo-600">
               {course.title}
             </Link>
           </li>
@@ -150,7 +151,7 @@ export default async function LessonPage({
               <div className="flex items-center justify-between pt-6 border-t border-gray-200">
                 {previousLesson ? (
                   <Link
-                    href={`/dashboard/courses/${params.slug}/lessons/${previousLesson.id}`}
+                    href={`/dashboard/courses/${slug}/lessons/${previousLesson.id}`}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,7 +165,7 @@ export default async function LessonPage({
 
                 {nextLesson ? (
                   <Link
-                    href={`/dashboard/courses/${params.slug}/lessons/${nextLesson.id}`}
+                    href={`/dashboard/courses/${slug}/lessons/${nextLesson.id}`}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
                   >
                     Next Lesson
@@ -196,7 +197,7 @@ export default async function LessonPage({
               {course.lessons.map((l, index) => (
                 <Link
                   key={l.id}
-                  href={`/dashboard/courses/${params.slug}/lessons/${l.id}`}
+                  href={`/dashboard/courses/${slug}/lessons/${l.id}`}
                   className={`block p-3 rounded-lg transition-colors ${
                     l.id === lesson.id
                       ? 'bg-indigo-50 border border-indigo-200'
