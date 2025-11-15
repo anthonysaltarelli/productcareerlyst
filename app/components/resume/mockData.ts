@@ -27,6 +27,41 @@ export type Experience = {
   bullets: Bullet[];
 };
 
+export type ContactInfo = {
+  name: string;
+  email: string;
+  phone: string;
+  location: string;
+  linkedin: string;
+  portfolio: string;
+};
+
+export type Education = {
+  id: string;
+  school: string;
+  degree: string;
+  field: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  gpa: string;
+  achievements: string[];
+};
+
+export type Skills = {
+  technical: string[];
+  product: string[];
+  soft: string[];
+};
+
+export type ResumeData = {
+  contactInfo: ContactInfo;
+  summary: string;
+  experiences: Experience[];
+  education: Education[];
+  skills: Skills;
+};
+
 export type Section = {
   id: string;
   type: string;

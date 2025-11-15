@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { mockJobApplications, mockInterviews } from '@/lib/mock-data/jobs';
-import { JobApplication, ApplicationStatus } from '@/lib/types/jobs';
+import { useJobApplications } from '@/lib/hooks/useJobApplications';
+import { useInterviews } from '@/lib/hooks/useInterviews';
+import { ApplicationStatus, JobApplicationWithCompany } from '@/lib/types/jobs';
+import { AddJobModal } from '@/app/components/jobs/AddJobModal';
+import { EditJobModal } from '@/app/components/jobs/EditJobModal';
 
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
   wishlist: { label: 'Wishlist', color: 'text-gray-700', bgColor: 'bg-gray-50' },
@@ -23,9 +26,11 @@ const priorityConfig = {
 };
 
 export default function JobsPage() {
-  const [applications, setApplications] = useState<JobApplication[]>(mockJobApplications);
+  const { applications, loading, error, refetch } = useJobApplications();
+  const { interviews } = useInterviews();
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingApplication, setEditingApplication] = useState<JobApplicationWithCompany | null>(null);
 
   const columnOrder: ApplicationStatus[] = ['wishlist', 'applied', 'screening', 'interviewing', 'offer', 'rejected'];
 
@@ -34,23 +39,22 @@ export default function JobsPage() {
   const activeApplications = applications.filter(app => 
     !['rejected', 'withdrawn', 'accepted'].includes(app.status)
   ).length;
-  const interviewsScheduled = mockInterviews.filter(int => int.status === 'scheduled').length;
+  const interviewsScheduled = interviews.filter(int => int.status === 'scheduled').length;
   const offersReceived = applications.filter(app => app.status === 'offer').length;
-  const responseRate = applications.filter(app => app.appliedDate).length > 0
+  const responseRate = applications.filter(app => app.applied_date).length > 0
     ? Math.round((applications.filter(app => 
-        app.appliedDate && !['applied', 'wishlist'].includes(app.status)
-      ).length / applications.filter(app => app.appliedDate).length) * 100)
+        app.applied_date && !['applied', 'wishlist'].includes(app.status)
+      ).length / applications.filter(app => app.applied_date).length) * 100)
     : 0;
 
-  const handleFormatSalary = (job: JobApplication): string => {
-    if (!job.salaryRange) return 'Not specified';
-    const { min, max, currency } = job.salaryRange;
+  const handleFormatSalary = (job: JobApplicationWithCompany): string => {
+    if (!job.salary_min || !job.salary_max) return 'Not specified';
     const formatter = new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency,
+      currency: job.salary_currency || 'USD',
       minimumFractionDigits: 0,
     });
-    return `${formatter.format(min)} - ${formatter.format(max)}`;
+    return `${formatter.format(job.salary_min)} - ${formatter.format(job.salary_max)}`;
   };
 
   const handleFormatDate = (dateString?: string): string => {
@@ -69,6 +73,34 @@ export default function JobsPage() {
     if (diffDays === 1) return 'Yesterday';
     return `${diffDays} days ago`;
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen p-8 md:p-12 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-700 font-semibold">Loading applications...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-8 md:p-12 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 font-bold mb-4">Error loading applications</p>
+          <p className="text-gray-700 mb-4">{error}</p>
+          <button
+            onClick={() => refetch()}
+            className="px-6 py-3 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-8 md:p-12">
@@ -178,19 +210,19 @@ export default function JobsPage() {
                   {/* Cards */}
                   <div className={`space-y-4 p-4 bg-white/40 rounded-b-[1.5rem] min-h-[500px] border-x-2 border-b-2 ${config.bgColor === 'bg-gray-50' ? 'border-gray-300' : config.bgColor === 'bg-blue-50' ? 'border-blue-300' : config.bgColor === 'bg-yellow-50' ? 'border-yellow-300' : config.bgColor === 'bg-purple-50' ? 'border-purple-300' : config.bgColor === 'bg-green-50' ? 'border-green-300' : 'border-red-300'}`}>
                     {jobsInColumn.map((job) => (
-                      <Link
+                      <div
                         key={job.id}
-                        href={`/dashboard/jobs/${job.id}`}
-                        className="block bg-white rounded-[1.5rem] p-5 border-2 border-gray-300 shadow-[0_6px_0_0_rgba(0,0,0,0.1)] hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(0,0,0,0.1)] transition-all duration-200 cursor-pointer group"
+                        className="bg-white rounded-[1.5rem] p-5 border-2 border-gray-300 shadow-[0_6px_0_0_rgba(0,0,0,0.1)] hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(0,0,0,0.1)] transition-all duration-200 cursor-pointer group"
                       >
                         {/* Company & Title */}
-                        <div className="flex items-start justify-between gap-2 mb-3">
-                          <div className="flex-1">
-                            <h4 className="font-bold text-gray-900 group-hover:text-purple-600 transition-colors line-clamp-1">
-                              {job.title}
-                            </h4>
-                            <p className="text-sm text-gray-700 font-semibold mt-0.5">{job.company}</p>
-                          </div>
+                        <Link href={`/dashboard/jobs/${job.id}`}>
+                          <div className="flex items-start justify-between gap-2 mb-3">
+                            <div className="flex-1">
+                              <h4 className="font-bold text-gray-900 group-hover:text-purple-600 transition-colors line-clamp-1">
+                                {job.title}
+                              </h4>
+                              <p className="text-sm text-gray-700 font-semibold mt-0.5">{job.company?.name || 'Unknown Company'}</p>
+                            </div>
                           {job.priority && (
                             <span className={`text-xs font-black px-3 py-1 rounded-[0.75rem] border-2 ${priorityConfig[job.priority].bgColor} ${priorityConfig[job.priority].color} ${job.priority === 'high' ? 'border-red-400' : job.priority === 'medium' ? 'border-yellow-400' : 'border-gray-400'}`}>
                               {priorityConfig[job.priority].label}
@@ -199,30 +231,32 @@ export default function JobsPage() {
                         </div>
 
                         {/* Location & Work Mode */}
-                        <div className="flex items-center gap-2 text-xs text-gray-700 font-medium mb-3">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          <span className="line-clamp-1">{job.location}</span>
-                          <span className="text-gray-400">•</span>
-                          <span className="capitalize">{job.workMode}</span>
-                        </div>
+                        {(job.location || job.work_mode) && (
+                          <div className="flex items-center gap-2 text-xs text-gray-700 font-medium mb-3">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            {job.location && <span className="line-clamp-1">{job.location}</span>}
+                            {job.location && job.work_mode && <span className="text-gray-400">•</span>}
+                            {job.work_mode && <span className="capitalize">{job.work_mode}</span>}
+                          </div>
+                        )}
 
                         {/* Salary */}
-                        {job.salaryRange && (
+                        {(job.salary_min && job.salary_max) && (
                           <div className="text-sm font-bold text-gray-800 mb-3">
                             {handleFormatSalary(job)}
                           </div>
                         )}
 
                         {/* Applied Date */}
-                        {job.appliedDate && (
+                        {job.applied_date && (
                           <div className="text-xs text-gray-600 font-medium flex items-center gap-1">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            Applied {handleFormatDate(job.appliedDate)} • {handleCalculateDaysAgo(job.appliedDate)}
+                            Applied {handleFormatDate(job.applied_date)} • {handleCalculateDaysAgo(job.applied_date)}
                           </div>
                         )}
 
@@ -237,7 +271,19 @@ export default function JobsPage() {
                             </div>
                           </div>
                         )}
-                      </Link>
+                        </Link>
+                        
+                        {/* Edit Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingApplication(job);
+                          }}
+                          className="mt-3 w-full px-4 py-2 rounded-[1rem] bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 transition-colors text-sm"
+                        >
+                          Edit Application
+                        </button>
+                      </div>
                     ))}
 
                     {jobsInColumn.length === 0 && (
@@ -266,20 +312,21 @@ export default function JobsPage() {
                   <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Applied</th>
                   <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Priority</th>
+                  <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y-2 divide-gray-200">
                 {applications.map((job) => (
-                  <tr key={job.id} className="hover:bg-purple-50 cursor-pointer transition-colors">
+                  <tr key={job.id} className="hover:bg-purple-50 transition-colors">
                     <td className="px-6 py-4">
-                      <Link href={`/dashboard/jobs/${job.id}`} className="block">
+                      <Link href={`/dashboard/jobs/${job.id}`} className="block cursor-pointer">
                         <div className="font-bold text-gray-900 hover:text-purple-600">{job.title}</div>
-                        <div className="text-sm text-gray-700 font-semibold">{job.company}</div>
+                        <div className="text-sm text-gray-700 font-semibold">{job.company?.name || 'Unknown Company'}</div>
                       </Link>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700 font-medium">
-                      <div>{job.location}</div>
-                      <div className="text-xs text-gray-600 capitalize font-semibold">{job.workMode}</div>
+                      <div>{job.location || 'Not specified'}</div>
+                      {job.work_mode && <div className="text-xs text-gray-600 capitalize font-semibold">{job.work_mode}</div>}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-800 font-bold">
                       {handleFormatSalary(job)}
@@ -290,12 +337,20 @@ export default function JobsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700 font-semibold">
-                      {job.appliedDate ? handleFormatDate(job.appliedDate) : 'Not applied'}
+                      {job.applied_date ? handleFormatDate(job.applied_date) : 'Not applied'}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-3 py-1.5 rounded-[0.75rem] text-xs font-black border-2 ${priorityConfig[job.priority].bgColor} ${priorityConfig[job.priority].color} ${job.priority === 'high' ? 'border-red-400' : job.priority === 'medium' ? 'border-yellow-400' : 'border-gray-400'}`}>
                         {priorityConfig[job.priority].label}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => setEditingApplication(job)}
+                        className="px-4 py-2 rounded-[1rem] bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 transition-colors text-sm"
+                      >
+                        Edit
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -305,110 +360,25 @@ export default function JobsPage() {
         </div>
       )}
 
-      {/* Add Job Modal (Simple placeholder) */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-[2rem] max-w-2xl w-full p-10 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">Add New Job 🎯</h2>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Job Posting URL (Optional)
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://company.com/jobs/123"
-                  className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium"
-                />
-                <p className="text-xs text-gray-600 font-semibold mt-2">We'll automatically extract job details from the URL ✨</p>
-              </div>
+      {/* Modals */}
+      <AddJobModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={() => {
+          refetch();
+          setShowAddModal(false);
+        }}
+      />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Job Title *</label>
-                  <input
-                    type="text"
-                    placeholder="Senior Product Manager"
-                    className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Company *</label>
-                  <input
-                    type="text"
-                    placeholder="Google"
-                    className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Location</label>
-                  <input
-                    type="text"
-                    placeholder="San Francisco, CA"
-                    className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Work Mode</label>
-                  <select className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-bold">
-                    <option value="remote">Remote</option>
-                    <option value="hybrid">Hybrid</option>
-                    <option value="onsite">Onsite</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Status</label>
-                  <select className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-bold">
-                    <option value="wishlist">Wishlist</option>
-                    <option value="applied">Applied</option>
-                    <option value="screening">Screening</option>
-                    <option value="interviewing">Interviewing</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Priority</label>
-                  <select className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-bold">
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 mt-10">
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="flex-1 px-8 py-4 rounded-[1.5rem] bg-white border-2 border-gray-300 text-gray-700 font-black hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                className="flex-1 px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200"
-              >
-                Add Application
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <EditJobModal
+        isOpen={!!editingApplication}
+        application={editingApplication}
+        onClose={() => setEditingApplication(null)}
+        onSuccess={() => {
+          refetch();
+          setEditingApplication(null);
+        }}
+      />
     </div>
   );
 }

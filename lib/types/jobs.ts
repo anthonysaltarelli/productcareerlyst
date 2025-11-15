@@ -1,4 +1,8 @@
-// Job Application Types
+// Job Application Types - Updated for Database Schema
+
+// ============================================================================
+// ENUMS (matching database enums)
+// ============================================================================
 
 export type ApplicationStatus = 
   | 'wishlist' 
@@ -10,6 +14,10 @@ export type ApplicationStatus =
   | 'accepted' 
   | 'withdrawn';
 
+export type PriorityLevel = 'low' | 'medium' | 'high';
+
+export type WorkMode = 'remote' | 'hybrid' | 'onsite';
+
 export type InterviewType = 
   | 'recruiter_screen' 
   | 'phone_screen' 
@@ -20,6 +28,10 @@ export type InterviewType =
   | 'final' 
   | 'other';
 
+export type InterviewStatus = 'scheduled' | 'completed' | 'cancelled';
+
+export type InterviewOutcome = 'passed' | 'failed' | 'pending';
+
 export type ContactRelationship = 
   | 'recruiter' 
   | 'hiring_manager' 
@@ -29,14 +41,278 @@ export type ContactRelationship =
   | 'executive' 
   | 'other';
 
-export type InterviewStatus = 'scheduled' | 'completed' | 'cancelled';
+export type InteractionType = 
+  | 'email' 
+  | 'linkedin' 
+  | 'phone' 
+  | 'coffee' 
+  | 'video_call' 
+  | 'other';
+
+export type InterviewerRole = 
+  | 'interviewer' 
+  | 'panel_member' 
+  | 'observer';
+
+export type CompanyIndustry = 
+  | 'technology' 
+  | 'finance' 
+  | 'healthcare' 
+  | 'retail' 
+  | 'consulting' 
+  | 'education' 
+  | 'manufacturing' 
+  | 'media' 
+  | 'other';
+
+export type CompanySize = 
+  | '1-50' 
+  | '51-200' 
+  | '201-500' 
+  | '501-1000' 
+  | '1001-5000' 
+  | '5000+';
+
+export type CurrencyCode = 
+  | 'USD' 
+  | 'EUR' 
+  | 'GBP' 
+  | 'CAD' 
+  | 'AUD' 
+  | 'JPY' 
+  | 'INR';
+
+// ============================================================================
+// SHARED TABLES (cross-user)
+// ============================================================================
+
+export interface Company {
+  id: string;
+  name: string;
+  website?: string;
+  linkedin_url?: string;
+  industry?: CompanyIndustry;
+  size?: CompanySize;
+  headquarters_city?: string;
+  headquarters_state?: string;
+  headquarters_country?: string;
+  description?: string;
+  founded_year?: number;
+  is_approved: boolean;
+  created_by_user_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompanyResearch {
+  id: string;
+  company_id: string;
+  perplexity_response: {
+    content?: string;
+    sources?: string[];
+    [key: string]: any; // Allow for other Perplexity response fields
+  };
+  generated_at: string;
+  expires_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================================================
+// USER-PRIVATE TABLES
+// ============================================================================
 
 export interface JobApplication {
+  id: string;
+  user_id: string;
+  company_id: string;
+  title: string;
+  location?: string;
+  work_mode?: WorkMode;
+  salary_min?: number;
+  salary_max?: number;
+  salary_currency?: CurrencyCode;
+  job_url?: string;
+  description?: string;
+  status: ApplicationStatus;
+  priority: PriorityLevel;
+  applied_date?: string; // ISO date string
+  deadline?: string; // ISO date string
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Interview {
+  id: string;
+  user_id: string;
+  application_id: string;
+  title: string;
+  type?: InterviewType;
+  status: InterviewStatus;
+  scheduled_for?: string;
+  duration_minutes?: number;
+  location?: string;
+  meeting_link?: string;
+  prep_notes?: string;
+  feedback?: string;
+  outcome?: InterviewOutcome;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InterviewQuestion {
+  id: string;
+  user_id: string;
+  interview_id: string;
+  question: string;
+  answer?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Contact {
+  id: string;
+  user_id: string;
+  company_id: string;
+  application_id?: string;
+  name: string;
+  title?: string;
+  email?: string;
+  phone?: string;
+  linkedin_url?: string;
+  relationship?: ContactRelationship;
+  last_contact_date?: string; // ISO date string
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InterviewInterviewer {
+  id: string;
+  interview_id: string;
+  contact_id: string;
+  role?: InterviewerRole;
+  created_at: string;
+}
+
+export interface ContactInteraction {
+  id: string;
+  user_id: string;
+  contact_id: string;
+  date: string; // ISO date string
+  type?: InteractionType;
+  summary: string;
+  notes?: string;
+  created_at: string;
+}
+
+// ============================================================================
+// EXTENDED TYPES WITH RELATIONS
+// ============================================================================
+
+export interface JobApplicationWithCompany extends JobApplication {
+  company?: Company;
+}
+
+export interface InterviewWithRelations extends Interview {
+  application?: JobApplication;
+  interviewers?: Contact[];
+  questions?: InterviewQuestion[];
+}
+
+export interface ContactWithInteractions extends Contact {
+  company?: Company;
+  interactions?: ContactInteraction[];
+}
+
+export interface CompanyWithResearch extends Company {
+  research?: CompanyResearch;
+}
+
+// ============================================================================
+// FORM/INPUT TYPES
+// ============================================================================
+
+export interface CreateCompanyInput {
+  name: string;
+  website?: string;
+  linkedin_url?: string;
+  industry?: CompanyIndustry;
+  size?: CompanySize;
+  headquarters_city?: string;
+  headquarters_state?: string;
+  headquarters_country?: string;
+  description?: string;
+  founded_year?: number;
+}
+
+export interface CreateJobApplicationInput {
+  company_id: string;
+  title: string;
+  location?: string;
+  work_mode?: WorkMode;
+  salary_min?: number;
+  salary_max?: number;
+  salary_currency?: CurrencyCode;
+  job_url?: string;
+  description?: string;
+  status?: ApplicationStatus;
+  priority?: PriorityLevel;
+  applied_date?: string;
+  deadline?: string;
+  notes?: string;
+}
+
+export interface CreateInterviewInput {
+  application_id: string;
+  title: string;
+  type?: InterviewType;
+  status?: InterviewStatus;
+  scheduled_for?: string;
+  duration_minutes?: number;
+  location?: string;
+  meeting_link?: string;
+  prep_notes?: string;
+}
+
+export interface CreateContactInput {
+  company_id: string;
+  application_id?: string;
+  name: string;
+  title?: string;
+  email?: string;
+  phone?: string;
+  linkedin_url?: string;
+  relationship?: ContactRelationship;
+  notes?: string;
+}
+
+export interface CreateInterviewQuestionInput {
+  interview_id: string;
+  question: string;
+  answer?: string;
+}
+
+export interface CreateContactInteractionInput {
+  contact_id: string;
+  date: string;
+  type?: InteractionType;
+  summary: string;
+  notes?: string;
+}
+
+// ============================================================================
+// LEGACY TYPES (for backward compatibility with existing mock data)
+// ============================================================================
+
+/** @deprecated Use JobApplication instead */
+export interface LegacyJobApplication {
   id: string;
   title: string;
   company: string;
   location: string;
-  workMode: 'remote' | 'hybrid' | 'onsite';
+  workMode: WorkMode;
   salaryRange?: {
     min: number;
     max: number;
@@ -46,78 +322,10 @@ export interface JobApplication {
   companyWebsite?: string;
   description?: string;
   status: ApplicationStatus;
-  priority: 'low' | 'medium' | 'high';
+  priority: PriorityLevel;
   appliedDate?: string;
   deadline?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;
 }
-
-export interface Interview {
-  id: string;
-  applicationId: string;
-  title: string;
-  type: InterviewType;
-  status: InterviewStatus;
-  scheduledFor?: string;
-  duration?: number; // minutes
-  location?: string;
-  meetingLink?: string;
-  interviewers?: string[];
-  notes?: string;
-  prepNotes?: string;
-  feedback?: string;
-  createdAt: string;
-}
-
-export interface Contact {
-  id: string;
-  applicationId: string;
-  name: string;
-  title: string;
-  email?: string;
-  linkedinUrl?: string;
-  phone?: string;
-  relationship: ContactRelationship;
-  lastContactDate?: string;
-  notes?: string;
-  interactions: ContactInteraction[];
-  createdAt: string;
-}
-
-export interface ContactInteraction {
-  id: string;
-  date: string;
-  type: 'email' | 'linkedin' | 'phone' | 'coffee' | 'other';
-  summary: string;
-  notes?: string;
-}
-
-export interface CompanyResearch {
-  id: string;
-  applicationId: string;
-  overview?: string;
-  culture?: string;
-  products?: string[];
-  techStack?: string[];
-  recentNews?: Array<{
-    title: string;
-    url: string;
-    date: string;
-  }>;
-  interviewTips?: string;
-  notes?: string;
-  updatedAt: string;
-}
-
-export interface Document {
-  id: string;
-  applicationId: string;
-  name: string;
-  type: 'resume' | 'cover_letter' | 'portfolio' | 'other';
-  url?: string;
-  notes?: string;
-  createdAt: string;
-}
-

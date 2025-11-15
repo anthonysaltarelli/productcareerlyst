@@ -9,6 +9,7 @@ type Props = {
   selectedBulletId: string | null;
   onBulletSelect: (bulletId: string | null) => void;
   isFirst: boolean;
+  onExperienceChange: (updatedExperience: Experience) => void;
 };
 
 export default function ExperienceCard({
@@ -16,20 +17,13 @@ export default function ExperienceCard({
   selectedBulletId,
   onBulletSelect,
   isFirst,
+  onExperienceChange,
 }: Props) {
   const [isExpanded, setIsExpanded] = useState(isFirst);
-  const [showAllBullets, setShowAllBullets] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [bullets, setBullets] = useState(experience.bullets);
-
+  
+  const bullets = experience.bullets;
   const selectedBullets = bullets.filter((b) => b.isSelected);
-  const unselectedBullets = bullets.filter((b) => !b.isSelected);
-
-  const bulletsToShow = showAllBullets
-    ? bullets
-    : [...selectedBullets, ...unselectedBullets.slice(0, 1)];
-
-  const hiddenCount = bullets.length - bulletsToShow.length;
 
   const handleDragStart = (index: number) => (e: React.DragEvent) => {
     setDraggedIndex(index);
@@ -52,7 +46,7 @@ export default function ExperienceCard({
     newBullets.splice(draggedIndex, 1);
     newBullets.splice(index, 0, draggedBullet);
     
-    setBullets(newBullets);
+    onExperienceChange({ ...experience, bullets: newBullets });
     setDraggedIndex(index);
   };
 
@@ -77,21 +71,20 @@ export default function ExperienceCard({
 
     const newBullets = [...bullets];
 
-    // If unchecking, find where to move it BEFORE updating the status
+    // Update the bullet's selection status
+    newBullets[bulletIndex] = {
+      ...newBullets[bulletIndex],
+      isSelected: checked,
+    };
+
     if (!checked) {
-      // Find the last checked bullet's index (excluding the current bullet)
+      // If unchecking, move it after the last checked bullet
       let lastCheckedIndex = -1;
       for (let i = 0; i < newBullets.length; i++) {
         if (i !== bulletIndex && newBullets[i].isSelected) {
           lastCheckedIndex = i;
         }
       }
-
-      // Update the bullet's selection status
-      newBullets[bulletIndex] = {
-        ...newBullets[bulletIndex],
-        isSelected: checked,
-      };
 
       // Move it after the last checked bullet if there are any checked bullets
       if (lastCheckedIndex >= 0) {
@@ -101,14 +94,23 @@ export default function ExperienceCard({
         newBullets.splice(targetIndex, 0, movedBullet);
       }
     } else {
-      // Just update the selection status if checking
-      newBullets[bulletIndex] = {
-        ...newBullets[bulletIndex],
-        isSelected: checked,
-      };
+      // If checking, move it after the last checked bullet (which is now this one after update)
+      // Find the last checked bullet's index (excluding the current bullet)
+      let lastCheckedIndex = -1;
+      for (let i = 0; i < newBullets.length; i++) {
+        if (i !== bulletIndex && newBullets[i].isSelected) {
+          lastCheckedIndex = i;
+        }
+      }
+
+      // If there are other checked bullets, move after them
+      // If no other checked bullets, move to the beginning
+      const [movedBullet] = newBullets.splice(bulletIndex, 1);
+      const targetIndex = lastCheckedIndex >= 0 ? (bulletIndex < lastCheckedIndex ? lastCheckedIndex : lastCheckedIndex + 1) : 0;
+      newBullets.splice(targetIndex, 0, movedBullet);
     }
 
-    setBullets(newBullets);
+    onExperienceChange({ ...experience, bullets: newBullets });
   };
 
   return (
@@ -225,35 +227,21 @@ export default function ExperienceCard({
           </div>
 
           <div className="space-y-3">
-            {bulletsToShow.map((bullet) => {
-              const bulletIndex = bullets.findIndex((b) => b.id === bullet.id);
-              return (
-                <BulletEditor
-                  key={bullet.id}
-                  bullet={bullet}
-                  index={bulletIndex}
-                  isSelected={selectedBulletId === bullet.id}
-                  onSelect={() => onBulletSelect(bullet.id)}
-                  onDragStart={handleDragStart(bulletIndex)}
-                  onDragOver={handleDragOver(bulletIndex)}
-                  onDrop={handleDrop}
-                  onDragEnd={handleDragEnd}
-                  onToggleSelection={handleToggleSelection(bullet.id)}
-                />
-              );
-            })}
+            {bullets.map((bullet, index) => (
+              <BulletEditor
+                key={bullet.id}
+                bullet={bullet}
+                index={index}
+                isSelected={selectedBulletId === bullet.id}
+                onSelect={() => onBulletSelect(bullet.id)}
+                onDragStart={handleDragStart(index)}
+                onDragOver={handleDragOver(index)}
+                onDrop={handleDrop}
+                onDragEnd={handleDragEnd}
+                onToggleSelection={handleToggleSelection(bullet.id)}
+              />
+            ))}
           </div>
-
-          {hiddenCount > 0 && (
-            <button
-              onClick={() => setShowAllBullets(!showAllBullets)}
-              className="w-full mt-4 py-2.5 text-sm font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition-all border-2 border-dashed border-slate-300 hover:border-blue-300"
-            >
-              {showAllBullets
-                ? "Show Less"
-                : `Show ${hiddenCount} More Bullet${hiddenCount !== 1 ? "s" : ""}`}
-            </button>
-          )}
         </div>
       )}
     </div>

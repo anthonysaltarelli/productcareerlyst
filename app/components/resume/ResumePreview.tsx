@@ -1,20 +1,17 @@
 "use client";
 
 import { 
-  mockExperiences, 
-  mockContactInfo, 
-  mockSummary, 
-  mockEducation, 
-  mockSkills,
+  ResumeData,
   ResumeStyles,
   defaultResumeStyles 
 } from "./mockData";
 
 type Props = {
   styles?: ResumeStyles;
+  resumeData: ResumeData;
 };
 
-export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
+export default function ResumePreview({ styles = defaultResumeStyles, resumeData }: Props) {
   // Map font names to CSS variables for Google Fonts
   const getFontFamily = (fontName: string): string => {
     const fontMap: Record<string, string> = {
@@ -52,7 +49,7 @@ export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
   } as React.CSSProperties;
 
   // Filter only selected bullets for preview
-  const selectedExperiences = mockExperiences.map(exp => ({
+  const selectedExperiences = resumeData.experiences.map(exp => ({
     ...exp,
     bullets: exp.bullets.filter(b => b.isSelected),
   })).filter(exp => exp.bullets.length > 0);
@@ -275,34 +272,34 @@ export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
         <div className="resume-preview-content">
           {/* Contact Information */}
           <header className="resume-header">
-            <h1 className="resume-name">{mockContactInfo.name}</h1>
+            <h1 className="resume-name">{resumeData.contactInfo.name}</h1>
             <div className="resume-contact-info">
-              <span className="resume-contact-item">{mockContactInfo.location}</span>
+              <span className="resume-contact-item">{resumeData.contactInfo.location}</span>
               <span className="resume-contact-item">
                 <span className="resume-separator">•</span>
-                {mockContactInfo.phone}
+                {resumeData.contactInfo.phone}
               </span>
               <span className="resume-contact-item">
                 <span className="resume-separator">•</span>
-                <a href={`mailto:${mockContactInfo.email}`} className="resume-link">{mockContactInfo.email}</a>
+                <a href={`mailto:${resumeData.contactInfo.email}`} className="resume-link">{resumeData.contactInfo.email}</a>
               </span>
               <span className="resume-contact-item">
                 <span className="resume-separator">•</span>
-                <a href={`https://${mockContactInfo.linkedin}`} target="_blank" rel="noopener noreferrer" className="resume-link">{mockContactInfo.linkedin}</a>
+                <a href={`https://${resumeData.contactInfo.linkedin}`} target="_blank" rel="noopener noreferrer" className="resume-link">{resumeData.contactInfo.linkedin}</a>
               </span>
               <span className="resume-contact-item">
                 <span className="resume-separator">•</span>
-                <a href={`https://${mockContactInfo.portfolio}`} target="_blank" rel="noopener noreferrer" className="resume-link">{mockContactInfo.portfolio}</a>
+                <a href={`https://${resumeData.contactInfo.portfolio}`} target="_blank" rel="noopener noreferrer" className="resume-link">{resumeData.contactInfo.portfolio}</a>
               </span>
             </div>
           </header>
 
           {/* Professional Summary */}
-          {mockSummary && (
+          {resumeData.summary && (
             <section className="resume-section">
               <h2 className="resume-section-heading">PROFESSIONAL SUMMARY</h2>
               <div className="resume-section-divider"></div>
-              <p className="resume-summary">{mockSummary}</p>
+              <p className="resume-summary">{resumeData.summary}</p>
             </section>
           )}
 
@@ -336,11 +333,11 @@ export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
           )}
 
           {/* Education */}
-          {mockEducation.length > 0 && (
+          {resumeData.education.length > 0 && (
             <section className="resume-section">
               <h2 className="resume-section-heading">EDUCATION</h2>
               <div className="resume-section-divider"></div>
-              {mockEducation.map((edu) => (
+              {resumeData.education.map((edu) => (
                 <div key={edu.id} className="resume-education-item">
                   <div className="resume-experience-header">
                     <div className="resume-experience-title-group">
@@ -370,27 +367,27 @@ export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
           )}
 
           {/* Skills */}
-          {mockSkills && (
+          {resumeData.skills && (
             <section className="resume-section">
               <h2 className="resume-section-heading">SKILLS</h2>
               <div className="resume-section-divider"></div>
               <div className="resume-skills">
-                {mockSkills.technical && mockSkills.technical.length > 0 && (
+                {resumeData.skills.technical && resumeData.skills.technical.length > 0 && (
                   <div className="resume-skill-group">
                     <span className="resume-skill-category">Technical:</span>
-                    <span className="resume-skill-list">{mockSkills.technical.join(', ')}</span>
+                    <span className="resume-skill-list">{resumeData.skills.technical.join(', ')}</span>
                   </div>
                 )}
-                {mockSkills.product && mockSkills.product.length > 0 && (
+                {resumeData.skills.product && resumeData.skills.product.length > 0 && (
                   <div className="resume-skill-group">
                     <span className="resume-skill-category">Product Management:</span>
-                    <span className="resume-skill-list">{mockSkills.product.join(', ')}</span>
+                    <span className="resume-skill-list">{resumeData.skills.product.join(', ')}</span>
                   </div>
                 )}
-                {mockSkills.soft && mockSkills.soft.length > 0 && (
+                {resumeData.skills.soft && resumeData.skills.soft.length > 0 && (
                   <div className="resume-skill-group">
                     <span className="resume-skill-category">Leadership:</span>
-                    <span className="resume-skill-list">{mockSkills.soft.join(', ')}</span>
+                    <span className="resume-skill-list">{resumeData.skills.soft.join(', ')}</span>
                   </div>
                 )}
               </div>

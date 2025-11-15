@@ -1,9 +1,12 @@
 "use client";
 
-import { resumeVersions, mockResumeScore } from "./mockData";
+import { mockResumeScore } from "./mockData";
+import type { ResumeVersion } from "@/lib/hooks/useResumeData";
 
 type Props = {
+  versions: ResumeVersion[];
   onEditVersion: (versionId: string) => void;
+  onCreateVersion?: () => void;
 };
 
 const formatDate = (dateString: string): string => {
@@ -16,7 +19,7 @@ const formatDate = (dateString: string): string => {
   return date.toLocaleDateString('en-US', options);
 };
 
-export default function ResumeLanding({ onEditVersion }: Props) {
+export default function ResumeLanding({ versions, onEditVersion, onCreateVersion }: Props) {
   return (
     <div className="p-8 md:p-12">
       <div className="max-w-7xl mx-auto">
@@ -43,7 +46,7 @@ export default function ResumeLanding({ onEditVersion }: Props) {
           </div>
 
           <div className="p-6 rounded-[2rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_10px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300 text-center">
-            <p className="text-4xl font-black text-blue-600 mb-2">{resumeVersions.length}</p>
+            <p className="text-4xl font-black text-blue-600 mb-2">{versions.length}</p>
             <p className="text-sm font-bold text-gray-700">Resume Versions</p>
           </div>
 
@@ -61,14 +64,38 @@ export default function ResumeLanding({ onEditVersion }: Props) {
         {/* Resume Versions */}
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-3xl font-black text-gray-800">📄 Your Resumes</h2>
-          <button className="px-8 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200">
-            + Create New Version
-          </button>
+          {onCreateVersion && (
+            <button 
+              onClick={onCreateVersion}
+              className="px-8 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200"
+            >
+              + Create New Version
+            </button>
+          )}
         </div>
 
         {/* Resume Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {resumeVersions.map((version) => (
+        {versions.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-slate-200 to-slate-300 rounded-[2rem] border-2 border-slate-400 mb-6">
+              <svg className="w-12 h-12 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-black text-gray-800 mb-2">No Resumes Yet</h3>
+            <p className="text-gray-600 font-medium mb-6">Create your first resume to get started!</p>
+            {onCreateVersion && (
+              <button 
+                onClick={onCreateVersion}
+                className="px-8 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200"
+              >
+                + Create First Resume
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {versions.map((version) => (
             <div
               key={version.id}
               className="rounded-[2rem] bg-gradient-to-br from-slate-100 to-slate-200 shadow-[0_10px_0_0_rgba(51,65,85,0.3)] border-2 border-slate-300 overflow-hidden hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(51,65,85,0.3)] transition-all duration-200"
@@ -81,14 +108,14 @@ export default function ResumeLanding({ onEditVersion }: Props) {
                       <h3 className="text-xl font-black text-gray-800">
                         {version.name}
                       </h3>
-                      {version.isMaster && (
+                      {version.is_master && (
                         <span className="px-3 py-1 text-xs font-bold bg-gradient-to-br from-blue-400 to-cyan-400 text-white rounded-[0.75rem] border-2 border-blue-500">
                           MASTER
                         </span>
                       )}
                     </div>
                     <p className="text-sm text-gray-600 font-medium">
-                      Modified: {formatDate(version.lastModified)}
+                      Modified: {formatDate(version.updated_at)}
                     </p>
                   </div>
                 </div>
@@ -119,7 +146,8 @@ export default function ResumeLanding({ onEditVersion }: Props) {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
 
         {/* Help Section */}
         <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-slate-700 to-slate-900 shadow-[0_20px_0_0_rgba(15,23,42,0.4)] border-2 border-slate-800">

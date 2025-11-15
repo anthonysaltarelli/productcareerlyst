@@ -1,10 +1,9 @@
 "use client";
 
-import { mockExperiences, mockContactInfo, mockSummary, mockEducation, mockSkills, defaultResumeStyles, ResumeStyles } from "./mockData";
+import { ResumeData, Experience, Education, ResumeStyles } from "./mockData";
 import ExperienceCard from "./ExperienceCard";
 import ResumePreview from "./ResumePreview";
-import { useState } from "react";
-import { createResumeDocument, downloadDocx } from "@/lib/utils/exportResume";
+import ResumeEditorHeader from "./ResumeEditorHeader";
 
 type Props = {
   selectedVersion: string;
@@ -13,6 +12,12 @@ type Props = {
   selectedBulletId: string | null;
   onBulletSelect: (bulletId: string | null) => void;
   resumeStyles: ResumeStyles;
+  resumeData: ResumeData;
+  onResumeDataChange: (data: ResumeData) => void;
+  hasUnsavedChanges: boolean;
+  onSave: () => void;
+  onDiscard: () => void;
+  isSaving: boolean;
 };
 
 export default function ResumeEditor({
@@ -22,7 +27,61 @@ export default function ResumeEditor({
   selectedBulletId,
   onBulletSelect,
   resumeStyles,
+  resumeData,
+  onResumeDataChange,
+  hasUnsavedChanges,
+  onSave,
+  onDiscard,
+  isSaving,
 }: Props) {
+
+  const handleContactChange = (field: keyof ResumeData['contactInfo'], value: string) => {
+    onResumeDataChange({
+      ...resumeData,
+      contactInfo: {
+        ...resumeData.contactInfo,
+        [field]: value,
+      },
+    });
+  };
+
+  const handleSummaryChange = (value: string) => {
+    onResumeDataChange({
+      ...resumeData,
+      summary: value,
+    });
+  };
+
+  const handleExperienceChange = (index: number) => (updatedExperience: Experience) => {
+    const newExperiences = [...resumeData.experiences];
+    newExperiences[index] = updatedExperience;
+    onResumeDataChange({
+      ...resumeData,
+      experiences: newExperiences,
+    });
+  };
+
+  const handleEducationChange = (index: number, field: keyof Education, value: string | string[]) => {
+    const newEducation = [...resumeData.education];
+    newEducation[index] = {
+      ...newEducation[index],
+      [field]: value,
+    };
+    onResumeDataChange({
+      ...resumeData,
+      education: newEducation,
+    });
+  };
+
+  const handleSkillsChange = (category: keyof ResumeData['skills'], skills: string[]) => {
+    onResumeDataChange({
+      ...resumeData,
+      skills: {
+        ...resumeData.skills,
+        [category]: skills,
+      },
+    });
+  };
 
   const renderSectionContent = () => {
     switch (selectedSection) {
@@ -39,7 +98,8 @@ export default function ResumeEditor({
                 </label>
                 <input
                   type="text"
-                  defaultValue={mockContactInfo.name}
+                  value={resumeData.contactInfo.name}
+                  onChange={(e) => handleContactChange('name', e.target.value)}
                   className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
@@ -49,7 +109,8 @@ export default function ResumeEditor({
                 </label>
                 <input
                   type="email"
-                  defaultValue={mockContactInfo.email}
+                  value={resumeData.contactInfo.email}
+                  onChange={(e) => handleContactChange('email', e.target.value)}
                   className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
@@ -59,7 +120,8 @@ export default function ResumeEditor({
                 </label>
                 <input
                   type="tel"
-                  defaultValue={mockContactInfo.phone}
+                  value={resumeData.contactInfo.phone}
+                  onChange={(e) => handleContactChange('phone', e.target.value)}
                   className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
@@ -69,7 +131,8 @@ export default function ResumeEditor({
                 </label>
                 <input
                   type="text"
-                  defaultValue={mockContactInfo.location}
+                  value={resumeData.contactInfo.location}
+                  onChange={(e) => handleContactChange('location', e.target.value)}
                   className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
@@ -79,7 +142,8 @@ export default function ResumeEditor({
                 </label>
                 <input
                   type="text"
-                  defaultValue={mockContactInfo.linkedin}
+                  value={resumeData.contactInfo.linkedin}
+                  onChange={(e) => handleContactChange('linkedin', e.target.value)}
                   className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
@@ -89,7 +153,8 @@ export default function ResumeEditor({
                 </label>
                 <input
                   type="text"
-                  defaultValue={mockContactInfo.portfolio}
+                  value={resumeData.contactInfo.portfolio}
+                  onChange={(e) => handleContactChange('portfolio', e.target.value)}
                   className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
@@ -104,14 +169,15 @@ export default function ResumeEditor({
               Professional Summary
             </h2>
             <textarea
-              defaultValue={mockSummary}
+              value={resumeData.summary}
+              onChange={(e) => handleSummaryChange(e.target.value)}
               rows={6}
               className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all resize-none bg-slate-50 focus:bg-white"
               placeholder="Write a compelling professional summary..."
             />
             <div className="mt-5 flex items-center justify-between">
               <span className="text-sm font-medium text-gray-500">
-                {mockSummary.length} characters
+                {resumeData.summary.length} characters
               </span>
               <button className="px-5 py-2.5 text-sm font-bold bg-gradient-to-br from-purple-100 to-pink-100 text-purple-700 hover:from-purple-200 hover:to-pink-200 rounded-xl transition-all border border-purple-200">
                 ✨ AI Optimize
@@ -121,11 +187,11 @@ export default function ResumeEditor({
         );
 
       case "experience":
-        const selectedCount = mockExperiences.reduce(
+        const selectedCount = resumeData.experiences.reduce(
           (acc, exp) => acc + exp.bullets.filter((b) => b.isSelected).length,
           0
         );
-        const totalCount = mockExperiences.reduce(
+        const totalCount = resumeData.experiences.reduce(
           (acc, exp) => acc + exp.bullets.length,
           0
         );
@@ -160,13 +226,14 @@ export default function ResumeEditor({
               </div>
             </div>
 
-            {mockExperiences.map((experience, index) => (
+            {resumeData.experiences.map((experience, index) => (
               <ExperienceCard
                 key={experience.id}
                 experience={experience}
                 selectedBulletId={selectedBulletId}
                 onBulletSelect={onBulletSelect}
                 isFirst={index === 0}
+                onExperienceChange={handleExperienceChange(index)}
               />
             ))}
 
@@ -192,7 +259,7 @@ export default function ResumeEditor({
       case "education":
         return (
           <div className="space-y-5">
-            {mockEducation.map((edu, index) => (
+            {resumeData.education.map((edu, index) => (
               <div
                 key={edu.id}
                 className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm"
@@ -225,7 +292,8 @@ export default function ResumeEditor({
                     </label>
                     <input
                       type="text"
-                      defaultValue={edu.school}
+                      value={edu.school}
+                      onChange={(e) => handleEducationChange(index, 'school', e.target.value)}
                       className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
@@ -236,7 +304,8 @@ export default function ResumeEditor({
                     </label>
                     <input
                       type="text"
-                      defaultValue={edu.degree}
+                      value={edu.degree}
+                      onChange={(e) => handleEducationChange(index, 'degree', e.target.value)}
                       className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
@@ -247,7 +316,8 @@ export default function ResumeEditor({
                     </label>
                     <input
                       type="text"
-                      defaultValue={edu.field}
+                      value={edu.field}
+                      onChange={(e) => handleEducationChange(index, 'field', e.target.value)}
                       className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
@@ -258,7 +328,8 @@ export default function ResumeEditor({
                     </label>
                     <input
                       type="text"
-                      defaultValue={edu.location}
+                      value={edu.location}
+                      onChange={(e) => handleEducationChange(index, 'location', e.target.value)}
                       className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
@@ -269,7 +340,8 @@ export default function ResumeEditor({
                     </label>
                     <input
                       type="text"
-                      defaultValue={edu.gpa}
+                      value={edu.gpa}
+                      onChange={(e) => handleEducationChange(index, 'gpa', e.target.value)}
                       className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
@@ -280,7 +352,8 @@ export default function ResumeEditor({
                     </label>
                     <input
                       type="text"
-                      defaultValue={edu.startDate}
+                      value={edu.startDate}
+                      onChange={(e) => handleEducationChange(index, 'startDate', e.target.value)}
                       placeholder="e.g., Sep 2013"
                       className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                     />
@@ -292,7 +365,8 @@ export default function ResumeEditor({
                     </label>
                     <input
                       type="text"
-                      defaultValue={edu.endDate}
+                      value={edu.endDate}
+                      onChange={(e) => handleEducationChange(index, 'endDate', e.target.value)}
                       placeholder="e.g., Jun 2015 or Present"
                       className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                     />
@@ -309,10 +383,21 @@ export default function ResumeEditor({
                         <span className="text-gray-400 font-bold">•</span>
                         <input
                           type="text"
-                          defaultValue={achievement}
+                          value={achievement}
+                          onChange={(e) => {
+                            const newAchievements = [...edu.achievements];
+                            newAchievements[achIndex] = e.target.value;
+                            handleEducationChange(index, 'achievements', newAchievements);
+                          }}
                           className="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                         />
-                        <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                        <button 
+                          onClick={() => {
+                            const newAchievements = edu.achievements.filter((_, i) => i !== achIndex);
+                            handleEducationChange(index, 'achievements', newAchievements);
+                          }}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        >
                           <svg
                             className="w-4 h-4"
                             fill="none"
@@ -329,7 +414,13 @@ export default function ResumeEditor({
                         </button>
                       </div>
                     ))}
-                    <button className="text-sm text-blue-600 hover:text-blue-700 font-bold mt-2">
+                    <button 
+                      onClick={() => {
+                        const newAchievements = [...edu.achievements, ''];
+                        handleEducationChange(index, 'achievements', newAchievements);
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-bold mt-2"
+                    >
                       + Add Achievement
                     </button>
                   </div>
@@ -372,13 +463,19 @@ export default function ResumeEditor({
                 </button>
               </div>
               <div className="flex flex-wrap gap-3">
-                {mockSkills.technical.map((skill, index) => (
+                {resumeData.skills.technical.map((skill, skillIndex) => (
                   <div
-                    key={index}
+                    key={skillIndex}
                     className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-blue-100 to-cyan-100 border-2 border-blue-200 text-blue-700 rounded-xl hover:from-blue-200 hover:to-cyan-200 transition-all shadow-sm"
                   >
                     <span className="text-sm font-semibold">{skill}</span>
-                    <button className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 hover:text-blue-800">
+                    <button 
+                      onClick={() => {
+                        const newSkills = resumeData.skills.technical.filter((_, i) => i !== skillIndex);
+                        handleSkillsChange('technical', newSkills);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 hover:text-blue-800"
+                    >
                       <svg
                         className="w-4 h-4"
                         fill="none"
@@ -409,13 +506,19 @@ export default function ResumeEditor({
                 </button>
               </div>
               <div className="flex flex-wrap gap-3">
-                {mockSkills.product.map((skill, index) => (
+                {resumeData.skills.product.map((skill, skillIndex) => (
                   <div
-                    key={index}
+                    key={skillIndex}
                     className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-200 text-purple-700 rounded-xl hover:from-purple-200 hover:to-pink-200 transition-all shadow-sm"
                   >
                     <span className="text-sm font-semibold">{skill}</span>
-                    <button className="opacity-0 group-hover:opacity-100 transition-opacity text-purple-600 hover:text-purple-800">
+                    <button 
+                      onClick={() => {
+                        const newSkills = resumeData.skills.product.filter((_, i) => i !== skillIndex);
+                        handleSkillsChange('product', newSkills);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-purple-600 hover:text-purple-800"
+                    >
                       <svg
                         className="w-4 h-4"
                         fill="none"
@@ -446,13 +549,19 @@ export default function ResumeEditor({
                 </button>
               </div>
               <div className="flex flex-wrap gap-3">
-                {mockSkills.soft.map((skill, index) => (
+                {resumeData.skills.soft.map((skill, skillIndex) => (
                   <div
-                    key={index}
+                    key={skillIndex}
                     className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-200 text-green-700 rounded-xl hover:from-green-200 hover:to-emerald-200 transition-all shadow-sm"
                   >
                     <span className="text-sm font-semibold">{skill}</span>
-                    <button className="opacity-0 group-hover:opacity-100 transition-opacity text-green-600 hover:text-green-800">
+                    <button 
+                      onClick={() => {
+                        const newSkills = resumeData.skills.soft.filter((_, i) => i !== skillIndex);
+                        handleSkillsChange('soft', newSkills);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-green-600 hover:text-green-800"
+                    >
                       <svg
                         className="w-4 h-4"
                         fill="none"
@@ -523,6 +632,14 @@ export default function ResumeEditor({
 
   return (
     <div className="flex flex-col h-full">
+      {/* Sticky Header - Always visible in both edit and preview modes */}
+      <ResumeEditorHeader
+        hasUnsavedChanges={hasUnsavedChanges}
+        onSave={onSave}
+        onDiscard={onDiscard}
+        isSaving={isSaving}
+      />
+
       {/* Content Area - Conditional rendering based on view mode */}
       <div className="flex-1 overflow-hidden">
         {viewMode === "edit" && (
@@ -534,7 +651,7 @@ export default function ResumeEditor({
         {viewMode === "preview" && (
           <div className="h-full overflow-y-auto bg-slate-100 p-8">
             <div className="flex justify-center">
-              <ResumePreview styles={resumeStyles} />
+              <ResumePreview styles={resumeStyles} resumeData={resumeData} />
             </div>
           </div>
         )}
