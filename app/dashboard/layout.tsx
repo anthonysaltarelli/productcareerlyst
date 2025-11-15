@@ -34,13 +34,15 @@ export default async function DashboardLayout({
 
         {/* Navigation Links - Scrollable if needed */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          <NavLink href="/dashboard" icon="🏠" label="Dashboard Home" />
-          <NavLink href="/dashboard/courses" icon="📚" label="Courses" />
-          <NavLink href="/dashboard/interview" icon="🤖" label="Interview Coach" />
-          <NavLink href="/dashboard/career" icon="📊" label="Career Tracker" />
-          <NavLink href="/dashboard/portfolio" icon="🏆" label="Impact Portfolio" />
-          <NavLink href="/dashboard/compensation" icon="💰" label="Compensation" />
-          <NavLink href="/dashboard/templates" icon="⚡" label="PM Templates" />
+          <NavLink href="/dashboard" label="Dashboard Home" />
+          <NavLink href="/dashboard/courses" label="Courses" />
+          <NavLink href="/dashboard/jobs" label="Job Applications" />
+          <NavLink href="/dashboard/resume" label="Resume Builder" />
+          <NavLink href="/dashboard/interview" label="Interview Coach" />
+          <NavLink href="/dashboard/career" label="Career Tracker" />
+          <NavLink href="/dashboard/portfolio" label="Impact Portfolio" />
+          <NavLink href="/dashboard/compensation" label="Compensation" />
+          <NavLink href="/dashboard/templates" label="PM Templates" />
         </nav>
 
         {/* User Info & Logout */}
@@ -61,15 +63,12 @@ export default async function DashboardLayout({
   )
 }
 
-const NavLink = ({ href, icon, label }: { href: string; icon: string; label: string }) => {
+const NavLink = ({ href, label }: { href: string; label: string }) => {
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 px-4 py-3 rounded-[1rem] text-gray-300 hover:bg-slate-700 hover:text-white transition-all duration-200 font-semibold group"
+      className="flex items-center px-4 py-3 rounded-[1rem] text-gray-300 hover:bg-slate-700 hover:text-white transition-all duration-200 font-semibold group"
     >
-      <span className="text-2xl group-hover:scale-110 transition-transform duration-200">
-        {icon}
-      </span>
       <span>{label}</span>
     </Link>
   )
