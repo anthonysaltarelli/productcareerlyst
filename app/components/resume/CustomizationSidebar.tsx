@@ -1,25 +1,84 @@
 "use client";
 
-import { ResumeStyles, defaultResumeStyles } from "./mockData";
+import { ResumeStyles, defaultResumeStyles, resumeVersions } from "./mockData";
 
 type Props = {
   styles: ResumeStyles;
   onStyleChange: (styles: ResumeStyles) => void;
   onExportPDF: () => void;
   onExportDocx: () => void;
+  viewMode: "edit" | "preview";
+  onViewModeChange: (mode: "edit" | "preview") => void;
+  onBack: () => void;
+  selectedVersion: string;
 };
 
-export default function CustomizationSidebar({ styles, onStyleChange, onExportPDF, onExportDocx }: Props) {
+export default function CustomizationSidebar({ styles, onStyleChange, onExportPDF, onExportDocx, viewMode, onViewModeChange, onBack, selectedVersion }: Props) {
+  const currentVersion = resumeVersions.find((v) => v.id === selectedVersion);
+
   return (
     <div className="flex flex-col h-full bg-white/80 backdrop-blur-sm">
+      {/* Resume Name Header & View Mode Switcher */}
+      <div className="p-4 border-b border-slate-200">
+        <div className="flex items-center gap-3 mb-3">
+          <button
+            onClick={onBack}
+            className="p-2 hover:bg-slate-100 rounded-lg transition-all flex-shrink-0"
+            aria-label="Back to resumes"
+          >
+            <svg
+              className="w-5 h-5 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-base font-bold text-gray-900 truncate">
+              {currentVersion?.name}
+            </h2>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1.5 border border-slate-200">
+          <button
+            onClick={() => onViewModeChange("edit")}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              viewMode === "edit"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => onViewModeChange("preview")}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              viewMode === "preview"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            Preview
+          </button>
+        </div>
+      </div>
+
       {/* Header */}
-      <div className="p-6 border-b border-slate-200">
-        <h2 className="text-lg font-bold text-gray-900">Customize Resume</h2>
-        <p className="text-sm text-gray-600 mt-1">Adjust styling & export</p>
+      <div className="p-4 border-b border-slate-200">
+        <h2 className="text-base font-bold text-gray-900">Customize Resume</h2>
+        <p className="text-xs text-gray-600 mt-0.5">Adjust styling & export</p>
       </div>
 
       {/* Customization Options */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 space-y-5">
         {/* Font Family */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-3">Font Family</label>
@@ -148,10 +207,10 @@ export default function CustomizationSidebar({ styles, onStyleChange, onExportPD
       </div>
 
       {/* Export Actions */}
-      <div className="p-6 border-t border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 space-y-3">
+      <div className="p-4 border-t border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 space-y-2.5">
         <button
           onClick={onExportPDF}
-          className="w-full px-4 py-3 bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+          className="w-full px-4 py-2.5 bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
@@ -161,7 +220,7 @@ export default function CustomizationSidebar({ styles, onStyleChange, onExportPD
 
         <button
           onClick={onExportDocx}
-          className="w-full px-4 py-3 bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+          className="w-full px-4 py-2.5 bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

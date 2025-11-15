@@ -72,6 +72,9 @@ export default function ResumePage() {
             onVersionChange={setSelectedVersion}
             selectedSection={selectedSection}
             onSectionChange={setSelectedSection}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onBack={handleBackToLanding}
           />
         ) : (
           <CustomizationSidebar
@@ -79,6 +82,10 @@ export default function ResumePage() {
             onStyleChange={setResumeStyles}
             onExportPDF={handleExportPDF}
             onExportDocx={handleExportDocx}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onBack={handleBackToLanding}
+            selectedVersion={selectedVersion}
           />
         )}
       </div>
@@ -89,14 +96,9 @@ export default function ResumePage() {
           selectedVersion={selectedVersion}
           selectedSection={selectedSection}
           viewMode={viewMode}
-          onViewModeChange={setViewMode}
           selectedBulletId={selectedBulletId}
           onBulletSelect={setSelectedBulletId}
-          onBack={handleBackToLanding}
           resumeStyles={resumeStyles}
-          onStyleChange={setResumeStyles}
-          onExportPDF={handleExportPDF}
-          onExportDocx={handleExportDocx}
         />
       </div>
     </div>

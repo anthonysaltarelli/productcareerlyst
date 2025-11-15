@@ -10,28 +10,18 @@ type Props = {
   selectedVersion: string;
   selectedSection: string;
   viewMode: "edit" | "preview";
-  onViewModeChange: (mode: "edit" | "preview") => void;
   selectedBulletId: string | null;
   onBulletSelect: (bulletId: string | null) => void;
-  onBack: () => void;
   resumeStyles: ResumeStyles;
-  onStyleChange: (styles: ResumeStyles) => void;
-  onExportPDF: () => void;
-  onExportDocx: () => void;
 };
 
 export default function ResumeEditor({
   selectedVersion,
   selectedSection,
   viewMode,
-  onViewModeChange,
   selectedBulletId,
   onBulletSelect,
-  onBack,
   resumeStyles,
-  onStyleChange,
-  onExportPDF,
-  onExportDocx,
 }: Props) {
 
   const renderSectionContent = () => {
@@ -533,63 +523,6 @@ export default function ResumeEditor({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Top Bar */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200 px-8 py-5 shadow-sm print:hidden">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={onBack}
-              className="p-2 hover:bg-slate-100 rounded-xl transition-all border border-transparent hover:border-slate-200"
-              aria-label="Back to resumes"
-            >
-              <svg
-                className="w-5 h-5 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Resume Editor</h1>
-              <p className="text-sm text-gray-600 mt-0.5 font-medium">
-                Edit and optimize your resume content
-              </p>
-            </div>
-          </div>
-
-          {/* View Mode Switcher */}
-          <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1.5 border border-slate-200">
-            <button
-              onClick={() => onViewModeChange("edit")}
-              className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                viewMode === "edit"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              Edit
-            </button>
-            <button
-              onClick={() => onViewModeChange("preview")}
-              className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                viewMode === "preview"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              Customize & Preview
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Content Area - Conditional rendering based on view mode */}
       <div className="flex-1 overflow-hidden">
         {viewMode === "edit" && (
