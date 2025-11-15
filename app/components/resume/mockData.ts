@@ -399,9 +399,9 @@ export const defaultResumeStyles: ResumeStyles = {
   marginBottom: 0.5,
   marginLeft: 0.75,
   marginRight: 0.75,
-  accentColor: '#2563eb', // blue-600
-  headingColor: '#1e293b', // slate-800
-  textColor: '#334155', // slate-700
+  accentColor: '#000000', // black
+  headingColor: '#000000', // black
+  textColor: '#000000', // black
 };
 
 // Resume fonts - alphabetical order

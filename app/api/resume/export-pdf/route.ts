@@ -116,7 +116,6 @@ const generateResumeHTML = (data: ResumeData): string => {
 
     @page {
       size: letter;
-      margin: 0;
     }
 
     body {
@@ -125,9 +124,8 @@ const generateResumeHTML = (data: ResumeData): string => {
       line-height: ${styles.lineHeight};
       color: ${styles.textColor};
       background: white;
-      padding: ${styles.marginTop}in ${styles.marginRight}in ${styles.marginBottom}in ${styles.marginLeft}in;
-      width: 8.5in;
-      margin: 0 auto;
+      margin: 0;
+      padding: 0;
     }
 
     /* Header Styles */
@@ -455,17 +453,17 @@ export async function POST(request: NextRequest) {
     // Additional wait to ensure fonts are fully loaded
     await page.evaluateHandle('document.fonts.ready');
 
-    // Generate PDF
+    // Generate PDF with proper margins
     const pdf = await page.pdf({
       format: 'Letter',
       printBackground: true,
       margin: {
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
+        top: `${body.styles.marginTop}in`,
+        right: `${body.styles.marginRight}in`,
+        bottom: `${body.styles.marginBottom}in`,
+        left: `${body.styles.marginLeft}in`,
       },
-      preferCSSPageSize: true,
+      preferCSSPageSize: false,
     });
 
     await browser.close();

@@ -16,6 +16,8 @@ export default function ResumePage() {
   const [selectedBulletId, setSelectedBulletId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"edit" | "preview">("edit");
   const [resumeStyles, setResumeStyles] = useState<ResumeStyles>(defaultResumeStyles);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [isExportingDocx, setIsExportingDocx] = useState(false);
 
   const handleEditVersion = (versionId: string) => {
     setSelectedVersion(versionId);
@@ -29,6 +31,7 @@ export default function ResumePage() {
 
   // Handler to trigger professional PDF export
   const handleExportPDF = async () => {
+    setIsExportingPDF(true);
     try {
       // Prepare resume data for API
       const resumeData = {
@@ -70,6 +73,8 @@ export default function ResumePage() {
     } catch (error) {
       console.error('Error exporting PDF:', error);
       alert('Failed to export resume as PDF. Please try again.');
+    } finally {
+      setIsExportingPDF(false);
     }
   };
 
@@ -78,6 +83,7 @@ export default function ResumePage() {
     // FUTURE ENHANCEMENT: Add more sophisticated DOCX formatting
     // FUTURE ENHANCEMENT: Support custom templates
     // FUTURE ENHANCEMENT: Add Google Docs integration for direct upload
+    setIsExportingDocx(true);
     try {
       const resumeData = {
         contactInfo: mockContactInfo,
@@ -93,6 +99,8 @@ export default function ResumePage() {
     } catch (error) {
       console.error("Error exporting DOCX:", error);
       alert("Failed to export resume as DOCX. Please try again.");
+    } finally {
+      setIsExportingDocx(false);
     }
   };
 
@@ -124,6 +132,8 @@ export default function ResumePage() {
             onViewModeChange={setViewMode}
             onBack={handleBackToLanding}
             selectedVersion={selectedVersion}
+            isExportingPDF={isExportingPDF}
+            isExportingDocx={isExportingDocx}
           />
         )}
       </div>
