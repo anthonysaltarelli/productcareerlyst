@@ -362,3 +362,30 @@ export const mockResumeScore = {
   recommendedPageCount: 1,
 };
 
+// Resume styling configuration
+export type ResumeStyles = {
+  fontFamily: 'Arial' | 'Calibri' | 'Georgia';
+  fontSize: number; // base font size in px
+  lineHeight: number; // line height multiplier
+  marginTop: number; // in inches
+  marginBottom: number; // in inches
+  marginLeft: number; // in inches
+  marginRight: number; // in inches
+  accentColor: string; // hex color for headings/accents
+  headingColor: string; // hex color for section headings
+  textColor: string; // hex color for body text
+};
+
+export const defaultResumeStyles: ResumeStyles = {
+  fontFamily: 'Calibri',
+  fontSize: 11,
+  lineHeight: 1.15,
+  marginTop: 0.5,
+  marginBottom: 0.5,
+  marginLeft: 0.75,
+  marginRight: 0.75,
+  accentColor: '#2563eb', // blue-600
+  headingColor: '#1e293b', // slate-800
+  textColor: '#334155', // slate-700
+};
+

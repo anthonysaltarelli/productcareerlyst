@@ -172,69 +172,24 @@ export default function ResumeVersionSidebar({
         </button>
       </div>
 
-      {/* Quick Stats */}
-      <div className="p-6 border-t border-slate-200 space-y-4 bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-200">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-gray-700">Resume Score</span>
-            <span className="text-lg font-black text-gray-900">
-              {mockResumeScore.overall}/100
-            </span>
+      {/* Overall Score */}
+      <div className="p-6 border-t border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl shadow-sm border-2 border-blue-200">
+          <div className="text-center mb-3">
+            <div className="text-5xl font-black bg-gradient-to-br from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+              {mockResumeScore.overall}
+            </div>
+            <div className="text-xs font-bold text-gray-600 uppercase tracking-wide mt-1">
+              Overall Score
+            </div>
           </div>
-          <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+          <div className="w-full bg-white/50 rounded-full h-3 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-green-400 to-emerald-500 h-2.5 rounded-full transition-all"
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 h-3 rounded-full transition-all"
               style={{ width: `${mockResumeScore.overall}%` }}
             />
           </div>
         </div>
-
-        <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
-          <span className="text-sm font-semibold text-gray-700">ATS Compatible</span>
-          <span className="text-sm font-bold bg-gradient-to-br from-green-100 to-emerald-100 text-green-700 px-3 py-1 rounded-lg border border-green-200">
-            {mockResumeScore.atsCompatibility}
-          </span>
-        </div>
-
-        <button className="w-full px-4 py-3 bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          Export PDF
-        </button>
-
-        <button className="w-full px-4 py-3 bg-white hover:bg-slate-50 text-gray-700 font-semibold rounded-xl transition-all border border-slate-200 shadow-sm hover:shadow flex items-center justify-center gap-2">
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
-          Settings
-        </button>
       </div>
     </div>
   );

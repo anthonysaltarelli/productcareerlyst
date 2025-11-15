@@ -1,16 +1,23 @@
 "use client";
 
-import { mockExperiences, mockContactInfo, mockSummary, mockEducation, mockSkills } from "./mockData";
+import { mockExperiences, mockContactInfo, mockSummary, mockEducation, mockSkills, defaultResumeStyles, ResumeStyles } from "./mockData";
 import ExperienceCard from "./ExperienceCard";
+import ResumePreview from "./ResumePreview";
+import { useState } from "react";
+import { createResumeDocument, downloadDocx } from "@/lib/utils/exportResume";
 
 type Props = {
   selectedVersion: string;
   selectedSection: string;
-  viewMode: "edit" | "preview" | "split";
-  onViewModeChange: (mode: "edit" | "preview" | "split") => void;
+  viewMode: "edit" | "preview";
+  onViewModeChange: (mode: "edit" | "preview") => void;
   selectedBulletId: string | null;
   onBulletSelect: (bulletId: string | null) => void;
   onBack: () => void;
+  resumeStyles: ResumeStyles;
+  onStyleChange: (styles: ResumeStyles) => void;
+  onExportPDF: () => void;
+  onExportDocx: () => void;
 };
 
 export default function ResumeEditor({
@@ -21,7 +28,12 @@ export default function ResumeEditor({
   selectedBulletId,
   onBulletSelect,
   onBack,
+  resumeStyles,
+  onStyleChange,
+  onExportPDF,
+  onExportDocx,
 }: Props) {
+
   const renderSectionContent = () => {
     switch (selectedSection) {
       case "contact":
@@ -522,7 +534,7 @@ export default function ResumeEditor({
   return (
     <div className="flex flex-col h-full">
       {/* Top Bar */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200 px-8 py-5 shadow-sm">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200 px-8 py-5 shadow-sm print:hidden">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
             <button
@@ -565,16 +577,6 @@ export default function ResumeEditor({
               Edit
             </button>
             <button
-              onClick={() => onViewModeChange("split")}
-              className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                viewMode === "split"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              Split
-            </button>
-            <button
               onClick={() => onViewModeChange("preview")}
               className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                 viewMode === "preview"
@@ -582,16 +584,29 @@ export default function ResumeEditor({
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              Preview
+              Customize & Preview
             </button>
           </div>
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex-1 overflow-y-auto p-8">
-        <div className="max-w-5xl mx-auto">{renderSectionContent()}</div>
+      {/* Content Area - Conditional rendering based on view mode */}
+      <div className="flex-1 overflow-hidden">
+        {viewMode === "edit" && (
+          <div className="h-full overflow-y-auto p-8">
+            <div className="max-w-5xl mx-auto">{renderSectionContent()}</div>
+          </div>
+        )}
+
+        {viewMode === "preview" && (
+          <div className="h-full overflow-y-auto bg-slate-100 p-8">
+            <div className="flex justify-center">
+              <ResumePreview styles={resumeStyles} />
+            </div>
+          </div>
+        )}
       </div>
+
     </div>
   );
 }

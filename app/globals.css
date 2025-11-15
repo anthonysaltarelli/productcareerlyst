@@ -24,3 +24,45 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Print Media Styles for Resume PDF Export */
+@media print {
+  /* Hide all UI elements during print */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Reset page margins */
+  @page {
+    margin: 0;
+    size: letter;
+  }
+
+  /* Ensure only the resume preview is visible */
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Prevent page breaks inside important elements */
+  .resume-section,
+  .resume-experience-item,
+  .resume-education-item {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Remove shadows and backgrounds for cleaner print */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Ensure links are visible but not styled */
+  a {
+    text-decoration: none;
+  }
+
+  /* FUTURE ENHANCEMENT: Add support for multiple page templates */
+  /* FUTURE ENHANCEMENT: Add watermark support for drafts */
+}
