@@ -50,20 +50,12 @@ export const MobileMenu = ({ user }: MobileMenuProps) => {
                   <p className="text-sm font-bold text-purple-700">{user.email}</p>
                 </div>
                 <a
-                  href="/protected"
+                  href="/dashboard"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
                   tabIndex={0}
                   aria-label="Dashboard"
                 >
                   Dashboard
-                </a>
-                <a
-                  href="#features"
-                  className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
-                  tabIndex={0}
-                  aria-label="Features"
-                >
-                  Features
                 </a>
               </>
             ) : (

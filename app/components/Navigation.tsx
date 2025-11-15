@@ -23,20 +23,12 @@ export const Navigation = async () => {
             {user ? (
               <>
                 <a
-                  href="/protected"
+                  href="/dashboard"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"
                   tabIndex={0}
                   aria-label="Dashboard"
                 >
                   Dashboard
-                </a>
-                <a
-                  href="#features"
-                  className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"
-                  tabIndex={0}
-                  aria-label="Features"
-                >
-                  Features
                 </a>
                 <div className="flex items-center gap-3 px-4 py-2 rounded-[1.5rem] bg-white/50 border-2 border-purple-200">
                   <span className="text-sm font-medium text-gray-700">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { ConditionalLayout } from "./components/ConditionalLayout";
 import { Navigation } from "./components/Navigation";
 import { Footer } from "./components/Footer";
 
@@ -23,9 +24,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${plusJakartaSans.variable} antialiased`}>
-        <Navigation />
-        {children}
-        <Footer />
+        <ConditionalLayout
+          navigation={<Navigation />}
+          footer={<Footer />}
+        >
+          {children}
+        </ConditionalLayout>
       </body>
     </html>
   );
