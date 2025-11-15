@@ -364,7 +364,22 @@ export const mockResumeScore = {
 
 // Resume styling configuration
 export type ResumeStyles = {
-  fontFamily: 'Arial' | 'Calibri' | 'Georgia';
+  fontFamily: 
+    // Web-safe fonts
+    | 'Arial' 
+    | 'Georgia' 
+    | 'Times New Roman' 
+    | 'Trebuchet MS' 
+    | 'Verdana' 
+    | 'Helvetica'
+    // Google Fonts
+    | 'Inter'
+    | 'Lato'
+    | 'Roboto'
+    | 'Open Sans'
+    | 'Source Sans 3'
+    | 'PT Serif'
+    | 'Crimson Text';
   fontSize: number; // base font size in px
   lineHeight: number; // line height multiplier
   marginTop: number; // in inches
@@ -377,7 +392,7 @@ export type ResumeStyles = {
 };
 
 export const defaultResumeStyles: ResumeStyles = {
-  fontFamily: 'Calibri',
+  fontFamily: 'Arial',
   fontSize: 11,
   lineHeight: 1.15,
   marginTop: 0.5,
@@ -388,4 +403,21 @@ export const defaultResumeStyles: ResumeStyles = {
   headingColor: '#1e293b', // slate-800
   textColor: '#334155', // slate-700
 };
+
+// Resume fonts - alphabetical order
+export const resumeFonts = [
+  { name: 'Arial' as const },
+  { name: 'Crimson Text' as const },
+  { name: 'Georgia' as const },
+  { name: 'Helvetica' as const },
+  { name: 'Inter' as const },
+  { name: 'Lato' as const },
+  { name: 'Open Sans' as const },
+  { name: 'PT Serif' as const },
+  { name: 'Roboto' as const },
+  { name: 'Source Sans 3' as const },
+  { name: 'Times New Roman' as const },
+  { name: 'Trebuchet MS' as const },
+  { name: 'Verdana' as const },
+];
 

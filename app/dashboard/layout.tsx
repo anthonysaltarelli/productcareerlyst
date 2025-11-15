@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { LogoutButton } from '@/app/components/logout-button'
+import { UserInfoWithLogout } from '@/app/components/UserInfoWithLogout'
 
 export default async function DashboardLayout({
   children,
@@ -46,13 +46,7 @@ export default async function DashboardLayout({
         </nav>
 
         {/* User Info & Logout */}
-        <div className="p-4 border-t-2 border-slate-700 flex-shrink-0">
-          <div className="mb-3">
-            <p className="text-xs text-gray-400 font-medium mb-1">Signed in as:</p>
-            <p className="text-sm text-white font-bold truncate">{user.email}</p>
-          </div>
-          <LogoutButton />
-        </div>
+        <UserInfoWithLogout email={user.email} />
       </aside>
 
       {/* Main Content Area - Scrollable */}

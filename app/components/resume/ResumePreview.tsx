@@ -15,9 +15,31 @@ type Props = {
 };
 
 export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
+  // Map font names to CSS variables for Google Fonts
+  const getFontFamily = (fontName: string): string => {
+    const fontMap: Record<string, string> = {
+      'Inter': 'var(--font-inter)',
+      'Lato': 'var(--font-lato)',
+      'Roboto': 'var(--font-roboto)',
+      'Open Sans': 'var(--font-open-sans)',
+      'Source Sans 3': 'var(--font-source-sans)',
+      'Merriweather': 'var(--font-merriweather)',
+      'PT Serif': 'var(--font-pt-serif)',
+      'Crimson Text': 'var(--font-crimson-text)',
+    };
+    
+    // If it's a Google Font, use the CSS variable
+    if (fontMap[fontName]) {
+      return `${fontMap[fontName]}, sans-serif`;
+    }
+    
+    // Otherwise, use the font name directly (web-safe fonts)
+    return `"${fontName}", sans-serif`;
+  };
+
   // Generate CSS variables from style config
   const cssVars = {
-    '--resume-font-family': styles.fontFamily,
+    '--resume-font-family': getFontFamily(styles.fontFamily),
     '--resume-font-size': `${styles.fontSize}pt`,
     '--resume-line-height': styles.lineHeight,
     '--resume-margin-top': `${styles.marginTop}in`,
@@ -45,15 +67,23 @@ export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
         <header className="resume-header">
           <h1 className="resume-name">{mockContactInfo.name}</h1>
           <div className="resume-contact-info">
-            <span>{mockContactInfo.location}</span>
-            <span className="resume-separator">•</span>
-            <span>{mockContactInfo.phone}</span>
-            <span className="resume-separator">•</span>
-            <a href={`mailto:${mockContactInfo.email}`} className="resume-link">{mockContactInfo.email}</a>
-            <span className="resume-separator">•</span>
-            <a href={`https://${mockContactInfo.linkedin}`} target="_blank" rel="noopener noreferrer" className="resume-link">{mockContactInfo.linkedin}</a>
-            <span className="resume-separator">•</span>
-            <a href={`https://${mockContactInfo.portfolio}`} target="_blank" rel="noopener noreferrer" className="resume-link">{mockContactInfo.portfolio}</a>
+            <span className="resume-contact-item">{mockContactInfo.location}</span>
+            <span className="resume-contact-item">
+              <span className="resume-separator">•</span>
+              {mockContactInfo.phone}
+            </span>
+            <span className="resume-contact-item">
+              <span className="resume-separator">•</span>
+              <a href={`mailto:${mockContactInfo.email}`} className="resume-link">{mockContactInfo.email}</a>
+            </span>
+            <span className="resume-contact-item">
+              <span className="resume-separator">•</span>
+              <a href={`https://${mockContactInfo.linkedin}`} target="_blank" rel="noopener noreferrer" className="resume-link">{mockContactInfo.linkedin}</a>
+            </span>
+            <span className="resume-contact-item">
+              <span className="resume-separator">•</span>
+              <a href={`https://${mockContactInfo.portfolio}`} target="_blank" rel="noopener noreferrer" className="resume-link">{mockContactInfo.portfolio}</a>
+            </span>
           </div>
         </header>
 
@@ -163,7 +193,7 @@ export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
         .resume-preview-container {
           width: 8.5in;
           min-height: 11in;
-          font-family: var(--resume-font-family), sans-serif;
+          font-family: var(--resume-font-family);
           font-size: var(--resume-font-size);
           line-height: var(--resume-line-height);
           color: var(--resume-text-color);
@@ -191,6 +221,16 @@ export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
           font-size: calc(var(--resume-font-size) * 0.9);
           margin: 0.04in 0;
           color: var(--resume-text-color);
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: center;
+          gap: 0;
+        }
+
+        .resume-contact-item {
+          display: inline-block;
+          white-space: nowrap;
         }
 
         .resume-link {
@@ -204,7 +244,7 @@ export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
 
         .resume-separator {
           margin: 0 0.1in;
-          color: var(--resume-accent-color);
+          color: #000000;
         }
 
         /* Section Styles */
@@ -216,7 +256,7 @@ export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
         .resume-section-heading {
           font-size: var(--resume-font-size);
           font-weight: 700;
-          color: var(--resume-accent-color);
+          color: #000000;
           margin: 0 0 0.02in 0;
           text-transform: uppercase;
           letter-spacing: 0.5px;
@@ -224,7 +264,7 @@ export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
 
         .resume-section-divider {
           height: 1px;
-          background-color: var(--resume-accent-color);
+          background-color: #000000;
           margin-bottom: 0.1in;
         }
 

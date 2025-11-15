@@ -1,6 +1,7 @@
 "use client";
 
-import { ResumeStyles, defaultResumeStyles, resumeVersions } from "./mockData";
+import { useState } from "react";
+import { ResumeStyles, defaultResumeStyles, resumeVersions, resumeFonts } from "./mockData";
 
 type Props = {
   styles: ResumeStyles;
@@ -15,6 +16,21 @@ type Props = {
 
 export default function CustomizationSidebar({ styles, onStyleChange, onExportPDF, onExportDocx, viewMode, onViewModeChange, onBack, selectedVersion }: Props) {
   const currentVersion = resumeVersions.find((v) => v.id === selectedVersion);
+  const [isFontSectionExpanded, setIsFontSectionExpanded] = useState<boolean>(false);
+
+  // Map font names to CSS variables for preview
+  const getFontVariable = (fontName: string): string => {
+    const fontMap: Record<string, string> = {
+      'Inter': 'var(--font-inter)',
+      'Lato': 'var(--font-lato)',
+      'Roboto': 'var(--font-roboto)',
+      'Open Sans': 'var(--font-open-sans)',
+      'Source Sans 3': 'var(--font-source-sans)',
+      'PT Serif': 'var(--font-pt-serif)',
+      'Crimson Text': 'var(--font-crimson-text)',
+    };
+    return fontMap[fontName] || fontName;
+  };
 
   return (
     <div className="flex flex-col h-full bg-white/80 backdrop-blur-sm">
@@ -82,21 +98,42 @@ export default function CustomizationSidebar({ styles, onStyleChange, onExportPD
         {/* Font Family */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-3">Font Family</label>
-          <div className="space-y-2">
-            {(['Arial', 'Calibri', 'Georgia'] as const).map((font) => (
-              <button
-                key={font}
-                onClick={() => onStyleChange({ ...styles, fontFamily: font })}
-                className={`w-full px-4 py-3 rounded-xl border-2 font-semibold transition-all text-left ${
-                  styles.fontFamily === font
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-slate-200 bg-white text-gray-700 hover:border-blue-300'
+          <div className="border-2 border-slate-200 rounded-xl overflow-hidden">
+            <button
+              onClick={() => setIsFontSectionExpanded(!isFontSectionExpanded)}
+              className="w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-all flex items-center justify-between"
+              aria-label="Toggle font selection"
+            >
+              <span className="text-sm font-semibold text-gray-700">{styles.fontFamily}</span>
+              <svg
+                className={`w-5 h-5 text-gray-600 transition-transform ${
+                  isFontSectionExpanded ? 'rotate-180' : ''
                 }`}
-                style={{ fontFamily: font }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                {font}
-              </button>
-            ))}
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+             {isFontSectionExpanded && (
+               <div className="p-2 space-y-2 bg-white max-h-80 overflow-y-auto">
+                 {resumeFonts.map((font) => (
+                   <button
+                     key={font.name}
+                     onClick={() => onStyleChange({ ...styles, fontFamily: font.name })}
+                     className={`w-full px-4 py-2.5 rounded-lg border-2 transition-all text-left ${
+                       styles.fontFamily === font.name
+                         ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
+                         : 'border-slate-200 bg-white text-gray-700 hover:border-blue-300'
+                     }`}
+                     style={{ fontFamily: getFontVariable(font.name) }}
+                   >
+                     {font.name}
+                   </button>
+                 ))}
+               </div>
+             )}
           </div>
         </div>
 
