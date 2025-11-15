@@ -210,30 +210,32 @@ export default function JobDetailPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <div className="min-h-screen p-8 md:p-12">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="px-8 py-6">
-          <Link 
-            href="/dashboard/jobs"
-            className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1 mb-4 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Jobs
-          </Link>
+      <div className="mb-8">
+        <Link 
+          href="/dashboard/jobs"
+          className="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-purple-600 font-bold mb-6 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Jobs
+        </Link>
 
+        <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">{job.title}</h1>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusConfig[job.status].bgColor} ${statusConfig[job.status].color}`}>
+              <div className="flex items-center gap-3 mb-3">
+                <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">
+                  {job.title}
+                </h1>
+                <span className={`px-4 py-2 rounded-[1rem] text-sm font-black border-2 ${statusConfig[job.status].bgColor} ${statusConfig[job.status].color} ${job.status === 'wishlist' || job.status === 'withdrawn' ? 'border-gray-400' : job.status === 'applied' ? 'border-blue-400' : job.status === 'screening' ? 'border-yellow-400' : job.status === 'interviewing' ? 'border-purple-400' : job.status === 'offer' || job.status === 'accepted' ? 'border-green-400' : 'border-red-400'}`}>
                   {statusConfig[job.status].label}
                 </span>
               </div>
-              <div className="flex items-center gap-4 text-gray-600">
-                <span className="flex items-center gap-2 text-lg font-medium">
+              <div className="flex items-center gap-4 text-gray-700 font-semibold text-lg">
+                <span className="flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
@@ -253,13 +255,13 @@ export default function JobDetailPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2">
+              <button className="px-6 py-3 rounded-[1.5rem] bg-white border-2 border-purple-300 text-gray-700 font-black hover:bg-white/80 transition-colors flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
                 Edit
               </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
+              <button className="px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_6px_0_0_rgba(37,99,235,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(37,99,235,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
@@ -269,15 +271,15 @@ export default function JobDetailPage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 mt-6 border-b border-gray-200">
+          <div className="flex gap-2 mt-8">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-3 font-medium text-sm transition-all relative flex items-center gap-2 ${
+                className={`px-6 py-3.5 font-black text-sm transition-all rounded-[1.5rem] flex items-center gap-2 border-2 ${
                   activeTab === tab.id
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white shadow-[0_4px_0_0_rgba(147,51,234,0.4)] border-purple-400 text-purple-700'
+                    : 'bg-white/60 border-purple-200 text-gray-700 hover:bg-white/80'
                 }`}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -285,8 +287,8 @@ export default function JobDetailPage() {
                 </svg>
                 {tab.label}
                 {tab.count !== undefined && tab.count > 0 && (
-                  <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                    activeTab === tab.id ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                  <span className={`ml-1 px-2.5 py-1 rounded-[0.75rem] text-xs font-black border-2 ${
+                    activeTab === tab.id ? 'bg-purple-100 text-purple-700 border-purple-400' : 'bg-gray-100 text-gray-700 border-gray-300'
                   }`}>
                     {tab.count}
                   </span>
@@ -298,7 +300,7 @@ export default function JobDetailPage() {
       </div>
 
       {/* Content */}
-      <div className="px-8 py-8">
+      <div>
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="grid grid-cols-3 gap-6">
@@ -306,76 +308,76 @@ export default function JobDetailPage() {
             <div className="col-span-2 space-y-6">
               {/* Quick Stats */}
               <div className="grid grid-cols-3 gap-4">
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                  <div className="text-sm text-gray-600 mb-1">Salary Range</div>
-                  <div className="text-xl font-bold text-gray-900">{handleFormatSalary()}</div>
+                <div className="p-6 rounded-[2rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_8px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300 text-center">
+                  <p className="text-sm font-bold text-gray-700 mb-1">Salary Range</p>
+                  <p className="text-2xl font-black text-green-600">{handleFormatSalary()}</p>
                 </div>
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                  <div className="text-sm text-gray-600 mb-1">Applied Date</div>
-                  <div className="text-xl font-bold text-gray-900">
+                <div className="p-6 rounded-[2rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_8px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300 text-center">
+                  <p className="text-sm font-bold text-gray-700 mb-1">Applied Date</p>
+                  <p className="text-2xl font-black text-blue-600">
                     {job.appliedDate ? handleFormatDate(job.appliedDate) : 'Not yet'}
-                  </div>
+                  </p>
                 </div>
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                  <div className="text-sm text-gray-600 mb-1">Interviews</div>
-                  <div className="text-xl font-bold text-gray-900">{interviews.length}</div>
+                <div className="p-6 rounded-[2rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_8px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 text-center">
+                  <p className="text-sm font-bold text-gray-700 mb-1">Interviews</p>
+                  <p className="text-3xl font-black text-purple-600">{interviews.length}</p>
                 </div>
               </div>
 
               {/* Job Description */}
-              <div className="bg-white rounded-xl p-6 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Job Description</h3>
+              <div className="p-8 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300">
+                <h3 className="text-2xl font-black text-gray-900 mb-4">Job Description</h3>
                 {job.description ? (
-                  <p className="text-gray-700 leading-relaxed">{job.description}</p>
+                  <p className="text-gray-700 font-medium leading-relaxed">{job.description}</p>
                 ) : (
-                  <p className="text-gray-400 italic">No description available</p>
+                  <p className="text-gray-500 font-semibold italic">No description available</p>
                 )}
               </div>
 
               {/* Notes */}
-              <div className="bg-white rounded-xl p-6 border border-gray-200">
+              <div className="p-8 rounded-[2rem] bg-gradient-to-br from-yellow-200 to-orange-200 shadow-[0_8px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-300">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">My Notes</h3>
-                  <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                  <h3 className="text-2xl font-black text-gray-900">My Notes 📝</h3>
+                  <button className="px-4 py-2 rounded-[1rem] bg-white border-2 border-orange-400 text-gray-700 font-black hover:bg-white/80 transition-colors text-sm">
                     Edit
                   </button>
                 </div>
                 {job.notes ? (
-                  <p className="text-gray-700 leading-relaxed">{job.notes}</p>
+                  <p className="text-gray-800 font-semibold leading-relaxed">{job.notes}</p>
                 ) : (
-                  <p className="text-gray-400 italic">No notes yet</p>
+                  <p className="text-gray-600 font-bold italic">No notes yet</p>
                 )}
               </div>
 
               {/* Activity Timeline */}
-              <div className="bg-white rounded-xl p-6 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Activity Timeline</h3>
-                <div className="space-y-4">
+              <div className="p-8 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300">
+                <h3 className="text-2xl font-black text-gray-900 mb-6">Activity Timeline ⏱️</h3>
+                <div className="space-y-5">
                   {job.appliedDate && (
                     <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
+                      <div className="flex-shrink-0 w-3 h-3 rounded-full bg-blue-500 shadow-[0_2px_0_0_rgba(37,99,235,0.4)] mt-1.5"></div>
                       <div>
-                        <div className="font-medium text-gray-900">Application Submitted</div>
-                        <div className="text-sm text-gray-600">{handleFormatDate(job.appliedDate)}</div>
+                        <div className="font-bold text-gray-900">Application Submitted</div>
+                        <div className="text-sm text-gray-700 font-semibold">{handleFormatDate(job.appliedDate)}</div>
                       </div>
                     </div>
                   )}
                   {interviews.map((interview) => (
                     <div key={interview.id} className="flex gap-4">
-                      <div className="flex-shrink-0 w-2 h-2 rounded-full bg-purple-500 mt-2"></div>
+                      <div className="flex-shrink-0 w-3 h-3 rounded-full bg-purple-500 shadow-[0_2px_0_0_rgba(147,51,234,0.4)] mt-1.5"></div>
                       <div>
-                        <div className="font-medium text-gray-900">{interview.title}</div>
-                        <div className="text-sm text-gray-600">
+                        <div className="font-bold text-gray-900">{interview.title}</div>
+                        <div className="text-sm text-gray-700 font-semibold">
                           {interview.scheduledFor ? handleFormatDateTime(interview.scheduledFor) : 'Date TBD'}
                         </div>
                       </div>
                     </div>
                   ))}
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-2 h-2 rounded-full bg-gray-300 mt-2"></div>
+                    <div className="flex-shrink-0 w-3 h-3 rounded-full bg-gray-400 shadow-[0_2px_0_0_rgba(0,0,0,0.2)] mt-1.5"></div>
                     <div>
-                      <div className="font-medium text-gray-900">Application Created</div>
-                      <div className="text-sm text-gray-600">{handleFormatDate(job.createdAt)}</div>
+                      <div className="font-bold text-gray-900">Application Created</div>
+                      <div className="text-sm text-gray-700 font-semibold">{handleFormatDate(job.createdAt)}</div>
                     </div>
                   </div>
                 </div>
@@ -385,12 +387,12 @@ export default function JobDetailPage() {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Quick Actions */}
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                <div className="space-y-2">
+              <div className="p-6 rounded-[2rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_8px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300">
+                <h3 className="text-xl font-black text-gray-900 mb-4">Quick Actions ⚡</h3>
+                <div className="space-y-3">
                   <button 
                     onClick={() => setShowAddInterview(true)}
-                    className="w-full px-4 py-2.5 bg-white text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors text-left flex items-center gap-2"
+                    className="w-full px-5 py-3.5 rounded-[1.5rem] bg-white shadow-[0_4px_0_0_rgba(0,0,0,0.1)] border-2 border-blue-300 text-gray-700 font-black hover:translate-y-1 hover:shadow-[0_2px_0_0_rgba(0,0,0,0.1)] transition-all text-left flex items-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -399,14 +401,14 @@ export default function JobDetailPage() {
                   </button>
                   <button 
                     onClick={() => setShowAddContact(true)}
-                    className="w-full px-4 py-2.5 bg-white text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors text-left flex items-center gap-2"
+                    className="w-full px-5 py-3.5 rounded-[1.5rem] bg-white shadow-[0_4px_0_0_rgba(0,0,0,0.1)] border-2 border-blue-300 text-gray-700 font-black hover:translate-y-1 hover:shadow-[0_2px_0_0_rgba(0,0,0,0.1)] transition-all text-left flex items-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                     </svg>
                     Add Contact
                   </button>
-                  <button className="w-full px-4 py-2.5 bg-white text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors text-left flex items-center gap-2">
+                  <button className="w-full px-5 py-3.5 rounded-[1.5rem] bg-white shadow-[0_4px_0_0_rgba(0,0,0,0.1)] border-2 border-blue-300 text-gray-700 font-black hover:translate-y-1 hover:shadow-[0_2px_0_0_rgba(0,0,0,0.1)] transition-all text-left flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -417,24 +419,24 @@ export default function JobDetailPage() {
 
               {/* Contacts Summary */}
               {contacts.length > 0 && (
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Contacts</h3>
-                  <div className="space-y-3">
+                <div className="p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300">
+                  <h3 className="text-xl font-black text-gray-900 mb-4">Key Contacts 👥</h3>
+                  <div className="space-y-4">
                     {contacts.slice(0, 3).map((contact) => (
-                      <div key={contact.id} className="flex items-center gap-3 pb-3 border-b border-gray-100 last:border-0">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
+                      <div key={contact.id} className="flex items-center gap-3 p-3 bg-gradient-to-br from-purple-50 to-pink-50 rounded-[1rem] border-2 border-purple-200">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-[0_4px_0_0_rgba(147,51,234,0.4)] flex items-center justify-center text-white font-black text-lg">
                           {contact.name.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 truncate">{contact.name}</div>
-                          <div className="text-sm text-gray-600 truncate">{contact.title}</div>
+                          <div className="font-bold text-gray-900 truncate">{contact.name}</div>
+                          <div className="text-sm text-gray-700 font-semibold truncate">{contact.title}</div>
                         </div>
                       </div>
                     ))}
                   </div>
                   <button 
                     onClick={() => setActiveTab('contacts')}
-                    className="w-full mt-4 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    className="w-full mt-4 px-4 py-2.5 rounded-[1rem] bg-purple-100 border-2 border-purple-300 text-purple-700 font-black hover:bg-purple-200 transition-colors"
                   >
                     View All Contacts →
                   </button>
@@ -443,15 +445,15 @@ export default function JobDetailPage() {
 
               {/* Upcoming Interviews */}
               {interviews.filter(int => int.status === 'scheduled').length > 0 && (
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Interviews</h3>
-                  <div className="space-y-4">
+                <div className="p-6 rounded-[2rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_8px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
+                  <h3 className="text-xl font-black text-gray-900 mb-4">Upcoming Interviews 📅</h3>
+                  <div className="space-y-3">
                     {interviews
                       .filter(int => int.status === 'scheduled')
                       .map((interview) => (
-                        <div key={interview.id} className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                          <div className="font-medium text-gray-900">{interview.title}</div>
-                          <div className="text-sm text-gray-600 mt-1">
+                        <div key={interview.id} className="p-4 bg-white rounded-[1.5rem] shadow-[0_4px_0_0_rgba(0,0,0,0.1)] border-2 border-purple-300">
+                          <div className="font-black text-gray-900">{interview.title}</div>
+                          <div className="text-sm text-gray-700 font-semibold mt-1">
                             {interview.scheduledFor ? handleFormatDateTime(interview.scheduledFor) : 'TBD'}
                           </div>
                         </div>
@@ -466,14 +468,14 @@ export default function JobDetailPage() {
         {/* Interviews Tab */}
         {activeTab === 'interviews' && (
           <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Interviews</h2>
-                <p className="text-gray-600 mt-1">Track your interview rounds and preparation</p>
+                <h2 className="text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">Interviews 📅</h2>
+                <p className="text-gray-700 font-semibold mt-2">Track your interview rounds and preparation</p>
               </div>
               <button
                 onClick={() => setShowAddInterview(true)}
-                className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+                className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -484,15 +486,15 @@ export default function JobDetailPage() {
 
             <div className="space-y-4">
               {interviews.length === 0 ? (
-                <div className="bg-white rounded-xl p-12 border border-gray-200 text-center">
-                  <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="p-16 rounded-[2.5rem] bg-gradient-to-br from-gray-100 to-gray-200 shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 text-center">
+                  <svg className="w-20 h-20 mx-auto text-gray-500 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No interviews yet</h3>
-                  <p className="text-gray-600 mb-6">Add your first interview to start tracking your progress</p>
+                  <h3 className="text-2xl font-black text-gray-900 mb-3">No interviews yet</h3>
+                  <p className="text-gray-700 font-semibold mb-6">Add your first interview to start tracking your progress</p>
                   <button
                     onClick={() => setShowAddInterview(true)}
-                    className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
+                    className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 inline-flex items-center gap-2"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -502,26 +504,26 @@ export default function JobDetailPage() {
                 </div>
               ) : (
                 interviews.map((interview) => (
-                  <div key={interview.id} className="bg-white rounded-xl p-6 border border-gray-200 hover:border-blue-300 transition-colors">
+                  <div key={interview.id} className="p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 hover:border-purple-400 hover:shadow-[0_10px_0_0_rgba(147,51,234,0.3)] transition-all">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">{interview.title}</h3>
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        <div className="flex items-center gap-3 mb-3">
+                          <h3 className="text-xl font-black text-gray-900">{interview.title}</h3>
+                          <span className={`px-4 py-1.5 rounded-[1rem] text-xs font-black border-2 ${
                             interview.status === 'scheduled' 
-                              ? 'bg-purple-100 text-purple-700'
+                              ? 'bg-purple-100 text-purple-700 border-purple-400'
                               : interview.status === 'completed'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-gray-100 text-gray-700'
+                              ? 'bg-green-100 text-green-700 border-green-400'
+                              : 'bg-gray-100 text-gray-700 border-gray-400'
                           }`}>
                             {interview.status.charAt(0).toUpperCase() + interview.status.slice(1)}
                           </span>
-                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 capitalize">
+                          <span className="px-4 py-1.5 rounded-[1rem] text-xs font-black bg-blue-100 text-blue-700 border-2 border-blue-400 capitalize">
                             {interview.type.replace('_', ' ')}
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                        <div className="flex items-center gap-4 text-sm text-gray-700 font-semibold mb-4">
                           {interview.scheduledFor && (
                             <span className="flex items-center gap-1.5">
                               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -551,10 +553,10 @@ export default function JobDetailPage() {
 
                         {interview.interviewers && interview.interviewers.length > 0 && (
                           <div className="mb-4">
-                            <div className="text-sm font-medium text-gray-700 mb-2">Interviewers:</div>
+                            <div className="text-sm font-bold text-gray-900 mb-2">Interviewers:</div>
                             <div className="flex flex-wrap gap-2">
                               {interview.interviewers.map((interviewer, idx) => (
-                                <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                                <span key={idx} className="px-3 py-1.5 bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-gray-300 text-gray-800 rounded-[0.75rem] text-sm font-bold">
                                   {interviewer}
                                 </span>
                               ))}
@@ -563,16 +565,16 @@ export default function JobDetailPage() {
                         )}
 
                         {interview.prepNotes && (
-                          <div className="mb-4">
-                            <div className="text-sm font-medium text-gray-700 mb-2">Prep Notes:</div>
-                            <p className="text-gray-600 text-sm">{interview.prepNotes}</p>
+                          <div className="mb-4 p-4 rounded-[1.5rem] bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-orange-200">
+                            <div className="text-sm font-black text-gray-900 mb-2">Prep Notes:</div>
+                            <p className="text-gray-700 font-semibold text-sm">{interview.prepNotes}</p>
                           </div>
                         )}
 
                         {interview.feedback && (
-                          <div className="mb-4">
-                            <div className="text-sm font-medium text-gray-700 mb-2">Feedback:</div>
-                            <p className="text-gray-600 text-sm">{interview.feedback}</p>
+                          <div className="mb-4 p-4 rounded-[1.5rem] bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200">
+                            <div className="text-sm font-black text-gray-900 mb-2">Feedback:</div>
+                            <p className="text-gray-700 font-semibold text-sm">{interview.feedback}</p>
                           </div>
                         )}
 
@@ -607,14 +609,14 @@ export default function JobDetailPage() {
         {/* Contacts Tab */}
         {activeTab === 'contacts' && (
           <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Contacts & Networking</h2>
-                <p className="text-gray-600 mt-1">Manage your professional connections for this opportunity</p>
+                <h2 className="text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">Contacts & Networking 👥</h2>
+                <p className="text-gray-700 font-semibold mt-2">Manage your professional connections for this opportunity</p>
               </div>
               <button
                 onClick={() => setShowAddContact(true)}
-                className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+                className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -625,15 +627,15 @@ export default function JobDetailPage() {
 
             <div className="grid gap-4">
               {contacts.length === 0 ? (
-                <div className="bg-white rounded-xl p-12 border border-gray-200 text-center">
-                  <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="p-16 rounded-[2.5rem] bg-gradient-to-br from-gray-100 to-gray-200 shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 text-center">
+                  <svg className="w-20 h-20 mx-auto text-gray-500 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No contacts yet</h3>
-                  <p className="text-gray-600 mb-6">Start building your network for this opportunity</p>
+                  <h3 className="text-2xl font-black text-gray-900 mb-3">No contacts yet</h3>
+                  <p className="text-gray-700 font-semibold mb-6">Start building your network for this opportunity</p>
                   <button
                     onClick={() => setShowAddContact(true)}
-                    className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
+                    className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 inline-flex items-center gap-2"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -643,23 +645,23 @@ export default function JobDetailPage() {
                 </div>
               ) : (
                 contacts.map((contact) => (
-                  <div key={contact.id} className="bg-white rounded-xl p-6 border border-gray-200 hover:border-blue-300 transition-colors">
+                  <div key={contact.id} className="p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 hover:border-purple-400 hover:shadow-[0_10px_0_0_rgba(147,51,234,0.3)] transition-all">
                     <div className="flex items-start gap-4">
                       {/* Avatar */}
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-[0_4px_0_0_rgba(147,51,234,0.4)] flex items-center justify-center text-white font-black text-xl flex-shrink-0">
                         {contact.name.split(' ').map(n => n[0]).join('')}
                       </div>
 
                       <div className="flex-1">
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900">{contact.name}</h3>
-                            <p className="text-gray-600">{contact.title}</p>
-                            <span className="inline-block mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium capitalize">
+                            <h3 className="text-xl font-black text-gray-900">{contact.name}</h3>
+                            <p className="text-gray-700 font-semibold">{contact.title}</p>
+                            <span className="inline-block mt-2 px-3 py-1.5 bg-blue-100 text-blue-700 border-2 border-blue-400 rounded-[0.75rem] text-xs font-black capitalize">
                               {contact.relationship.replace('_', ' ')}
                             </span>
                           </div>
-                          <button className="px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                          <button className="px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-[0.75rem] transition-colors">
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                             </svg>
@@ -667,9 +669,9 @@ export default function JobDetailPage() {
                         </div>
 
                         {/* Contact Info */}
-                        <div className="flex items-center gap-4 mb-4 text-sm">
+                        <div className="flex items-center gap-4 mb-4 text-sm font-semibold">
                           {contact.email && (
-                            <a href={`mailto:${contact.email}`} className="flex items-center gap-1.5 text-gray-600 hover:text-blue-600 transition-colors">
+                            <a href={`mailto:${contact.email}`} className="flex items-center gap-1.5 text-gray-700 hover:text-blue-600 transition-colors">
                               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                               </svg>
@@ -769,12 +771,12 @@ export default function JobDetailPage() {
         {/* Research Tab */}
         {activeTab === 'research' && (
           <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Company Research</h2>
-                <p className="text-gray-600 mt-1">Prepare for your interviews with comprehensive insights</p>
+                <h2 className="text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">Company Research 🔬</h2>
+                <p className="text-gray-700 font-semibold mt-2">Prepare for your interviews with comprehensive insights</p>
               </div>
-              <button className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-medium hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg shadow-purple-500/30 flex items-center gap-2">
+              <button className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-purple-700 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -785,15 +787,15 @@ export default function JobDetailPage() {
             {research ? (
               <div className="space-y-6">
                 {/* Company Overview */}
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Company Overview</h3>
-                  <p className="text-gray-700 leading-relaxed">{research.overview}</p>
+                <div className="p-8 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300">
+                  <h3 className="text-2xl font-black text-gray-900 mb-4">Company Overview</h3>
+                  <p className="text-gray-700 font-medium leading-relaxed">{research.overview}</p>
                 </div>
 
                 {/* Culture */}
                 {research.culture && (
-                  <div className="bg-white rounded-xl p-6 border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Culture & Values</h3>
+                  <div className="p-8 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300">
+                    <h3 className="text-2xl font-black text-gray-900 mb-4">Culture & Values</h3>
                     <p className="text-gray-700 leading-relaxed">{research.culture}</p>
                   </div>
                 )}
@@ -801,11 +803,11 @@ export default function JobDetailPage() {
                 {/* Products & Tech Stack */}
                 <div className="grid grid-cols-2 gap-6">
                   {research.products && research.products.length > 0 && (
-                    <div className="bg-white rounded-xl p-6 border border-gray-200">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Products</h3>
+                    <div className="p-8 rounded-[2rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_8px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300">
+                      <h3 className="text-2xl font-black text-gray-900 mb-4">Key Products 📦</h3>
                       <div className="flex flex-wrap gap-2">
                         {research.products.map((product, idx) => (
-                          <span key={idx} className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium">
+                          <span key={idx} className="px-4 py-2 bg-white border-2 border-blue-400 text-blue-700 rounded-[1rem] text-sm font-black">
                             {product}
                           </span>
                         ))}
@@ -814,11 +816,11 @@ export default function JobDetailPage() {
                   )}
 
                   {research.techStack && research.techStack.length > 0 && (
-                    <div className="bg-white rounded-xl p-6 border border-gray-200">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Tech Stack</h3>
+                    <div className="p-8 rounded-[2rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_8px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
+                      <h3 className="text-2xl font-black text-gray-900 mb-4">Tech Stack 💻</h3>
                       <div className="flex flex-wrap gap-2">
                         {research.techStack.map((tech, idx) => (
-                          <span key={idx} className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-sm font-medium">
+                          <span key={idx} className="px-4 py-2 bg-white border-2 border-purple-400 text-purple-700 rounded-[1rem] text-sm font-black">
                             {tech}
                           </span>
                         ))}
@@ -829,8 +831,8 @@ export default function JobDetailPage() {
 
                 {/* Recent News */}
                 {research.recentNews && research.recentNews.length > 0 && (
-                  <div className="bg-white rounded-xl p-6 border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent News</h3>
+                  <div className="p-8 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300">
+                    <h3 className="text-2xl font-black text-gray-900 mb-4">Recent News 📰</h3>
                     <div className="space-y-3">
                       {research.recentNews.map((news, idx) => (
                         <a
@@ -838,10 +840,10 @@ export default function JobDetailPage() {
                           href={news.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          className="block p-5 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-300 rounded-[1.5rem] hover:border-blue-400 hover:shadow-[0_4px_0_0_rgba(37,99,235,0.2)] transition-all"
                         >
-                          <div className="font-medium text-gray-900 hover:text-blue-600 mb-1">{news.title}</div>
-                          <div className="text-sm text-gray-600">{handleFormatDate(news.date)}</div>
+                          <div className="font-black text-gray-900 hover:text-blue-600 mb-2">{news.title}</div>
+                          <div className="text-sm text-gray-700 font-semibold">{handleFormatDate(news.date)}</div>
                         </a>
                       ))}
                     </div>
@@ -850,13 +852,13 @@ export default function JobDetailPage() {
 
                 {/* Interview Tips */}
                 {research.interviewTips && (
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+                  <div className="p-8 rounded-[2rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_8px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300">
                     <div className="flex items-start gap-3">
                       <svg className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                       </svg>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Interview Tips</h3>
+                        <h3 className="text-2xl font-black text-gray-900 mb-3">Interview Tips 💡</h3>
                         <p className="text-gray-700 leading-relaxed">{research.interviewTips}</p>
                       </div>
                     </div>
@@ -865,20 +867,20 @@ export default function JobDetailPage() {
 
                 {/* Personal Notes */}
                 {research.notes && (
-                  <div className="bg-white rounded-xl p-6 border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">My Notes</h3>
-                    <p className="text-gray-700 leading-relaxed">{research.notes}</p>
+                  <div className="p-8 rounded-[2rem] bg-gradient-to-br from-yellow-200 to-orange-200 shadow-[0_8px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-300">
+                    <h3 className="text-2xl font-black text-gray-900 mb-4">My Notes 📝</h3>
+                    <p className="text-gray-800 font-semibold leading-relaxed">{research.notes}</p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="bg-white rounded-xl p-12 border border-gray-200 text-center">
-                <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="p-16 rounded-[2.5rem] bg-gradient-to-br from-gray-100 to-gray-200 shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 text-center">
+                <svg className="w-20 h-20 mx-auto text-gray-500 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No research yet</h3>
-                <p className="text-gray-600 mb-6">Start researching {job.company} to prepare for your interviews</p>
-                <button className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-medium hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg shadow-purple-500/30 inline-flex items-center gap-2">
+                <h3 className="text-2xl font-black text-gray-900 mb-3">No research yet</h3>
+                <p className="text-gray-700 font-semibold mb-6">Start researching {job.company} to prepare for your interviews</p>
+                <button className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-purple-700 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 inline-flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
@@ -892,12 +894,12 @@ export default function JobDetailPage() {
         {/* Documents Tab */}
         {activeTab === 'documents' && (
           <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Documents & Materials</h2>
-                <p className="text-gray-600 mt-1">Manage resumes, cover letters, and other application materials</p>
+                <h2 className="text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">Documents & Materials 📄</h2>
+                <p className="text-gray-700 font-semibold mt-2">Manage resumes, cover letters, and other application materials</p>
               </div>
-              <button className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
+              <button className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
@@ -905,13 +907,13 @@ export default function JobDetailPage() {
               </button>
             </div>
 
-            <div className="bg-white rounded-xl p-12 border border-gray-200 text-center">
-              <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="p-16 rounded-[2.5rem] bg-gradient-to-br from-gray-100 to-gray-200 shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 text-center">
+              <svg className="w-20 h-20 mx-auto text-gray-500 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No documents yet</h3>
-              <p className="text-gray-600 mb-6">Upload your resume, cover letter, and other materials</p>
-              <button className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors inline-flex items-center gap-2">
+              <h3 className="text-2xl font-black text-gray-900 mb-3">No documents yet</h3>
+              <p className="text-gray-700 font-semibold mb-6">Upload your resume, cover letter, and other materials</p>
+              <button className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 inline-flex items-center gap-2">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
@@ -924,13 +926,13 @@ export default function JobDetailPage() {
 
       {/* Add Interview Modal */}
       {showAddInterview && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Add Interview</h2>
+              <h2 className="text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">Add Interview 📅</h2>
               <button
                 onClick={() => setShowAddInterview(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-600 hover:text-gray-900 transition-colors p-2 hover:bg-white/60 rounded-[1rem]"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1041,13 +1043,13 @@ export default function JobDetailPage() {
             <div className="flex items-center gap-3 mt-8">
               <button
                 onClick={() => setShowAddInterview(false)}
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 px-6 py-3.5 rounded-[1.5rem] border-2 border-purple-300 bg-white text-gray-700 font-black hover:bg-white/80 transition-colors"
               >
                 Cancel
               </button>
               <button 
                 onClick={handleAddInterview}
-                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30"
+                className="flex-1 px-6 py-3.5 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200"
               >
                 Add Interview
               </button>
@@ -1058,13 +1060,13 @@ export default function JobDetailPage() {
 
       {/* Add Contact Modal */}
       {showAddContact && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Add Contact</h2>
+              <h2 className="text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">Add Contact 👥</h2>
               <button
                 onClick={() => setShowAddContact(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-600 hover:text-gray-900 transition-colors p-2 hover:bg-white/60 rounded-[1rem]"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1161,13 +1163,13 @@ export default function JobDetailPage() {
             <div className="flex items-center gap-3 mt-8">
               <button
                 onClick={() => setShowAddContact(false)}
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 px-6 py-3.5 rounded-[1.5rem] border-2 border-purple-300 bg-white text-gray-700 font-black hover:bg-white/80 transition-colors"
               >
                 Cancel
               </button>
               <button 
                 onClick={handleAddContact}
-                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30"
+                className="flex-1 px-6 py-3.5 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200"
               >
                 Add Contact
               </button>
@@ -1179,13 +1181,13 @@ export default function JobDetailPage() {
       {/* Success Toast */}
       {showSuccessToast && (
         <div className="fixed bottom-8 right-8 z-50 animate-[slideIn_0.3s_ease-out]">
-          <div className="bg-green-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3">
-            <svg className="w-6 h-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="px-8 py-5 rounded-[2rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_8px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 text-white flex items-center gap-3">
+            <svg className="w-7 h-7 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <div className="font-semibold">{successMessage.title}</div>
-              <div className="text-sm text-green-100">{successMessage.description}</div>
+              <div className="font-black text-lg">{successMessage.title}</div>
+              <div className="text-sm font-semibold text-green-100">{successMessage.description}</div>
             </div>
           </div>
         </div>

@@ -6,6 +6,16 @@ type Props = {
   onEditVersion: (versionId: string) => void;
 };
 
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  };
+  return date.toLocaleDateString('en-US', options);
+};
+
 export default function ResumeLanding({ onEditVersion }: Props) {
   return (
     <div className="p-8 md:p-12">
@@ -78,26 +88,21 @@ export default function ResumeLanding({ onEditVersion }: Props) {
                       )}
                     </div>
                     <p className="text-sm text-gray-600 font-medium">
-                      Modified: {version.lastModified}
+                      Modified: {formatDate(version.lastModified)}
                     </p>
                   </div>
                 </div>
 
-                {/* Quick Stats */}
-                {version.isMaster && (
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="bg-white rounded-[1rem] p-3 border-2 border-slate-300">
-                      <p className="text-xs text-gray-600 font-bold mb-1">Score</p>
-                      <p className="text-xl font-black text-gray-800">
-                        {mockResumeScore.overall}
-                      </p>
-                    </div>
-                    <div className="bg-white rounded-[1rem] p-3 border-2 border-slate-300">
-                      <p className="text-xs text-gray-600 font-bold mb-1">Bullets</p>
-                      <p className="text-xl font-black text-gray-800">18</p>
-                    </div>
+                {/* Score Only */}
+                <div className="mb-4">
+                  <div className="bg-white rounded-[1rem] p-4 border-2 border-slate-300">
+                    <p className="text-xs text-gray-600 font-bold mb-1">Resume Score</p>
+                    <p className="text-3xl font-black text-gray-800">
+                      {mockResumeScore.overall}
+                      <span className="text-lg text-gray-500 font-semibold">/100</span>
+                    </p>
                   </div>
-                )}
+                </div>
               </div>
 
               {/* Card Actions */}

@@ -30,13 +30,13 @@ export default function ExperienceCard({
   const hiddenCount = experience.bullets.length - bulletsToShow.length;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-2xl border-2 border-slate-200 overflow-hidden shadow-sm">
       {/* Header */}
-      <div className="p-4 bg-gray-50 border-b border-gray-200">
+      <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 border-b-2 border-slate-200">
         <div className="flex items-start justify-between">
-          <div className="flex items-start gap-3 flex-1">
+          <div className="flex items-start gap-4 flex-1">
             {/* Drag Handle */}
-            <button className="mt-1 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
+            <button className="mt-1 cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 p-1 hover:bg-white rounded-lg transition-all">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
               </svg>
@@ -46,13 +46,13 @@ export default function ExperienceCard({
             <div className="flex-1">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-bold text-gray-900">
                     {experience.title}
                   </h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm font-semibold text-gray-600 mt-1.5">
                     {experience.company} | {experience.location}
                   </p>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm font-medium text-gray-500 mt-1">
                     {experience.startDate} - {experience.endDate}
                   </p>
                 </div>
@@ -60,7 +60,7 @@ export default function ExperienceCard({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                    className="p-2 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200"
                   >
                     <svg
                       className={`w-5 h-5 text-gray-500 transition-transform ${
@@ -81,7 +81,7 @@ export default function ExperienceCard({
 
                   {/* More Options */}
                   <div className="relative">
-                    <button className="p-1 hover:bg-gray-100 rounded transition-colors">
+                    <button className="p-2 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200">
                       <svg
                         className="w-5 h-5 text-gray-500"
                         fill="currentColor"
@@ -95,19 +95,19 @@ export default function ExperienceCard({
               </div>
 
               {/* Bullet Count Summary */}
-              <div className="mt-3 flex items-center gap-4">
-                <span className="text-xs text-gray-600">
-                  <span className="font-semibold text-gray-900">
+              <div className="mt-4 flex items-center gap-4">
+                <span className="text-xs font-semibold text-gray-600">
+                  <span className="font-black text-gray-900">
                     {selectedBullets.length}
                   </span>{" "}
                   / {experience.bullets.length} bullets selected
                 </span>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   {experience.bullets.map((bullet) => (
                     <div
                       key={bullet.id}
-                      className={`w-2 h-2 rounded-full ${
-                        bullet.isSelected ? "bg-blue-500" : "bg-gray-300"
+                      className={`w-2.5 h-2.5 rounded-full transition-all ${
+                        bullet.isSelected ? "bg-blue-500 shadow-sm" : "bg-slate-300"
                       }`}
                       title={bullet.isSelected ? "Selected" : "Not selected"}
                     />
@@ -121,10 +121,10 @@ export default function ExperienceCard({
 
       {/* Bullets */}
       {isExpanded && (
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-semibold text-gray-700">Bullets</h4>
-            <button className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-5">
+            <h4 className="text-base font-bold text-gray-800">Bullets</h4>
+            <button className="px-4 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50 rounded-xl transition-all flex items-center gap-2 border border-transparent hover:border-blue-200">
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -142,7 +142,7 @@ export default function ExperienceCard({
             </button>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {bulletsToShow.map((bullet, index) => (
               <BulletEditor
                 key={bullet.id}
@@ -157,7 +157,7 @@ export default function ExperienceCard({
           {hiddenCount > 0 && (
             <button
               onClick={() => setShowAllBullets(!showAllBullets)}
-              className="w-full mt-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              className="w-full mt-4 py-3 text-sm font-bold text-blue-600 hover:bg-blue-50 rounded-xl transition-all border-2 border-dashed border-slate-300 hover:border-blue-300"
             >
               {showAllBullets
                 ? "Show Less"

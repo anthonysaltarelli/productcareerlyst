@@ -20,29 +20,29 @@ export default function BulletEditor({ bullet, index, isSelected, onSelect }: Pr
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return "text-green-600 bg-green-50";
-    if (score >= 70) return "text-yellow-600 bg-yellow-50";
-    return "text-red-600 bg-red-50";
+    if (score >= 85) return "text-green-700 bg-gradient-to-br from-green-100 to-emerald-100 border-green-200";
+    if (score >= 70) return "text-yellow-700 bg-gradient-to-br from-yellow-100 to-orange-100 border-yellow-200";
+    return "text-red-700 bg-gradient-to-br from-red-100 to-pink-100 border-red-200";
   };
 
   const getScoreBarColor = (score: number) => {
-    if (score >= 85) return "bg-green-500";
-    if (score >= 70) return "bg-yellow-500";
-    return "bg-red-500";
+    if (score >= 85) return "bg-gradient-to-r from-green-400 to-emerald-500";
+    if (score >= 70) return "bg-gradient-to-r from-yellow-400 to-orange-500";
+    return "bg-gradient-to-r from-red-400 to-pink-500";
   };
 
   return (
     <div
-      className={`border rounded-lg transition-all ${
+      className={`border-2 rounded-xl transition-all ${
         isSelected
-          ? "border-blue-500 bg-blue-50/50 shadow-sm"
-          : "border-gray-200 bg-white hover:border-gray-300"
+          ? "border-blue-400 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-md"
+          : "border-slate-200 bg-white hover:border-slate-300 shadow-sm"
       }`}
       onClick={onSelect}
     >
-      <div className="p-3">
+      <div className="p-4">
         {/* Top Row - Checkbox, Drag Handle, Number */}
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-4">
           {/* Checkbox */}
           <input
             type="checkbox"
@@ -51,11 +51,11 @@ export default function BulletEditor({ bullet, index, isSelected, onSelect }: Pr
               e.stopPropagation();
               // Toggle selection
             }}
-            className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            className="mt-1 w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 focus:ring-2"
           />
 
           {/* Drag Handle */}
-          <button className="mt-0.5 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
+          <button className="mt-1 cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1 rounded-lg transition-all">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
             </svg>
@@ -64,15 +64,15 @@ export default function BulletEditor({ bullet, index, isSelected, onSelect }: Pr
           {/* Content */}
           <div className="flex-1 min-w-0">
             {/* Bullet Number */}
-            <div className="flex items-start justify-between gap-3 mb-2">
-              <span className="text-xs font-semibold text-gray-500">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <span className="text-xs font-black text-gray-500 bg-slate-100 px-2 py-1 rounded-lg">
                 #{index + 1}
               </span>
 
               {/* Score Badge */}
               <div className="flex items-center gap-2">
                 <div
-                  className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getScoreColor(
+                  className={`px-3 py-1 rounded-xl text-xs font-bold border-2 ${getScoreColor(
                     bullet.score
                   )}`}
                 >
@@ -83,18 +83,18 @@ export default function BulletEditor({ bullet, index, isSelected, onSelect }: Pr
 
             {/* Bullet Content */}
             {isEditing ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-3 text-sm border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all resize-none bg-slate-50 focus:bg-white"
                   autoFocus
                 />
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleSave}
-                    className="px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 text-sm font-bold bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-xl hover:from-blue-600 hover:to-cyan-600 transition-all shadow-sm"
                   >
                     Save
                   </button>
@@ -103,7 +103,7 @@ export default function BulletEditor({ bullet, index, isSelected, onSelect }: Pr
                       setIsEditing(false);
                       setContent(bullet.content);
                     }}
-                    className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-slate-100 rounded-xl transition-all border border-slate-200"
                   >
                     Cancel
                   </button>
@@ -111,15 +111,15 @@ export default function BulletEditor({ bullet, index, isSelected, onSelect }: Pr
               </div>
             ) : (
               <div>
-                <p className="text-sm text-gray-900 leading-relaxed mb-3">
+                <p className="text-sm text-gray-900 leading-relaxed mb-4 font-medium">
                   {bullet.content}
                 </p>
 
                 {/* Score Bar */}
-                <div className="mb-3">
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                <div className="mb-4">
+                  <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                     <div
-                      className={`h-1.5 rounded-full transition-all ${getScoreBarColor(
+                      className={`h-2 rounded-full transition-all ${getScoreBarColor(
                         bullet.score
                       )}`}
                       style={{ width: `${bullet.score}%` }}
@@ -129,11 +129,11 @@ export default function BulletEditor({ bullet, index, isSelected, onSelect }: Pr
 
                 {/* Tags */}
                 {bullet.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-3">
+                  <div className="flex flex-wrap gap-2 mb-4">
                     {bullet.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-700 rounded"
+                        className="px-3 py-1 text-xs font-semibold bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700 rounded-lg border border-slate-300"
                       >
                         {tag}
                       </span>
@@ -148,10 +148,10 @@ export default function BulletEditor({ bullet, index, isSelected, onSelect }: Pr
                       e.stopPropagation();
                       setIsEditing(true);
                     }}
-                    className="px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1"
+                    className="px-3 py-2 text-xs font-bold text-gray-700 hover:bg-slate-100 rounded-lg transition-all flex items-center gap-1.5 border border-transparent hover:border-slate-200"
                   >
                     <svg
-                      className="w-3.5 h-3.5"
+                      className="w-4 h-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -171,7 +171,7 @@ export default function BulletEditor({ bullet, index, isSelected, onSelect }: Pr
                       e.stopPropagation();
                       onSelect();
                     }}
-                    className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1"
+                    className="px-3 py-2 text-xs font-bold bg-gradient-to-br from-blue-100 to-cyan-100 text-blue-700 hover:from-blue-200 hover:to-cyan-200 rounded-lg transition-all flex items-center gap-1.5 border border-blue-200"
                   >
                     ✨ Optimize
                   </button>
@@ -181,7 +181,7 @@ export default function BulletEditor({ bullet, index, isSelected, onSelect }: Pr
                       e.stopPropagation();
                       onSelect();
                     }}
-                    className="px-3 py-1.5 text-xs font-medium text-purple-600 hover:bg-purple-50 rounded-lg transition-colors flex items-center gap-1"
+                    className="px-3 py-2 text-xs font-bold bg-gradient-to-br from-purple-100 to-pink-100 text-purple-700 hover:from-purple-200 hover:to-pink-200 rounded-lg transition-all flex items-center gap-1.5 border border-purple-200"
                   >
                     🎯 Analyze
                   </button>
@@ -190,7 +190,7 @@ export default function BulletEditor({ bullet, index, isSelected, onSelect }: Pr
                     onClick={(e) => {
                       e.stopPropagation();
                     }}
-                    className="ml-auto p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                    className="ml-auto p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-200"
                   >
                     <svg
                       className="w-4 h-4"
@@ -212,8 +212,8 @@ export default function BulletEditor({ bullet, index, isSelected, onSelect }: Pr
 
             {/* Customization Badge */}
             {bullet.customizedFrom && (
-              <div className="mt-2 flex items-center gap-1 text-xs text-blue-600">
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+              <div className="mt-3 flex items-center gap-2 text-xs font-bold bg-gradient-to-br from-blue-100 to-cyan-100 text-blue-700 px-3 py-2 rounded-lg border border-blue-200">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"

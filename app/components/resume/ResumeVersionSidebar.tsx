@@ -10,6 +10,16 @@ type Props = {
   onSectionChange: (sectionId: string) => void;
 };
 
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  };
+  return date.toLocaleDateString('en-US', options);
+};
+
 export default function ResumeVersionSidebar({
   selectedVersion,
   onVersionChange,
@@ -74,7 +84,7 @@ export default function ResumeVersionSidebar({
                         {version.name}
                       </span>
                       <span className="text-xs text-gray-500 font-medium">
-                        Modified {version.lastModified}
+                        Modified {formatDate(version.lastModified)}
                       </span>
                     </div>
                     {version.id === selectedVersion && (

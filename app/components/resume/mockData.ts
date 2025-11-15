@@ -41,25 +41,25 @@ export const resumeVersions: ResumeVersion[] = [
     id: "master",
     name: "Master Resume",
     isMaster: true,
-    lastModified: "2025-11-15",
+    lastModified: "2024-11-15",
   },
   {
     id: "google-pm",
     name: "Product Manager @ Google",
     isMaster: false,
-    lastModified: "2025-11-14",
+    lastModified: "2024-11-14",
   },
   {
     id: "amazon-spm",
     name: "Senior PM @ Amazon",
     isMaster: false,
-    lastModified: "2025-11-13",
+    lastModified: "2024-11-10",
   },
   {
     id: "microsoft-lead",
     name: "PM Lead @ Microsoft",
     isMaster: false,
-    lastModified: "2025-11-10",
+    lastModified: "2024-11-05",
   },
 ];
 

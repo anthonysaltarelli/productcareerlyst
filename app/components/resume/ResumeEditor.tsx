@@ -397,25 +397,25 @@ export default function ResumeEditor({
             </div>
 
             {/* Product Skills */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-medium text-gray-700">
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <label className="block text-base font-bold text-gray-800">
                   Product Management Skills
                 </label>
-                <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                <button className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all">
                   + Add Skill
                 </button>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {mockSkills.product.map((skill, index) => (
                   <div
                     key={index}
-                    className="group flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+                    className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-200 text-purple-700 rounded-xl hover:from-purple-200 hover:to-pink-200 transition-all shadow-sm"
                   >
-                    <span className="text-sm font-medium">{skill}</span>
+                    <span className="text-sm font-semibold">{skill}</span>
                     <button className="opacity-0 group-hover:opacity-100 transition-opacity text-purple-600 hover:text-purple-800">
                       <svg
-                        className="w-3.5 h-3.5"
+                        className="w-4 h-4"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -435,24 +435,24 @@ export default function ResumeEditor({
 
             {/* Soft Skills */}
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-medium text-gray-700">
+              <div className="flex items-center justify-between mb-4">
+                <label className="block text-base font-bold text-gray-800">
                   Soft Skills
                 </label>
-                <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                <button className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all">
                   + Add Skill
                 </button>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {mockSkills.soft.map((skill, index) => (
                   <div
                     key={index}
-                    className="group flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
+                    className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-200 text-green-700 rounded-xl hover:from-green-200 hover:to-emerald-200 transition-all shadow-sm"
                   >
-                    <span className="text-sm font-medium">{skill}</span>
+                    <span className="text-sm font-semibold">{skill}</span>
                     <button className="opacity-0 group-hover:opacity-100 transition-opacity text-green-600 hover:text-green-800">
                       <svg
-                        className="w-3.5 h-3.5"
+                        className="w-4 h-4"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -471,7 +471,7 @@ export default function ResumeEditor({
             </div>
 
             {/* Add Custom Category */}
-            <button className="w-full mt-6 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-2 font-medium">
+            <button className="w-full mt-8 py-4 border-2 border-dashed border-slate-300 rounded-2xl text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-all flex items-center justify-center gap-2 font-semibold">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -492,10 +492,10 @@ export default function ResumeEditor({
 
       default:
         return (
-          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+          <div className="bg-white rounded-2xl border-2 border-slate-200 p-16 text-center shadow-sm">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl mb-6 border-2 border-slate-300">
               <svg
-                className="w-8 h-8 text-gray-400"
+                className="w-10 h-10 text-slate-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -508,10 +508,10 @@ export default function ResumeEditor({
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-xl font-bold text-gray-900 mb-3">
               Section Coming Soon
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 font-medium">
               This section is under development. Select another section to edit.
             </p>
           </div>
