@@ -27,12 +27,50 @@ export default function ResumePage() {
     setSelectedBulletId(null);
   };
 
-  // Handler to trigger print/PDF export
-  const handleExportPDF = () => {
-    // FUTURE ENHANCEMENT: Replace with server-side Puppeteer/Playwright rendering
-    // for production-quality PDFs with better font embedding and layout control
-    // API endpoint: POST /api/resume/export-pdf with resume data
-    window.print();
+  // Handler to trigger professional PDF export
+  const handleExportPDF = async () => {
+    try {
+      // Prepare resume data for API
+      const resumeData = {
+        contactInfo: mockContactInfo,
+        summary: mockSummary,
+        experiences: mockExperiences,
+        education: mockEducation,
+        skills: mockSkills,
+        styles: resumeStyles,
+      };
+
+      // Call the PDF generation API
+      const response = await fetch('/api/resume/export-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(resumeData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      // Get the PDF blob
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${selectedVersion}_Resume_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Failed to export resume as PDF. Please try again.');
+    }
   };
 
   // Handler to export resume as DOCX

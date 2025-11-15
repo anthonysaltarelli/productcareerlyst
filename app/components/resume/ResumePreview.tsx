@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { 
   mockExperiences, 
   mockContactInfo, 
@@ -15,6 +16,9 @@ type Props = {
 };
 
 export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [pageBreaks, setPageBreaks] = useState<number[]>([]);
+
   // Map font names to CSS variables for Google Fonts
   const getFontFamily = (fontName: string): string => {
     const fontMap: Record<string, string> = {
@@ -57,150 +61,221 @@ export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
     bullets: exp.bullets.filter(b => b.isSelected),
   })).filter(exp => exp.bullets.length > 0);
 
-  return (
-    <div 
-      className="resume-preview-container bg-white shadow-lg mx-auto"
-      style={cssVars}
-    >
-      <div className="resume-content">
-        {/* Contact Information */}
-        <header className="resume-header">
-          <h1 className="resume-name">{mockContactInfo.name}</h1>
-          <div className="resume-contact-info">
-            <span className="resume-contact-item">{mockContactInfo.location}</span>
-            <span className="resume-contact-item">
-              <span className="resume-separator">•</span>
-              {mockContactInfo.phone}
-            </span>
-            <span className="resume-contact-item">
-              <span className="resume-separator">•</span>
-              <a href={`mailto:${mockContactInfo.email}`} className="resume-link">{mockContactInfo.email}</a>
-            </span>
-            <span className="resume-contact-item">
-              <span className="resume-separator">•</span>
-              <a href={`https://${mockContactInfo.linkedin}`} target="_blank" rel="noopener noreferrer" className="resume-link">{mockContactInfo.linkedin}</a>
-            </span>
-            <span className="resume-contact-item">
-              <span className="resume-separator">•</span>
-              <a href={`https://${mockContactInfo.portfolio}`} target="_blank" rel="noopener noreferrer" className="resume-link">{mockContactInfo.portfolio}</a>
-            </span>
-          </div>
-        </header>
+  // Calculate where page breaks should occur
+  useEffect(() => {
+    if (!contentRef.current) return;
 
-        {/* Professional Summary */}
-        {mockSummary && (
-          <section className="resume-section">
-            <h2 className="resume-section-heading">PROFESSIONAL SUMMARY</h2>
-            <div className="resume-section-divider"></div>
-            <p className="resume-summary">{mockSummary}</p>
-          </section>
-        )}
+    const calculatePageBreaks = () => {
+      const content = contentRef.current;
+      if (!content) return;
 
-        {/* Work Experience */}
-        {selectedExperiences.length > 0 && (
-          <section className="resume-section">
-            <h2 className="resume-section-heading">PROFESSIONAL EXPERIENCE</h2>
-            <div className="resume-section-divider"></div>
-            {selectedExperiences.map((exp) => (
-              <div key={exp.id} className="resume-experience-item">
-                <div className="resume-experience-header">
-                  <div className="resume-experience-title-group">
-                    <h3 className="resume-experience-title">{exp.title}</h3>
-                    <span className="resume-experience-company">{exp.company}</span>
-                  </div>
-                  <div className="resume-experience-meta">
-                    <span className="resume-experience-location">{exp.location}</span>
-                    <span className="resume-experience-dates">{exp.startDate} - {exp.endDate}</span>
-                  </div>
+      const pageHeightInches = 11;
+      const marginTop = styles.marginTop;
+      const marginBottom = styles.marginBottom;
+      const contentHeightPerPage = pageHeightInches - marginTop - marginBottom;
+      const pixelsPerInch = 96;
+      const contentHeightPerPagePx = contentHeightPerPage * pixelsPerInch;
+
+      const totalHeight = content.scrollHeight;
+      const breaks: number[] = [];
+      
+      // Calculate break points
+      for (let i = 1; i * contentHeightPerPagePx < totalHeight; i++) {
+        breaks.push(i * contentHeightPerPagePx);
+      }
+      
+      setPageBreaks(breaks);
+    };
+
+    const timer = setTimeout(calculatePageBreaks, 100);
+    return () => clearTimeout(timer);
+  }, [styles, selectedExperiences]);
+
+  const renderResumeContent = () => (
+    <>
+      {/* Contact Information */}
+      <header className="resume-header">
+        <h1 className="resume-name">{mockContactInfo.name}</h1>
+        <div className="resume-contact-info">
+          <span className="resume-contact-item">{mockContactInfo.location}</span>
+          <span className="resume-contact-item">
+            <span className="resume-separator">•</span>
+            {mockContactInfo.phone}
+          </span>
+          <span className="resume-contact-item">
+            <span className="resume-separator">•</span>
+            <a href={`mailto:${mockContactInfo.email}`} className="resume-link">{mockContactInfo.email}</a>
+          </span>
+          <span className="resume-contact-item">
+            <span className="resume-separator">•</span>
+            <a href={`https://${mockContactInfo.linkedin}`} target="_blank" rel="noopener noreferrer" className="resume-link">{mockContactInfo.linkedin}</a>
+          </span>
+          <span className="resume-contact-item">
+            <span className="resume-separator">•</span>
+            <a href={`https://${mockContactInfo.portfolio}`} target="_blank" rel="noopener noreferrer" className="resume-link">{mockContactInfo.portfolio}</a>
+          </span>
+        </div>
+      </header>
+
+      {/* Professional Summary */}
+      {mockSummary && (
+        <section className="resume-section">
+          <h2 className="resume-section-heading">PROFESSIONAL SUMMARY</h2>
+          <div className="resume-section-divider"></div>
+          <p className="resume-summary">{mockSummary}</p>
+        </section>
+      )}
+
+      {/* Work Experience */}
+      {selectedExperiences.length > 0 && (
+        <section className="resume-section">
+          <h2 className="resume-section-heading">PROFESSIONAL EXPERIENCE</h2>
+          <div className="resume-section-divider"></div>
+          {selectedExperiences.map((exp) => (
+            <div key={exp.id} className="resume-experience-item">
+              <div className="resume-experience-header">
+                <div className="resume-experience-title-group">
+                  <h3 className="resume-experience-title">{exp.title}</h3>
+                  <span className="resume-experience-company">{exp.company}</span>
                 </div>
+                <div className="resume-experience-meta">
+                  <span className="resume-experience-location">{exp.location}</span>
+                  <span className="resume-experience-dates">{exp.startDate} - {exp.endDate}</span>
+                </div>
+              </div>
+              <ul className="resume-bullets">
+                {exp.bullets.map((bullet) => (
+                  <li key={bullet.id} className="resume-bullet">
+                    {bullet.content}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {/* Education */}
+      {mockEducation.length > 0 && (
+        <section className="resume-section">
+          <h2 className="resume-section-heading">EDUCATION</h2>
+          <div className="resume-section-divider"></div>
+          {mockEducation.map((edu) => (
+            <div key={edu.id} className="resume-education-item">
+              <div className="resume-experience-header">
+                <div className="resume-experience-title-group">
+                  <h3 className="resume-experience-title">{edu.school}</h3>
+                  <span className="resume-experience-company">
+                    {edu.degree} - {edu.field}
+                    {edu.gpa && ` • GPA: ${edu.gpa}`}
+                  </span>
+                </div>
+                <div className="resume-experience-meta">
+                  <span className="resume-experience-location">{edu.location}</span>
+                  <span className="resume-experience-dates">{edu.startDate} - {edu.endDate}</span>
+                </div>
+              </div>
+              {edu.achievements && edu.achievements.length > 0 && (
                 <ul className="resume-bullets">
-                  {exp.bullets.map((bullet) => (
-                    <li key={bullet.id} className="resume-bullet">
-                      {bullet.content}
+                  {edu.achievements.map((achievement, idx) => (
+                    <li key={idx} className="resume-bullet">
+                      {achievement}
                     </li>
                   ))}
                 </ul>
-              </div>
-            ))}
-          </section>
-        )}
-
-        {/* Education */}
-        {mockEducation.length > 0 && (
-          <section className="resume-section">
-            <h2 className="resume-section-heading">EDUCATION</h2>
-            <div className="resume-section-divider"></div>
-            {mockEducation.map((edu) => (
-              <div key={edu.id} className="resume-education-item">
-                <div className="resume-experience-header">
-                  <div className="resume-experience-title-group">
-                    <h3 className="resume-experience-title">{edu.school}</h3>
-                    <span className="resume-experience-company">
-                      {edu.degree} - {edu.field}
-                      {edu.gpa && ` • GPA: ${edu.gpa}`}
-                    </span>
-                  </div>
-                  <div className="resume-experience-meta">
-                    <span className="resume-experience-location">{edu.location}</span>
-                    <span className="resume-experience-dates">{edu.startDate} - {edu.endDate}</span>
-                  </div>
-                </div>
-                {edu.achievements && edu.achievements.length > 0 && (
-                  <ul className="resume-bullets">
-                    {edu.achievements.map((achievement, idx) => (
-                      <li key={idx} className="resume-bullet">
-                        {achievement}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </section>
-        )}
-
-        {/* Skills */}
-        {mockSkills && (
-          <section className="resume-section">
-            <h2 className="resume-section-heading">SKILLS</h2>
-            <div className="resume-section-divider"></div>
-            <div className="resume-skills">
-              {mockSkills.technical && mockSkills.technical.length > 0 && (
-                <div className="resume-skill-group">
-                  <span className="resume-skill-category">Technical:</span>
-                  <span className="resume-skill-list">{mockSkills.technical.join(', ')}</span>
-                </div>
-              )}
-              {mockSkills.product && mockSkills.product.length > 0 && (
-                <div className="resume-skill-group">
-                  <span className="resume-skill-category">Product Management:</span>
-                  <span className="resume-skill-list">{mockSkills.product.join(', ')}</span>
-                </div>
-              )}
-              {mockSkills.soft && mockSkills.soft.length > 0 && (
-                <div className="resume-skill-group">
-                  <span className="resume-skill-category">Leadership:</span>
-                  <span className="resume-skill-list">{mockSkills.soft.join(', ')}</span>
-                </div>
               )}
             </div>
-          </section>
-        )}
-      </div>
+          ))}
+        </section>
+      )}
 
-      <style jsx>{`
-        /* Base Resume Styles */
-        .resume-preview-container {
+      {/* Skills */}
+      {mockSkills && (
+        <section className="resume-section">
+          <h2 className="resume-section-heading">SKILLS</h2>
+          <div className="resume-section-divider"></div>
+          <div className="resume-skills">
+            {mockSkills.technical && mockSkills.technical.length > 0 && (
+              <div className="resume-skill-group">
+                <span className="resume-skill-category">Technical:</span>
+                <span className="resume-skill-list">{mockSkills.technical.join(', ')}</span>
+              </div>
+            )}
+            {mockSkills.product && mockSkills.product.length > 0 && (
+              <div className="resume-skill-group">
+                <span className="resume-skill-category">Product Management:</span>
+                <span className="resume-skill-list">{mockSkills.product.join(', ')}</span>
+              </div>
+            )}
+            {mockSkills.soft && mockSkills.soft.length > 0 && (
+              <div className="resume-skill-group">
+                <span className="resume-skill-category">Leadership:</span>
+                <span className="resume-skill-list">{mockSkills.soft.join(', ')}</span>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+    </>
+  );
+
+  const numPages = pageBreaks.length + 1;
+
+  return (
+    <>
+      <style jsx global>{`
+        /* Container for all pages */
+        .resume-pages-wrapper {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        /* Single continuous content container */
+        .resume-continuous-wrapper {
           width: 8.5in;
-          min-height: 11in;
+          background: white;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          position: relative;
+        }
+
+        .resume-content-flow {
           font-family: var(--resume-font-family);
           font-size: var(--resume-font-size);
           line-height: var(--resume-line-height);
           color: var(--resume-text-color);
+          padding: var(--resume-margin-top) var(--resume-margin-right) var(--resume-margin-bottom) var(--resume-margin-left);
         }
 
-        .resume-content {
-          padding: var(--resume-margin-top) var(--resume-margin-right) var(--resume-margin-bottom) var(--resume-margin-left);
+        /* Visual page break indicator */
+        .page-break-line {
+          position: absolute;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, 
+            transparent 0%, 
+            #cbd5e1 10%, 
+            #94a3b8 50%, 
+            #cbd5e1 90%, 
+            transparent 100%
+          );
+          z-index: 10;
+          pointer-events: none;
+        }
+
+        .page-break-label {
+          position: absolute;
+          right: -120px;
+          top: -12px;
+          background: #475569;
+          color: white;
+          padding: 4px 12px;
+          border-radius: 4px;
+          font-size: 11px;
+          font-weight: 600;
+          white-space: nowrap;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         /* Header Styles */
@@ -377,14 +452,21 @@ export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
 
         /* Print Media Queries - Optimized for PDF export */
         @media print {
-          .resume-preview-container {
-            width: 100%;
-            min-height: 0;
-            margin: 0;
+          .resume-pages-wrapper {
+            display: block;
+          }
+
+          .resume-continuous-wrapper {
             box-shadow: none;
           }
 
-          .resume-content {
+          .page-break-line,
+          .page-break-label,
+          .page-indicator {
+            display: none !important;
+          }
+
+          .resume-content-flow {
             padding: 0.5in 0.75in;
           }
 
@@ -395,14 +477,42 @@ export default function ResumePreview({ styles = defaultResumeStyles }: Props) {
             page-break-inside: avoid;
           }
 
-          /* Remove any screen-only elements */
           @page {
             margin: 0;
             size: letter;
           }
         }
       `}</style>
-    </div>
+
+      <div className="resume-pages-wrapper">
+        {/* Continuous content with visual page breaks */}
+        <div className="resume-continuous-wrapper" style={cssVars}>
+          <div 
+            ref={contentRef}
+            className="resume-content-flow"
+          >
+            {renderResumeContent()}
+          </div>
+
+          {/* Visual page break indicators */}
+          {pageBreaks.map((breakPoint, index) => (
+            <div 
+              key={index}
+              className="page-break-line"
+              style={{ top: `${breakPoint}px` }}
+            >
+              <div className="page-break-label">
+                Page {index + 2} starts here
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Page indicator below */}
+        <div className="text-center py-3 text-sm font-medium text-gray-500 page-indicator">
+          {numPages === 1 ? 'Single page resume' : `${numPages} pages total`}
+        </div>
+      </div>
+    </>
   );
 }
-
