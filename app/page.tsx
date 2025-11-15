@@ -2,14 +2,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100">
       <div className="max-w-7xl mx-auto p-8 md:p-12 lg:p-16">
-        {/* Header */}
-        <div className="mb-16">
-          <div className="inline-block px-8 py-4 rounded-[2rem] bg-gradient-to-br from-pink-200 to-purple-200 shadow-[0_8px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Product Careerlyst
-            </h1>
-          </div>
-        </div>
 
         {/* Hero Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20">
@@ -27,9 +19,12 @@ export default function Home() {
             <p className="text-xl text-gray-700 font-semibold mb-8">
               Stop feeling stuck. Start crushing it.
             </p>
-            <button className="w-full px-10 py-6 rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_10px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(147,51,234,0.6)] text-xl font-black text-white transition-all duration-200">
+            <a
+              href="/auth/sign-up"
+              className="block w-full px-10 py-6 rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_10px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(147,51,234,0.6)] text-xl font-black text-white transition-all duration-200 text-center"
+            >
               GET INSTANT ACCESS →
-            </button>
+            </a>
             <p className="text-center text-sm text-gray-600 mt-4 font-medium">
               Join 12,847 PMs who've already leveled up
             </p>
@@ -234,7 +229,7 @@ export default function Home() {
         </div>
 
         {/* What You Get Section */}
-        <div className="mb-20">
+        <div id="features" className="mb-20">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-4">
               Your AI-Powered Career Operating System
@@ -388,7 +383,7 @@ export default function Home() {
         </div>
 
         {/* Social Proof */}
-        <div className="mb-20">
+        <div id="testimonials" className="mb-20">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-4">
               Don't Take Our Word For It
@@ -441,7 +436,7 @@ export default function Home() {
         </div>
 
         {/* Pricing / CTA */}
-        <div className="mb-20">
+        <div id="pricing" className="mb-20">
           <div className="p-12 rounded-[3rem] bg-gradient-to-br from-violet-200 to-purple-200 shadow-[0_20px_0_0_rgba(124,58,237,0.4)] border-2 border-violet-300 text-center">
             <div className="inline-block px-6 py-3 rounded-full bg-red-500 text-white text-sm font-black mb-6 animate-pulse">
               ⚠️ BETA PRICING ENDS IN 48 HOURS
@@ -478,9 +473,12 @@ export default function Home() {
                     <span className="font-medium text-gray-700">30-day money-back guarantee</span>
                   </div>
                 </div>
-                <button className="w-full px-10 py-6 rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_10px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(147,51,234,0.6)] text-2xl font-black text-white transition-all duration-200">
+                <a
+                  href="/auth/sign-up"
+                  className="block w-full px-10 py-6 rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_10px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(147,51,234,0.6)] text-2xl font-black text-white transition-all duration-200 text-center"
+                >
                   CLAIM YOUR SPOT NOW →
-                </button>
+                </a>
                 <p className="text-sm text-gray-600 mt-4 font-medium">
                   🔒 Secure checkout • 247 spots left at this price
                 </p>
@@ -562,14 +560,113 @@ export default function Home() {
           <p className="text-xl text-gray-300 font-medium mb-8 max-w-3xl mx-auto">
             Every day you wait is another day stuck in the same role, getting passed over, watching others succeed. You have two choices: keep struggling alone, or get the system that actually works.
           </p>
-          <button className="px-16 py-8 rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_12px_0_0_rgba(147,51,234,0.7)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(147,51,234,0.7)] text-2xl font-black text-white transition-all duration-200 mb-6">
+          <a
+            href="/auth/sign-up"
+            className="inline-block px-16 py-8 rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_12px_0_0_rgba(147,51,234,0.7)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(147,51,234,0.7)] text-2xl font-black text-white transition-all duration-200 mb-6"
+          >
             YES, I'M READY TO LEVEL UP →
-          </button>
+          </a>
           <p className="text-gray-400 font-medium">
             Join 12,847 PMs who've already made the decision to stop settling
           </p>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-gradient-to-br from-slate-800 to-slate-900 border-t-2 border-slate-700">
+        <div className="max-w-7xl mx-auto px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            {/* Company Info */}
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4">
+                Product Careerlyst
+              </h3>
+              <p className="text-gray-400 font-medium mb-4">
+                Your AI-powered career operating system for product managers.
+              </p>
+              <p className="text-gray-500 text-sm">
+                SYSTEM ACCELERATOR LLC
+                <br />
+                418 Broadway, STE N
+                <br />
+                Albany, NY 12207
+              </p>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4">
+                Quick Links
+              </h3>
+              <ul className="space-y-2">
+                <li>
+                  <a
+                    href="#features"
+                    className="text-gray-400 hover:text-purple-400 transition-colors font-medium"
+                  >
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#testimonials"
+                    className="text-gray-400 hover:text-purple-400 transition-colors font-medium"
+                  >
+                    Testimonials
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#pricing"
+                    className="text-gray-400 hover:text-purple-400 transition-colors font-medium"
+                  >
+                    Pricing
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4">
+                Legal
+              </h3>
+              <ul className="space-y-2">
+                <li>
+                  <a
+                    href="/terms"
+                    className="text-gray-400 hover:text-purple-400 transition-colors font-medium"
+                  >
+                    Terms of Service
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/privacy"
+                    className="text-gray-400 hover:text-purple-400 transition-colors font-medium"
+                  >
+                    Privacy Policy
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="mailto:support@pmcareercatalyst.com"
+                    className="text-gray-400 hover:text-purple-400 transition-colors font-medium"
+                  >
+                    Contact Us
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-slate-700 pt-8 text-center">
+            <p className="text-gray-500 text-sm font-medium">
+              © 2024 SYSTEM ACCELERATOR LLC. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
