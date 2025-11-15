@@ -23,18 +23,18 @@ export default function ResumeVersionSidebar({
   return (
     <div className="flex flex-col h-full">
       {/* Version Switcher */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-6 border-b border-slate-200">
         <div className="relative">
           <button
             onClick={() => setIsVersionDropdownOpen(!isVersionDropdownOpen)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+            className="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-br from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 rounded-xl transition-all shadow-sm border border-slate-200"
           >
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm font-semibold text-gray-900">
                 {currentVersion?.name}
               </span>
               {currentVersion?.isMaster && (
-                <span className="px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
+                <span className="px-2 py-0.5 text-xs font-bold bg-gradient-to-br from-blue-400 to-cyan-400 text-white rounded-lg border border-blue-500">
                   Master
                 </span>
               )}
@@ -58,8 +58,8 @@ export default function ResumeVersionSidebar({
 
           {/* Dropdown */}
           {isVersionDropdownOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-              <div className="py-1">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-10 overflow-hidden">
+              <div className="py-2">
                 {resumeVersions.map((version) => (
                   <button
                     key={version.id}
@@ -67,13 +67,13 @@ export default function ResumeVersionSidebar({
                       onVersionChange(version.id);
                       setIsVersionDropdownOpen(false);
                     }}
-                    className="w-full px-3 py-2 text-left hover:bg-gray-50 transition-colors flex items-center justify-between"
+                    className="w-full px-4 py-3 text-left hover:bg-gradient-to-br hover:from-blue-50 hover:to-cyan-50 transition-all flex items-center justify-between"
                   >
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-semibold text-gray-900">
                         {version.name}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 font-medium">
                         Modified {version.lastModified}
                       </span>
                     </div>
@@ -93,8 +93,8 @@ export default function ResumeVersionSidebar({
                   </button>
                 ))}
               </div>
-              <div className="border-t border-gray-200 p-2">
-                <button className="w-full px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-2">
+              <div className="border-t border-slate-200 p-2 bg-slate-50">
+                <button className="w-full px-4 py-2 text-sm font-bold bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-lg transition-all hover:shadow-md flex items-center gap-2 justify-center">
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -117,26 +117,26 @@ export default function ResumeVersionSidebar({
       </div>
 
       {/* Section Navigation */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+      <div className="flex-1 overflow-y-auto p-6">
+        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">
           Sections
         </h3>
-        <nav className="space-y-1">
+        <nav className="space-y-2">
           {sections.map((section) => (
             <button
               key={section.id}
               onClick={() => onSectionChange(section.id)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
                 selectedSection === section.id
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-gray-700 hover:bg-gray-50"
+                  ? "bg-gradient-to-br from-blue-100 to-cyan-100 text-blue-700 font-semibold shadow-sm border border-blue-200"
+                  : "text-gray-700 hover:bg-slate-50 font-medium border border-transparent"
               }`}
             >
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">{section.title}</span>
+                <span className="text-sm">{section.title}</span>
               </div>
               {section.itemCount && (
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-bold text-gray-600 bg-white px-2 py-1 rounded-lg shadow-sm">
                   {section.itemCount}
                 </span>
               )}
@@ -144,7 +144,7 @@ export default function ResumeVersionSidebar({
           ))}
         </nav>
 
-        <button className="w-full mt-4 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-2">
+        <button className="w-full mt-4 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all flex items-center gap-2 justify-center border-2 border-dashed border-slate-300 hover:border-slate-400">
           <svg
             className="w-4 h-4"
             fill="none"
@@ -163,30 +163,30 @@ export default function ResumeVersionSidebar({
       </div>
 
       {/* Quick Stats */}
-      <div className="p-4 border-t border-gray-200 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Resume Score</span>
-          <div className="flex items-center gap-2">
-            <div className="w-16 bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-green-500 h-2 rounded-full"
-                style={{ width: `${mockResumeScore.overall}%` }}
-              />
-            </div>
-            <span className="text-sm font-semibold text-gray-900">
+      <div className="p-6 border-t border-slate-200 space-y-4 bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-200">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-semibold text-gray-700">Resume Score</span>
+            <span className="text-lg font-black text-gray-900">
               {mockResumeScore.overall}/100
             </span>
           </div>
+          <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+            <div
+              className="bg-gradient-to-r from-green-400 to-emerald-500 h-2.5 rounded-full transition-all"
+              style={{ width: `${mockResumeScore.overall}%` }}
+            />
+          </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">ATS Compatibility</span>
-          <span className="text-sm font-medium text-green-600">
+        <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+          <span className="text-sm font-semibold text-gray-700">ATS Compatible</span>
+          <span className="text-sm font-bold bg-gradient-to-br from-green-100 to-emerald-100 text-green-700 px-3 py-1 rounded-lg border border-green-200">
             {mockResumeScore.atsCompatibility}
           </span>
         </div>
 
-        <button className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+        <button className="w-full px-4 py-3 bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
           <svg
             className="w-4 h-4"
             fill="none"
@@ -203,7 +203,7 @@ export default function ResumeVersionSidebar({
           Export PDF
         </button>
 
-        <button className="w-full px-4 py-2 text-gray-700 hover:bg-gray-50 font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+        <button className="w-full px-4 py-3 bg-white hover:bg-slate-50 text-gray-700 font-semibold rounded-xl transition-all border border-slate-200 shadow-sm hover:shadow flex items-center justify-center gap-2">
           <svg
             className="w-4 h-4"
             fill="none"

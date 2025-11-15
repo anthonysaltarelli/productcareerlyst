@@ -27,9 +27,9 @@ export default function ResumePage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Left Sidebar - Version & Section Navigation */}
-      <div className="w-64 bg-white border-r border-gray-200 flex-shrink-0 overflow-y-auto">
+      <div className="w-72 bg-white/80 backdrop-blur-sm border-r border-slate-200 flex-shrink-0 overflow-y-auto shadow-lg">
         <ResumeVersionSidebar
           selectedVersion={selectedVersion}
           onVersionChange={setSelectedVersion}

@@ -71,24 +71,26 @@ export default function JobsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <div className="min-h-screen p-8 md:p-12">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="px-8 py-6">
+      <div className="mb-8">
+        <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Job Applications</h1>
-              <p className="text-gray-600 mt-1">Track and manage your job search pipeline</p>
+              <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-2">
+                💼 Job Applications
+              </h1>
+              <p className="text-xl text-gray-700 font-semibold">Track your path to your dream PM role</p>
             </div>
             <div className="flex items-center gap-3">
               {/* View Toggle */}
-              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <div className="flex items-center gap-2 bg-white/60 rounded-[1.5rem] p-1.5 border-2 border-purple-300">
                 <button
                   onClick={() => setViewMode('kanban')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  className={`px-5 py-2.5 rounded-[1rem] text-sm font-black transition-all ${
                     viewMode === 'kanban'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_4px_0_0_rgba(147,51,234,0.4)]'
+                      : 'text-gray-700 hover:bg-white/50'
                   }`}
                 >
                   <span className="flex items-center gap-2">
@@ -100,10 +102,10 @@ export default function JobsPage() {
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  className={`px-5 py-2.5 rounded-[1rem] text-sm font-black transition-all ${
                     viewMode === 'list'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_4px_0_0_rgba(147,51,234,0.4)]'
+                      : 'text-gray-700 hover:bg-white/50'
                   }`}
                 >
                   <span className="flex items-center gap-2">
@@ -117,7 +119,7 @@ export default function JobsPage() {
               
               <button
                 onClick={() => setShowAddModal(true)}
-                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/30 flex items-center gap-2"
+                className="px-8 py-3 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -128,26 +130,26 @@ export default function JobsPage() {
           </div>
 
           {/* Metrics */}
-          <div className="grid grid-cols-5 gap-4 mt-6">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
-              <div className="text-2xl font-bold text-blue-900">{totalApplications}</div>
-              <div className="text-sm text-blue-700 mt-1">Total Applications</div>
+          <div className="grid grid-cols-5 gap-4 mt-8">
+            <div className="p-6 rounded-[2rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_10px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300 text-center">
+              <p className="text-4xl font-black text-blue-600 mb-2">{totalApplications}</p>
+              <p className="text-sm font-bold text-gray-700">Total Applications</p>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
-              <div className="text-2xl font-bold text-purple-900">{activeApplications}</div>
-              <div className="text-sm text-purple-700 mt-1">Active</div>
+            <div className="p-6 rounded-[2rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_10px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 text-center">
+              <p className="text-4xl font-black text-purple-600 mb-2">{activeApplications}</p>
+              <p className="text-sm font-bold text-gray-700">Active</p>
             </div>
-            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-4 border border-yellow-200">
-              <div className="text-2xl font-bold text-yellow-900">{interviewsScheduled}</div>
-              <div className="text-sm text-yellow-700 mt-1">Interviews Scheduled</div>
+            <div className="p-6 rounded-[2rem] bg-gradient-to-br from-orange-200 to-yellow-200 shadow-[0_10px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-300 text-center">
+              <p className="text-4xl font-black text-orange-600 mb-2">{interviewsScheduled}</p>
+              <p className="text-sm font-bold text-gray-700">Interviews</p>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
-              <div className="text-2xl font-bold text-green-900">{offersReceived}</div>
-              <div className="text-sm text-green-700 mt-1">Offers Received</div>
+            <div className="p-6 rounded-[2rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_10px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300 text-center">
+              <p className="text-4xl font-black text-green-600 mb-2">{offersReceived}</p>
+              <p className="text-sm font-bold text-gray-700">Offers 🎉</p>
             </div>
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
-              <div className="text-2xl font-bold text-gray-900">{responseRate}%</div>
-              <div className="text-sm text-gray-700 mt-1">Response Rate</div>
+            <div className="p-6 rounded-[2rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_10px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300 text-center">
+              <p className="text-4xl font-black text-indigo-600 mb-2">{responseRate}%</p>
+              <p className="text-sm font-bold text-gray-700">Response Rate</p>
             </div>
           </div>
         </div>
@@ -155,8 +157,8 @@ export default function JobsPage() {
 
       {/* Kanban Board */}
       {viewMode === 'kanban' && (
-        <div className="p-8 overflow-x-auto">
-          <div className="flex gap-4 min-w-max">
+        <div className="overflow-x-auto">
+          <div className="flex gap-6 min-w-max pb-8">
             {columnOrder.map((status) => {
               const config = statusConfig[status];
               const jobsInColumn = applications.filter(app => app.status === status);
@@ -164,40 +166,40 @@ export default function JobsPage() {
               return (
                 <div key={status} className="flex-shrink-0 w-80">
                   {/* Column Header */}
-                  <div className={`${config.bgColor} rounded-t-xl p-4 border-b-2 border-gray-200`}>
+                  <div className={`${config.bgColor} rounded-t-[1.5rem] p-5 border-2 ${config.bgColor === 'bg-gray-50' ? 'border-gray-300' : config.bgColor === 'bg-blue-50' ? 'border-blue-300' : config.bgColor === 'bg-yellow-50' ? 'border-yellow-300' : config.bgColor === 'bg-purple-50' ? 'border-purple-300' : config.bgColor === 'bg-green-50' ? 'border-green-300' : 'border-red-300'}`}>
                     <div className="flex items-center justify-between">
-                      <h3 className={`font-semibold ${config.color}`}>{config.label}</h3>
-                      <span className={`${config.color} text-sm font-medium px-2.5 py-0.5 rounded-full ${config.bgColor}`}>
+                      <h3 className={`font-black text-lg ${config.color}`}>{config.label}</h3>
+                      <span className={`${config.color} text-sm font-black px-3 py-1 rounded-[0.75rem] bg-white/60 border-2 ${config.bgColor === 'bg-gray-50' ? 'border-gray-400' : config.bgColor === 'bg-blue-50' ? 'border-blue-400' : config.bgColor === 'bg-yellow-50' ? 'border-yellow-400' : config.bgColor === 'bg-purple-50' ? 'border-purple-400' : config.bgColor === 'bg-green-50' ? 'border-green-400' : 'border-red-400'}`}>
                         {jobsInColumn.length}
                       </span>
                     </div>
                   </div>
 
                   {/* Cards */}
-                  <div className="space-y-3 p-3 bg-gray-50/50 rounded-b-xl min-h-[500px]">
+                  <div className={`space-y-4 p-4 bg-white/40 rounded-b-[1.5rem] min-h-[500px] border-x-2 border-b-2 ${config.bgColor === 'bg-gray-50' ? 'border-gray-300' : config.bgColor === 'bg-blue-50' ? 'border-blue-300' : config.bgColor === 'bg-yellow-50' ? 'border-yellow-300' : config.bgColor === 'bg-purple-50' ? 'border-purple-300' : config.bgColor === 'bg-green-50' ? 'border-green-300' : 'border-red-300'}`}>
                     {jobsInColumn.map((job) => (
                       <Link
                         key={job.id}
                         href={`/dashboard/jobs/${job.id}`}
-                        className="block bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
+                        className="block bg-white rounded-[1.5rem] p-5 border-2 border-gray-300 shadow-[0_6px_0_0_rgba(0,0,0,0.1)] hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(0,0,0,0.1)] transition-all duration-200 cursor-pointer group"
                       >
                         {/* Company & Title */}
                         <div className="flex items-start justify-between gap-2 mb-3">
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                            <h4 className="font-bold text-gray-900 group-hover:text-purple-600 transition-colors line-clamp-1">
                               {job.title}
                             </h4>
-                            <p className="text-sm text-gray-600 mt-0.5">{job.company}</p>
+                            <p className="text-sm text-gray-700 font-semibold mt-0.5">{job.company}</p>
                           </div>
                           {job.priority && (
-                            <span className={`text-xs font-medium px-2 py-1 rounded ${priorityConfig[job.priority].bgColor} ${priorityConfig[job.priority].color}`}>
+                            <span className={`text-xs font-black px-3 py-1 rounded-[0.75rem] border-2 ${priorityConfig[job.priority].bgColor} ${priorityConfig[job.priority].color} ${job.priority === 'high' ? 'border-red-400' : job.priority === 'medium' ? 'border-yellow-400' : 'border-gray-400'}`}>
                               {priorityConfig[job.priority].label}
                             </span>
                           )}
                         </div>
 
                         {/* Location & Work Mode */}
-                        <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
+                        <div className="flex items-center gap-2 text-xs text-gray-700 font-medium mb-3">
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -209,14 +211,14 @@ export default function JobsPage() {
 
                         {/* Salary */}
                         {job.salaryRange && (
-                          <div className="text-sm font-medium text-gray-700 mb-3">
+                          <div className="text-sm font-bold text-gray-800 mb-3">
                             {handleFormatSalary(job)}
                           </div>
                         )}
 
                         {/* Applied Date */}
                         {job.appliedDate && (
-                          <div className="text-xs text-gray-500 flex items-center gap-1">
+                          <div className="text-xs text-gray-600 font-medium flex items-center gap-1">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
@@ -226,8 +228,8 @@ export default function JobsPage() {
 
                         {/* Deadline Warning */}
                         {job.deadline && new Date(job.deadline) > new Date() && (
-                          <div className="mt-3 pt-3 border-t border-gray-100">
-                            <div className="text-xs text-orange-600 font-medium flex items-center gap-1">
+                          <div className="mt-3 pt-3 border-t-2 border-gray-200">
+                            <div className="text-xs text-orange-600 font-bold flex items-center gap-1 bg-orange-100 px-3 py-2 rounded-[0.75rem] border-2 border-orange-300">
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
@@ -239,8 +241,8 @@ export default function JobsPage() {
                     ))}
 
                     {jobsInColumn.length === 0 && (
-                      <div className="text-center py-8 text-gray-400 text-sm">
-                        No jobs in this stage
+                      <div className="text-center py-8 text-gray-600 text-sm font-semibold">
+                        No jobs yet 🎯
                       </div>
                     )}
                   </div>
@@ -253,45 +255,45 @@ export default function JobsPage() {
 
       {/* List View */}
       {viewMode === 'list' && (
-        <div className="p-8">
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+        <div>
+          <div className="bg-white rounded-[2rem] border-2 border-gray-300 overflow-hidden shadow-[0_12px_0_0_rgba(0,0,0,0.1)]">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gradient-to-br from-purple-200 to-pink-200 border-b-2 border-purple-300">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company & Role</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salary</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                  <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Company & Role</th>
+                  <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Location</th>
+                  <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Salary</th>
+                  <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Applied</th>
+                  <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Priority</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y-2 divide-gray-200">
                 {applications.map((job) => (
-                  <tr key={job.id} className="hover:bg-gray-50 cursor-pointer transition-colors">
+                  <tr key={job.id} className="hover:bg-purple-50 cursor-pointer transition-colors">
                     <td className="px-6 py-4">
                       <Link href={`/dashboard/jobs/${job.id}`} className="block">
-                        <div className="font-medium text-gray-900 hover:text-blue-600">{job.title}</div>
-                        <div className="text-sm text-gray-600">{job.company}</div>
+                        <div className="font-bold text-gray-900 hover:text-purple-600">{job.title}</div>
+                        <div className="text-sm text-gray-700 font-semibold">{job.company}</div>
                       </Link>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-gray-700 font-medium">
                       <div>{job.location}</div>
-                      <div className="text-xs text-gray-500 capitalize">{job.workMode}</div>
+                      <div className="text-xs text-gray-600 capitalize font-semibold">{job.workMode}</div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
+                    <td className="px-6 py-4 text-sm text-gray-800 font-bold">
                       {handleFormatSalary(job)}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusConfig[job.status].bgColor} ${statusConfig[job.status].color}`}>
+                      <span className={`px-3 py-1.5 rounded-[0.75rem] text-xs font-black border-2 ${statusConfig[job.status].bgColor} ${statusConfig[job.status].color} ${status === 'wishlist' || status === 'withdrawn' ? 'border-gray-400' : status === 'applied' ? 'border-blue-400' : status === 'screening' ? 'border-yellow-400' : status === 'interviewing' ? 'border-purple-400' : status === 'offer' || status === 'accepted' ? 'border-green-400' : 'border-red-400'}`}>
                         {statusConfig[job.status].label}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-gray-700 font-semibold">
                       {job.appliedDate ? handleFormatDate(job.appliedDate) : 'Not applied'}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${priorityConfig[job.priority].bgColor} ${priorityConfig[job.priority].color}`}>
+                      <span className={`px-3 py-1.5 rounded-[0.75rem] text-xs font-black border-2 ${priorityConfig[job.priority].bgColor} ${priorityConfig[job.priority].color} ${job.priority === 'high' ? 'border-red-400' : job.priority === 'medium' ? 'border-yellow-400' : 'border-gray-400'}`}>
                         {priorityConfig[job.priority].label}
                       </span>
                     </td>
@@ -306,9 +308,9 @@ export default function JobsPage() {
       {/* Add Job Modal (Simple placeholder) */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-8 shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Add New Job Application</h2>
+          <div className="bg-white rounded-[2rem] max-w-2xl w-full p-10 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">Add New Job 🎯</h2>
               <button
                 onClick={() => setShowAddModal(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -319,50 +321,50 @@ export default function JobsPage() {
               </button>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-gray-700 mb-2">
                   Job Posting URL (Optional)
                 </label>
                 <input
                   type="url"
                   placeholder="https://company.com/jobs/123"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium"
                 />
-                <p className="text-xs text-gray-500 mt-1">We'll automatically extract job details from the URL</p>
+                <p className="text-xs text-gray-600 font-semibold mt-2">We'll automatically extract job details from the URL ✨</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Job Title *</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Job Title *</label>
                   <input
                     type="text"
                     placeholder="Senior Product Manager"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Company *</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Company *</label>
                   <input
                     type="text"
                     placeholder="Google"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Location</label>
                   <input
                     type="text"
                     placeholder="San Francisco, CA"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Work Mode</label>
-                  <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Work Mode</label>
+                  <select className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-bold">
                     <option value="remote">Remote</option>
                     <option value="hybrid">Hybrid</option>
                     <option value="onsite">Onsite</option>
@@ -372,8 +374,8 @@ export default function JobsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                  <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Status</label>
+                  <select className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-bold">
                     <option value="wishlist">Wishlist</option>
                     <option value="applied">Applied</option>
                     <option value="screening">Screening</option>
@@ -381,8 +383,8 @@ export default function JobsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                  <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Priority</label>
+                  <select className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-bold">
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
@@ -391,15 +393,15 @@ export default function JobsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 mt-8">
+            <div className="flex items-center gap-4 mt-10">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 px-8 py-4 rounded-[1.5rem] bg-white border-2 border-gray-300 text-gray-700 font-black hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-medium hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/30"
+                className="flex-1 px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200"
               >
                 Add Application
               </button>

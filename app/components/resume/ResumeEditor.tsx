@@ -26,69 +26,69 @@ export default function ResumeEditor({
     switch (selectedSection) {
       case "contact":
         return (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+          <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
               Contact Information
             </h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Full Name
                 </label>
                 <input
                   type="text"
                   defaultValue={mockContactInfo.name}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Email
                 </label>
                 <input
                   type="email"
                   defaultValue={mockContactInfo.email}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Phone
                 </label>
                 <input
                   type="tel"
                   defaultValue={mockContactInfo.phone}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Location
                 </label>
                 <input
                   type="text"
                   defaultValue={mockContactInfo.location}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   LinkedIn
                 </label>
                 <input
                   type="text"
                   defaultValue={mockContactInfo.linkedin}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Portfolio/Website
                 </label>
                 <input
                   type="text"
                   defaultValue={mockContactInfo.portfolio}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                 />
               </div>
             </div>
@@ -97,21 +97,21 @@ export default function ResumeEditor({
 
       case "summary":
         return (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+          <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
               Professional Summary
             </h2>
             <textarea
               defaultValue={mockSummary}
               rows={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all resize-none bg-slate-50 focus:bg-white"
               placeholder="Write a compelling professional summary..."
             />
-            <div className="mt-4 flex items-center justify-between">
-              <span className="text-sm text-gray-500">
+            <div className="mt-5 flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-500">
                 {mockSummary.length} characters
               </span>
-              <button className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+              <button className="px-5 py-2.5 text-sm font-bold bg-gradient-to-br from-purple-100 to-pink-100 text-purple-700 hover:from-purple-200 hover:to-pink-200 rounded-xl transition-all border border-purple-200">
                 ✨ AI Optimize
               </button>
             </div>
@@ -129,10 +129,10 @@ export default function ResumeEditor({
         );
 
         return (
-          <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
+          <div className="space-y-5">
+            <div className="bg-gradient-to-br from-blue-100 to-cyan-100 border-2 border-blue-200 rounded-2xl p-5 flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white rounded-xl border-2 border-blue-300 shadow-sm">
                   <svg
                     className="w-5 h-5 text-blue-600"
                     fill="none"
@@ -148,10 +148,10 @@ export default function ResumeEditor({
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-blue-900">
+                  <p className="text-sm font-bold text-blue-900">
                     {selectedCount} of {totalCount} bullets selected
                   </p>
-                  <p className="text-xs text-blue-700">
+                  <p className="text-xs font-medium text-blue-700">
                     Customize which bullets appear in this version
                   </p>
                 </div>
@@ -168,7 +168,7 @@ export default function ResumeEditor({
               />
             ))}
 
-            <button className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-2 font-medium">
+            <button className="w-full py-4 border-2 border-dashed border-slate-300 rounded-2xl text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-all flex items-center justify-center gap-2 font-semibold">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -189,17 +189,17 @@ export default function ResumeEditor({
 
       case "education":
         return (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {mockEducation.map((edu, index) => (
               <div
                 key={edu.id}
-                className="bg-white rounded-lg border border-gray-200 p-6"
+                className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                <div className="flex items-start justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-900">
                     Education Entry #{index + 1}
                   </h3>
-                  <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                  <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-200">
                     <svg
                       className="w-5 h-5"
                       fill="none"
@@ -216,101 +216,101 @@ export default function ResumeEditor({
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-2 gap-5 mb-5">
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       School/Institution
                     </label>
                     <input
                       type="text"
                       defaultValue={edu.school}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Degree
                     </label>
                     <input
                       type="text"
                       defaultValue={edu.degree}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Field of Study
                     </label>
                     <input
                       type="text"
                       defaultValue={edu.field}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Location
                     </label>
                     <input
                       type="text"
                       defaultValue={edu.location}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       GPA (Optional)
                     </label>
                     <input
                       type="text"
                       defaultValue={edu.gpa}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Start Date
                     </label>
                     <input
                       type="text"
                       defaultValue={edu.startDate}
                       placeholder="e.g., Sep 2013"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       End Date
                     </label>
                     <input
                       type="text"
                       defaultValue={edu.endDate}
                       placeholder="e.g., Jun 2015 or Present"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     Achievements/Honors
                   </label>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {edu.achievements.map((achievement, achIndex) => (
-                      <div key={achIndex} className="flex items-center gap-2">
-                        <span className="text-gray-400">•</span>
+                      <div key={achIndex} className="flex items-center gap-3">
+                        <span className="text-gray-400 font-bold">•</span>
                         <input
                           type="text"
                           defaultValue={achievement}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
                         />
-                        <button className="p-2 text-gray-400 hover:text-red-600 transition-colors">
+                        <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
                           <svg
                             className="w-4 h-4"
                             fill="none"
@@ -327,7 +327,7 @@ export default function ResumeEditor({
                         </button>
                       </div>
                     ))}
-                    <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                    <button className="text-sm text-blue-600 hover:text-blue-700 font-bold mt-2">
                       + Add Achievement
                     </button>
                   </div>
@@ -335,7 +335,7 @@ export default function ResumeEditor({
               </div>
             ))}
 
-            <button className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-2 font-medium">
+            <button className="w-full py-4 border-2 border-dashed border-slate-300 rounded-2xl text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-all flex items-center justify-center gap-2 font-semibold">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -356,29 +356,29 @@ export default function ResumeEditor({
 
       case "skills":
         return (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Skills</h2>
+          <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
+            <h2 className="text-2xl font-bold text-gray-900 mb-8">Skills</h2>
 
             {/* Technical Skills */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-medium text-gray-700">
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <label className="block text-base font-bold text-gray-800">
                   Technical Skills
                 </label>
-                <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                <button className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all">
                   + Add Skill
                 </button>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {mockSkills.technical.map((skill, index) => (
                   <div
                     key={index}
-                    className="group flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                    className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-blue-100 to-cyan-100 border-2 border-blue-200 text-blue-700 rounded-xl hover:from-blue-200 hover:to-cyan-200 transition-all shadow-sm"
                   >
-                    <span className="text-sm font-medium">{skill}</span>
+                    <span className="text-sm font-semibold">{skill}</span>
                     <button className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 hover:text-blue-800">
                       <svg
-                        className="w-3.5 h-3.5"
+                        className="w-4 h-4"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -522,12 +522,12 @@ export default function ResumeEditor({
   return (
     <div className="flex flex-col h-full">
       {/* Top Bar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200 px-8 py-5 shadow-sm">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
             <button
               onClick={onBack}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-slate-100 rounded-xl transition-all border border-transparent hover:border-slate-200"
               aria-label="Back to resumes"
             >
               <svg
@@ -546,17 +546,17 @@ export default function ResumeEditor({
             </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Resume Editor</h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-600 mt-0.5 font-medium">
                 Edit and optimize your resume content
               </p>
             </div>
           </div>
 
           {/* View Mode Switcher */}
-          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1.5 border border-slate-200">
             <button
               onClick={() => onViewModeChange("edit")}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                 viewMode === "edit"
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-600 hover:text-gray-900"
@@ -566,7 +566,7 @@ export default function ResumeEditor({
             </button>
             <button
               onClick={() => onViewModeChange("split")}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                 viewMode === "split"
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-600 hover:text-gray-900"
@@ -576,7 +576,7 @@ export default function ResumeEditor({
             </button>
             <button
               onClick={() => onViewModeChange("preview")}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                 viewMode === "preview"
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-600 hover:text-gray-900"
@@ -589,8 +589,8 @@ export default function ResumeEditor({
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">{renderSectionContent()}</div>
+      <div className="flex-1 overflow-y-auto p-8">
+        <div className="max-w-5xl mx-auto">{renderSectionContent()}</div>
       </div>
     </div>
   );
