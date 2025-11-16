@@ -71,20 +71,12 @@ type ResumeData = {
 const generateResumeHTML = (data: ResumeData): string => {
   const { contactInfo, summary, experiences, education, skills, styles } = data;
 
-  // Filter only selected bullets
-  const selectedExperiences = experiences
-    .map(exp => ({
-      ...exp,
-      bullets: exp.bullets.filter(b => b.isSelected),
-    }))
-    .filter(exp => exp.bullets.length > 0);
+  // Group experiences by roleGroupId first (before filtering bullets)
+  const groupExperiencesByRole = (exps: typeof experiences) => {
+    const groups: Map<string | null, typeof experiences> = new Map();
+    const standalone: typeof experiences = [];
 
-  // Group experiences by roleGroupId
-  const groupExperiencesByRole = (experiences: typeof selectedExperiences) => {
-    const groups: Map<string | null, typeof selectedExperiences> = new Map();
-    const standalone: typeof selectedExperiences = [];
-
-    experiences.forEach(exp => {
+    exps.forEach(exp => {
       if (exp.roleGroupId) {
         if (!groups.has(exp.roleGroupId)) {
           groups.set(exp.roleGroupId, []);
@@ -98,7 +90,28 @@ const generateResumeHTML = (data: ResumeData): string => {
     return { groups, standalone };
   };
 
-  const { groups, standalone } = groupExperiencesByRole(selectedExperiences);
+  const { groups: rawGroups, standalone: rawStandalone } = groupExperiencesByRole(experiences);
+
+  // Filter bullets for grouped experiences - show all roles even if some have no selected bullets
+  const groups = new Map<string | null, typeof experiences>();
+  rawGroups.forEach((groupExps, groupId) => {
+    const filteredGroupExps = groupExps.map(exp => ({
+      ...exp,
+      bullets: exp.bullets.filter(b => b.isSelected),
+    }));
+    // Only include group if at least one role has selected bullets
+    if (filteredGroupExps.some(exp => exp.bullets.length > 0)) {
+      groups.set(groupId, filteredGroupExps);
+    }
+  });
+
+  // Filter bullets for standalone experiences - only show if they have selected bullets
+  const standalone = rawStandalone
+    .map(exp => ({
+      ...exp,
+      bullets: exp.bullets.filter(b => b.isSelected),
+    }))
+    .filter(exp => exp.bullets.length > 0);
   const displayMode = styles.experienceDisplayMode || 'by_role';
 
   // Map font names to actual Google Fonts URLs
@@ -150,12 +163,17 @@ const generateResumeHTML = (data: ResumeData): string => {
       background: white;
       margin: 0;
       padding: 0;
+      width: 8.5in;
+    }
+
+    .resume-content {
+      padding: ${styles.marginTop}in ${styles.marginRight}in ${styles.marginBottom}in ${styles.marginLeft}in;
     }
 
     /* Header Styles */
     .resume-header {
       text-align: center;
-      margin-bottom: 0.25in;
+      margin-bottom: 0.15in;
     }
 
     .resume-name {
@@ -233,7 +251,7 @@ const generateResumeHTML = (data: ResumeData): string => {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 0.08in;
+      margin-bottom: 0.03in;
     }
 
     .resume-experience-title-group {
@@ -322,6 +340,7 @@ const generateResumeHTML = (data: ResumeData): string => {
   </style>
 </head>
 <body>
+  <div class="resume-content">
   <!-- Contact Information -->
   <header class="resume-header">
     <h1 class="resume-name">${contactInfo.name}</h1>
@@ -377,11 +396,50 @@ const generateResumeHTML = (data: ResumeData): string => {
     ${Array.from(groups.entries()).map(([groupId, groupExps]) => {
       const company = groupExps[0].company;
       const location = groupExps[0].location;
-      const sortedExps = [...groupExps].sort((a, b) => {
-        if (a.startDate && b.startDate) {
-          return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+      
+      // Helper to parse date for comparison (handles "September 2021", "2021", "2021-09", and "Present")
+      const parseDate = (dateStr: string | null | undefined): number => {
+        if (!dateStr || dateStr.toLowerCase() === 'present') return Infinity;
+        
+        // Try Month Year format: "September 2021" or "Sep 2021"
+        const monthYearMatch = dateStr.match(/(\w+)\s+(\d{4})/i);
+        if (monthYearMatch) {
+          const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 
+                           'july', 'august', 'september', 'october', 'november', 'december'];
+          const monthAbbr = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
+                          'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+          const monthStr = monthYearMatch[1].toLowerCase();
+          const year = parseInt(monthYearMatch[2]);
+          let month = monthNames.indexOf(monthStr);
+          if (month === -1) {
+            month = monthAbbr.indexOf(monthStr);
+          }
+          if (month !== -1) {
+            return year * 12 + month;
+          }
         }
+        
+        // Try YYYY-MM format: "2021-09"
+        const dashMatch = dateStr.match(/(\d{4})-(\d{1,2})/);
+        if (dashMatch) {
+          return parseInt(dashMatch[1]) * 12 + parseInt(dashMatch[2]) - 1;
+        }
+        
+        // Try year only: "2021"
+        const yearMatch = dateStr.match(/(\d{4})/);
+        if (yearMatch) {
+          return parseInt(yearMatch[1]) * 12;
+        }
+        
+        // Fallback: return 0 if we can't parse
         return 0;
+      };
+      
+      // Sort experiences by start date in descending order (newest first)
+      const sortedExps = [...groupExps].sort((a, b) => {
+        const aDate = parseDate(a.startDate);
+        const bDate = parseDate(b.startDate);
+        return bDate - aDate; // Descending order (newest first)
       });
 
       // Calculate min/max dates for grouped experiences
@@ -403,15 +461,15 @@ const generateResumeHTML = (data: ResumeData): string => {
         <div class="resume-experience-item">
           <div class="resume-experience-header">
             <div class="resume-experience-title-group">
-              <h3 class="resume-experience-title"><strong>${company}</strong>${location?.trim() ? `, ${location}` : ''}</h3>
+              <h3 class="resume-experience-title"><strong>${company}</strong>${location?.trim() ? `<span>, ${location}</span>` : ''}</h3>
             </div>
             ${dateRange ? `<div class="resume-experience-meta"><span class="resume-experience-dates">${dateRange}</span></div>` : ''}
           </div>
           ${sortedExps.map(exp => `
-            <div style="margin-top: 0.1in; margin-bottom: 0.1in;">
+            <div style="margin-top: 0.03in; margin-bottom: 0.1in;">
               <div style="margin-bottom: 0.05in; font-style: italic;">
                 <em>${exp.title}</em>
-                ${exp.startDate || exp.endDate ? `<span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">(${exp.startDate || ''} - ${exp.endDate || ''})</span>` : ''}
+                ${sortedExps.length > 1 && (exp.startDate || exp.endDate) ? `<span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">(${exp.startDate || ''} - ${exp.endDate || ''})</span>` : ''}
               </div>
               <ul class="resume-bullets" style="margin-left: 0.15in;">
                 ${exp.bullets.map(bullet => `
@@ -429,15 +487,15 @@ const generateResumeHTML = (data: ResumeData): string => {
         <div class="resume-experience-item">
           <div class="resume-experience-header">
             <div class="resume-experience-title-group">
-              <h3 class="resume-experience-title"><strong>${company}</strong>${location?.trim() ? `, ${location}` : ''}</h3>
+              <h3 class="resume-experience-title"><strong>${company}</strong>${location?.trim() ? `<span>, ${location}</span>` : ''}</h3>
             </div>
             ${dateRange ? `<div class="resume-experience-meta"><span class="resume-experience-dates">${dateRange}</span></div>` : ''}
           </div>
-          <div style="margin-bottom: 0.08in;">
+          <div style="margin-bottom: 0.05in;">
             ${sortedExps.map((exp, idx) => `
               <div style="margin-bottom: ${idx < sortedExps.length - 1 ? '0.03in' : '0'}; font-style: italic;">
                 <em>${exp.title}</em>
-                ${exp.startDate || exp.endDate ? `<span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">(${exp.startDate || ''} - ${exp.endDate || ''})</span>` : ''}
+                ${sortedExps.length > 1 && (exp.startDate || exp.endDate) ? `<span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">(${exp.startDate || ''} - ${exp.endDate || ''})</span>` : ''}
               </div>
             `).join('')}
           </div>
@@ -454,11 +512,11 @@ const generateResumeHTML = (data: ResumeData): string => {
     <div class="resume-experience-item">
       <div class="resume-experience-header">
         <div class="resume-experience-title-group">
-          <h3 class="resume-experience-title"><strong>${exp.company}</strong>${exp.location?.trim() ? `, ${exp.location}` : ''}</h3>
+          <h3 class="resume-experience-title"><strong>${exp.company}</strong>${exp.location?.trim() ? `<span>, ${exp.location}</span>` : ''}</h3>
         </div>
         ${exp.startDate || exp.endDate ? `<div class="resume-experience-meta"><span class="resume-experience-dates">${exp.startDate || ''} - ${exp.endDate || ''}</span></div>` : ''}
       </div>
-      <div style="margin-top: 0.05in; margin-bottom: 0.05in; font-style: italic;">
+      <div style="margin-top: 0.02in; margin-bottom: 0.05in; font-style: italic;">
         <em>${exp.title}</em>
       </div>
       <ul class="resume-bullets">
@@ -529,6 +587,7 @@ const generateResumeHTML = (data: ResumeData): string => {
     </div>
   </section>
   ` : ''}
+  </div>
 </body>
 </html>
   `;
@@ -562,15 +621,15 @@ export async function POST(request: NextRequest) {
     // Additional wait to ensure fonts are fully loaded
     await page.evaluateHandle('document.fonts.ready');
 
-    // Generate PDF with proper margins
+    // Generate PDF - margins are handled via HTML padding
     const pdf = await page.pdf({
       format: 'Letter',
       printBackground: true,
       margin: {
-        top: `${body.styles.marginTop}in`,
-        right: `${body.styles.marginRight}in`,
-        bottom: `${body.styles.marginBottom}in`,
-        left: `${body.styles.marginLeft}in`,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
       },
       preferCSSPageSize: false,
     });

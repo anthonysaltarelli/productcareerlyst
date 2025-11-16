@@ -63,20 +63,12 @@ type ResumeData = {
 export const createResumeDocument = (data: ResumeData): Document => {
   const { contactInfo, summary, experiences, education, skills, styles } = data;
 
-  // Filter only selected bullets
-  const selectedExperiences = experiences
-    .map(exp => ({
-      ...exp,
-      bullets: exp.bullets.filter(b => b.isSelected),
-    }))
-    .filter(exp => exp.bullets.length > 0);
+  // Group experiences by roleGroupId first (before filtering bullets)
+  const groupExperiencesByRole = (exps: typeof experiences) => {
+    const groups: Map<string | null, typeof experiences> = new Map();
+    const standalone: typeof experiences = [];
 
-  // Group experiences by roleGroupId
-  const groupExperiencesByRole = (experiences: typeof selectedExperiences) => {
-    const groups: Map<string | null, typeof selectedExperiences> = new Map();
-    const standalone: typeof selectedExperiences = [];
-
-    experiences.forEach(exp => {
+    exps.forEach(exp => {
       if (exp.roleGroupId) {
         if (!groups.has(exp.roleGroupId)) {
           groups.set(exp.roleGroupId, []);
@@ -90,7 +82,28 @@ export const createResumeDocument = (data: ResumeData): Document => {
     return { groups, standalone };
   };
 
-  const { groups, standalone } = groupExperiencesByRole(selectedExperiences);
+  const { groups: rawGroups, standalone: rawStandalone } = groupExperiencesByRole(experiences);
+
+  // Filter bullets for grouped experiences - show all roles even if some have no selected bullets
+  const groups = new Map<string | null, typeof experiences>();
+  rawGroups.forEach((groupExps, groupId) => {
+    const filteredGroupExps = groupExps.map(exp => ({
+      ...exp,
+      bullets: exp.bullets.filter(b => b.isSelected),
+    }));
+    // Only include group if at least one role has selected bullets
+    if (filteredGroupExps.some(exp => exp.bullets.length > 0)) {
+      groups.set(groupId, filteredGroupExps);
+    }
+  });
+
+  // Filter bullets for standalone experiences - only show if they have selected bullets
+  const standalone = rawStandalone
+    .map(exp => ({
+      ...exp,
+      bullets: exp.bullets.filter(b => b.isSelected),
+    }))
+    .filter(exp => exp.bullets.length > 0);
   const displayMode = styles?.experienceDisplayMode || 'by_role';
 
   const sections: Paragraph[] = [];
@@ -199,11 +212,50 @@ export const createResumeDocument = (data: ResumeData): Document => {
     Array.from(groups.entries()).forEach(([groupId, groupExps]) => {
       const company = groupExps[0].company;
       const location = groupExps[0].location;
-      const sortedExps = [...groupExps].sort((a, b) => {
-        if (a.startDate && b.startDate) {
-          return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+      
+      // Helper to parse date for comparison (handles "September 2021", "2021", "2021-09", and "Present")
+      const parseDate = (dateStr: string | null | undefined): number => {
+        if (!dateStr || dateStr.toLowerCase() === 'present') return Infinity;
+        
+        // Try Month Year format: "September 2021" or "Sep 2021"
+        const monthYearMatch = dateStr.match(/(\w+)\s+(\d{4})/i);
+        if (monthYearMatch) {
+          const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 
+                           'july', 'august', 'september', 'october', 'november', 'december'];
+          const monthAbbr = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
+                          'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+          const monthStr = monthYearMatch[1].toLowerCase();
+          const year = parseInt(monthYearMatch[2]);
+          let month = monthNames.indexOf(monthStr);
+          if (month === -1) {
+            month = monthAbbr.indexOf(monthStr);
+          }
+          if (month !== -1) {
+            return year * 12 + month;
+          }
         }
+        
+        // Try YYYY-MM format: "2021-09"
+        const dashMatch = dateStr.match(/(\d{4})-(\d{1,2})/);
+        if (dashMatch) {
+          return parseInt(dashMatch[1]) * 12 + parseInt(dashMatch[2]) - 1;
+        }
+        
+        // Try year only: "2021"
+        const yearMatch = dateStr.match(/(\d{4})/);
+        if (yearMatch) {
+          return parseInt(yearMatch[1]) * 12;
+        }
+        
+        // Fallback: return 0 if we can't parse
         return 0;
+      };
+      
+      // Sort experiences by start date in descending order (newest first)
+      const sortedExps = [...groupExps].sort((a, b) => {
+        const aDate = parseDate(a.startDate);
+        const bDate = parseDate(b.startDate);
+        return bDate - aDate; // Descending order (newest first)
       });
 
       // Calculate min/max dates for grouped experiences
@@ -246,13 +298,13 @@ export const createResumeDocument = (data: ResumeData): Document => {
       if (displayMode === 'by_role') {
         // Mode 1: Each role with its bullets
         sortedExps.forEach((exp) => {
-          // Role title and dates (italic)
-          const roleDateText = exp.startDate || exp.endDate 
+          // Role title and dates (italic) - only show dates if multiple roles
+          const roleDateText = sortedExps.length > 1 && (exp.startDate || exp.endDate)
             ? ` (${exp.startDate || ''} - ${exp.endDate || ''})`
             : '';
           sections.push(
             new Paragraph({
-              spacing: { before: 50, after: 30 },
+              spacing: { before: 20, after: 30 },
               children: [
                 new TextRun({ text: exp.title, italics: true, size: 20 }),
                 ...(roleDateText ? [new TextRun({ text: roleDateText, size: 20 })] : []),
@@ -274,12 +326,13 @@ export const createResumeDocument = (data: ResumeData): Document => {
       } else {
         // Mode 2: All titles stacked, then all bullets
         sortedExps.forEach((exp) => {
-          const roleDateText = exp.startDate || exp.endDate 
+          // Only show dates if multiple roles
+          const roleDateText = sortedExps.length > 1 && (exp.startDate || exp.endDate)
             ? ` (${exp.startDate || ''} - ${exp.endDate || ''})`
             : '';
           sections.push(
             new Paragraph({
-              spacing: { before: 30, after: 10 },
+              spacing: { before: 20, after: 10 },
               children: [
                 new TextRun({ text: exp.title, italics: true, size: 20 }),
                 ...(roleDateText ? [new TextRun({ text: roleDateText, size: 20 })] : []),
@@ -326,7 +379,7 @@ export const createResumeDocument = (data: ResumeData): Document => {
 
       sections.push(
         new Paragraph({
-          spacing: { before: experienceIndex === 0 ? 0 : 150, after: 50 },
+          spacing: { before: experienceIndex === 0 ? 0 : 150, after: 20 },
           alignment: AlignmentType.JUSTIFIED,
           tabStops: dateRange ? [{ type: "right", position: convertInchesToTwip(7.5) }] : [],
           children: companyHeaderChildren,
@@ -336,7 +389,7 @@ export const createResumeDocument = (data: ResumeData): Document => {
       // Role title (italic)
       sections.push(
         new Paragraph({
-          spacing: { after: 100 },
+          spacing: { after: 100, before: 10 },
           children: [
             new TextRun({ text: exp.title, italics: true, size: 20 }),
           ],

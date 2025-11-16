@@ -48,16 +48,10 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
     '--resume-text-color': styles.textColor,
   } as React.CSSProperties;
 
-  // Filter only selected bullets for preview
-  const selectedExperiences = resumeData.experiences.map(exp => ({
-    ...exp,
-    bullets: exp.bullets.filter(b => b.isSelected),
-  })).filter(exp => exp.bullets.length > 0);
-
-  // Group experiences by roleGroupId
-  const groupExperiencesByRole = (experiences: typeof selectedExperiences) => {
-    const groups: Map<string | null, typeof selectedExperiences> = new Map();
-    const standalone: typeof selectedExperiences = [];
+  // Group experiences by roleGroupId first (before filtering bullets)
+  const groupExperiencesByRole = (experiences: typeof resumeData.experiences) => {
+    const groups: Map<string | null, typeof resumeData.experiences> = new Map();
+    const standalone: typeof resumeData.experiences = [];
 
     experiences.forEach(exp => {
       if (exp.roleGroupId) {
@@ -73,7 +67,28 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
     return { groups, standalone };
   };
 
-  const { groups, standalone } = groupExperiencesByRole(selectedExperiences);
+  const { groups: rawGroups, standalone: rawStandalone } = groupExperiencesByRole(resumeData.experiences);
+
+  // Filter bullets for grouped experiences - show all roles even if some have no selected bullets
+  const groups = new Map<string | null, typeof resumeData.experiences>();
+  rawGroups.forEach((groupExps, groupId) => {
+    const filteredGroupExps = groupExps.map(exp => ({
+      ...exp,
+      bullets: exp.bullets.filter(b => b.isSelected),
+    }));
+    // Only include group if at least one role has selected bullets
+    if (filteredGroupExps.some(exp => exp.bullets.length > 0)) {
+      groups.set(groupId, filteredGroupExps);
+    }
+  });
+
+  // Filter bullets for standalone experiences - only show if they have selected bullets
+  const standalone = rawStandalone
+    .map(exp => ({
+      ...exp,
+      bullets: exp.bullets.filter(b => b.isSelected),
+    }))
+    .filter(exp => exp.bullets.length > 0);
   const displayMode = styles.experienceDisplayMode || 'by_role';
 
   return (
@@ -179,7 +194,7 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          margin-bottom: 0.08in;
+          margin-bottom: 0.03in;
         }
 
         .resume-experience-title-group {
@@ -357,11 +372,60 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
               {Array.from(groups.entries()).map(([groupId, groupExps]) => {
                 const company = groupExps[0].company;
                 const location = groupExps[0].location;
-                const sortedExps = [...groupExps].sort((a, b) => {
-                  if (a.startDate && b.startDate) {
-                    return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+                
+                // Helper to parse date for comparison (handles "September 2021", "2021", "2021-09", and "Present")
+                const parseDate = (dateStr: string | null | undefined): number => {
+                  if (!dateStr || dateStr.toLowerCase() === 'present') return Infinity;
+                  
+                  // Try Month Year format: "September 2021" or "Sep 2021"
+                  const monthYearMatch = dateStr.match(/(\w+)\s+(\d{4})/i);
+                  if (monthYearMatch) {
+                    const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 
+                                     'july', 'august', 'september', 'october', 'november', 'december'];
+                    const monthAbbr = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
+                                    'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+                    const monthStr = monthYearMatch[1].toLowerCase();
+                    const year = parseInt(monthYearMatch[2]);
+                    let month = monthNames.indexOf(monthStr);
+                    if (month === -1) {
+                      month = monthAbbr.indexOf(monthStr);
+                    }
+                    if (month !== -1) {
+                      return year * 12 + month;
+                    }
                   }
+                  
+                  // Try YYYY-MM format: "2021-09"
+                  const dashMatch = dateStr.match(/(\d{4})-(\d{1,2})/);
+                  if (dashMatch) {
+                    return parseInt(dashMatch[1]) * 12 + parseInt(dashMatch[2]) - 1;
+                  }
+                  
+                  // Try year only: "2021"
+                  const yearMatch = dateStr.match(/(\d{4})/);
+                  if (yearMatch) {
+                    return parseInt(yearMatch[1]) * 12;
+                  }
+                  
+                  // Fallback: return 0 if we can't parse
                   return 0;
+                };
+                
+                // Sort experiences by start date in descending order (newest first)
+                // If dates are equal or one is missing, use end date as tiebreaker
+                const sortedExps = [...groupExps].sort((a, b) => {
+                  const aStartDate = parseDate(a.startDate);
+                  const bStartDate = parseDate(b.startDate);
+                  
+                  // Primary sort: by start date (descending - newest first)
+                  if (aStartDate !== bStartDate) {
+                    return bStartDate - aStartDate;
+                  }
+                  
+                  // Tiebreaker: by end date (descending - newest first)
+                  const aEndDate = parseDate(a.endDate);
+                  const bEndDate = parseDate(b.endDate);
+                  return bEndDate - aEndDate;
                 });
 
                 // Calculate min/max dates for grouped experiences
@@ -385,7 +449,7 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
                         <div className="resume-experience-title-group">
                           <h3 className="resume-experience-title">
                             <strong>{company}</strong>
-                            {location?.trim() && `, ${location}`}
+                            {location?.trim() && <span>, {location}</span>}
                           </h3>
                         </div>
                         {dateRange && (
@@ -395,10 +459,10 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
                         )}
                       </div>
                       {sortedExps.map((exp) => (
-                        <div key={exp.id} style={{ marginTop: '0.1in', marginBottom: '0.1in' }}>
+                        <div key={exp.id} style={{ marginTop: '0.03in', marginBottom: '0.1in' }}>
                           <div style={{ marginBottom: '0.05in', fontStyle: 'italic' }}>
                             <em>{exp.title}</em>
-                            {exp.startDate || exp.endDate ? (
+                            {sortedExps.length > 1 && (exp.startDate || exp.endDate) ? (
                               <span style={{ marginLeft: '0.1in', fontSize: 'calc(var(--resume-font-size) * 0.95)' }}>
                                 ({exp.startDate || ''} - {exp.endDate || ''})
                               </span>
@@ -427,7 +491,7 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
                         <div className="resume-experience-title-group">
                           <h3 className="resume-experience-title">
                             <strong>{company}</strong>
-                            {location?.trim() && `, ${location}`}
+                            {location?.trim() && <span>, {location}</span>}
                           </h3>
                         </div>
                         {dateRange && (
@@ -436,11 +500,11 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
                           </div>
                         )}
                       </div>
-                      <div style={{ marginBottom: '0.08in' }}>
+                      <div style={{ marginBottom: '0.05in' }}>
                         {sortedExps.map((exp, idx) => (
                           <div key={exp.id} style={{ marginBottom: idx < sortedExps.length - 1 ? '0.03in' : '0', fontStyle: 'italic' }}>
                             <em>{exp.title}</em>
-                            {exp.startDate || exp.endDate ? (
+                            {sortedExps.length > 1 && (exp.startDate || exp.endDate) ? (
                               <span style={{ marginLeft: '0.1in', fontSize: 'calc(var(--resume-font-size) * 0.95)' }}>
                                 ({exp.startDate || ''} - {exp.endDate || ''})
                               </span>
@@ -467,7 +531,7 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
                     <div className="resume-experience-title-group">
                       <h3 className="resume-experience-title">
                         <strong>{exp.company}</strong>
-                        {exp.location?.trim() && `, ${exp.location}`}
+                        {exp.location?.trim() && <span>, {exp.location}</span>}
                       </h3>
                     </div>
                     {(exp.startDate || exp.endDate) && (
@@ -476,7 +540,7 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
                       </div>
                     )}
                   </div>
-                  <div style={{ marginTop: '0.05in', marginBottom: '0.05in', fontStyle: 'italic' }}>
+                  <div style={{ marginTop: '0.02in', marginBottom: '0.05in', fontStyle: 'italic' }}>
                     <em>{exp.title}</em>
                   </div>
                   <ul className="resume-bullets">
