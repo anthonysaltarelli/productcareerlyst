@@ -353,36 +353,123 @@ export default function ResumeEditorPage({ params }: Props) {
 
   // Confirm Add Experience - handles form submission
   const handleConfirmAddExperience = async (formData: {
-    title: string;
     company: string;
     location: string;
-    start_date: string;
-    end_date: string;
+    roles: Array<{ title: string; start_date: string; end_date: string }>;
+    bulletMode: 'per_role' | 'per_experience';
   }) => {
     if (!versionId) return;
 
     setIsAddingExperience(true);
     try {
       if (editingExperience) {
-        // Edit mode - update existing experience
-        await updateExperience(editingExperience.id, {
-          title: formData.title,
-          company: formData.company,
-          location: formData.location,
-          start_date: formData.start_date,
-          end_date: formData.end_date,
-        });
+        // Edit mode - update existing experience(s)
+        const experience = currentResumeData.experiences.find(exp => exp.id === editingExperience.id);
+        if (!experience) {
+          toast.error('Experience not found');
+          return;
+        }
+
+        // If it's a grouped experience, update all roles in the group
+        if (experience.roleGroupId) {
+          const groupExperiences = currentResumeData.experiences.filter(
+            exp => exp.roleGroupId === experience.roleGroupId
+          );
+          
+          // Update company and location for all experiences in group
+          await Promise.all(
+            groupExperiences.map(exp => 
+              updateExperience(exp.id, {
+                company: formData.company,
+                location: formData.location,
+              })
+            )
+          );
+
+          // Update bullet mode on first experience
+          if (groupExperiences.length > 0) {
+            await updateExperience(groupExperiences[0].id, {
+              bullet_mode: formData.bulletMode,
+            });
+          }
+
+          // Update or create roles
+          // For simplicity, we'll update existing roles and add new ones
+          // Delete removed roles (if any)
+          const existingRoleIds = groupExperiences.map(exp => exp.id);
+          const newRoleCount = formData.roles.length;
+          
+          // Update existing roles
+          for (let i = 0; i < Math.min(existingRoleIds.length, newRoleCount); i++) {
+            await updateExperience(existingRoleIds[i], {
+              title: formData.roles[i].title,
+              start_date: formData.roles[i].start_date,
+              end_date: formData.roles[i].end_date,
+            });
+          }
+
+          // Add new roles if there are more
+          if (newRoleCount > existingRoleIds.length) {
+            const baseDisplayOrder = Math.max(...groupExperiences.map(e => 
+              currentResumeData.experiences.findIndex(exp => exp.id === e.id)
+            )) + 1;
+            
+            for (let i = existingRoleIds.length; i < newRoleCount; i++) {
+              await createExperience(versionId, {
+                title: formData.roles[i].title,
+                company: formData.company,
+                location: formData.location,
+                start_date: formData.roles[i].start_date,
+                end_date: formData.roles[i].end_date,
+                display_order: baseDisplayOrder + (i - existingRoleIds.length),
+                role_group_id: experience.roleGroupId,
+              });
+            }
+          }
+
+          // Delete removed roles (if any) - but keep at least one
+          if (newRoleCount < existingRoleIds.length && newRoleCount > 0) {
+            for (let i = newRoleCount; i < existingRoleIds.length; i++) {
+              await deleteExperience(existingRoleIds[i]);
+            }
+          } else if (newRoleCount === 0) {
+            toast.error('At least one role is required');
+            return;
+          }
+        } else {
+          // Single experience - update it
+          if (formData.roles.length > 0) {
+            await updateExperience(editingExperience.id, {
+              title: formData.roles[0].title,
+              company: formData.company,
+              location: formData.location,
+              start_date: formData.roles[0].start_date,
+              end_date: formData.roles[0].end_date,
+            });
+          }
+        }
+        
         toast.success('Experience updated successfully');
       } else {
-        // Add mode - create new experience
-        await createExperience(versionId, {
-          title: formData.title,
-          company: formData.company,
-          location: formData.location,
-          start_date: formData.start_date,
-          end_date: formData.end_date,
-          display_order: currentResumeData.experiences.length,
-        });
+        // Add mode - create multiple experiences (one per role) with same role_group_id
+        const groupId = crypto.randomUUID();
+        const baseDisplayOrder = currentResumeData.experiences.length;
+
+        // Create all roles as separate experiences with the same role_group_id
+        await Promise.all(
+          formData.roles.map(async (role, index) => {
+            await createExperience(versionId, {
+              title: role.title,
+              company: formData.company,
+              location: formData.location,
+              start_date: role.start_date,
+              end_date: role.end_date,
+              display_order: baseDisplayOrder + index,
+              role_group_id: groupId,
+              bullet_mode: index === 0 ? formData.bulletMode : undefined, // Only first role stores bullet_mode
+            });
+          })
+        );
         toast.success('Experience added successfully');
       }
 
@@ -397,7 +484,7 @@ export default function ResumeEditorPage({ params }: Props) {
       setEditingExperience(null);
     } catch (error) {
       console.error('Error saving experience:', error);
-      // Error toast is already shown by the hook
+      toast.error('Failed to save experience');
     } finally {
       setIsAddingExperience(false);
     }
@@ -406,19 +493,51 @@ export default function ResumeEditorPage({ params }: Props) {
   // Edit Experience handler
   const handleEditExperience = (experienceId: string) => {
     const experience = currentResumeData.experiences.find(exp => exp.id === experienceId);
-    if (experience) {
+    if (!experience) return;
+
+    // Check if this experience is part of a group
+    if (experience.roleGroupId) {
+      // Get all experiences in this group
+      const groupExperiences = currentResumeData.experiences.filter(
+        exp => exp.roleGroupId === experience.roleGroupId
+      );
+      
+      // Get bullet mode from first experience in group
+      const bulletMode = groupExperiences[0]?.bulletMode || 'per_role';
+      
+      // Format roles for the modal
+      const roles = groupExperiences.map(exp => ({
+        title: exp.title,
+        start_date: exp.startDate,
+        end_date: exp.endDate,
+      }));
+
       setEditingExperience({
         id: experienceId,
         data: {
-          title: experience.title,
           company: experience.company,
           location: experience.location,
-          start_date: experience.startDate,
-          end_date: experience.endDate,
+          roles: roles,
+          bulletMode: bulletMode,
         },
       });
-      setShowAddExperienceModal(true);
+    } else {
+      // Single experience - format as single role
+      setEditingExperience({
+        id: experienceId,
+        data: {
+          company: experience.company,
+          location: experience.location,
+          roles: [{
+            title: experience.title,
+            start_date: experience.startDate,
+            end_date: experience.endDate,
+          }],
+          bulletMode: 'per_role', // Single experiences default to per_role
+        },
+      });
     }
+    setShowAddExperienceModal(true);
   };
 
   // Add Education handler - opens modal
@@ -603,6 +722,145 @@ export default function ResumeEditorPage({ params }: Props) {
     } catch (error) {
       console.error('Error deleting education:', error);
       // Error toast is already shown by the hook
+    }
+  };
+
+  // Group Experience handler - groups experiences at the same company
+  const handleGroupExperience = async (experienceId: string) => {
+    if (!versionId) return;
+
+    try {
+      const experience = currentResumeData.experiences.find(exp => exp.id === experienceId);
+      if (!experience) return;
+
+      // Find all experiences at the same company
+      const sameCompanyExps = currentResumeData.experiences.filter(
+        exp => exp.company === experience.company && exp.id !== experienceId
+      );
+
+      if (sameCompanyExps.length === 0) {
+        toast.error('No other experiences at this company to group with');
+        return;
+      }
+
+      // Generate a new group ID (UUID)
+      const groupId = crypto.randomUUID();
+
+      // Update all experiences at the same company to have the same role_group_id
+      const allExpsToGroup = [experience, ...sameCompanyExps];
+      await Promise.all(
+        allExpsToGroup.map(exp => 
+          updateExperience(exp.id, { role_group_id: groupId })
+        )
+      );
+
+      // Immediately refresh the resume data
+      const refreshedData = await fetchResumeData(versionId);
+      if (refreshedData) {
+        const uiData = mapCompleteDBResumeToUI(refreshedData);
+        setCurrentResumeData(uiData);
+        setOriginalResumeData(uiData);
+      }
+      toast.success('Experiences grouped successfully');
+    } catch (error) {
+      console.error('Error grouping experience:', error);
+      toast.error('Failed to group experiences');
+    }
+  };
+
+  // Ungroup Experience handler - removes experience from group
+  const handleUngroupExperience = async (experienceId: string) => {
+    if (!versionId) return;
+
+    try {
+      await updateExperience(experienceId, { role_group_id: null });
+
+      // Immediately refresh the resume data
+      const refreshedData = await fetchResumeData(versionId);
+      if (refreshedData) {
+        const uiData = mapCompleteDBResumeToUI(refreshedData);
+        setCurrentResumeData(uiData);
+        setOriginalResumeData(uiData);
+      }
+      toast.success('Experience ungrouped successfully');
+    } catch (error) {
+      console.error('Error ungrouping experience:', error);
+      toast.error('Failed to ungroup experience');
+    }
+  };
+
+  // Update bullet mode for an experience group
+  const handleUpdateBulletMode = async (groupId: string, bulletMode: 'per_role' | 'per_experience') => {
+    if (!versionId) return;
+
+    try {
+      // Find all experiences in this group
+      const groupExperiences = currentResumeData.experiences.filter(
+        exp => exp.roleGroupId === groupId
+      );
+      
+      // Update the first experience (which stores the bullet_mode)
+      if (groupExperiences.length > 0) {
+        const firstExp = groupExperiences[0];
+        await updateExperience(firstExp.id, { bullet_mode: bulletMode });
+      }
+
+      // Immediately refresh the resume data
+      const refreshedData = await fetchResumeData(versionId);
+      if (refreshedData) {
+        const uiData = mapCompleteDBResumeToUI(refreshedData);
+        setCurrentResumeData(uiData);
+        setOriginalResumeData(uiData);
+      }
+      toast.success('Bullet mode updated successfully');
+    } catch (error) {
+      console.error('Error updating bullet mode:', error);
+      toast.error('Failed to update bullet mode');
+    }
+  };
+
+  // Add role to existing experience
+  const handleAddRoleToExperience = async (groupId: string, roleData: { title: string; start_date: string; end_date: string }) => {
+    if (!versionId) return;
+
+    try {
+      // Find the first experience in the group to get company/location
+      const groupExperiences = currentResumeData.experiences.filter(
+        exp => exp.roleGroupId === groupId
+      );
+      
+      if (groupExperiences.length === 0) {
+        toast.error('Experience group not found');
+        return;
+      }
+
+      const firstExp = groupExperiences[0];
+      const baseDisplayOrder = Math.max(...groupExperiences.map(e => 
+        currentResumeData.experiences.findIndex(exp => exp.id === e.id)
+      )) + 1;
+
+      // Create new role as separate experience with same role_group_id
+      await createExperience(versionId, {
+        title: roleData.title,
+        company: firstExp.company,
+        location: firstExp.location,
+        start_date: roleData.start_date,
+        end_date: roleData.end_date,
+        display_order: baseDisplayOrder,
+        role_group_id: groupId,
+      });
+
+      // Immediately refresh the resume data
+      const refreshedData = await fetchResumeData(versionId);
+      if (refreshedData) {
+        const uiData = mapCompleteDBResumeToUI(refreshedData);
+        setCurrentResumeData(uiData);
+        setOriginalResumeData(uiData);
+      }
+      toast.success('Role added successfully');
+    } catch (error) {
+      console.error('Error adding role:', error);
+      toast.error('Failed to add role');
     }
   };
 
@@ -840,6 +1098,10 @@ export default function ResumeEditorPage({ params }: Props) {
             onDisplayModeChange={(mode) => {
               setResumeStyles({ ...resumeStyles, experienceDisplayMode: mode });
             }}
+            onGroupExperience={handleGroupExperience}
+            onUngroupExperience={handleUngroupExperience}
+            onUpdateBulletMode={handleUpdateBulletMode}
+            onAddRoleToExperience={handleAddRoleToExperience}
           />
         </div>
       </div>

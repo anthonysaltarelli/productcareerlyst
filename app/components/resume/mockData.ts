@@ -25,6 +25,7 @@ export type Experience = {
   startDate: string;
   endDate: string;
   roleGroupId?: string | null;
+  bulletMode?: 'per_role' | 'per_experience' | null;
   bullets: Bullet[];
 };
 

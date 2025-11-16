@@ -63,6 +63,7 @@ export const mapDBExperienceToUI = (dbExp: DBExperience): UIExperience => {
     startDate: dbExp.start_date || '',
     endDate: dbExp.end_date || '',
     roleGroupId: dbExp.role_group_id || null,
+    bulletMode: dbExp.bullet_mode || null,
     bullets: (dbExp.bullets || []).map(bullet => ({
       id: bullet.id,
       content: bullet.content,
@@ -85,6 +86,7 @@ export const mapUIExperienceToDB = (uiExp: UIExperience, versionId: string): Par
     end_date: uiExp.endDate || null,
     display_order: 0, // Set by caller if needed
     role_group_id: uiExp.roleGroupId || null,
+    bullet_mode: uiExp.bulletMode || null,
   };
 };
 

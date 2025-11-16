@@ -39,16 +39,26 @@ export const PUT = async (
     }
 
     // Update experience
+    const updateData: any = {
+      title: body.title,
+      company: body.company,
+      location: body.location,
+      start_date: body.start_date,
+      end_date: body.end_date,
+      display_order: body.display_order,
+    };
+    
+    if (body.role_group_id !== undefined) {
+      updateData.role_group_id = body.role_group_id;
+    }
+    
+    if (body.bullet_mode !== undefined) {
+      updateData.bullet_mode = body.bullet_mode;
+    }
+
     const { data, error } = await supabase
       .from('resume_experiences')
-      .update({
-        title: body.title,
-        company: body.company,
-        location: body.location,
-        start_date: body.start_date,
-        end_date: body.end_date,
-        display_order: body.display_order,
-      })
+      .update(updateData)
       .eq('id', experienceId)
       .select()
       .single();

@@ -56,6 +56,7 @@ export type Experience = {
   end_date?: string | null;
   display_order: number;
   role_group_id?: string | null;
+  bullet_mode?: 'per_role' | 'per_experience' | null;
   bullets?: ExperienceBullet[];
   created_at?: string;
   updated_at?: string;

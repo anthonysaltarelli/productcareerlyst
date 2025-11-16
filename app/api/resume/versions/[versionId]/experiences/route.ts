@@ -54,6 +54,8 @@ export const POST = async (
         start_date: body.start_date || null,
         end_date: body.end_date || null,
         display_order: body.display_order || 0,
+        role_group_id: body.role_group_id || null,
+        bullet_mode: body.bullet_mode || null,
       })
       .select()
       .single();
