@@ -296,23 +296,45 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
           <header className="resume-header">
             <h1 className="resume-name">{resumeData.contactInfo.name}</h1>
             <div className="resume-contact-info">
-              <span className="resume-contact-item">{resumeData.contactInfo.location}</span>
-              <span className="resume-contact-item">
-                <span className="resume-separator">•</span>
-                {resumeData.contactInfo.phone}
-              </span>
-              <span className="resume-contact-item">
-                <span className="resume-separator">•</span>
-                <a href={`mailto:${resumeData.contactInfo.email}`} className="resume-link">{resumeData.contactInfo.email}</a>
-              </span>
-              <span className="resume-contact-item">
-                <span className="resume-separator">•</span>
-                <a href={`https://${resumeData.contactInfo.linkedin}`} target="_blank" rel="noopener noreferrer" className="resume-link">{resumeData.contactInfo.linkedin}</a>
-              </span>
-              <span className="resume-contact-item">
-                <span className="resume-separator">•</span>
-                <a href={`https://${resumeData.contactInfo.portfolio}`} target="_blank" rel="noopener noreferrer" className="resume-link">{resumeData.contactInfo.portfolio}</a>
-              </span>
+              {(() => {
+                const contactItems: Array<{ content: React.ReactNode; key: string }> = [];
+                
+                if (resumeData.contactInfo.location?.trim()) {
+                  contactItems.push({ content: resumeData.contactInfo.location, key: 'location' });
+                }
+                
+                if (resumeData.contactInfo.phone?.trim()) {
+                  contactItems.push({ content: resumeData.contactInfo.phone, key: 'phone' });
+                }
+                
+                if (resumeData.contactInfo.email?.trim()) {
+                  contactItems.push({
+                    content: <a href={`mailto:${resumeData.contactInfo.email}`} className="resume-link">{resumeData.contactInfo.email}</a>,
+                    key: 'email'
+                  });
+                }
+                
+                if (resumeData.contactInfo.linkedin?.trim()) {
+                  contactItems.push({
+                    content: <a href={`https://${resumeData.contactInfo.linkedin}`} target="_blank" rel="noopener noreferrer" className="resume-link">{resumeData.contactInfo.linkedin}</a>,
+                    key: 'linkedin'
+                  });
+                }
+                
+                if (resumeData.contactInfo.portfolio?.trim()) {
+                  contactItems.push({
+                    content: <a href={`https://${resumeData.contactInfo.portfolio}`} target="_blank" rel="noopener noreferrer" className="resume-link">{resumeData.contactInfo.portfolio}</a>,
+                    key: 'portfolio'
+                  });
+                }
+                
+                return contactItems.map((item, index) => (
+                  <span key={item.key} className="resume-contact-item">
+                    {index > 0 && <span className="resume-separator">•</span>}
+                    {item.content}
+                  </span>
+                ));
+              })()}
             </div>
           </header>
 

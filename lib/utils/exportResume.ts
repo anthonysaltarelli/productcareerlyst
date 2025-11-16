@@ -106,34 +106,44 @@ export const createResumeDocument = (data: ResumeData): Document => {
     })
   );
 
-  sections.push(
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 100 },
-      children: [
-        new TextRun({ text: contactInfo.location, size: 20 }),
-        new TextRun({ text: " • ", size: 20 }),
-        new TextRun({ text: contactInfo.phone, size: 20 }),
-        new TextRun({ text: " • ", size: 20 }),
-        new TextRun({ text: contactInfo.email, size: 20 }),
-      ],
-    })
-  );
+  // Build contact info items array, filtering out empty fields
+  const contactItems: Array<{ text: string }> = [];
+  
+  if (contactInfo.location?.trim()) {
+    contactItems.push({ text: contactInfo.location });
+  }
+  
+  if (contactInfo.phone?.trim()) {
+    contactItems.push({ text: contactInfo.phone });
+  }
+  
+  if (contactInfo.email?.trim()) {
+    contactItems.push({ text: contactInfo.email });
+  }
+  
+  if (contactInfo.linkedin?.trim()) {
+    contactItems.push({ text: contactInfo.linkedin });
+  }
+  
+  if (contactInfo.portfolio?.trim()) {
+    contactItems.push({ text: contactInfo.portfolio });
+  }
 
-  if (contactInfo.linkedin || contactInfo.portfolio) {
+  // Build TextRun array with bullets only between items
+  const contactTextRuns: TextRun[] = [];
+  contactItems.forEach((item, index) => {
+    if (index > 0) {
+      contactTextRuns.push(new TextRun({ text: " • ", size: 20 }));
+    }
+    contactTextRuns.push(new TextRun({ text: item.text, size: 20 }));
+  });
+
+  if (contactTextRuns.length > 0) {
     sections.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { after: 200 },
-        children: [
-          ...(contactInfo.linkedin
-            ? [
-                new TextRun({ text: contactInfo.linkedin, size: 20 }),
-                new TextRun({ text: " • ", size: 20 }),
-              ]
-            : []),
-          ...(contactInfo.portfolio ? [new TextRun({ text: contactInfo.portfolio, size: 20 })] : []),
-        ],
+        children: contactTextRuns,
       })
     );
   }

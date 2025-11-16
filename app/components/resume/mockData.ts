@@ -441,8 +441,8 @@ export const defaultResumeStyles: ResumeStyles = {
   lineHeight: 1.15,
   marginTop: 0.5,
   marginBottom: 0.5,
-  marginLeft: 0.75,
-  marginRight: 0.75,
+  marginLeft: 0.5,
+  marginRight: 0.5,
   accentColor: '#000000', // black
   headingColor: '#000000', // black
   textColor: '#000000', // black

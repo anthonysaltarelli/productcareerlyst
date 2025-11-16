@@ -326,27 +326,37 @@ const generateResumeHTML = (data: ResumeData): string => {
   <header class="resume-header">
     <h1 class="resume-name">${contactInfo.name}</h1>
     <div class="resume-contact-info">
-      <span class="resume-contact-item">${contactInfo.location}</span>
-      <span class="resume-contact-item">
-        <span class="resume-separator">•</span>
-        ${contactInfo.phone}
-      </span>
-      <span class="resume-contact-item">
-        <span class="resume-separator">•</span>
-        <a href="mailto:${contactInfo.email}" class="resume-link">${contactInfo.email}</a>
-      </span>
-      ${contactInfo.linkedin ? `
-      <span class="resume-contact-item">
-        <span class="resume-separator">•</span>
-        <a href="https://${contactInfo.linkedin}" class="resume-link">${contactInfo.linkedin}</a>
-      </span>
-      ` : ''}
-      ${contactInfo.portfolio ? `
-      <span class="resume-contact-item">
-        <span class="resume-separator">•</span>
-        <a href="https://${contactInfo.portfolio}" class="resume-link">${contactInfo.portfolio}</a>
-      </span>
-      ` : ''}
+      ${(() => {
+        const contactItems: string[] = [];
+        
+        if (contactInfo.location?.trim()) {
+          contactItems.push(`<span class="resume-contact-item">${contactInfo.location}</span>`);
+        }
+        
+        if (contactInfo.phone?.trim()) {
+          contactItems.push(`<span class="resume-contact-item">${contactInfo.phone}</span>`);
+        }
+        
+        if (contactInfo.email?.trim()) {
+          contactItems.push(`<span class="resume-contact-item"><a href="mailto:${contactInfo.email}" class="resume-link">${contactInfo.email}</a></span>`);
+        }
+        
+        if (contactInfo.linkedin?.trim()) {
+          contactItems.push(`<span class="resume-contact-item"><a href="https://${contactInfo.linkedin}" class="resume-link">${contactInfo.linkedin}</a></span>`);
+        }
+        
+        if (contactInfo.portfolio?.trim()) {
+          contactItems.push(`<span class="resume-contact-item"><a href="https://${contactInfo.portfolio}" class="resume-link">${contactInfo.portfolio}</a></span>`);
+        }
+        
+        // Only add bullets between items (not before the first one)
+        return contactItems.map((item, index) => {
+          if (index === 0) {
+            return item;
+          }
+          return `<span class="resume-separator">•</span>${item}`;
+        }).join('');
+      })()}
     </div>
   </header>
 
