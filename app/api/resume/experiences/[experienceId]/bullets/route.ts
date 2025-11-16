@@ -4,13 +4,13 @@ import { NextRequest, NextResponse } from 'next/server';
 // POST /api/resume/experiences/[experienceId]/bullets - Create bullet
 export const POST = async (
   request: NextRequest,
-  { params }: { params: { experienceId: string } }
+  { params }: { params: Promise<{ experienceId: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -18,7 +18,7 @@ export const POST = async (
       );
     }
 
-    const experienceId = params.experienceId;
+    const { experienceId } = await params;
     const body = await request.json();
 
     if (!body.content) {

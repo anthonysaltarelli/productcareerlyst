@@ -4,13 +4,13 @@ import { NextRequest, NextResponse } from 'next/server';
 // PUT /api/resume/versions/[versionId]/contact - Upsert contact info
 export const PUT = async (
   request: NextRequest,
-  { params }: { params: { versionId: string } }
+  { params }: { params: Promise<{ versionId: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -18,8 +18,23 @@ export const PUT = async (
       );
     }
 
-    const versionId = params.versionId;
+    const { versionId } = await params;
     const body = await request.json();
+
+    // Validate required fields
+    if (!body.full_name || body.full_name.trim() === '') {
+      return NextResponse.json(
+        { error: 'Full name is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!body.email || body.email.trim() === '') {
+      return NextResponse.json(
+        { error: 'Email is required' },
+        { status: 400 }
+      );
+    }
 
     // Verify version ownership
     const { data: version } = await supabase
@@ -41,12 +56,12 @@ export const PUT = async (
       .from('resume_contact_info')
       .upsert({
         version_id: versionId,
-        full_name: body.full_name,
-        email: body.email,
-        phone: body.phone || null,
-        location: body.location || null,
-        linkedin: body.linkedin || null,
-        portfolio: body.portfolio || null,
+        full_name: body.full_name.trim(),
+        email: body.email.trim(),
+        phone: body.phone?.trim() || null,
+        location: body.location?.trim() || null,
+        linkedin: body.linkedin?.trim() || null,
+        portfolio: body.portfolio?.trim() || null,
       }, {
         onConflict: 'version_id'
       })

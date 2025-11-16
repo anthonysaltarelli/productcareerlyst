@@ -97,7 +97,11 @@ export const mapDBEducationToUI = (dbEdu: DBEducation): UIEducation => {
     startDate: dbEdu.start_date || '',
     endDate: dbEdu.end_date || '',
     gpa: dbEdu.gpa || '',
-    achievements: (dbEdu.achievements || []).map(ach => ach.achievement),
+    achievements: (dbEdu.achievements || []).map(ach => ({
+      id: ach.id,
+      achievement: ach.achievement,
+      displayOrder: ach.display_order,
+    })),
   };
 };
 

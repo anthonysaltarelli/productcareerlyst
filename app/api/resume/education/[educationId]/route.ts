@@ -4,13 +4,13 @@ import { NextRequest, NextResponse } from 'next/server';
 // PUT /api/resume/education/[educationId] - Update education
 export const PUT = async (
   request: NextRequest,
-  { params }: { params: { educationId: string } }
+  { params }: { params: Promise<{ educationId: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -18,7 +18,7 @@ export const PUT = async (
       );
     }
 
-    const educationId = params.educationId;
+    const { educationId } = await params;
     const body = await request.json();
 
     // Verify ownership through version
@@ -76,13 +76,13 @@ export const PUT = async (
 // DELETE /api/resume/education/[educationId] - Delete education
 export const DELETE = async (
   request: NextRequest,
-  { params }: { params: { educationId: string } }
+  { params }: { params: Promise<{ educationId: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -90,7 +90,7 @@ export const DELETE = async (
       );
     }
 
-    const educationId = params.educationId;
+    const { educationId } = await params;
 
     // Verify ownership through version
     const { data: education } = await supabase

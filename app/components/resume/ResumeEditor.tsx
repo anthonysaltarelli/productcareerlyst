@@ -1,9 +1,12 @@
 "use client";
 
-import { ResumeData, Experience, Education, ResumeStyles } from "./mockData";
+import { useState } from "react";
+import { ResumeData, Experience, Education, Achievement, ResumeStyles } from "./mockData";
 import ExperienceCard from "./ExperienceCard";
+import EducationCard from "./EducationCard";
 import ResumePreview from "./ResumePreview";
 import ResumeEditorHeader from "./ResumeEditorHeader";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 type Props = {
   selectedVersion: string;
@@ -18,6 +21,14 @@ type Props = {
   onSave: () => void;
   onDiscard: () => void;
   isSaving: boolean;
+  onAddExperience?: () => Promise<void>;
+  onAddEducation?: () => Promise<void>;
+  onAddSkill?: (category: 'technical' | 'product' | 'soft') => Promise<void>;
+  onAddBullet?: (experienceId: string, content: string) => Promise<void>;
+  onDeleteExperience?: (experienceId: string) => Promise<void>;
+  onDeleteEducation?: (educationId: string) => Promise<void>;
+  onEditExperience?: (experienceId: string) => void;
+  onEditEducation?: (educationId: string) => void;
 };
 
 export default function ResumeEditor({
@@ -33,7 +44,27 @@ export default function ResumeEditor({
   onSave,
   onDiscard,
   isSaving,
+  onAddExperience,
+  onAddEducation,
+  onAddSkill,
+  onAddBullet,
+  onDeleteExperience,
+  onDeleteEducation,
+  onEditExperience,
+  onEditEducation,
 }: Props) {
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    type: 'experience' | 'education' | null;
+    id: string | null;
+    title: string;
+  }>({
+    isOpen: false,
+    type: null,
+    id: null,
+    title: '',
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleContactChange = (field: keyof ResumeData['contactInfo'], value: string) => {
     onResumeDataChange({
@@ -61,7 +92,7 @@ export default function ResumeEditor({
     });
   };
 
-  const handleEducationChange = (index: number, field: keyof Education, value: string | string[]) => {
+  const handleEducationChange = (index: number, field: keyof Education, value: string | Achievement[]) => {
     const newEducation = [...resumeData.education];
     newEducation[index] = {
       ...newEducation[index],
@@ -81,6 +112,37 @@ export default function ResumeEditor({
         [category]: skills,
       },
     });
+  };
+
+  const handleDeleteClick = (type: 'experience' | 'education', id: string, title: string) => {
+    setDeleteModal({
+      isOpen: true,
+      type,
+      id,
+      title,
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.id || !deleteModal.type) return;
+
+    setIsDeleting(true);
+    try {
+      if (deleteModal.type === 'experience' && onDeleteExperience) {
+        await onDeleteExperience(deleteModal.id);
+      } else if (deleteModal.type === 'education' && onDeleteEducation) {
+        await onDeleteEducation(deleteModal.id);
+      }
+      setDeleteModal({ isOpen: false, type: null, id: null, title: '' });
+    } catch (error) {
+      console.error('Error deleting:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteModal({ isOpen: false, type: null, id: null, title: '' });
   };
 
   const renderSectionContent = () => {
@@ -234,10 +296,17 @@ export default function ResumeEditor({
                 onBulletSelect={onBulletSelect}
                 isFirst={index === 0}
                 onExperienceChange={handleExperienceChange(index)}
+                onEdit={() => onEditExperience?.(experience.id)}
+                onDelete={() => handleDeleteClick('experience', experience.id, `${experience.title} at ${experience.company}`)}
+                onAddBullet={onAddBullet ? (content) => onAddBullet(experience.id, content) : undefined}
               />
             ))}
 
-            <button className="w-full py-4 border-2 border-dashed border-slate-300 rounded-2xl text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-all flex items-center justify-center gap-2 font-semibold">
+            <button
+              onClick={onAddExperience}
+              disabled={!onAddExperience}
+              className="w-full py-4 border-2 border-dashed border-slate-300 rounded-2xl text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-all flex items-center justify-center gap-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -260,175 +329,21 @@ export default function ResumeEditor({
         return (
           <div className="space-y-5">
             {resumeData.education.map((edu, index) => (
-              <div
+              <EducationCard
                 key={edu.id}
-                className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm"
-              >
-                <div className="flex items-start justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Education Entry #{index + 1}
-                  </h3>
-                  <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-200">
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-5 mb-5">
-                  <div className="col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      School/Institution
-                    </label>
-                    <input
-                      type="text"
-                      value={edu.school}
-                      onChange={(e) => handleEducationChange(index, 'school', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Degree
-                    </label>
-                    <input
-                      type="text"
-                      value={edu.degree}
-                      onChange={(e) => handleEducationChange(index, 'degree', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Field of Study
-                    </label>
-                    <input
-                      type="text"
-                      value={edu.field}
-                      onChange={(e) => handleEducationChange(index, 'field', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Location
-                    </label>
-                    <input
-                      type="text"
-                      value={edu.location}
-                      onChange={(e) => handleEducationChange(index, 'location', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      GPA (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={edu.gpa}
-                      onChange={(e) => handleEducationChange(index, 'gpa', e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Start Date
-                    </label>
-                    <input
-                      type="text"
-                      value={edu.startDate}
-                      onChange={(e) => handleEducationChange(index, 'startDate', e.target.value)}
-                      placeholder="e.g., Sep 2013"
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      End Date
-                    </label>
-                    <input
-                      type="text"
-                      value={edu.endDate}
-                      onChange={(e) => handleEducationChange(index, 'endDate', e.target.value)}
-                      placeholder="e.g., Jun 2015 or Present"
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Achievements/Honors
-                  </label>
-                  <div className="space-y-3">
-                    {edu.achievements.map((achievement, achIndex) => (
-                      <div key={achIndex} className="flex items-center gap-3">
-                        <span className="text-gray-400 font-bold">•</span>
-                        <input
-                          type="text"
-                          value={achievement}
-                          onChange={(e) => {
-                            const newAchievements = [...edu.achievements];
-                            newAchievements[achIndex] = e.target.value;
-                            handleEducationChange(index, 'achievements', newAchievements);
-                          }}
-                          className="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-slate-50 focus:bg-white"
-                        />
-                        <button 
-                          onClick={() => {
-                            const newAchievements = edu.achievements.filter((_, i) => i !== achIndex);
-                            handleEducationChange(index, 'achievements', newAchievements);
-                          }}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                    <button 
-                      onClick={() => {
-                        const newAchievements = [...edu.achievements, ''];
-                        handleEducationChange(index, 'achievements', newAchievements);
-                      }}
-                      className="text-sm text-blue-600 hover:text-blue-700 font-bold mt-2"
-                    >
-                      + Add Achievement
-                    </button>
-                  </div>
-                </div>
-              </div>
+                education={edu}
+                isFirst={index === 0}
+                onEducationChange={(field, value) => handleEducationChange(index, field, value)}
+                onEdit={() => onEditEducation?.(edu.id)}
+                onDelete={() => handleDeleteClick('education', edu.id, edu.school || `Education #${index + 1}`)}
+              />
             ))}
 
-            <button className="w-full py-4 border-2 border-dashed border-slate-300 rounded-2xl text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-all flex items-center justify-center gap-2 font-semibold">
+            <button
+              onClick={onAddEducation}
+              disabled={!onAddEducation}
+              className="w-full py-4 border-2 border-dashed border-slate-300 rounded-2xl text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-all flex items-center justify-center gap-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -458,7 +373,11 @@ export default function ResumeEditor({
                 <label className="block text-base font-bold text-gray-800">
                   Technical Skills
                 </label>
-                <button className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all">
+                <button
+                  onClick={() => onAddSkill?.('technical')}
+                  disabled={!onAddSkill}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   + Add Skill
                 </button>
               </div>
@@ -501,7 +420,11 @@ export default function ResumeEditor({
                 <label className="block text-base font-bold text-gray-800">
                   Product Management Skills
                 </label>
-                <button className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all">
+                <button
+                  onClick={() => onAddSkill?.('product')}
+                  disabled={!onAddSkill}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   + Add Skill
                 </button>
               </div>
@@ -544,7 +467,11 @@ export default function ResumeEditor({
                 <label className="block text-base font-bold text-gray-800">
                   Soft Skills
                 </label>
-                <button className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all">
+                <button
+                  onClick={() => onAddSkill?.('soft')}
+                  disabled={!onAddSkill}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   + Add Skill
                 </button>
               </div>
@@ -657,6 +584,15 @@ export default function ResumeEditor({
         )}
       </div>
 
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        title={`Delete ${deleteModal.type === 'experience' ? 'Experience' : 'Education'}?`}
+        message={`Are you sure you want to delete "${deleteModal.title}"? This action cannot be undone.`}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 }

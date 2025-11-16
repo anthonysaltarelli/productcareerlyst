@@ -4,13 +4,13 @@ import { NextRequest, NextResponse } from 'next/server';
 // DELETE /api/resume/skills/[skillId] - Delete skill
 export const DELETE = async (
   request: NextRequest,
-  { params }: { params: { skillId: string } }
+  { params }: { params: Promise<{ skillId: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -18,7 +18,7 @@ export const DELETE = async (
       );
     }
 
-    const skillId = params.skillId;
+    const { skillId } = await params;
 
     // Verify ownership through version
     const { data: skill } = await supabase

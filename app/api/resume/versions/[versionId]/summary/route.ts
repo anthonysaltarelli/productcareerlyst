@@ -4,13 +4,13 @@ import { NextRequest, NextResponse } from 'next/server';
 // PUT /api/resume/versions/[versionId]/summary - Upsert summary
 export const PUT = async (
   request: NextRequest,
-  { params }: { params: { versionId: string } }
+  { params }: { params: Promise<{ versionId: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -18,7 +18,7 @@ export const PUT = async (
       );
     }
 
-    const versionId = params.versionId;
+    const { versionId } = await params;
     const body = await request.json();
 
     if (!body.content) {

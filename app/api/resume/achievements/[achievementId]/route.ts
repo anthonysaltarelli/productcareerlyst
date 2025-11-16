@@ -4,13 +4,13 @@ import { NextRequest, NextResponse } from 'next/server';
 // PUT /api/resume/achievements/[achievementId] - Update achievement
 export const PUT = async (
   request: NextRequest,
-  { params }: { params: { achievementId: string } }
+  { params }: { params: Promise<{ achievementId: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -18,7 +18,7 @@ export const PUT = async (
       );
     }
 
-    const achievementId = params.achievementId;
+    const { achievementId } = await params;
     const body = await request.json();
 
     // Verify ownership through version
@@ -72,13 +72,13 @@ export const PUT = async (
 // DELETE /api/resume/achievements/[achievementId] - Delete achievement
 export const DELETE = async (
   request: NextRequest,
-  { params }: { params: { achievementId: string } }
+  { params }: { params: Promise<{ achievementId: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -86,7 +86,7 @@ export const DELETE = async (
       );
     }
 
-    const achievementId = params.achievementId;
+    const { achievementId } = await params;
 
     // Verify ownership through version
     const { data: achievement } = await supabase

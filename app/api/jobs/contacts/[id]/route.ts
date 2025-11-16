@@ -4,11 +4,11 @@ import { NextRequest, NextResponse } from 'next/server';
 // GET /api/jobs/contacts/[id] - Get a specific contact
 export const GET = async (
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    const { id } = params;
+    const { id } = await params;
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -52,11 +52,11 @@ export const GET = async (
 // PATCH /api/jobs/contacts/[id] - Update a contact
 export const PATCH = async (
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    const { id } = params;
+    const { id } = await params;
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -102,11 +102,11 @@ export const PATCH = async (
 // DELETE /api/jobs/contacts/[id] - Delete a contact
 export const DELETE = async (
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    const { id } = params;
+    const { id } = await params;
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -4,13 +4,13 @@ import { NextRequest, NextResponse } from 'next/server';
 // PUT /api/resume/experiences/[experienceId] - Update experience
 export const PUT = async (
   request: NextRequest,
-  { params }: { params: { experienceId: string } }
+  { params }: { params: Promise<{ experienceId: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -18,7 +18,7 @@ export const PUT = async (
       );
     }
 
-    const experienceId = params.experienceId;
+    const { experienceId } = await params;
     const body = await request.json();
 
     // Verify ownership through version
@@ -74,13 +74,13 @@ export const PUT = async (
 // DELETE /api/resume/experiences/[experienceId] - Delete experience
 export const DELETE = async (
   request: NextRequest,
-  { params }: { params: { experienceId: string } }
+  { params }: { params: Promise<{ experienceId: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -88,7 +88,7 @@ export const DELETE = async (
       );
     }
 
-    const experienceId = params.experienceId;
+    const { experienceId } = await params;
 
     // Verify ownership through version
     const { data: experience } = await supabase

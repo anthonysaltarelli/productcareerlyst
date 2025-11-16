@@ -70,6 +70,7 @@ export const POST = async (request: NextRequest) => {
         name: body.name,
         slug: body.slug,
         is_master: body.is_master || false,
+        application_id: body.application_id || null,
       })
       .select()
       .single();

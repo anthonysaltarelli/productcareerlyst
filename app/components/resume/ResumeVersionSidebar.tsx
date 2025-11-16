@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { resumeVersions, sections, mockResumeScore } from "./mockData";
+import { sections, mockResumeScore } from "./mockData";
+import type { ResumeVersion } from "@/lib/hooks/useResumeData";
 
 type Props = {
+  versions: ResumeVersion[];
   selectedVersion: string;
   onVersionChange: (versionId: string) => void;
   selectedSection: string;
@@ -15,15 +17,16 @@ type Props = {
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
-  const options: Intl.DateTimeFormatOptions = { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
   };
   return date.toLocaleDateString('en-US', options);
 };
 
 export default function ResumeVersionSidebar({
+  versions,
   selectedVersion,
   onVersionChange,
   selectedSection,
@@ -32,7 +35,7 @@ export default function ResumeVersionSidebar({
   onViewModeChange,
   onBack,
 }: Props) {
-  const currentVersion = resumeVersions.find((v) => v.id === selectedVersion);
+  const currentVersion = versions.find((v) => v.id === selectedVersion);
 
   return (
     <div className="flex flex-col h-full">

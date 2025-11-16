@@ -354,9 +354,9 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
                   </div>
                   {edu.achievements && edu.achievements.length > 0 && (
                     <ul className="resume-bullets">
-                      {edu.achievements.map((achievement, idx) => (
-                        <li key={idx} className="resume-bullet">
-                          {achievement}
+                      {edu.achievements.map((achievement) => (
+                        <li key={achievement.id} className="resume-bullet">
+                          {achievement.achievement}
                         </li>
                       ))}
                     </ul>

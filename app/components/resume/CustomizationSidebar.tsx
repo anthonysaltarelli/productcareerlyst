@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ResumeStyles, defaultResumeStyles, resumeVersions, resumeFonts } from "./mockData";
+import { ResumeStyles, defaultResumeStyles, ResumeVersion, resumeFonts } from "./mockData";
 
 type Props = {
   styles: ResumeStyles;
@@ -12,12 +12,13 @@ type Props = {
   onViewModeChange: (mode: "edit" | "preview") => void;
   onBack: () => void;
   selectedVersion: string;
+  versions: ResumeVersion[];
   isExportingPDF?: boolean;
   isExportingDocx?: boolean;
 };
 
-export default function CustomizationSidebar({ styles, onStyleChange, onExportPDF, onExportDocx, viewMode, onViewModeChange, onBack, selectedVersion, isExportingPDF = false, isExportingDocx = false }: Props) {
-  const currentVersion = resumeVersions.find((v) => v.id === selectedVersion);
+export default function CustomizationSidebar({ styles, onStyleChange, onExportPDF, onExportDocx, viewMode, onViewModeChange, onBack, selectedVersion, versions, isExportingPDF = false, isExportingDocx = false }: Props) {
+  const currentVersion = versions.find((v) => v.id === selectedVersion);
   const [isFontSectionExpanded, setIsFontSectionExpanded] = useState<boolean>(false);
 
   // Map font names to CSS variables for preview

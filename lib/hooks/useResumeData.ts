@@ -8,6 +8,7 @@ export type ResumeVersion = {
   name: string;
   slug: string;
   is_master: boolean;
+  application_id?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -153,13 +154,32 @@ export const useResumeData = (versionId?: string) => {
     setIsLoading(true);
     setError(null);
     try {
+      console.log('Fetching resume data for version:', vId);
       const response = await fetch(`/api/resume/versions/${vId}`);
-      if (!response.ok) throw new Error('Failed to fetch resume data');
+      if (!response.ok) {
+        console.error('Failed to fetch resume data:', response.status, response.statusText);
+        throw new Error('Failed to fetch resume data');
+      }
       const data = await response.json();
-      setCurrentResume(data.resume);
-      return data.resume;
+      console.log('Fetched resume data:', data);
+
+      // API returns data directly, not wrapped in { resume: ... }
+      const resumeData = {
+        version: data.version,
+        contactInfo: data.contactInfo,
+        summary: data.summary || '', // Convert null to empty string
+        experiences: data.experiences,
+        education: data.education,
+        skills: data.skills,
+        styles: data.styles,
+      };
+
+      console.log('Mapped resume data:', resumeData);
+      setCurrentResume(resumeData);
+      return resumeData;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch resume data';
+      console.error('Error fetching resume data:', err);
       setError(message);
       toast.error(message);
       return null;
@@ -169,12 +189,12 @@ export const useResumeData = (versionId?: string) => {
   }, []);
 
   // Create new version
-  const createVersion = useCallback(async (name: string, slug: string, isMaster: boolean = false) => {
+  const createVersion = useCallback(async (name: string, slug: string, isMaster: boolean = false, applicationId?: string | null) => {
     try {
       const response = await fetch('/api/resume/versions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, slug, is_master: isMaster }),
+        body: JSON.stringify({ name, slug, is_master: isMaster, application_id: applicationId }),
       });
       if (!response.ok) throw new Error('Failed to create version');
       const data = await response.json();
@@ -183,6 +203,26 @@ export const useResumeData = (versionId?: string) => {
       return data.version;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create version';
+      toast.error(message);
+      throw err;
+    }
+  }, [fetchVersions]);
+
+  // Clone version from a master resume
+  const cloneVersion = useCallback(async (sourceVersionId: string, newName: string, applicationId?: string | null) => {
+    try {
+      const response = await fetch(`/api/resume/versions/${sourceVersionId}/clone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newName, applicationId }),
+      });
+      if (!response.ok) throw new Error('Failed to clone version');
+      const data = await response.json();
+      await fetchVersions();
+      toast.success('Resume cloned successfully');
+      return data.version;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to clone version';
       toast.error(message);
       throw err;
     }
@@ -228,12 +268,26 @@ export const useResumeData = (versionId?: string) => {
   // Update contact info
   const updateContactInfo = useCallback(async (vId: string, contactInfo: Partial<ContactInfo>) => {
     try {
+      console.log('Updating contact info:', { vId, contactInfo });
       const response = await fetch(`/api/resume/versions/${vId}/contact`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(contactInfo),
       });
-      if (!response.ok) throw new Error('Failed to update contact info');
+
+      console.log('Response status:', response.status, response.statusText);
+
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (parseErr) {
+          console.error('Failed to parse error response:', parseErr);
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+        console.error('Contact info update failed:', errorData);
+        throw new Error(errorData.error || 'Failed to update contact info');
+      }
       const data = await response.json();
       return data.contactInfo;
     } catch (err) {
@@ -543,6 +597,7 @@ export const useResumeData = (versionId?: string) => {
     fetchVersions,
     fetchResumeData,
     createVersion,
+    cloneVersion,
     updateVersion,
     deleteVersion,
 

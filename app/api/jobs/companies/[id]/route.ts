@@ -4,11 +4,11 @@ import { NextRequest, NextResponse } from 'next/server';
 // GET /api/jobs/companies/[id] - Get a specific company with research
 export const GET = async (
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    const { id } = params;
+    const { id } = await params;
 
     const { data, error } = await supabase
       .from('companies')
@@ -40,11 +40,11 @@ export const GET = async (
 // PATCH /api/jobs/companies/[id] - Update a company (admin only)
 export const PATCH = async (
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    const { id } = params;
+    const { id } = await params;
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();

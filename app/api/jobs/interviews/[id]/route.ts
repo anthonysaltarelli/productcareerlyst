@@ -4,11 +4,11 @@ import { NextRequest, NextResponse } from 'next/server';
 // GET /api/jobs/interviews/[id] - Get a specific interview
 export const GET = async (
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    const { id } = params;
+    const { id } = await params;
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -55,11 +55,11 @@ export const GET = async (
 // PATCH /api/jobs/interviews/[id] - Update an interview
 export const PATCH = async (
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    const { id } = params;
+    const { id } = await params;
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -108,11 +108,11 @@ export const PATCH = async (
 // DELETE /api/jobs/interviews/[id] - Delete an interview
 export const DELETE = async (
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    const { id } = params;
+    const { id } = await params;
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();

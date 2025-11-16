@@ -4,13 +4,13 @@ import { NextRequest, NextResponse } from 'next/server';
 // POST /api/resume/education/[educationId]/achievements - Create achievement
 export const POST = async (
   request: NextRequest,
-  { params }: { params: { educationId: string } }
+  { params }: { params: Promise<{ educationId: string }> }
 ) => {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -18,7 +18,7 @@ export const POST = async (
       );
     }
 
-    const educationId = params.educationId;
+    const { educationId } = await params;
     const body = await request.json();
 
     if (!body.achievement) {

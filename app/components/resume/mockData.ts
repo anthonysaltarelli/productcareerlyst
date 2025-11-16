@@ -36,6 +36,12 @@ export type ContactInfo = {
   portfolio: string;
 };
 
+export type Achievement = {
+  id: string;
+  achievement: string;
+  displayOrder: number;
+};
+
 export type Education = {
   id: string;
   school: string;
@@ -45,7 +51,7 @@ export type Education = {
   startDate: string;
   endDate: string;
   gpa: string;
-  achievements: string[];
+  achievements: Achievement[];
 };
 
 export type Skills = {
@@ -334,8 +340,8 @@ export const mockEducation = [
     endDate: "Jun 2015",
     gpa: "3.8",
     achievements: [
-      "Dean's List all quarters",
-      "Product Management Club President",
+      { id: "ach-1", achievement: "Dean's List all quarters", displayOrder: 0 },
+      { id: "ach-2", achievement: "Product Management Club President", displayOrder: 1 },
     ],
   },
   {
@@ -348,8 +354,8 @@ export const mockEducation = [
     endDate: "May 2013",
     gpa: "3.7",
     achievements: [
-      "Graduated with Honors",
-      "Tau Beta Pi Engineering Honor Society",
+      { id: "ach-3", achievement: "Graduated with Honors", displayOrder: 0 },
+      { id: "ach-4", achievement: "Tau Beta Pi Engineering Honor Society", displayOrder: 1 },
     ],
   },
 ];
