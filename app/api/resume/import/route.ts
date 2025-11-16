@@ -537,7 +537,7 @@ export const POST = async (request: NextRequest) => {
               const currentBullets = exp.bullets.map((b: string) => b.trim().toLowerCase());
               
               // Check if ALL bullets are duplicates (meaning this role has no unique bullets)
-              const allDuplicates = currentBullets.every(bullet => prevBullets.includes(bullet));
+              const allDuplicates = currentBullets.every((bullet: string) => prevBullets.includes(bullet));
               
               if (allDuplicates) {
                 // All bullets are duplicates - don't insert any bullets for this role
@@ -546,7 +546,7 @@ export const POST = async (request: NextRequest) => {
               } else {
                 // Some bullets are unique - only keep the unique ones
                 bulletsToInsert = bulletsToInsert.filter(
-                  bullet => !prevBullets.includes(bullet.content.trim().toLowerCase())
+                  (bullet: { experience_id: string; content: string; is_selected: boolean; display_order: number }) => !prevBullets.includes(bullet.content.trim().toLowerCase())
                 );
               }
             }

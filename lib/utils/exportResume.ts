@@ -28,6 +28,7 @@ type Experience = {
   startDate: string;
   endDate: string;
   roleGroupId?: string | null;
+  bulletMode?: 'per_role' | 'per_experience' | null;
   bullets: Bullet[];
 };
 
@@ -40,7 +41,7 @@ type Education = {
   startDate: string;
   endDate: string;
   gpa?: string;
-  achievements?: string[];
+  achievements?: (string | { achievement?: string; [key: string]: any })[];
 };
 
 type Skills = {

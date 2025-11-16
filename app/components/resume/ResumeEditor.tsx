@@ -18,7 +18,7 @@ type Props = {
   onBulletSelect: (bulletId: string | null) => void;
   resumeStyles: ResumeStyles;
   resumeData: ResumeData;
-  onResumeDataChange: (data: ResumeData) => void;
+  onResumeDataChange: (data: ResumeData | ((prevData: ResumeData) => ResumeData)) => void;
   hasUnsavedChanges: boolean;
   onSave: () => void;
   onDiscard: () => void;
