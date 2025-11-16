@@ -101,7 +101,11 @@ IMPORTANT: When a person has multiple roles at the same company (e.g., "Product 
 - Its own bullets that were specific to that role
 - The same company name and location
 
-For dates, use YYYY-MM format when possible, or preserve the original format if unclear.`;
+For dates, use either:
+- Year only format: "2022" (when only the year is available)
+- Month Year format: "July 2022" or "Jul 2022" (when month and year are available)
+- Preserve "Present" for current roles
+- Use the format that best matches what's shown on the resume`;
 
 // POST /api/resume/import - Import resume from PDF/DOCX file
 export const POST = async (request: NextRequest) => {
@@ -423,14 +427,42 @@ export const POST = async (request: NextRequest) => {
         const companyGroups = new Map<string, { roleGroupId: string; lastEndDate: string | null }>();
         let globalDisplayOrder = 0;
 
-        // Helper to parse date for comparison (handles YYYY-MM, YYYY, and "Present")
+        // Helper to parse date for comparison (handles "July 2022", "2022", "2022-07", and "Present")
         const parseDate = (dateStr: string | null): number => {
           if (!dateStr || dateStr.toLowerCase() === 'present') return Infinity;
-          const parts = dateStr.split('-');
-          if (parts.length >= 2) {
-            return parseInt(parts[0]) * 12 + parseInt(parts[1] || '1');
+          
+          // Try Month Year format: "July 2022" or "Jul 2022"
+          const monthYearMatch = dateStr.match(/(\w+)\s+(\d{4})/i);
+          if (monthYearMatch) {
+            const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 
+                               'july', 'august', 'september', 'october', 'november', 'december'];
+            const monthAbbr = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
+                              'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+            const monthStr = monthYearMatch[1].toLowerCase();
+            const year = parseInt(monthYearMatch[2]);
+            let month = monthNames.indexOf(monthStr);
+            if (month === -1) {
+              month = monthAbbr.indexOf(monthStr);
+            }
+            if (month !== -1) {
+              return year * 12 + month;
+            }
           }
-          return parseInt(parts[0]) * 12;
+          
+          // Try YYYY-MM format: "2022-07"
+          const dashMatch = dateStr.match(/(\d{4})-(\d{1,2})/);
+          if (dashMatch) {
+            return parseInt(dashMatch[1]) * 12 + parseInt(dashMatch[2]) - 1;
+          }
+          
+          // Try year only: "2022"
+          const yearMatch = dateStr.match(/(\d{4})/);
+          if (yearMatch) {
+            return parseInt(yearMatch[1]) * 12;
+          }
+          
+          // Fallback: return 0 if we can't parse
+          return 0;
         };
 
         for (let expIndex = 0; expIndex < extractedData.experiences.length; expIndex++) {

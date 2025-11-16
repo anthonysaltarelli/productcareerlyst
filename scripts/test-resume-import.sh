@@ -159,7 +159,11 @@ IMPORTANT: When a person has multiple roles at the same company (e.g., \"Product
 - Its own bullets that were specific to that role
 - The same company name and location
 
-For dates, use YYYY-MM format when possible, or preserve the original format if unclear."
+For dates, use either:
+- Year only format: \"2022\" (when only the year is available)
+- Month Year format: \"July 2022\" or \"Jul 2022\" (when month and year are available)
+- Preserve \"Present\" for current roles
+- Use the format that best matches what's shown on the resume"
 
 # Request payload - use jq to properly construct JSON
 # The input should be a message with content array containing text and file
