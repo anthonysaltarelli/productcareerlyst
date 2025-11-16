@@ -188,9 +188,18 @@ export default function ResumeEditorPage({ params }: Props) {
         // Save experience and bullet changes
         if (!deepEqual(originalResumeData.experiences, currentResumeData.experiences)) {
           console.log('Experiences/bullets changed');
+          
+          // Build a map of original bullet locations (bulletId -> experienceId)
+          const originalBulletLocations = new Map<string, string>();
+          originalResumeData.experiences.forEach(exp => {
+            exp.bullets.forEach(bullet => {
+              originalBulletLocations.set(bullet.id, exp.id);
+            });
+          });
+
           // Check each experience for changes
-          currentResumeData.experiences.forEach((currentExp, expIndex) => {
-            const originalExp = originalResumeData.experiences[expIndex];
+          currentResumeData.experiences.forEach((currentExp) => {
+            const originalExp = originalResumeData.experiences.find(exp => exp.id === currentExp.id);
             if (originalExp) {
               // Check if experience fields changed (title, company, location, dates)
               const expFieldsChanged =
@@ -218,22 +227,47 @@ export default function ResumeEditorPage({ params }: Props) {
                 // Bullets changed for this experience
                 currentExp.bullets.forEach((bullet, bulletIndex) => {
                   const originalBullet = originalExp.bullets.find(b => b.id === bullet.id);
-                  if (!originalBullet || !deepEqual(originalBullet, bullet)) {
-                    // Bullet changed - update selection and display order
+                  const originalExperienceId = originalBulletLocations.get(bullet.id);
+                  
+                  // Check if bullet moved between experiences
+                  const movedBetweenExperiences = originalExperienceId && originalExperienceId !== currentExp.id;
+                  
+                  if (!originalBullet || !deepEqual(originalBullet, bullet) || movedBetweenExperiences) {
+                    // Bullet changed - update selection, display order, and experience_id if moved
                     console.log(`Updating bullet ${bullet.id}:`, {
                       isSelected: bullet.isSelected,
-                      displayOrder: bulletIndex
+                      displayOrder: bulletIndex,
+                      movedBetweenExperiences,
+                      newExperienceId: currentExp.id
                     });
-                    savePromises.push(
-                      updateBullet(bullet.id, {
-                        content: bullet.content,
-                        is_selected: bullet.isSelected,
-                        display_order: bulletIndex,
-                      })
-                    );
+                    
+                    const updateData: any = {
+                      content: bullet.content,
+                      is_selected: bullet.isSelected,
+                      display_order: bulletIndex,
+                    };
+                    
+                    // If bullet moved between experiences, update experience_id
+                    if (movedBetweenExperiences) {
+                      updateData.experience_id = currentExp.id;
+                    }
+                    
+                    savePromises.push(updateBullet(bullet.id, updateData));
                   }
                 });
               }
+            } else {
+              // New experience - save all bullets
+              currentExp.bullets.forEach((bullet, bulletIndex) => {
+                savePromises.push(
+                  updateBullet(bullet.id, {
+                    content: bullet.content,
+                    is_selected: bullet.isSelected,
+                    display_order: bulletIndex,
+                    experience_id: currentExp.id,
+                  })
+                );
+              });
             }
           });
         }

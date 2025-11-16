@@ -320,12 +320,37 @@ export const useResumeData = (versionId?: string) => {
   // Update styles
   const updateStyles = useCallback(async (vId: string, styles: Partial<ResumeStyles>) => {
     try {
+      console.log('Updating styles:', { vId, styles });
       const response = await fetch(`/api/resume/versions/${vId}/styles`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(styles),
       });
-      if (!response.ok) throw new Error('Failed to update styles');
+
+      console.log('Response status:', response.status, response.statusText);
+
+      if (!response.ok) {
+        let errorData: any = {};
+        const contentType = response.headers.get('content-type');
+        
+        try {
+          if (contentType && contentType.includes('application/json')) {
+            const text = await response.text();
+            errorData = text ? JSON.parse(text) : {};
+          } else {
+            const text = await response.text();
+            errorData = { error: text || `API error: ${response.status} ${response.statusText}` };
+          }
+        } catch (parseErr) {
+          console.error('Failed to parse error response:', parseErr);
+          errorData = { error: `API error: ${response.status} ${response.statusText}` };
+        }
+        
+        console.error('Styles update failed:', errorData);
+        const errorMessage = errorData.error || errorData.message || `Failed to update styles (${response.status})`;
+        throw new Error(errorMessage);
+      }
+      
       const data = await response.json();
       return data.styles;
     } catch (err) {

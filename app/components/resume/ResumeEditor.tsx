@@ -98,11 +98,21 @@ export default function ResumeEditor({
   };
 
   const handleExperienceChange = (index: number) => (updatedExperience: Experience) => {
-    const newExperiences = [...resumeData.experiences];
-    newExperiences[index] = updatedExperience;
-    onResumeDataChange({
-      ...resumeData,
-      experiences: newExperiences,
+    // Use functional update to ensure we're working with the latest state
+    onResumeDataChange((prevData) => {
+      const newExperiences = [...prevData.experiences];
+      // Find the experience by ID to handle cases where index might be stale
+      const expIndex = newExperiences.findIndex(e => e.id === updatedExperience.id);
+      if (expIndex >= 0) {
+        newExperiences[expIndex] = updatedExperience;
+      } else if (index >= 0 && index < newExperiences.length) {
+        // Fallback to index if ID lookup fails
+        newExperiences[index] = updatedExperience;
+      }
+      return {
+        ...prevData,
+        experiences: newExperiences,
+      };
     });
   };
 

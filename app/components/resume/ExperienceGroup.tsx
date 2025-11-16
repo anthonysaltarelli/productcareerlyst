@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Experience } from "./mockData";
 import BulletEditor from "./BulletEditor";
 
@@ -41,6 +41,15 @@ export default function ExperienceGroup({
   const [addingBulletForExperienceId, setAddingBulletForExperienceId] = useState<string | null>(null);
   const [newBulletContent, setNewBulletContent] = useState("");
   
+  // Drag and drop state
+  const [draggedBulletId, setDraggedBulletId] = useState<string | null>(null);
+  const [draggedExperienceId, setDraggedExperienceId] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [lastTargetKey, setLastTargetKey] = useState<string | null>(null);
+  
+  // Use ref to track if bullet has been moved to prevent duplicates during rapid drag events
+  const movedBulletRef = useRef<{ bulletId: string; targetExperienceId: string } | null>(null);
+  
   const sortedExps = [...experiences].sort((a, b) => {
     if (a.startDate && b.startDate) {
       return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
@@ -48,7 +57,18 @@ export default function ExperienceGroup({
     return 0;
   });
 
-  const allBullets = sortedExps.flatMap(exp => exp.bullets || []);
+  // Deduplicate bullets by ID to prevent duplicate keys during drag operations
+  // When a bullet is being moved, it might temporarily exist in both source and target experiences
+  const allBulletsMap = new Map<string, typeof sortedExps[0]['bullets'][0]>();
+  // Process experiences in reverse order so that if a bullet appears in multiple experiences,
+  // we keep the one from the later experience (which is likely the target during a drag)
+  sortedExps.slice().reverse().forEach(exp => {
+    (exp.bullets || []).forEach(bullet => {
+      // Always update to ensure we get the bullet from the most recent experience
+      allBulletsMap.set(bullet.id, bullet);
+    });
+  });
+  const allBullets = Array.from(allBulletsMap.values());
   const selectedBullets = allBullets.filter(b => b.isSelected);
 
   const handleAddBulletClick = (experienceId: string) => {
@@ -71,6 +91,193 @@ export default function ExperienceGroup({
   const handleCancelAddBullet = () => {
     setNewBulletContent("");
     setAddingBulletForExperienceId(null);
+  };
+
+  // Drag and drop handlers for per_role mode
+  const handleDragStart = (bulletId: string, experienceId: string, index: number) => (e: React.DragEvent) => {
+    setDraggedBulletId(bulletId);
+    setDraggedExperienceId(experienceId);
+    setDraggedIndex(index);
+    setLastTargetKey(null);
+    movedBulletRef.current = null; // Reset moved tracking
+    e.dataTransfer.effectAllowed = "move";
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = "0.5";
+    }
+  };
+
+  const handleDragOver = (targetBulletId: string, targetExperienceId: string, targetIndex: number) => (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+
+    if (!draggedBulletId || !draggedExperienceId || draggedIndex === null) return;
+    if (draggedBulletId === targetBulletId) return;
+
+    // Create a unique key for this target position to prevent duplicate operations
+    const targetKey = `${targetExperienceId}-${targetIndex}`;
+    if (lastTargetKey === targetKey) return; // Already processed this position
+
+    // Check if we've already moved this bullet to this target experience
+    if (movedBulletRef.current && 
+        movedBulletRef.current.bulletId === draggedBulletId && 
+        movedBulletRef.current.targetExperienceId === targetExperienceId) {
+      return; // Already moved to this target
+    }
+
+    const sourceExperience = experiences.find(exp => exp.id === draggedExperienceId);
+    const targetExperience = experiences.find(exp => exp.id === targetExperienceId);
+    
+    if (!sourceExperience || !targetExperience) return;
+
+    // Check if bullet is already in the target experience (prevent duplication)
+    const bulletAlreadyInTarget = (targetExperience.bullets || []).some(b => b.id === draggedBulletId);
+    if (bulletAlreadyInTarget && draggedExperienceId !== targetExperienceId) {
+      // Bullet is already in target, don't move it again
+      // Update tracking to reflect current state
+      setDraggedExperienceId(targetExperienceId);
+      const existingIndex = (targetExperience.bullets || []).findIndex(b => b.id === draggedBulletId);
+      if (existingIndex >= 0) {
+        setDraggedIndex(existingIndex);
+      }
+      movedBulletRef.current = { bulletId: draggedBulletId, targetExperienceId };
+      setLastTargetKey(targetKey);
+      return;
+    }
+
+    const sourceBullets = [...(sourceExperience.bullets || [])];
+    const targetBullets = [...(targetExperience.bullets || [])];
+    
+    // Check if bullet is still in source - if not, it's already been moved
+    const draggedBullet = sourceBullets.find(b => b.id === draggedBulletId);
+    const bulletInTarget = targetBullets.find(b => b.id === draggedBulletId);
+    
+    // If bullet is in target but not in source, it's already been moved
+    if (bulletInTarget && !draggedBullet) {
+      // Bullet is already in target, just update the index tracking
+      setDraggedExperienceId(targetExperienceId);
+      const newIndex = targetBullets.indexOf(bulletInTarget);
+      setDraggedIndex(newIndex);
+      setLastTargetKey(targetKey);
+      movedBulletRef.current = { bulletId: draggedBulletId, targetExperienceId };
+      return;
+    }
+    
+    // If bullet is not in source, don't try to move it
+    if (!draggedBullet) {
+      return;
+    }
+
+    if (draggedExperienceId === targetExperienceId) {
+      // Reordering within the same experience
+      if (draggedIndex === targetIndex) return;
+      
+      sourceBullets.splice(draggedIndex, 1);
+      sourceBullets.splice(targetIndex, 0, draggedBullet);
+      
+      onExperienceChange(sourceExperience.id)({ ...sourceExperience, bullets: sourceBullets });
+      setDraggedIndex(targetIndex);
+      setLastTargetKey(targetKey);
+    } else if (bulletMode === 'per_role') {
+      // Moving between different experiences (only allowed in per_role mode)
+      // Make sure bullet is not already in target
+      if (!targetBullets.some(b => b.id === draggedBulletId)) {
+        // Remove from source FIRST
+        sourceBullets.splice(draggedIndex, 1);
+        // Add to target
+        targetBullets.splice(targetIndex, 0, draggedBullet);
+        
+        // Update tracking IMMEDIATELY before state updates
+        // This ensures subsequent dragOver calls know the bullet has moved
+        setDraggedExperienceId(targetExperienceId);
+        setDraggedIndex(targetIndex);
+        setLastTargetKey(targetKey);
+        movedBulletRef.current = { bulletId: draggedBulletId, targetExperienceId };
+        
+        // Update both experiences - the functional update pattern in handleExperienceChange
+        // ensures each update sees the result of previous updates
+        // Call them synchronously so React can batch them properly
+        onExperienceChange(sourceExperience.id)({ ...sourceExperience, bullets: sourceBullets });
+        onExperienceChange(targetExperience.id)({ ...targetExperience, bullets: targetBullets });
+      }
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDragEnd = () => {
+    setDraggedBulletId(null);
+    setDraggedExperienceId(null);
+    setDraggedIndex(null);
+    setLastTargetKey(null);
+    movedBulletRef.current = null; // Reset moved tracking
+    // Reset opacity
+    const draggedElements = document.querySelectorAll('[draggable="true"]');
+    draggedElements.forEach((el) => {
+      if (el instanceof HTMLElement) {
+        el.style.opacity = "1";
+      }
+    });
+  };
+
+  // Drag and drop handlers for per_experience mode
+  const handleDragStartPerExperience = (bulletId: string, index: number) => (e: React.DragEvent) => {
+    setDraggedBulletId(bulletId);
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = "0.5";
+    }
+  };
+
+  const handleDragOverPerExperience = (targetBulletId: string, targetIndex: number) => (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+
+    if (!draggedBulletId || draggedIndex === null) return;
+    if (draggedBulletId === targetBulletId) return;
+    if (draggedIndex === targetIndex) return;
+
+    // Find which experience the dragged bullet belongs to
+    const sourceExperience = experiences.find(exp => 
+      exp.bullets && exp.bullets.some(b => b.id === draggedBulletId)
+    );
+    
+    if (!sourceExperience) return;
+
+    // Get all bullets from all experiences in the group
+    const allBullets = sortedExps.flatMap(exp => exp.bullets || []);
+    const newAllBullets = [...allBullets];
+    
+    const draggedBullet = newAllBullets.find(b => b.id === draggedBulletId);
+    if (!draggedBullet) return;
+
+    // Reorder within the combined list
+    newAllBullets.splice(draggedIndex, 1);
+    newAllBullets.splice(targetIndex, 0, draggedBullet);
+
+    // Redistribute bullets back to experiences (maintain the same experience for each bullet)
+    const bulletToExperience = new Map<string, string>();
+    sortedExps.forEach(exp => {
+      (exp.bullets || []).forEach(bullet => {
+        bulletToExperience.set(bullet.id, exp.id);
+      });
+    });
+
+    // Update each experience with its bullets in the new order
+    sortedExps.forEach(exp => {
+      const expBullets = newAllBullets.filter(b => bulletToExperience.get(b.id) === exp.id);
+      // Always update to ensure order is correct
+      const currentBullets = exp.bullets || [];
+      const bulletsChanged = expBullets.length !== currentBullets.length || 
+        expBullets.some((b, idx) => !currentBullets[idx] || currentBullets[idx].id !== b.id);
+      if (bulletsChanged) {
+        onExperienceChange(exp.id)({ ...exp, bullets: expBullets });
+      }
+    });
+
+    setDraggedIndex(targetIndex);
   };
 
   return (
@@ -303,10 +510,10 @@ export default function ExperienceGroup({
                               index={bulletIndex}
                               isSelected={selectedBulletId === bullet.id}
                               onSelect={() => onBulletSelect(bullet.id)}
-                              onDragStart={() => {}}
-                              onDragOver={() => {}}
-                              onDrop={() => {}}
-                              onDragEnd={() => {}}
+                              onDragStart={handleDragStart(bullet.id, experience.id, bulletIndex)}
+                              onDragOver={handleDragOver(bullet.id, experience.id, bulletIndex)}
+                              onDrop={handleDrop}
+                              onDragEnd={handleDragEnd}
                               onToggleSelection={(checked) => {
                                 const newBullets = [...(experience.bullets || [])];
                                 const bulletIdx = newBullets.findIndex(b => b.id === bullet.id);
@@ -383,10 +590,10 @@ export default function ExperienceGroup({
                         index={bulletIndex}
                         isSelected={selectedBulletId === bullet.id}
                         onSelect={() => onBulletSelect(bullet.id)}
-                        onDragStart={() => {}}
-                        onDragOver={() => {}}
-                        onDrop={() => {}}
-                        onDragEnd={() => {}}
+                        onDragStart={handleDragStartPerExperience(bullet.id, bulletIndex)}
+                        onDragOver={handleDragOverPerExperience(bullet.id, bulletIndex)}
+                        onDrop={handleDrop}
+                        onDragEnd={handleDragEnd}
                         onToggleSelection={(checked) => {
                           if (experience) {
                             const newBullets = [...(experience.bullets || [])];

@@ -41,15 +41,35 @@ export const PUT = async (
     }
 
     // Update bullet
+    const updateData: any = {};
+    if (body.content !== undefined) updateData.content = body.content;
+    if (body.is_selected !== undefined) updateData.is_selected = body.is_selected;
+    if (body.display_order !== undefined) updateData.display_order = body.display_order;
+    if (body.score !== undefined) updateData.score = body.score;
+    if (body.tags !== undefined) updateData.tags = body.tags;
+    if (body.experience_id !== undefined) {
+      // Verify the new experience belongs to the same user
+      const { data: newExperience } = await supabase
+        .from('resume_experiences')
+        .select(`
+          *,
+          version:resume_versions(user_id)
+        `)
+        .eq('id', body.experience_id)
+        .single();
+      
+      if (!newExperience || newExperience.version?.user_id !== user.id) {
+        return NextResponse.json(
+          { error: 'Invalid experience' },
+          { status: 400 }
+        );
+      }
+      updateData.experience_id = body.experience_id;
+    }
+
     const { data, error } = await supabase
       .from('resume_experience_bullets')
-      .update({
-        content: body.content,
-        is_selected: body.is_selected,
-        display_order: body.display_order,
-        score: body.score,
-        tags: body.tags,
-      })
+      .update(updateData)
       .eq('id', bulletId)
       .select()
       .single();
