@@ -15,6 +15,7 @@ export default function ResumePage() {
     createVersion,
     cloneVersion,
     deleteVersion,
+    importResumeVersion,
   } = useResumeData();
 
   const handleEditVersion = (versionId: string) => {
@@ -60,6 +61,19 @@ export default function ResumePage() {
     }
   };
 
+  const handleImportMaster = async (file: File, versionName: string, isMaster: boolean) => {
+    try {
+      const version = await importResumeVersion(file, versionName, isMaster);
+      // Navigate to the new version
+      if (version?.id) {
+        router.push(`/dashboard/resume/${version.id}`);
+      }
+    } catch (error) {
+      console.error('Error importing resume:', error);
+      // Error already handled by the hook with toast
+    }
+  };
+
   return (
     <ResumeLanding
       versions={versions}
@@ -67,6 +81,7 @@ export default function ResumePage() {
       onCreateMaster={handleCreateMaster}
       onCloneFromMaster={handleCloneFromMaster}
       onDeleteVersion={handleDeleteVersion}
+      onImportMaster={handleImportMaster}
     />
   );
 }

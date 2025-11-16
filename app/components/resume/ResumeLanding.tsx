@@ -7,6 +7,7 @@ import type { ResumeVersion } from "@/lib/hooks/useResumeData";
 import CreateFromMasterModal from "./CreateFromMasterModal";
 import CloneToMasterModal from "./CloneToMasterModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import ImportResumeModal from "./ImportResumeModal";
 
 type Props = {
   versions: ResumeVersion[];
@@ -14,6 +15,7 @@ type Props = {
   onCreateMaster?: () => void;
   onCloneFromMaster?: (sourceVersionId: string, newName: string, applicationId?: string, isMaster?: boolean) => Promise<void>;
   onDeleteVersion?: (versionId: string) => Promise<void>;
+  onImportMaster?: (file: File, versionName: string, isMaster: boolean) => Promise<void>;
 };
 
 type JobApplication = {
@@ -34,9 +36,10 @@ const formatDate = (dateString: string): string => {
   return date.toLocaleDateString('en-US', options);
 };
 
-export default function ResumeLanding({ versions, onEditVersion, onCreateMaster, onCloneFromMaster, onDeleteVersion }: Props) {
+export default function ResumeLanding({ versions, onEditVersion, onCreateMaster, onCloneFromMaster, onDeleteVersion, onImportMaster }: Props) {
   const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
   const [isCloneToMasterModalOpen, setIsCloneToMasterModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedMasterForClone, setSelectedMasterForClone] = useState<string | null>(null);
   const [jobApplications, setJobApplications] = useState<Record<string, JobApplication>>({});
   const [deleteModalState, setDeleteModalState] = useState<{ isOpen: boolean; versionId: string | null; versionName: string }>({
@@ -143,14 +146,26 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
         <div className="mb-8">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-3xl font-black text-gray-800">📋 Master Resumes</h2>
-            {onCreateMaster && (
-              <button
-                onClick={onCreateMaster}
-                className="px-8 py-3 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_6px_0_0_rgba(37,99,235,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(37,99,235,0.6)] font-black text-white transition-all duration-200"
-              >
-                + Create Master
-              </button>
-            )}
+            <div className="flex gap-3">
+              {onImportMaster && (
+                <button
+                  onClick={() => setIsImportModalOpen(true)}
+                  className="px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200"
+                  aria-label="Import existing resume"
+                >
+                  📥 Import Resume
+                </button>
+              )}
+              {onCreateMaster && (
+                <button
+                  onClick={onCreateMaster}
+                  className="px-8 py-3 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_6px_0_0_rgba(37,99,235,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(37,99,235,0.6)] font-black text-white transition-all duration-200"
+                  aria-label="Create new master resume"
+                >
+                  + Create Master
+                </button>
+              )}
+            </div>
           </div>
 
           {masterResumes.length === 0 ? (
@@ -161,15 +176,27 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
                 </svg>
               </div>
               <h3 className="text-xl font-black text-gray-800 mb-2">No Master Resumes</h3>
-              <p className="text-gray-600 font-medium mb-4">Create a master resume with all your experiences and skills.</p>
-              {onCreateMaster && (
-                <button
-                  onClick={onCreateMaster}
-                  className="px-6 py-2 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_6px_0_0_rgba(37,99,235,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(37,99,235,0.6)] font-black text-white transition-all duration-200"
-                >
-                  + Create First Master
-                </button>
-              )}
+              <p className="text-gray-600 font-medium mb-4">Import an existing resume or create a new one from scratch.</p>
+              <div className="flex gap-3 justify-center">
+                {onImportMaster && (
+                  <button
+                    onClick={() => setIsImportModalOpen(true)}
+                    className="px-6 py-2 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200"
+                    aria-label="Import existing resume"
+                  >
+                    📥 Import Resume
+                  </button>
+                )}
+                {onCreateMaster && (
+                  <button
+                    onClick={onCreateMaster}
+                    className="px-6 py-2 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_6px_0_0_rgba(37,99,235,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(37,99,235,0.6)] font-black text-white transition-all duration-200"
+                    aria-label="Create new master resume"
+                  >
+                    + Start from Scratch
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -273,6 +300,15 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
           title="Delete Master Resume"
           message={`Are you sure you want to delete "${deleteModalState.versionName}"? This action cannot be undone.`}
         />
+
+        {/* Import Resume Modal */}
+        {onImportMaster && (
+          <ImportResumeModal
+            isOpen={isImportModalOpen}
+            onClose={() => setIsImportModalOpen(false)}
+            onImport={onImportMaster}
+          />
+        )}
 
         {/* Help Section */}
         <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-slate-700 to-slate-900 shadow-[0_20px_0_0_rgba(15,23,42,0.4)] border-2 border-slate-800">

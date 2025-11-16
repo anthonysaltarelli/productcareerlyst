@@ -576,6 +576,39 @@ export const useResumeData = (versionId?: string) => {
     }
   }, []);
 
+  // Import resume from file
+  const importResumeVersion = useCallback(async (file: File, versionName: string, isMaster: boolean = true) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('versionName', versionName);
+    formData.append('isMaster', String(isMaster));
+
+    const importPromise = fetch('/api/resume/import', {
+      method: 'POST',
+      body: formData,
+    }).then(async (response) => {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to import resume' }));
+        throw new Error(errorData.error || 'Failed to import resume');
+      }
+      return response.json();
+    });
+
+    toast.promise(importPromise, {
+      loading: 'Importing resume...',
+      success: 'Resume imported successfully!',
+      error: (err) => err instanceof Error ? err.message : 'Failed to import resume',
+    });
+
+    try {
+      const data = await importPromise;
+      await fetchVersions();
+      return data.version;
+    } catch (err) {
+      throw err;
+    }
+  }, [fetchVersions]);
+
   // Load versions on mount
   useEffect(() => {
     fetchVersions();
@@ -631,6 +664,9 @@ export const useResumeData = (versionId?: string) => {
     // Skills operations
     updateSkillsForCategory,
     deleteSkill,
+
+    // Import operations
+    importResumeVersion,
   };
 };
 
