@@ -1,6 +1,6 @@
-import { JobApplication, Interview, Contact, CompanyResearch } from '../types/jobs';
+import { LegacyJobApplication, LegacyInterview, LegacyContact } from '../types/jobs';
 
-export const mockJobApplications: JobApplication[] = [
+export const mockJobApplications: LegacyJobApplication[] = [
   {
     id: '1',
     title: 'Senior Product Manager',
@@ -114,7 +114,7 @@ export const mockJobApplications: JobApplication[] = [
   },
 ];
 
-export const mockInterviews: Interview[] = [
+export const mockInterviews: LegacyInterview[] = [
   {
     id: 'int-1',
     applicationId: '1',
@@ -165,7 +165,7 @@ export const mockInterviews: Interview[] = [
   },
 ];
 
-export const mockContacts: Contact[] = [
+export const mockContacts: LegacyContact[] = [
   {
     id: 'cont-1',
     applicationId: '1',
@@ -240,7 +240,7 @@ export const mockContacts: Contact[] = [
   },
 ];
 
-export const mockCompanyResearch: Record<string, CompanyResearch> = {
+export const mockCompanyResearch: Record<string, any> = {
   '1': {
     id: 'res-1',
     applicationId: '1',

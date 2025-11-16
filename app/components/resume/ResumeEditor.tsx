@@ -590,6 +590,7 @@ export default function ResumeEditor({
         title={`Delete ${deleteModal.type === 'experience' ? 'Experience' : 'Education'}?`}
         message={`Are you sure you want to delete "${deleteModal.title}"? This action cannot be undone.`}
         onConfirm={handleConfirmDelete}
+        onClose={handleCancelDelete}
         onCancel={handleCancelDelete}
         isDeleting={isDeleting}
       />

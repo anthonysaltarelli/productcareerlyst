@@ -329,3 +329,44 @@ export interface LegacyJobApplication {
   createdAt: string;
   updatedAt: string;
 }
+
+/** @deprecated Use Interview instead */
+export interface LegacyInterview {
+  id: string;
+  applicationId: string;
+  title: string;
+  type?: InterviewType;
+  status: InterviewStatus;
+  scheduledFor?: string;
+  duration?: number;
+  location?: string;
+  meetingLink?: string;
+  interviewers?: string[];
+  prepNotes?: string;
+  feedback?: string;
+  outcome?: InterviewOutcome;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+/** @deprecated Use Contact instead */
+export interface LegacyContact {
+  id: string;
+  applicationId?: string;
+  name: string;
+  title?: string;
+  email?: string;
+  phone?: string;
+  linkedinUrl?: string;
+  relationship?: ContactRelationship;
+  lastContactDate?: string;
+  notes?: string;
+  interactions?: Array<{
+    id: string;
+    date: string;
+    type?: InteractionType;
+    summary: string;
+    notes?: string;
+  }>;
+  createdAt: string;
+}

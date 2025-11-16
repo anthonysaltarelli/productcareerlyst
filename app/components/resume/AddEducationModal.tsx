@@ -70,7 +70,7 @@ export default function AddEducationModal({
     if (initialData) {
       setFormData(initialData);
       // Check if the degree is in the common list or custom
-      const degreeIsCustom = initialData.degree && !COMMON_DEGREES.includes(initialData.degree);
+      const degreeIsCustom = Boolean(initialData.degree && !COMMON_DEGREES.includes(initialData.degree));
       setIsCustomDegree(degreeIsCustom);
     } else {
       setFormData({

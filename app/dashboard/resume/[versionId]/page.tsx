@@ -742,9 +742,16 @@ export default function ResumeEditorPage({ params }: Props) {
   const handleExportDocx = async () => {
     setIsExportingDocx(true);
     try {
-      const resumeData = currentResumeData;
+      // Transform the resume data to match exportResume.ts types
+      const transformedData = {
+        ...currentResumeData,
+        education: currentResumeData.education.map(edu => ({
+          ...edu,
+          achievements: edu.achievements?.map(a => a.achievement) || []
+        }))
+      };
 
-      const document = createResumeDocument(resumeData);
+      const document = createResumeDocument(transformedData);
       const filename = `${versionId}_Resume_${new Date().toISOString().split('T')[0]}.docx`;
       await downloadDocx(document, filename);
     } catch (error) {
@@ -795,7 +802,12 @@ export default function ResumeEditorPage({ params }: Props) {
               onViewModeChange={handleViewModeChange}
               onBack={handleBackToLanding}
               selectedVersion={versionId}
-              versions={versions}
+              versions={versions.map(v => ({
+                id: v.id,
+                name: v.name,
+                isMaster: v.is_master,
+                lastModified: v.updated_at
+              }))}
               isExportingPDF={isExportingPDF}
               isExportingDocx={isExportingDocx}
             />
