@@ -69,11 +69,13 @@ export default function ResumeEditor({
     isOpen: boolean;
     type: 'experience' | 'education' | null;
     id: string | null;
+    ids?: string[]; // For deleting multiple experiences in a group
     title: string;
   }>({
     isOpen: false,
     type: null,
     id: null,
+    ids: undefined,
     title: '',
   });
   const [isDeleting, setIsDeleting] = useState(false);
@@ -126,11 +128,12 @@ export default function ResumeEditor({
     });
   };
 
-  const handleDeleteClick = (type: 'experience' | 'education', id: string, title: string) => {
+  const handleDeleteClick = (type: 'experience' | 'education', id: string, title: string, ids?: string[]) => {
     setDeleteModal({
       isOpen: true,
       type,
       id,
+      ids,
       title,
     });
   };
@@ -141,11 +144,16 @@ export default function ResumeEditor({
     setIsDeleting(true);
     try {
       if (deleteModal.type === 'experience' && onDeleteExperience) {
-        await onDeleteExperience(deleteModal.id);
+        // If we have multiple IDs (group deletion), delete all of them
+        if (deleteModal.ids && deleteModal.ids.length > 0) {
+          await Promise.all(deleteModal.ids.map(id => onDeleteExperience(id)));
+        } else {
+          await onDeleteExperience(deleteModal.id);
+        }
       } else if (deleteModal.type === 'education' && onDeleteEducation) {
         await onDeleteEducation(deleteModal.id);
       }
-      setDeleteModal({ isOpen: false, type: null, id: null, title: '' });
+      setDeleteModal({ isOpen: false, type: null, id: null, ids: undefined, title: '' });
     } catch (error) {
       console.error('Error deleting:', error);
     } finally {
@@ -154,7 +162,7 @@ export default function ResumeEditor({
   };
 
   const handleCancelDelete = () => {
-    setDeleteModal({ isOpen: false, type: null, id: null, title: '' });
+    setDeleteModal({ isOpen: false, type: null, id: null, ids: undefined, title: '' });
   };
 
   // Group experiences by roleGroupId
@@ -349,7 +357,7 @@ export default function ResumeEditor({
                     return handleExperienceChange(expIndex);
                   }}
                   onEditExperience={onEditExperience}
-                  onDeleteExperience={(id, title) => handleDeleteClick('experience', id, title)}
+                  onDeleteExperience={(id, title, ids) => handleDeleteClick('experience', id, title, ids)}
                   onAddBullet={onAddBullet}
                   onUpdateBulletMode={onUpdateBulletMode}
                   onAddRole={(groupId) => {

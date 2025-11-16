@@ -14,7 +14,7 @@ type Props = {
   onBulletSelect: (bulletId: string | null) => void;
   onExperienceChange: (experienceId: string) => (updatedExperience: Experience) => void;
   onEditExperience?: (experienceId: string) => void;
-  onDeleteExperience?: (experienceId: string, title: string) => void;
+  onDeleteExperience?: (experienceId: string, title: string, ids?: string[]) => void;
   onAddBullet?: (experienceId: string, content: string) => Promise<void>;
   onUpdateBulletMode?: (groupId: string, mode: 'per_role' | 'per_experience') => Promise<void>;
   onAddRole?: (groupId: string) => void; // Opens edit modal for the experience group
@@ -38,6 +38,8 @@ export default function ExperienceGroup({
   isFirst = false,
 }: Props) {
   const [isExpanded, setIsExpanded] = useState(isFirst);
+  const [addingBulletForExperienceId, setAddingBulletForExperienceId] = useState<string | null>(null);
+  const [newBulletContent, setNewBulletContent] = useState("");
   
   const sortedExps = [...experiences].sort((a, b) => {
     if (a.startDate && b.startDate) {
@@ -48,6 +50,28 @@ export default function ExperienceGroup({
 
   const allBullets = sortedExps.flatMap(exp => exp.bullets || []);
   const selectedBullets = allBullets.filter(b => b.isSelected);
+
+  const handleAddBulletClick = (experienceId: string) => {
+    setAddingBulletForExperienceId(experienceId);
+    setNewBulletContent("");
+  };
+
+  const handleSaveBullet = async () => {
+    if (!newBulletContent.trim() || !addingBulletForExperienceId || !onAddBullet) return;
+
+    try {
+      await onAddBullet(addingBulletForExperienceId, newBulletContent.trim());
+      setNewBulletContent("");
+      setAddingBulletForExperienceId(null);
+    } catch (error) {
+      console.error("Error adding bullet:", error);
+    }
+  };
+
+  const handleCancelAddBullet = () => {
+    setNewBulletContent("");
+    setAddingBulletForExperienceId(null);
+  };
 
   return (
     <div className="mb-6 bg-white rounded-2xl border-2 border-slate-200 overflow-hidden shadow-sm">
@@ -117,9 +141,13 @@ export default function ExperienceGroup({
                     </svg>
                   </button>
 
-                  {/* Delete Button - Delete first experience (which will delete the group) */}
+                  {/* Delete Button - Delete all experiences in the group */}
                   <button
-                    onClick={() => onDeleteExperience?.(sortedExps[0].id, `${company}`)}
+                    onClick={() => {
+                      // Delete all experiences in the group
+                      const allIds = sortedExps.map(exp => exp.id);
+                      onDeleteExperience?.(sortedExps[0].id, `${company} (${sortedExps.length} role${sortedExps.length !== 1 ? 's' : ''})`, allIds);
+                    }}
                     disabled={!onDeleteExperience}
                     className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Delete experience group"
@@ -294,15 +322,45 @@ export default function ExperienceGroup({
                         <p className="text-xs text-gray-400 italic">No bullets for this role</p>
                       )}
                       {onAddBullet && (
-                        <button
-                          onClick={() => {
-                            const content = prompt("Enter bullet content:");
-                            if (content) onAddBullet(experience.id, content);
-                          }}
-                          className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-semibold"
-                        >
-                          + Add Bullet
-                        </button>
+                        <>
+                          {addingBulletForExperienceId === experience.id ? (
+                            <div className="mt-3 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4">
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                New Bullet Point
+                              </label>
+                              <textarea
+                                value={newBulletContent}
+                                onChange={(e) => setNewBulletContent(e.target.value)}
+                                className="w-full px-3 py-2 border-2 border-green-200 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all bg-white resize-none text-sm"
+                                placeholder="e.g., Led cross-functional team of 12 engineers to launch new feature, resulting in 25% increase in user engagement"
+                                rows={3}
+                                autoFocus
+                              />
+                              <div className="flex gap-2 mt-3">
+                                <button
+                                  onClick={handleSaveBullet}
+                                  disabled={!newBulletContent.trim()}
+                                  className="flex-1 px-4 py-2 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-sm font-bold rounded-lg transition-all border-2 border-green-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  Save Bullet
+                                </button>
+                                <button
+                                  onClick={handleCancelAddBullet}
+                                  className="flex-1 px-4 py-2 bg-gradient-to-br from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300 text-slate-700 text-sm font-bold rounded-lg transition-all border-2 border-slate-300 shadow-sm"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleAddBulletClick(experience.id)}
+                              className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-semibold"
+                            >
+                              + Add Bullet
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   );
@@ -346,15 +404,45 @@ export default function ExperienceGroup({
                   <p className="text-xs text-gray-400 italic">No bullets yet</p>
                 )}
                 {onAddBullet && sortedExps.length > 0 && (
-                  <button
-                    onClick={() => {
-                      const content = prompt("Enter bullet content:");
-                      if (content) onAddBullet(sortedExps[0].id, content);
-                    }}
-                    className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-semibold"
-                  >
-                    + Add Bullet
-                  </button>
+                  <>
+                    {addingBulletForExperienceId === sortedExps[0].id ? (
+                      <div className="mt-3 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          New Bullet Point
+                        </label>
+                        <textarea
+                          value={newBulletContent}
+                          onChange={(e) => setNewBulletContent(e.target.value)}
+                          className="w-full px-3 py-2 border-2 border-green-200 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all bg-white resize-none text-sm"
+                          placeholder="e.g., Led cross-functional team of 12 engineers to launch new feature, resulting in 25% increase in user engagement"
+                          rows={3}
+                          autoFocus
+                        />
+                        <div className="flex gap-2 mt-3">
+                          <button
+                            onClick={handleSaveBullet}
+                            disabled={!newBulletContent.trim()}
+                            className="flex-1 px-4 py-2 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-sm font-bold rounded-lg transition-all border-2 border-green-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Save Bullet
+                          </button>
+                          <button
+                            onClick={handleCancelAddBullet}
+                            className="flex-1 px-4 py-2 bg-gradient-to-br from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300 text-slate-700 text-sm font-bold rounded-lg transition-all border-2 border-slate-300 shadow-sm"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleAddBulletClick(sortedExps[0].id)}
+                        className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-semibold"
+                      >
+                        + Add Bullet
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             )}
