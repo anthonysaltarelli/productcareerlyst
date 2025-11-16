@@ -300,7 +300,7 @@ export const createResumeDocument = (data: ResumeData): Document => {
         sortedExps.forEach((exp) => {
           // Role title and dates (italic) - only show dates if multiple roles
           const roleDateText = sortedExps.length > 1 && (exp.startDate || exp.endDate)
-            ? ` (${exp.startDate || ''} - ${exp.endDate || ''})`
+            ? ` (${[exp.startDate, exp.endDate].filter(Boolean).join(' - ')})`
             : '';
           sections.push(
             new Paragraph({
@@ -328,7 +328,7 @@ export const createResumeDocument = (data: ResumeData): Document => {
         sortedExps.forEach((exp) => {
           // Only show dates if multiple roles
           const roleDateText = sortedExps.length > 1 && (exp.startDate || exp.endDate)
-            ? ` (${exp.startDate || ''} - ${exp.endDate || ''})`
+            ? ` (${[exp.startDate, exp.endDate].filter(Boolean).join(' - ')})`
             : '';
           sections.push(
             new Paragraph({
@@ -368,7 +368,7 @@ export const createResumeDocument = (data: ResumeData): Document => {
         companyHeaderChildren.push(new TextRun({ text: `, ${exp.location}`, size: 22 }));
       }
       const dateRange = exp.startDate || exp.endDate 
-        ? `${exp.startDate || ''} - ${exp.endDate || ''}`.replace(/^ - | - $/g, '').trim()
+        ? [exp.startDate, exp.endDate].filter(Boolean).join(' - ')
         : '';
       if (dateRange) {
         companyHeaderChildren.push(
@@ -452,13 +452,16 @@ export const createResumeDocument = (data: ResumeData): Document => {
       );
 
       // Location and Dates
+      const dateText = [edu.startDate, edu.endDate].filter(Boolean).join(' - ');
       sections.push(
         new Paragraph({
           spacing: { after: 100 },
           children: [
             new TextRun({ text: edu.location, italics: true, size: 20 }),
-            new TextRun({ text: " | ", size: 20 }),
-            new TextRun({ text: `${edu.startDate} - ${edu.endDate}`, bold: true, size: 20 }),
+            ...(dateText ? [
+              new TextRun({ text: " | ", size: 20 }),
+              new TextRun({ text: dateText, bold: true, size: 20 }),
+            ] : []),
           ],
         })
       );
@@ -466,9 +469,12 @@ export const createResumeDocument = (data: ResumeData): Document => {
       // Achievements
       if (edu.achievements && edu.achievements.length > 0) {
         edu.achievements.forEach((achievement) => {
+          const achievementText = typeof achievement === 'string' 
+            ? achievement 
+            : achievement.achievement || String(achievement);
           sections.push(
             new Paragraph({
-              text: achievement,
+              text: achievementText,
               bullet: { level: 0 },
               spacing: { after: 80 },
             })

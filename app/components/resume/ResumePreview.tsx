@@ -208,6 +208,10 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
           margin: 0 0 0.02in 0;
         }
 
+        .resume-experience-title > span {
+          font-weight: 400;
+        }
+
         .resume-experience-company {
           font-weight: 600;
           color: var(--resume-text-color);
@@ -223,6 +227,7 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
           display: block;
           font-size: calc(var(--resume-font-size) * 0.95);
           font-style: italic;
+          font-weight: 400;
         }
 
         .resume-experience-dates {
@@ -464,7 +469,7 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
                             <em>{exp.title}</em>
                             {sortedExps.length > 1 && (exp.startDate || exp.endDate) ? (
                               <span style={{ marginLeft: '0.1in', fontSize: 'calc(var(--resume-font-size) * 0.95)' }}>
-                                ({exp.startDate || ''} - {exp.endDate || ''})
+                                ({[exp.startDate, exp.endDate].filter(Boolean).join(' - ')})
                               </span>
                             ) : null}
                           </div>
@@ -506,7 +511,7 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
                             <em>{exp.title}</em>
                             {sortedExps.length > 1 && (exp.startDate || exp.endDate) ? (
                               <span style={{ marginLeft: '0.1in', fontSize: 'calc(var(--resume-font-size) * 0.95)' }}>
-                                ({exp.startDate || ''} - {exp.endDate || ''})
+                                ({[exp.startDate, exp.endDate].filter(Boolean).join(' - ')})
                               </span>
                             ) : null}
                           </div>
@@ -536,7 +541,9 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
                     </div>
                     {(exp.startDate || exp.endDate) && (
                       <div className="resume-experience-meta">
-                        <span className="resume-experience-dates">{exp.startDate || ''} - {exp.endDate || ''}</span>
+                        <span className="resume-experience-dates">
+                          {[exp.startDate, exp.endDate].filter(Boolean).join(' - ')}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -572,14 +579,16 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
                     </div>
                     <div className="resume-experience-meta">
                       <span className="resume-experience-location">{edu.location}</span>
-                      <span className="resume-experience-dates">{edu.startDate} - {edu.endDate}</span>
+                      <span className="resume-experience-dates">
+                        {[edu.startDate, edu.endDate].filter(Boolean).join(' - ')}
+                      </span>
                     </div>
                   </div>
                   {edu.achievements && edu.achievements.length > 0 && (
                     <ul className="resume-bullets">
                       {edu.achievements.map((achievement) => (
                         <li key={achievement.id} className="resume-bullet">
-                          {achievement.achievement}
+                          {typeof achievement === 'string' ? achievement : achievement.achievement}
                         </li>
                       ))}
                     </ul>

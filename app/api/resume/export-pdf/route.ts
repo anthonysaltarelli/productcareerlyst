@@ -153,6 +153,7 @@ const generateResumeHTML = (data: ResumeData): string => {
 
     @page {
       size: letter;
+      margin: ${styles.marginTop}in ${styles.marginRight}in ${styles.marginBottom}in ${styles.marginLeft}in;
     }
 
     body {
@@ -167,7 +168,7 @@ const generateResumeHTML = (data: ResumeData): string => {
     }
 
     .resume-content {
-      padding: ${styles.marginTop}in ${styles.marginRight}in ${styles.marginBottom}in ${styles.marginLeft}in;
+      padding: 0;
     }
 
     /* Header Styles */
@@ -265,6 +266,10 @@ const generateResumeHTML = (data: ResumeData): string => {
       margin: 0 0 0.02in 0;
     }
 
+    .resume-experience-title > span {
+      font-weight: 400;
+    }
+
     .resume-experience-company {
       font-weight: 600;
       color: ${styles.textColor};
@@ -280,6 +285,7 @@ const generateResumeHTML = (data: ResumeData): string => {
       display: block;
       font-size: ${styles.fontSize * 0.95}pt;
       font-style: italic;
+      font-weight: 400;
     }
 
     .resume-experience-dates {
@@ -469,7 +475,7 @@ const generateResumeHTML = (data: ResumeData): string => {
             <div style="margin-top: 0.03in; margin-bottom: 0.1in;">
               <div style="margin-bottom: 0.05in; font-style: italic;">
                 <em>${exp.title}</em>
-                ${sortedExps.length > 1 && (exp.startDate || exp.endDate) ? `<span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">(${exp.startDate || ''} - ${exp.endDate || ''})</span>` : ''}
+                ${sortedExps.length > 1 && (exp.startDate || exp.endDate) ? `<span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">(${[exp.startDate, exp.endDate].filter(Boolean).join(' - ')})</span>` : ''}
               </div>
               <ul class="resume-bullets" style="margin-left: 0.15in;">
                 ${exp.bullets.map(bullet => `
@@ -495,7 +501,7 @@ const generateResumeHTML = (data: ResumeData): string => {
             ${sortedExps.map((exp, idx) => `
               <div style="margin-bottom: ${idx < sortedExps.length - 1 ? '0.03in' : '0'}; font-style: italic;">
                 <em>${exp.title}</em>
-                ${sortedExps.length > 1 && (exp.startDate || exp.endDate) ? `<span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">(${exp.startDate || ''} - ${exp.endDate || ''})</span>` : ''}
+                ${sortedExps.length > 1 && (exp.startDate || exp.endDate) ? `<span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">(${[exp.startDate, exp.endDate].filter(Boolean).join(' - ')})</span>` : ''}
               </div>
             `).join('')}
           </div>
@@ -514,7 +520,7 @@ const generateResumeHTML = (data: ResumeData): string => {
         <div class="resume-experience-title-group">
           <h3 class="resume-experience-title"><strong>${exp.company}</strong>${exp.location?.trim() ? `<span>, ${exp.location}</span>` : ''}</h3>
         </div>
-        ${exp.startDate || exp.endDate ? `<div class="resume-experience-meta"><span class="resume-experience-dates">${exp.startDate || ''} - ${exp.endDate || ''}</span></div>` : ''}
+        ${exp.startDate || exp.endDate ? `<div class="resume-experience-meta"><span class="resume-experience-dates">${[exp.startDate, exp.endDate].filter(Boolean).join(' - ')}</span></div>` : ''}
       </div>
       <div style="margin-top: 0.02in; margin-bottom: 0.05in; font-style: italic;">
         <em>${exp.title}</em>
@@ -545,13 +551,13 @@ const generateResumeHTML = (data: ResumeData): string => {
         </div>
         <div class="resume-experience-meta">
           <span class="resume-experience-location">${edu.location}</span>
-          <span class="resume-experience-dates">${edu.startDate} - ${edu.endDate}</span>
+          <span class="resume-experience-dates">${[edu.startDate, edu.endDate].filter(Boolean).join(' - ')}</span>
         </div>
       </div>
       ${edu.achievements && edu.achievements.length > 0 ? `
       <ul class="resume-bullets">
         ${edu.achievements.map(achievement => `
-        <li class="resume-bullet">${achievement}</li>
+        <li class="resume-bullet">${typeof achievement === 'string' ? achievement : achievement.achievement || achievement}</li>
         `).join('')}
       </ul>
       ` : ''}
@@ -621,7 +627,7 @@ export async function POST(request: NextRequest) {
     // Additional wait to ensure fonts are fully loaded
     await page.evaluateHandle('document.fonts.ready');
 
-    // Generate PDF - margins are handled via HTML padding
+    // Generate PDF - margins are handled via CSS @page rule
     const pdf = await page.pdf({
       format: 'Letter',
       printBackground: true,
@@ -631,7 +637,7 @@ export async function POST(request: NextRequest) {
         bottom: 0,
         left: 0,
       },
-      preferCSSPageSize: false,
+      preferCSSPageSize: true,
     });
 
     await browser.close();
