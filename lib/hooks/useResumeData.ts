@@ -232,15 +232,14 @@ export const useResumeData = (versionId?: string) => {
   const updateVersion = useCallback(async (vId: string, updates: Partial<ResumeVersion>) => {
     try {
       const response = await fetch(`/api/resume/versions/${vId}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
       if (!response.ok) throw new Error('Failed to update version');
       const data = await response.json();
       await fetchVersions();
-      toast.success('Resume version updated');
-      return data.version;
+      return data;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to update version';
       toast.error(message);

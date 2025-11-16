@@ -107,8 +107,8 @@ export const resumeVersions: ResumeVersion[] = [
 export const sections: Section[] = [
   { id: "contact", type: "contact", title: "Contact Information", icon: "", order: 1 },
   { id: "summary", type: "summary", title: "Professional Summary", icon: "", order: 2 },
-  { id: "experience", type: "experience", title: "Work Experience", icon: "", order: 3, itemCount: 3 },
-  { id: "education", type: "education", title: "Education", icon: "", order: 4, itemCount: 2 },
+  { id: "experience", type: "experience", title: "Work Experience", icon: "", order: 3 },
+  { id: "education", type: "education", title: "Education", icon: "", order: 4 },
   { id: "skills", type: "skills", title: "Skills", icon: "", order: 5 },
   { id: "certifications", type: "certifications", title: "Certifications", icon: "", order: 6 },
 ];

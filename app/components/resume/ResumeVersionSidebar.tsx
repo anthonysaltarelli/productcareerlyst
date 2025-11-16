@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { sections, mockResumeScore } from "./mockData";
 import type { ResumeVersion } from "@/lib/hooks/useResumeData";
+import type { ResumeData } from "./mockData";
 
 type Props = {
   versions: ResumeVersion[];
@@ -13,6 +14,8 @@ type Props = {
   viewMode: "edit" | "preview";
   onViewModeChange: (mode: "edit" | "preview") => void;
   onBack: () => void;
+  resumeData?: ResumeData;
+  onUpdateVersionName?: (versionId: string, newName: string) => Promise<void>;
 };
 
 const formatDate = (dateString: string): string => {
@@ -34,8 +37,77 @@ export default function ResumeVersionSidebar({
   viewMode,
   onViewModeChange,
   onBack,
+  resumeData,
+  onUpdateVersionName,
 }: Props) {
   const currentVersion = versions.find((v) => v.id === selectedVersion);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState(currentVersion?.name || "");
+  const [isSavingName, setIsSavingName] = useState(false);
+
+  // Calculate dynamic counts from resume data
+  const sectionsWithCounts = useMemo(() => {
+    return sections.map((section) => {
+      let itemCount: number | undefined = undefined;
+
+      if (resumeData) {
+        switch (section.id) {
+          case "experience":
+            itemCount = resumeData.experiences.length;
+            break;
+          case "education":
+            itemCount = resumeData.education.length;
+            break;
+          // Add more sections here if needed in the future
+        }
+      }
+
+      return {
+        ...section,
+        itemCount: itemCount && itemCount > 0 ? itemCount : undefined,
+      };
+    });
+  }, [resumeData]);
+
+  const handleStartEdit = () => {
+    setEditedName(currentVersion?.name || "");
+    setIsEditingName(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditedName(currentVersion?.name || "");
+    setIsEditingName(false);
+  };
+
+  const handleSaveName = async () => {
+    if (!editedName.trim() || !onUpdateVersionName || !currentVersion) {
+      return;
+    }
+
+    if (editedName.trim() === currentVersion.name) {
+      setIsEditingName(false);
+      return;
+    }
+
+    setIsSavingName(true);
+    try {
+      await onUpdateVersionName(selectedVersion, editedName.trim());
+      setIsEditingName(false);
+    } catch (error) {
+      // Error toast already shown by the hook
+      setEditedName(currentVersion.name);
+    } finally {
+      setIsSavingName(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSaveName();
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
+    }
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -61,13 +133,52 @@ export default function ResumeVersionSidebar({
               />
             </svg>
           </button>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-base font-bold text-gray-900 truncate">
-              {currentVersion?.name}
-            </h2>
+          <div className="flex-1 min-w-0 group">
+            {isEditingName ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onBlur={handleSaveName}
+                  disabled={isSavingName}
+                  className="flex-1 text-base font-bold text-gray-900 bg-white border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-gray-900 truncate flex-1">
+                  {currentVersion?.name}
+                </h2>
+                {onUpdateVersionName && (
+                  <button
+                    onClick={handleStartEdit}
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-100 rounded transition-all"
+                    aria-label="Edit resume name"
+                    title="Edit resume name"
+                  >
+                    <svg
+                      className="w-4 h-4 text-gray-500 hover:text-gray-700"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
-        
+
         <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1.5 border border-slate-200">
           <button
             onClick={() => onViewModeChange("edit")}
@@ -98,7 +209,7 @@ export default function ResumeVersionSidebar({
           Sections
         </h3>
         <nav className="space-y-1.5">
-          {sections.map((section) => (
+          {sectionsWithCounts.map((section) => (
             <button
               key={section.id}
               onClick={() => onSectionChange(section.id)}

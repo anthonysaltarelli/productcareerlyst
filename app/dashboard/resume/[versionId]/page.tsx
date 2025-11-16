@@ -68,6 +68,7 @@ export default function ResumeEditorPage({ params }: Props) {
     createBullet,
     deleteExperience,
     deleteEducation,
+    updateVersion,
   } = useResumeData();
 
   // Initialize resume data with empty values (will be populated from DB)
@@ -605,6 +606,18 @@ export default function ResumeEditorPage({ params }: Props) {
     }
   };
 
+  // Update Version Name handler
+  const handleUpdateVersionName = async (versionId: string, newName: string) => {
+    try {
+      await updateVersion(versionId, { name: newName });
+      toast.success('Resume name updated successfully');
+    } catch (error) {
+      console.error('Error updating resume name:', error);
+      toast.error('Failed to update resume name');
+      throw error; // Re-throw to let the component handle it
+    }
+  };
+
   // Navigation handlers with blocking
   const handleSectionChange = (newSection: string) => {
     if (hasUnsavedChanges) {
@@ -769,6 +782,8 @@ export default function ResumeEditorPage({ params }: Props) {
               viewMode={viewMode}
               onViewModeChange={handleViewModeChange}
               onBack={handleBackToLanding}
+              resumeData={currentResumeData}
+              onUpdateVersionName={handleUpdateVersionName}
             />
           ) : (
             <CustomizationSidebar
