@@ -384,23 +384,34 @@ const generateResumeHTML = (data: ResumeData): string => {
         return 0;
       });
 
+      // Calculate min/max dates for grouped experiences
+      const allStartDates = sortedExps.map(exp => exp.startDate).filter(Boolean);
+      const allEndDates = sortedExps.map(exp => exp.endDate).filter(Boolean);
+      const minStartDate = allStartDates.length > 0 
+        ? allStartDates.reduce((min, d) => !min || d < min ? d : min)
+        : null;
+      const maxEndDate = allEndDates.length > 0
+        ? allEndDates.reduce((max, d) => !max || d > max ? d : max)
+        : null;
+      const dateRange = (minStartDate || maxEndDate)
+        ? `${minStartDate || ''} - ${maxEndDate || ''}`.replace(/^ - | - $/g, '').trim()
+        : '';
+
       if (displayMode === 'by_role') {
         // Mode 1: Company header, then each role with its bullets
         return `
         <div class="resume-experience-item">
           <div class="resume-experience-header">
             <div class="resume-experience-title-group">
-              <h3 class="resume-experience-title">${company}</h3>
-              ${location ? `<span class="resume-experience-company">${location}</span>` : ''}
+              <h3 class="resume-experience-title"><strong>${company}</strong>${location?.trim() ? `, ${location}` : ''}</h3>
             </div>
+            ${dateRange ? `<div class="resume-experience-meta"><span class="resume-experience-dates">${dateRange}</span></div>` : ''}
           </div>
           ${sortedExps.map(exp => `
             <div style="margin-top: 0.1in; margin-bottom: 0.1in;">
-              <div style="margin-bottom: 0.05in;">
-                <strong style="font-size: calc(${styles.fontSize}pt * 1.02);">${exp.title}</strong>
-                <span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">
-                  ${exp.startDate} - ${exp.endDate}
-                </span>
+              <div style="margin-bottom: 0.05in; font-style: italic;">
+                <em>${exp.title}</em>
+                ${exp.startDate || exp.endDate ? `<span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">(${exp.startDate || ''} - ${exp.endDate || ''})</span>` : ''}
               </div>
               <ul class="resume-bullets" style="margin-left: 0.15in;">
                 ${exp.bullets.map(bullet => `
@@ -418,17 +429,15 @@ const generateResumeHTML = (data: ResumeData): string => {
         <div class="resume-experience-item">
           <div class="resume-experience-header">
             <div class="resume-experience-title-group">
-              <h3 class="resume-experience-title">${company}</h3>
-              ${location ? `<span class="resume-experience-company">${location}</span>` : ''}
+              <h3 class="resume-experience-title"><strong>${company}</strong>${location?.trim() ? `, ${location}` : ''}</h3>
             </div>
+            ${dateRange ? `<div class="resume-experience-meta"><span class="resume-experience-dates">${dateRange}</span></div>` : ''}
           </div>
           <div style="margin-bottom: 0.08in;">
             ${sortedExps.map((exp, idx) => `
-              <div style="margin-bottom: ${idx < sortedExps.length - 1 ? '0.03in' : '0'};">
-                <strong style="font-size: calc(${styles.fontSize}pt * 1.02);">${exp.title}</strong>
-                <span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">
-                  ${exp.startDate} - ${exp.endDate}
-                </span>
+              <div style="margin-bottom: ${idx < sortedExps.length - 1 ? '0.03in' : '0'}; font-style: italic;">
+                <em>${exp.title}</em>
+                ${exp.startDate || exp.endDate ? `<span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">(${exp.startDate || ''} - ${exp.endDate || ''})</span>` : ''}
               </div>
             `).join('')}
           </div>
@@ -445,13 +454,12 @@ const generateResumeHTML = (data: ResumeData): string => {
     <div class="resume-experience-item">
       <div class="resume-experience-header">
         <div class="resume-experience-title-group">
-          <h3 class="resume-experience-title">${exp.title}</h3>
-          <span class="resume-experience-company">${exp.company}</span>
+          <h3 class="resume-experience-title"><strong>${exp.company}</strong>${exp.location?.trim() ? `, ${exp.location}` : ''}</h3>
         </div>
-        <div class="resume-experience-meta">
-          <span class="resume-experience-location">${exp.location}</span>
-          <span class="resume-experience-dates">${exp.startDate} - ${exp.endDate}</span>
-        </div>
+        ${exp.startDate || exp.endDate ? `<div class="resume-experience-meta"><span class="resume-experience-dates">${exp.startDate || ''} - ${exp.endDate || ''}</span></div>` : ''}
+      </div>
+      <div style="margin-top: 0.05in; margin-bottom: 0.05in; font-style: italic;">
+        <em>${exp.title}</em>
       </div>
       <ul class="resume-bullets">
         ${exp.bullets.map(bullet => `

@@ -206,31 +206,56 @@ export const createResumeDocument = (data: ResumeData): Document => {
         return 0;
       });
 
-      // Company header
+      // Calculate min/max dates for grouped experiences
+      const allStartDates = sortedExps.map(exp => exp.startDate).filter(Boolean);
+      const allEndDates = sortedExps.map(exp => exp.endDate).filter(Boolean);
+      const minStartDate = allStartDates.length > 0 
+        ? allStartDates.reduce((min, d) => !min || d < min ? d : min)
+        : null;
+      const maxEndDate = allEndDates.length > 0
+        ? allEndDates.reduce((max, d) => !max || d > max ? d : max)
+        : null;
+      const dateRange = (minStartDate || maxEndDate)
+        ? `${minStartDate || ''} - ${maxEndDate || ''}`.replace(/^ - | - $/g, '').trim()
+        : '';
+
+      // Company header with location and date range
+      const companyHeaderChildren: TextRun[] = [
+        new TextRun({ text: company, bold: true, size: 22 }),
+      ];
+      if (location?.trim()) {
+        companyHeaderChildren.push(new TextRun({ text: `, ${location}`, size: 22 }));
+      }
+      if (dateRange) {
+        // Add date range aligned to the right - we'll use tab stops for this
+        companyHeaderChildren.push(
+          new TextRun({ text: "\t", size: 22 }),
+          new TextRun({ text: dateRange, size: 22 })
+        );
+      }
+
       sections.push(
         new Paragraph({
           spacing: { before: experienceIndex === 0 ? 0 : 150, after: 50 },
-          children: [
-            new TextRun({ text: company, bold: true, size: 22 }),
-            ...(location ? [
-              new TextRun({ text: " | ", size: 22 }),
-              new TextRun({ text: location, size: 22 }),
-            ] : []),
-          ],
+          alignment: AlignmentType.JUSTIFIED,
+          tabStops: dateRange ? [{ type: "right", position: convertInchesToTwip(7.5) }] : [],
+          children: companyHeaderChildren,
         })
       );
 
       if (displayMode === 'by_role') {
         // Mode 1: Each role with its bullets
         sortedExps.forEach((exp) => {
-          // Role title and dates
+          // Role title and dates (italic)
+          const roleDateText = exp.startDate || exp.endDate 
+            ? ` (${exp.startDate || ''} - ${exp.endDate || ''})`
+            : '';
           sections.push(
             new Paragraph({
               spacing: { before: 50, after: 30 },
               children: [
-                new TextRun({ text: exp.title, bold: true, size: 20 }),
-                new TextRun({ text: " | ", size: 20 }),
-                new TextRun({ text: `${exp.startDate} - ${exp.endDate}`, size: 20 }),
+                new TextRun({ text: exp.title, italics: true, size: 20 }),
+                ...(roleDateText ? [new TextRun({ text: roleDateText, size: 20 })] : []),
               ],
             })
           );
@@ -249,13 +274,15 @@ export const createResumeDocument = (data: ResumeData): Document => {
       } else {
         // Mode 2: All titles stacked, then all bullets
         sortedExps.forEach((exp) => {
+          const roleDateText = exp.startDate || exp.endDate 
+            ? ` (${exp.startDate || ''} - ${exp.endDate || ''})`
+            : '';
           sections.push(
             new Paragraph({
               spacing: { before: 30, after: 10 },
               children: [
-                new TextRun({ text: exp.title, bold: true, size: 20 }),
-                new TextRun({ text: " | ", size: 20 }),
-                new TextRun({ text: `${exp.startDate} - ${exp.endDate}`, size: 20 }),
+                new TextRun({ text: exp.title, italics: true, size: 20 }),
+                ...(roleDateText ? [new TextRun({ text: roleDateText, size: 20 })] : []),
               ],
             })
           );
@@ -280,26 +307,38 @@ export const createResumeDocument = (data: ResumeData): Document => {
 
     // Render standalone experiences
     standalone.forEach((exp, index) => {
-      // Job Title and Company
+      // Company header with location and dates
+      const companyHeaderChildren: TextRun[] = [
+        new TextRun({ text: exp.company, bold: true, size: 22 }),
+      ];
+      if (exp.location?.trim()) {
+        companyHeaderChildren.push(new TextRun({ text: `, ${exp.location}`, size: 22 }));
+      }
+      const dateRange = exp.startDate || exp.endDate 
+        ? `${exp.startDate || ''} - ${exp.endDate || ''}`.replace(/^ - | - $/g, '').trim()
+        : '';
+      if (dateRange) {
+        companyHeaderChildren.push(
+          new TextRun({ text: "\t", size: 22 }),
+          new TextRun({ text: dateRange, size: 22 })
+        );
+      }
+
       sections.push(
         new Paragraph({
           spacing: { before: experienceIndex === 0 ? 0 : 150, after: 50 },
-          children: [
-            new TextRun({ text: exp.title, bold: true, size: 22 }),
-            new TextRun({ text: " | ", size: 22 }),
-            new TextRun({ text: exp.company, bold: true, size: 22 }),
-          ],
+          alignment: AlignmentType.JUSTIFIED,
+          tabStops: dateRange ? [{ type: "right", position: convertInchesToTwip(7.5) }] : [],
+          children: companyHeaderChildren,
         })
       );
 
-      // Location and Dates
+      // Role title (italic)
       sections.push(
         new Paragraph({
           spacing: { after: 100 },
           children: [
-            new TextRun({ text: exp.location, italics: true, size: 20 }),
-            new TextRun({ text: " | ", size: 20 }),
-            new TextRun({ text: `${exp.startDate} - ${exp.endDate}`, bold: true, size: 20 }),
+            new TextRun({ text: exp.title, italics: true, size: 20 }),
           ],
         })
       );
