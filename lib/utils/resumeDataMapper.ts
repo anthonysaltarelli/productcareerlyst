@@ -62,6 +62,7 @@ export const mapDBExperienceToUI = (dbExp: DBExperience): UIExperience => {
     location: dbExp.location || '',
     startDate: dbExp.start_date || '',
     endDate: dbExp.end_date || '',
+    roleGroupId: dbExp.role_group_id || null,
     bullets: (dbExp.bullets || []).map(bullet => ({
       id: bullet.id,
       content: bullet.content,
@@ -83,6 +84,7 @@ export const mapUIExperienceToDB = (uiExp: UIExperience, versionId: string): Par
     start_date: uiExp.startDate || null,
     end_date: uiExp.endDate || null,
     display_order: 0, // Set by caller if needed
+    role_group_id: uiExp.roleGroupId || null,
   };
 };
 
@@ -143,6 +145,7 @@ export const mapDBStylesToUI = (dbStyles: DBResumeStyles | null): UIResumeStyles
       accentColor: '#000000',
       headingColor: '#000000',
       textColor: '#000000',
+      experienceDisplayMode: 'by_role',
     };
   }
 
@@ -157,6 +160,7 @@ export const mapDBStylesToUI = (dbStyles: DBResumeStyles | null): UIResumeStyles
     accentColor: dbStyles.accent_color,
     headingColor: dbStyles.heading_color,
     textColor: dbStyles.text_color,
+    experienceDisplayMode: dbStyles.experience_display_mode || 'by_role',
   };
 };
 
@@ -174,6 +178,7 @@ export const mapUIStylesToDB = (uiStyles: UIResumeStyles, versionId: string): Pa
     accent_color: uiStyles.accentColor,
     heading_color: uiStyles.headingColor,
     text_color: uiStyles.textColor,
+    experience_display_mode: uiStyles.experienceDisplayMode || 'by_role',
   };
 };
 

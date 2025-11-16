@@ -27,6 +27,7 @@ type Experience = {
   location: string;
   startDate: string;
   endDate: string;
+  roleGroupId?: string | null;
   bullets: Bullet[];
 };
 
@@ -54,10 +55,13 @@ type ResumeData = {
   experiences: Experience[];
   education: Education[];
   skills: Skills;
+  styles?: {
+    experienceDisplayMode?: 'by_role' | 'grouped';
+  };
 };
 
 export const createResumeDocument = (data: ResumeData): Document => {
-  const { contactInfo, summary, experiences, education, skills } = data;
+  const { contactInfo, summary, experiences, education, skills, styles } = data;
 
   // Filter only selected bullets
   const selectedExperiences = experiences
@@ -66,6 +70,28 @@ export const createResumeDocument = (data: ResumeData): Document => {
       bullets: exp.bullets.filter(b => b.isSelected),
     }))
     .filter(exp => exp.bullets.length > 0);
+
+  // Group experiences by roleGroupId
+  const groupExperiencesByRole = (experiences: typeof selectedExperiences) => {
+    const groups: Map<string | null, typeof selectedExperiences> = new Map();
+    const standalone: typeof selectedExperiences = [];
+
+    experiences.forEach(exp => {
+      if (exp.roleGroupId) {
+        if (!groups.has(exp.roleGroupId)) {
+          groups.set(exp.roleGroupId, []);
+        }
+        groups.get(exp.roleGroupId)!.push(exp);
+      } else {
+        standalone.push(exp);
+      }
+    });
+
+    return { groups, standalone };
+  };
+
+  const { groups, standalone } = groupExperiencesByRole(selectedExperiences);
+  const displayMode = styles?.experienceDisplayMode || 'by_role';
 
   const sections: Paragraph[] = [];
 
@@ -140,7 +166,7 @@ export const createResumeDocument = (data: ResumeData): Document => {
   }
 
   // Professional Experience
-  if (selectedExperiences.length > 0) {
+  if (groups.size > 0 || standalone.length > 0) {
     sections.push(
       new Paragraph({
         text: "PROFESSIONAL EXPERIENCE",
@@ -157,11 +183,97 @@ export const createResumeDocument = (data: ResumeData): Document => {
       })
     );
 
-    selectedExperiences.forEach((exp, index) => {
+    let experienceIndex = 0;
+
+    // Render grouped experiences
+    Array.from(groups.entries()).forEach(([groupId, groupExps]) => {
+      const company = groupExps[0].company;
+      const location = groupExps[0].location;
+      const sortedExps = [...groupExps].sort((a, b) => {
+        if (a.startDate && b.startDate) {
+          return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+        }
+        return 0;
+      });
+
+      // Company header
+      sections.push(
+        new Paragraph({
+          spacing: { before: experienceIndex === 0 ? 0 : 150, after: 50 },
+          children: [
+            new TextRun({ text: company, bold: true, size: 22 }),
+            ...(location ? [
+              new TextRun({ text: " | ", size: 22 }),
+              new TextRun({ text: location, size: 22 }),
+            ] : []),
+          ],
+        })
+      );
+
+      if (displayMode === 'by_role') {
+        // Mode 1: Each role with its bullets
+        sortedExps.forEach((exp) => {
+          // Role title and dates
+          sections.push(
+            new Paragraph({
+              spacing: { before: 50, after: 30 },
+              children: [
+                new TextRun({ text: exp.title, bold: true, size: 20 }),
+                new TextRun({ text: " | ", size: 20 }),
+                new TextRun({ text: `${exp.startDate} - ${exp.endDate}`, size: 20 }),
+              ],
+            })
+          );
+
+          // Bullets for this role
+          exp.bullets.forEach((bullet) => {
+            sections.push(
+              new Paragraph({
+                text: bullet.content,
+                bullet: { level: 0 },
+                spacing: { after: 80 },
+              })
+            );
+          });
+        });
+      } else {
+        // Mode 2: All titles stacked, then all bullets
+        sortedExps.forEach((exp) => {
+          sections.push(
+            new Paragraph({
+              spacing: { before: 30, after: 10 },
+              children: [
+                new TextRun({ text: exp.title, bold: true, size: 20 }),
+                new TextRun({ text: " | ", size: 20 }),
+                new TextRun({ text: `${exp.startDate} - ${exp.endDate}`, size: 20 }),
+              ],
+            })
+          );
+        });
+
+        // All bullets together
+        sortedExps.forEach((exp) => {
+          exp.bullets.forEach((bullet) => {
+            sections.push(
+              new Paragraph({
+                text: bullet.content,
+                bullet: { level: 0 },
+                spacing: { after: 80 },
+              })
+            );
+          });
+        });
+      }
+
+      experienceIndex++;
+    });
+
+    // Render standalone experiences
+    standalone.forEach((exp, index) => {
       // Job Title and Company
       sections.push(
         new Paragraph({
-          spacing: { before: index === 0 ? 0 : 150, after: 50 },
+          spacing: { before: experienceIndex === 0 ? 0 : 150, after: 50 },
           children: [
             new TextRun({ text: exp.title, bold: true, size: 22 }),
             new TextRun({ text: " | ", size: 22 }),
@@ -192,6 +304,8 @@ export const createResumeDocument = (data: ResumeData): Document => {
           })
         );
       });
+
+      experienceIndex++;
     });
   }
 

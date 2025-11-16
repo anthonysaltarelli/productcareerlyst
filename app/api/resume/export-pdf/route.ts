@@ -23,6 +23,7 @@ type Experience = {
   location: string;
   startDate: string;
   endDate: string;
+  roleGroupId?: string | null;
   bullets: Bullet[];
 };
 
@@ -55,6 +56,7 @@ type ResumeStyles = {
   accentColor: string;
   headingColor: string;
   textColor: string;
+  experienceDisplayMode?: 'by_role' | 'grouped';
 };
 
 type ResumeData = {
@@ -76,6 +78,28 @@ const generateResumeHTML = (data: ResumeData): string => {
       bullets: exp.bullets.filter(b => b.isSelected),
     }))
     .filter(exp => exp.bullets.length > 0);
+
+  // Group experiences by roleGroupId
+  const groupExperiencesByRole = (experiences: typeof selectedExperiences) => {
+    const groups: Map<string | null, typeof selectedExperiences> = new Map();
+    const standalone: typeof selectedExperiences = [];
+
+    experiences.forEach(exp => {
+      if (exp.roleGroupId) {
+        if (!groups.has(exp.roleGroupId)) {
+          groups.set(exp.roleGroupId, []);
+        }
+        groups.get(exp.roleGroupId)!.push(exp);
+      } else {
+        standalone.push(exp);
+      }
+    });
+
+    return { groups, standalone };
+  };
+
+  const { groups, standalone } = groupExperiencesByRole(selectedExperiences);
+  const displayMode = styles.experienceDisplayMode || 'by_role';
 
   // Map font names to actual Google Fonts URLs
   const getFontImport = (fontName: string): string => {
@@ -336,11 +360,78 @@ const generateResumeHTML = (data: ResumeData): string => {
   ` : ''}
 
   <!-- Work Experience -->
-  ${selectedExperiences.length > 0 ? `
+  ${(groups.size > 0 || standalone.length > 0) ? `
   <section class="resume-section">
     <h2 class="resume-section-heading">PROFESSIONAL EXPERIENCE</h2>
     <div class="resume-section-divider"></div>
-    ${selectedExperiences.map(exp => `
+    ${Array.from(groups.entries()).map(([groupId, groupExps]) => {
+      const company = groupExps[0].company;
+      const location = groupExps[0].location;
+      const sortedExps = [...groupExps].sort((a, b) => {
+        if (a.startDate && b.startDate) {
+          return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+        }
+        return 0;
+      });
+
+      if (displayMode === 'by_role') {
+        // Mode 1: Company header, then each role with its bullets
+        return `
+        <div class="resume-experience-item">
+          <div class="resume-experience-header">
+            <div class="resume-experience-title-group">
+              <h3 class="resume-experience-title">${company}</h3>
+              ${location ? `<span class="resume-experience-company">${location}</span>` : ''}
+            </div>
+          </div>
+          ${sortedExps.map(exp => `
+            <div style="margin-top: 0.1in; margin-bottom: 0.1in;">
+              <div style="margin-bottom: 0.05in;">
+                <strong style="font-size: calc(${styles.fontSize}pt * 1.02);">${exp.title}</strong>
+                <span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">
+                  ${exp.startDate} - ${exp.endDate}
+                </span>
+              </div>
+              <ul class="resume-bullets" style="margin-left: 0.15in;">
+                ${exp.bullets.map(bullet => `
+                  <li class="resume-bullet">${bullet.content}</li>
+                `).join('')}
+              </ul>
+            </div>
+          `).join('')}
+        </div>
+        `;
+      } else {
+        // Mode 2: Company header, all titles stacked, then all bullets
+        const allBullets = sortedExps.flatMap(exp => exp.bullets);
+        return `
+        <div class="resume-experience-item">
+          <div class="resume-experience-header">
+            <div class="resume-experience-title-group">
+              <h3 class="resume-experience-title">${company}</h3>
+              ${location ? `<span class="resume-experience-company">${location}</span>` : ''}
+            </div>
+          </div>
+          <div style="margin-bottom: 0.08in;">
+            ${sortedExps.map((exp, idx) => `
+              <div style="margin-bottom: ${idx < sortedExps.length - 1 ? '0.03in' : '0'};">
+                <strong style="font-size: calc(${styles.fontSize}pt * 1.02);">${exp.title}</strong>
+                <span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">
+                  ${exp.startDate} - ${exp.endDate}
+                </span>
+              </div>
+            `).join('')}
+          </div>
+          <ul class="resume-bullets">
+            ${allBullets.map(bullet => `
+              <li class="resume-bullet">${bullet.content}</li>
+            `).join('')}
+          </ul>
+        </div>
+        `;
+      }
+    }).join('')}
+    ${standalone.map(exp => `
     <div class="resume-experience-item">
       <div class="resume-experience-header">
         <div class="resume-experience-title-group">

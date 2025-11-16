@@ -54,6 +54,28 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
     bullets: exp.bullets.filter(b => b.isSelected),
   })).filter(exp => exp.bullets.length > 0);
 
+  // Group experiences by roleGroupId
+  const groupExperiencesByRole = (experiences: typeof selectedExperiences) => {
+    const groups: Map<string | null, typeof selectedExperiences> = new Map();
+    const standalone: typeof selectedExperiences = [];
+
+    experiences.forEach(exp => {
+      if (exp.roleGroupId) {
+        if (!groups.has(exp.roleGroupId)) {
+          groups.set(exp.roleGroupId, []);
+        }
+        groups.get(exp.roleGroupId)!.push(exp);
+      } else {
+        standalone.push(exp);
+      }
+    });
+
+    return { groups, standalone };
+  };
+
+  const { groups, standalone } = groupExperiencesByRole(selectedExperiences);
+  const displayMode = styles.experienceDisplayMode || 'by_role';
+
   return (
     <>
       <style jsx global>{`
@@ -304,11 +326,89 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
           )}
 
           {/* Work Experience */}
-          {selectedExperiences.length > 0 && (
+          {(groups.size > 0 || standalone.length > 0) && (
             <section className="resume-section">
               <h2 className="resume-section-heading">PROFESSIONAL EXPERIENCE</h2>
               <div className="resume-section-divider"></div>
-              {selectedExperiences.map((exp) => (
+              
+              {/* Render grouped experiences */}
+              {Array.from(groups.entries()).map(([groupId, groupExps]) => {
+                const company = groupExps[0].company;
+                const location = groupExps[0].location;
+                const sortedExps = [...groupExps].sort((a, b) => {
+                  if (a.startDate && b.startDate) {
+                    return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+                  }
+                  return 0;
+                });
+
+                if (displayMode === 'by_role') {
+                  // Mode 1: Company header, then each role with its bullets
+                  return (
+                    <div key={groupId} className="resume-experience-item">
+                      <div className="resume-experience-header">
+                        <div className="resume-experience-title-group">
+                          <h3 className="resume-experience-title">{company}</h3>
+                          {location && <span className="resume-experience-company">{location}</span>}
+                        </div>
+                      </div>
+                      {sortedExps.map((exp) => (
+                        <div key={exp.id} style={{ marginTop: '0.1in', marginBottom: '0.1in' }}>
+                          <div style={{ marginBottom: '0.05in' }}>
+                            <strong style={{ fontSize: 'calc(var(--resume-font-size) * 1.02)' }}>{exp.title}</strong>
+                            <span style={{ marginLeft: '0.1in', fontSize: 'calc(var(--resume-font-size) * 0.95)' }}>
+                              {exp.startDate} - {exp.endDate}
+                            </span>
+                          </div>
+                          <ul className="resume-bullets" style={{ marginLeft: '0.15in' }}>
+                            {exp.bullets.map((bullet) => (
+                              <li key={bullet.id} className="resume-bullet">
+                                {bullet.content}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                } else {
+                  // Mode 2: Company header, all titles stacked, then all bullets
+                  const allBullets = sortedExps.flatMap(exp => 
+                    exp.bullets.map(bullet => ({ ...bullet, roleTitle: exp.title }))
+                  );
+
+                  return (
+                    <div key={groupId} className="resume-experience-item">
+                      <div className="resume-experience-header">
+                        <div className="resume-experience-title-group">
+                          <h3 className="resume-experience-title">{company}</h3>
+                          {location && <span className="resume-experience-company">{location}</span>}
+                        </div>
+                      </div>
+                      <div style={{ marginBottom: '0.08in' }}>
+                        {sortedExps.map((exp, idx) => (
+                          <div key={exp.id} style={{ marginBottom: idx < sortedExps.length - 1 ? '0.03in' : '0' }}>
+                            <strong style={{ fontSize: 'calc(var(--resume-font-size) * 1.02)' }}>{exp.title}</strong>
+                            <span style={{ marginLeft: '0.1in', fontSize: 'calc(var(--resume-font-size) * 0.95)' }}>
+                              {exp.startDate} - {exp.endDate}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <ul className="resume-bullets">
+                        {allBullets.map((bullet) => (
+                          <li key={bullet.id} className="resume-bullet">
+                            {bullet.content}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                }
+              })}
+
+              {/* Render standalone experiences */}
+              {standalone.map((exp) => (
                 <div key={exp.id} className="resume-experience-item">
                   <div className="resume-experience-header">
                     <div className="resume-experience-title-group">

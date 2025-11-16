@@ -13,6 +13,8 @@ type Props = {
   onDelete?: () => void;
   onEdit?: () => void;
   onAddBullet?: (content: string) => Promise<void>;
+  hideHeader?: boolean;
+  hideBulletHeader?: boolean;
 };
 
 export default function ExperienceCard({
@@ -24,6 +26,8 @@ export default function ExperienceCard({
   onDelete,
   onEdit,
   onAddBullet,
+  hideHeader = false,
+  hideBulletHeader = false,
 }: Props) {
   const [isExpanded, setIsExpanded] = useState(isFirst);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -145,6 +149,7 @@ export default function ExperienceCard({
   return (
     <div className="bg-white rounded-2xl border-2 border-slate-200 overflow-hidden shadow-sm">
       {/* Header */}
+      {!hideHeader && (
       <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 border-b-2 border-slate-200">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4 flex-1">
@@ -260,10 +265,12 @@ export default function ExperienceCard({
           </div>
         </div>
       </div>
+      )}
 
       {/* Bullets */}
-      {isExpanded && (
+      {(isExpanded || hideHeader) && (
         <div className="p-5">
+          {!hideBulletHeader && (
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-sm font-bold text-gray-700">Bullets</h4>
             {!isAddingBullet && (
@@ -289,6 +296,7 @@ export default function ExperienceCard({
               </button>
             )}
           </div>
+          )}
 
           <div className="space-y-3">
             {/* Inline Add Bullet Form */}

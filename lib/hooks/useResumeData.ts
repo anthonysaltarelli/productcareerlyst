@@ -55,6 +55,7 @@ export type Experience = {
   start_date?: string | null;
   end_date?: string | null;
   display_order: number;
+  role_group_id?: string | null;
   bullets?: ExperienceBullet[];
   created_at?: string;
   updated_at?: string;
@@ -113,6 +114,7 @@ export type ResumeStyles = {
   accent_color: string;
   heading_color: string;
   text_color: string;
+  experience_display_mode?: 'by_role' | 'grouped';
   created_at?: string;
   updated_at?: string;
 };

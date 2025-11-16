@@ -837,6 +837,9 @@ export default function ResumeEditorPage({ params }: Props) {
             onDeleteEducation={handleDeleteEducation}
             onEditExperience={handleEditExperience}
             onEditEducation={handleEditEducation}
+            onDisplayModeChange={(mode) => {
+              setResumeStyles({ ...resumeStyles, experienceDisplayMode: mode });
+            }}
           />
         </div>
       </div>

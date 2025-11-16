@@ -24,6 +24,7 @@ export type Experience = {
   location: string;
   startDate: string;
   endDate: string;
+  roleGroupId?: string | null;
   bullets: Bullet[];
 };
 
@@ -430,6 +431,7 @@ export type ResumeStyles = {
   accentColor: string; // hex color for headings/accents
   headingColor: string; // hex color for section headings
   textColor: string; // hex color for body text
+  experienceDisplayMode?: 'by_role' | 'grouped'; // 'by_role' = bullets within each role, 'grouped' = titles stacked then all bullets
 };
 
 export const defaultResumeStyles: ResumeStyles = {
@@ -443,6 +445,7 @@ export const defaultResumeStyles: ResumeStyles = {
   accentColor: '#000000', // black
   headingColor: '#000000', // black
   textColor: '#000000', // black
+  experienceDisplayMode: 'by_role', // default to bullets within each role
 };
 
 // Resume fonts - alphabetical order

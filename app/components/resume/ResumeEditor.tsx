@@ -7,6 +7,7 @@ import EducationCard from "./EducationCard";
 import ResumePreview from "./ResumePreview";
 import ResumeEditorHeader from "./ResumeEditorHeader";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import BulletEditor from "./BulletEditor";
 
 type Props = {
   selectedVersion: string;
@@ -29,6 +30,7 @@ type Props = {
   onDeleteEducation?: (educationId: string) => Promise<void>;
   onEditExperience?: (experienceId: string) => void;
   onEditEducation?: (educationId: string) => void;
+  onDisplayModeChange?: (mode: 'by_role' | 'grouped') => void;
 };
 
 export default function ResumeEditor({
@@ -52,6 +54,7 @@ export default function ResumeEditor({
   onDeleteEducation,
   onEditExperience,
   onEditEducation,
+  onDisplayModeChange,
 }: Props) {
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
@@ -143,6 +146,34 @@ export default function ResumeEditor({
 
   const handleCancelDelete = () => {
     setDeleteModal({ isOpen: false, type: null, id: null, title: '' });
+  };
+
+  // Group experiences by roleGroupId
+  const groupExperiencesByRole = (experiences: Experience[]) => {
+    const groups: Map<string | null, Experience[]> = new Map();
+    const standalone: Experience[] = [];
+
+    experiences.forEach(exp => {
+      if (exp.roleGroupId) {
+        if (!groups.has(exp.roleGroupId)) {
+          groups.set(exp.roleGroupId, []);
+        }
+        groups.get(exp.roleGroupId)!.push(exp);
+      } else {
+        standalone.push(exp);
+      }
+    });
+
+    return { groups, standalone };
+  };
+
+  const handleDisplayModeToggle = () => {
+    const newMode = resumeStyles.experienceDisplayMode === 'by_role' ? 'grouped' : 'by_role';
+    // This will need to be handled by the parent component to update styles
+    // For now, we'll just update the local state
+    onResumeDataChange({
+      ...resumeData,
+    });
   };
 
   const renderSectionContent = () => {
@@ -288,19 +319,198 @@ export default function ResumeEditor({
               </div>
             </div>
 
-            {resumeData.experiences.map((experience, index) => (
-              <ExperienceCard
-                key={experience.id}
-                experience={experience}
-                selectedBulletId={selectedBulletId}
-                onBulletSelect={onBulletSelect}
-                isFirst={index === 0}
-                onExperienceChange={handleExperienceChange(index)}
-                onEdit={() => onEditExperience?.(experience.id)}
-                onDelete={() => handleDeleteClick('experience', experience.id, `${experience.title} at ${experience.company}`)}
-                onAddBullet={onAddBullet ? (content) => onAddBullet(experience.id, content) : undefined}
-              />
-            ))}
+            {/* Display Mode Toggle */}
+            {resumeData.experiences.some(exp => exp.roleGroupId) && (
+              <div className="mb-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700">Experience Display Mode</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {resumeStyles.experienceDisplayMode === 'by_role' 
+                        ? 'Bullets shown within each role' 
+                        : 'Titles stacked, then all bullets below'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const newMode = resumeStyles.experienceDisplayMode === 'by_role' ? 'grouped' : 'by_role';
+                      onDisplayModeChange?.(newMode);
+                    }}
+                    className="px-4 py-2 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-200 transition-all"
+                  >
+                    Switch to {resumeStyles.experienceDisplayMode === 'by_role' ? 'Grouped' : 'By Role'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Render Experiences - Grouped or Individual */}
+            {(() => {
+              const { groups, standalone } = groupExperiencesByRole(resumeData.experiences);
+              const displayMode = resumeStyles.experienceDisplayMode || 'by_role';
+              let renderIndex = 0;
+
+              return (
+                <>
+                  {/* Render grouped experiences */}
+                  {Array.from(groups.entries()).map(([groupId, groupExps]) => {
+                    const company = groupExps[0].company;
+                    const location = groupExps[0].location;
+                    const allBullets = groupExps.flatMap(exp => exp.bullets || []);
+                    const selectedBullets = allBullets.filter(b => b.isSelected);
+
+                    if (displayMode === 'by_role') {
+                      // Mode 1: Bullets within each role
+                      return (
+                        <div key={groupId} className="mb-4">
+                          <div className="bg-blue-50 border-2 border-blue-200 rounded-t-xl p-4">
+                            <h3 className="text-lg font-bold text-gray-900">{company}</h3>
+                            {location && <p className="text-sm text-gray-600 mt-1">{location}</p>}
+                          </div>
+                          <div className="bg-white border-x-2 border-b-2 border-blue-200 rounded-b-xl divide-y divide-slate-200">
+                            {groupExps.map((experience) => {
+                              const expIndex = resumeData.experiences.findIndex(e => e.id === experience.id);
+                              return (
+                                <div key={experience.id} className="p-4">
+                                  <div className="mb-3 pb-3 border-b border-slate-200">
+                                    <h4 className="text-base font-semibold text-gray-800">{experience.title}</h4>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      {experience.startDate} - {experience.endDate}
+                                    </p>
+                                  </div>
+                                  <ExperienceCard
+                                    experience={experience}
+                                    selectedBulletId={selectedBulletId}
+                                    onBulletSelect={onBulletSelect}
+                                    isFirst={renderIndex++ === 0}
+                                    onExperienceChange={handleExperienceChange(expIndex)}
+                                    onEdit={() => onEditExperience?.(experience.id)}
+                                    onDelete={() => handleDeleteClick('experience', experience.id, `${experience.title} at ${experience.company}`)}
+                                    onAddBullet={onAddBullet ? (content) => onAddBullet(experience.id, content) : undefined}
+                                    hideHeader={true}
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    } else {
+                      // Mode 2: Titles stacked, then all bullets below
+                      const sortedExps = [...groupExps].sort((a, b) => {
+                        // Sort by start date if available
+                        if (a.startDate && b.startDate) {
+                          return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+                        }
+                        return 0;
+                      });
+
+                      return (
+                        <div key={groupId} className="mb-4 bg-white rounded-2xl border-2 border-slate-200 overflow-hidden shadow-sm">
+                          <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 border-b-2 border-slate-200">
+                            <h3 className="text-lg font-bold text-gray-900">{company}</h3>
+                            {location && <p className="text-sm font-semibold text-gray-600 mt-1">{location}</p>}
+                            <div className="mt-4 space-y-2">
+                              {sortedExps.map((experience) => {
+                                const expIndex = resumeData.experiences.findIndex(e => e.id === experience.id);
+                                return (
+                                  <div key={experience.id} className="flex items-center justify-between">
+                                    <div>
+                                      <h4 className="text-base font-semibold text-gray-800">{experience.title}</h4>
+                                      <p className="text-sm text-gray-600 mt-0.5">
+                                        {experience.startDate} - {experience.endDate}
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={() => onEditExperience?.(experience.id)}
+                                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                      >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteClick('experience', experience.id, `${experience.title} at ${experience.company}`)}
+                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                      >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          <div className="p-5">
+                            <h4 className="text-sm font-bold text-gray-700 mb-4">Bullets</h4>
+                            <div className="space-y-4">
+                              {sortedExps.map((experience) => {
+                                const expIndex = resumeData.experiences.findIndex(e => e.id === experience.id);
+                                return (
+                                  <div key={experience.id} className="mb-4 last:mb-0">
+                                    <div className="text-xs font-semibold text-gray-500 mb-3 px-2 pb-2 border-b border-slate-200">
+                                      {experience.title}:
+                                    </div>
+                                    {experience.bullets && experience.bullets.length > 0 ? (
+                                      <div className="space-y-2">
+                                        {experience.bullets.map((bullet, bulletIndex) => (
+                                          <BulletEditor
+                                            key={bullet.id}
+                                            bullet={bullet}
+                                            index={bulletIndex}
+                                            isSelected={selectedBulletId === bullet.id}
+                                            onSelect={() => onBulletSelect(bullet.id)}
+                                            onDragStart={() => {}}
+                                            onDragOver={() => {}}
+                                            onDrop={() => {}}
+                                            onDragEnd={() => {}}
+                                            onToggleSelection={(checked) => {
+                                              const newBullets = [...(experience.bullets || [])];
+                                              const bulletIdx = newBullets.findIndex(b => b.id === bullet.id);
+                                              if (bulletIdx >= 0) {
+                                                newBullets[bulletIdx] = { ...newBullets[bulletIdx], isSelected: checked };
+                                                handleExperienceChange(expIndex)({ ...experience, bullets: newBullets });
+                                              }
+                                            }}
+                                          />
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <p className="text-xs text-gray-400 ml-4 italic">No bullets for this role</p>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                  })}
+
+                  {/* Render standalone experiences */}
+                  {standalone.map((experience, index) => {
+                    const expIndex = resumeData.experiences.findIndex(e => e.id === experience.id);
+                    return (
+                      <ExperienceCard
+                        key={experience.id}
+                        experience={experience}
+                        selectedBulletId={selectedBulletId}
+                        onBulletSelect={onBulletSelect}
+                        isFirst={renderIndex++ === 0 && groups.size === 0}
+                        onExperienceChange={handleExperienceChange(expIndex)}
+                        onEdit={() => onEditExperience?.(experience.id)}
+                        onDelete={() => handleDeleteClick('experience', experience.id, `${experience.title} at ${experience.company}`)}
+                        onAddBullet={onAddBullet ? (content) => onAddBullet(experience.id, content) : undefined}
+                      />
+                    );
+                  })}
+                </>
+              );
+            })()}
 
             <button
               onClick={onAddExperience}
