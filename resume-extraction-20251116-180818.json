@@ -1,0 +1,127 @@
+{
+  "contactInfo": {
+    "full_name": "Anthony Saltarelli",
+    "email": "anth.saltarelli@gmail.com",
+    "phone": "(203) 722 - 3285",
+    "location": "New York, NY",
+    "linkedin": null,
+    "portfolio": "anthonysaltarelli.com"
+  },
+  "summary": null,
+  "experiences": [
+    {
+      "title": "Lead Product Manager",
+      "company": "SageSpot",
+      "location": "New York, NY",
+      "start_date": "2022-03",
+      "end_date": "Present",
+      "bullets": [
+        "Defined, executed, and iterated product strategy in collaboration with CEO, CTO, and broader team",
+        "Launched several key Creator tools including Subscriptions, Livestreams, Libraries, and Engage Forums",
+        "Increased member account creation rate by 44% and subscription rate by 60%",
+        "De-risked new feature work by creating dozens of wireframes and prototypes to test with user panel",
+        "Decreased time to production for new features by 2-3x by religiously prioritizing MVP functionality",
+        "Built out analytics eventing and dashboards to track user behavior, KPIs, and inform product decisions",
+        "Created automated re-engagement email campaigns, leading to a 38% increase in users posting content",
+        "Interviewed users to explore problem & opportunity spaces, leading to more impactful product solutions",
+        "Delivered monthly product roadmap report citing metric changes, wins, and new problems to tackle"
+      ]
+    },
+    {
+      "title": "Senior Product Manager, Commerce",
+      "company": "Squarespace",
+      "location": "New York, NY",
+      "start_date": "2021-09",
+      "end_date": "2022-03",
+      "bullets": [
+        "Launched and executed our product strategy for Squarespace Scheduling, the first standalone product offering on SQSP outside of their flagship Website product, after SQSP acquired Acuity Scheduling",
+        "Increased YoY trial to subscription rate of Scheduling by 47% by A/B testing multiple UX improvements",
+        "Expanded the Squarespace Scheduling product offering by introducing Invoicing functionality",
+        "Updated Payment Settings, leading to 130% increase in Payment Processor connections & $1.2MM+ ARR",
+        "Conducted user research to better understand user problems, validate, and de-risk product solutions",
+        "Built out Enterprise Scheduling, leading to 15+ new Enterprise contracts, increased Enterprise ARR by 5x",
+        "Maintained strategic partner relationships with Meta, Twilio, Square, and other vendors"
+      ]
+    },
+    {
+      "title": "Product Manager, Commerce",
+      "company": "Squarespace",
+      "location": "New York, NY",
+      "start_date": "2020-06",
+      "end_date": "2021-09",
+      "bullets": [
+        "Launched and executed our product strategy for Squarespace Scheduling, the first standalone product offering on SQSP outside of their flagship Website product, after SQSP acquired Acuity Scheduling",
+        "Increased YoY trial to subscription rate of Scheduling by 47% by A/B testing multiple UX improvements",
+        "Expanded the Squarespace Scheduling product offering by introducing Invoicing functionality",
+        "Updated Payment Settings, leading to 130% increase in Payment Processor connections & $1.2MM+ ARR",
+        "Conducted user research to better understand user problems, validate, and de-risk product solutions",
+        "Built out Enterprise Scheduling, leading to 15+ new Enterprise contracts, increased Enterprise ARR by 5x",
+        "Maintained strategic partner relationships with Meta, Twilio, Square, and other vendors"
+      ]
+    },
+    {
+      "title": "Associate Product Manager, Mobile",
+      "company": "SeatGeek",
+      "location": "New York, NY",
+      "start_date": "2018-06",
+      "end_date": "2020-04",
+      "bullets": [
+        "Led planning and development of various features and experiments in the iOS and Android apps focused on event discovery, core shopping funnel, and checkout that increased checkout conversion by 19% YoY",
+        "Created and managed the mobile product roadmap in collaboration with engineering leads",
+        "Defined and built out a native sharing strategy that increased event shares by 132% YoY",
+        "Introduced in-app rating feature that increased SeatGeek’s Android Play Store rating from 3.7 to 4.6 stars",
+        "Reduced mobile customer support inquires by 44% by shipping native customer support workflow",
+        "Defined KPIs and set up various analytics dashboards to track overall product health and feature usage",
+        "Designed wireframes and created prototypes for 40+ consumer and enterprise features"
+      ]
+    },
+    {
+      "title": "Founder & Engineer",
+      "company": "Stand Up Tech, LLC",
+      "location": null,
+      "start_date": "2015-02",
+      "end_date": "2018-05",
+      "bullets": [
+        "Developed Stand Up For Change, an iOS App to empower users to engage in political process and The Networking Assistant, a CRM platform to organize contacts and interactions, acquired 4,000+ users",
+        "Developed Chin Up!, a positive social media iOS App which had 6,000+ downloads & 45,000+ user posts"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "school": "College of the Holy Cross",
+      "degree": "Bachelor of Arts",
+      "field": "Computer Science",
+      "location": "Worcester, MA",
+      "start_date": null,
+      "end_date": null,
+      "gpa": "3.25",
+      "achievements": [
+        "Student Government",
+        "Campus Activities Board",
+        "Resident Assistant",
+        "Orientation Leader"
+      ]
+    }
+  ],
+  "skills": {
+    "technical": [
+      "Figma",
+      "Sketch",
+      "Invision",
+      "Amplitude",
+      "Google Analytics",
+      "Maze",
+      "UserTesting",
+      "Jira",
+      "Github",
+      "Airtable",
+      "SQL",
+      "Python"
+    ],
+    "product": [
+      "A/B Testing & Analysis"
+    ],
+    "soft": []
+  }
+}

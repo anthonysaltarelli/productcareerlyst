@@ -153,7 +153,13 @@ PROMPT="Extract all information from this resume and return it in the specified 
 - All education entries with achievements
 - Skills categorized as technical, product, or soft skills
 
-Be thorough and extract all details accurately. For dates, use YYYY-MM format when possible, or preserve the original format if unclear."
+IMPORTANT: When a person has multiple roles at the same company (e.g., \"Product Manager\" then \"Senior Product Manager\" at Squarespace), create separate experience entries for each role. Each role should have:
+- Its own title
+- Its own start_date and end_date (the end_date of one role should match the start_date of the next role, or be the same if overlapping)
+- Its own bullets that were specific to that role
+- The same company name and location
+
+For dates, use YYYY-MM format when possible, or preserve the original format if unclear."
 
 # Request payload - use jq to properly construct JSON
 # The input should be a message with content array containing text and file

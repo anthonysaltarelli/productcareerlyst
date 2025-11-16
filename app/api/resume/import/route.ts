@@ -95,7 +95,13 @@ const EXTRACTION_PROMPT = `Extract all information from this resume and return i
 - All education entries with achievements
 - Skills categorized as technical, product, or soft skills
 
-Be thorough and extract all details accurately. For dates, use YYYY-MM format when possible, or preserve the original format if unclear.`;
+IMPORTANT: When a person has multiple roles at the same company (e.g., "Product Manager" then "Senior Product Manager" at Squarespace), create separate experience entries for each role. Each role should have:
+- Its own title
+- Its own start_date and end_date (the end_date of one role should match the start_date of the next role, or be the same if overlapping)
+- Its own bullets that were specific to that role
+- The same company name and location
+
+For dates, use YYYY-MM format when possible, or preserve the original format if unclear.`;
 
 // POST /api/resume/import - Import resume from PDF/DOCX file
 export const POST = async (request: NextRequest) => {
@@ -411,20 +417,37 @@ export const POST = async (request: NextRequest) => {
       }
 
       // Insert experiences with bullets
+      // Group experiences by company to handle multiple roles at the same company
       if (extractedData.experiences && Array.isArray(extractedData.experiences)) {
+        // Track company groups: company name -> role_group_id
+        const companyGroups = new Map<string, string>();
+        let globalDisplayOrder = 0;
+
         for (let expIndex = 0; expIndex < extractedData.experiences.length; expIndex++) {
           const exp = extractedData.experiences[expIndex];
+          const companyName = exp.company?.trim() || '';
+          
+          // Check if we've seen this company before (case-insensitive comparison)
+          const normalizedCompany = companyName.toLowerCase();
+          let roleGroupId = companyGroups.get(normalizedCompany);
+          
+          // If this is the first role at this company, create a new group ID
+          if (!roleGroupId) {
+            roleGroupId = crypto.randomUUID();
+            companyGroups.set(normalizedCompany, roleGroupId);
+          }
 
           const { data: experience, error: expError } = await supabase
             .from('resume_experiences')
             .insert({
               version_id: version.id,
               title: exp.title?.trim() || '',
-              company: exp.company?.trim() || '',
+              company: companyName,
               location: exp.location?.trim() || null,
               start_date: exp.start_date?.trim() || null,
               end_date: exp.end_date?.trim() || null,
-              display_order: expIndex,
+              display_order: globalDisplayOrder++,
+              role_group_id: roleGroupId,
             })
             .select()
             .single();
