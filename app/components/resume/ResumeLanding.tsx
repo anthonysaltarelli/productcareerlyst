@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Copy } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { MoreVertical } from "lucide-react";
 import { mockResumeScore } from "./mockData";
 import type { ResumeVersion } from "@/lib/hooks/useResumeData";
 import CreateFromMasterModal from "./CreateFromMasterModal";
+import CloneToMasterModal from "./CloneToMasterModal";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 type Props = {
   versions: ResumeVersion[];
   onEditVersion: (versionId: string) => void;
   onCreateMaster?: () => void;
-  onCloneFromMaster?: (sourceVersionId: string, newName: string, applicationId?: string) => Promise<void>;
+  onCloneFromMaster?: (sourceVersionId: string, newName: string, applicationId?: string, isMaster?: boolean) => Promise<void>;
+  onDeleteVersion?: (versionId: string) => Promise<void>;
 };
 
 type JobApplication = {
@@ -31,9 +34,16 @@ const formatDate = (dateString: string): string => {
   return date.toLocaleDateString('en-US', options);
 };
 
-export default function ResumeLanding({ versions, onEditVersion, onCreateMaster, onCloneFromMaster }: Props) {
+export default function ResumeLanding({ versions, onEditVersion, onCreateMaster, onCloneFromMaster, onDeleteVersion }: Props) {
   const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
+  const [isCloneToMasterModalOpen, setIsCloneToMasterModalOpen] = useState(false);
+  const [selectedMasterForClone, setSelectedMasterForClone] = useState<string | null>(null);
   const [jobApplications, setJobApplications] = useState<Record<string, JobApplication>>({});
+  const [deleteModalState, setDeleteModalState] = useState<{ isOpen: boolean; versionId: string | null; versionName: string }>({
+    isOpen: false,
+    versionId: null,
+    versionName: '',
+  });
 
   // Split versions into masters and job-specific
   const masterResumes = versions.filter(v => v.is_master);
@@ -70,7 +80,21 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
 
   const handleClone = async (sourceVersionId: string, newName: string, applicationId?: string) => {
     if (onCloneFromMaster) {
-      await onCloneFromMaster(sourceVersionId, newName, applicationId);
+      await onCloneFromMaster(sourceVersionId, newName, applicationId, false);
+    }
+  };
+
+  const handleCloneToMaster = async (sourceVersionId: string, newName: string) => {
+    if (onCloneFromMaster) {
+      // Clone as a master resume (isMaster = true, no application_id)
+      await onCloneFromMaster(sourceVersionId, newName, undefined, true);
+    }
+  };
+
+  const handleDeleteMaster = async () => {
+    if (onDeleteVersion && deleteModalState.versionId) {
+      await onDeleteVersion(deleteModalState.versionId);
+      setDeleteModalState({ isOpen: false, versionId: null, versionName: '' });
     }
   };
 
@@ -155,7 +179,17 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
                   version={version}
                   onEdit={onEditVersion}
                   isMaster={true}
-                  onClone={() => setIsCloneModalOpen(true)}
+                  onCloneToJobSpecific={() => {
+                    setSelectedMasterForClone(version.id);
+                    setIsCloneModalOpen(true);
+                  }}
+                  onCloneToMaster={() => {
+                    setSelectedMasterForClone(version.id);
+                    setIsCloneToMasterModalOpen(true);
+                  }}
+                  onDelete={(versionId, versionName) => {
+                    setDeleteModalState({ isOpen: true, versionId, versionName });
+                  }}
                 />
               ))}
             </div>
@@ -209,12 +243,35 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
           )}
         </div>
 
-        {/* Clone Modal */}
+        {/* Clone to Job-Specific Modal */}
         <CreateFromMasterModal
           isOpen={isCloneModalOpen}
-          onClose={() => setIsCloneModalOpen(false)}
-          masterResumes={masterResumes}
+          onClose={() => {
+            setIsCloneModalOpen(false);
+            setSelectedMasterForClone(null);
+          }}
+          masterResumes={selectedMasterForClone ? masterResumes.filter(m => m.id === selectedMasterForClone) : masterResumes}
           onClone={handleClone}
+        />
+
+        {/* Clone to Master Modal */}
+        <CloneToMasterModal
+          isOpen={isCloneToMasterModalOpen}
+          onClose={() => {
+            setIsCloneToMasterModalOpen(false);
+            setSelectedMasterForClone(null);
+          }}
+          sourceMaster={selectedMasterForClone ? masterResumes.find(m => m.id === selectedMasterForClone) : null}
+          onClone={handleCloneToMaster}
+        />
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmationModal
+          isOpen={deleteModalState.isOpen}
+          onClose={() => setDeleteModalState({ isOpen: false, versionId: null, versionName: '' })}
+          onConfirm={handleDeleteMaster}
+          title="Delete Master Resume"
+          message={`Are you sure you want to delete "${deleteModalState.versionName}"? This action cannot be undone.`}
         />
 
         {/* Help Section */}
@@ -243,13 +300,30 @@ type ResumeCardProps = {
   version: ResumeVersion;
   onEdit: (versionId: string) => void;
   isMaster: boolean;
-  onClone?: () => void;
+  onCloneToJobSpecific?: () => void;
+  onCloneToMaster?: () => void;
+  onDelete?: (versionId: string, versionName: string) => void;
   jobApplication?: JobApplication;
 };
 
-function ResumeCard({ version, onEdit, isMaster, onClone, jobApplication }: ResumeCardProps) {
+function ResumeCard({ version, onEdit, isMaster, onCloneToJobSpecific, onCloneToMaster, onDelete, jobApplication }: ResumeCardProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <div className="rounded-[2rem] bg-gradient-to-br from-slate-100 to-slate-200 shadow-[0_10px_0_0_rgba(51,65,85,0.3)] border-2 border-slate-300 overflow-hidden hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(51,65,85,0.3)] transition-all duration-200">
+    <div className="rounded-[2rem] bg-gradient-to-br from-slate-100 to-slate-200 shadow-[0_10px_0_0_rgba(51,65,85,0.3)] border-2 border-slate-300 hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(51,65,85,0.3)] transition-all duration-200 overflow-visible relative">
       {/* Card Header */}
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
@@ -298,25 +372,83 @@ function ResumeCard({ version, onEdit, isMaster, onClone, jobApplication }: Resu
       </div>
 
       {/* Card Actions */}
-      <div className="p-4 bg-white/60 flex gap-2">
+      <div className="p-4 bg-white/60 flex gap-2 rounded-b-[2rem]">
         <button
           onClick={() => onEdit(version.id)}
           className="flex-1 px-4 py-2 rounded-[1rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_4px_0_0_rgba(37,99,235,0.6)] border-2 border-blue-600 hover:translate-y-0.5 hover:shadow-[0_2px_0_0_rgba(37,99,235,0.6)] font-black text-white transition-all duration-200 text-sm"
         >
           Edit →
         </button>
-        {isMaster && onClone && (
-          <button
-            onClick={onClone}
-            className="px-4 py-2 rounded-[1rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_4px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-0.5 hover:shadow-[0_2px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 text-sm flex items-center gap-1"
-            title="Clone this master resume"
-          >
-            <Copy className="w-4 h-4" />
+
+        {/* Master Resume Menu */}
+        {isMaster && (
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="px-4 py-2 rounded-[1rem] bg-white hover:bg-gray-50 text-gray-700 font-bold border-2 border-slate-300 shadow-[0_4px_0_0_rgba(51,65,85,0.3)] hover:translate-y-0.5 hover:shadow-[0_2px_0_0_rgba(51,65,85,0.3)] transition-all duration-200 text-sm flex items-center"
+            >
+              <MoreVertical className="w-5 h-5" />
+            </button>
+
+            {/* Dropdown Menu */}
+            {isMenuOpen && (
+              <div className="absolute right-0 bottom-full mb-2 w-64 bg-white rounded-xl shadow-2xl border-2 border-slate-300 overflow-hidden z-10">
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    // TODO: Implement PDF download
+                  }}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 font-medium text-gray-700 border-b border-gray-200 flex items-center gap-2"
+                >
+                  📄 Download PDF
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    // TODO: Implement DOCX download
+                  }}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 font-medium text-gray-700 border-b border-gray-200 flex items-center gap-2"
+                >
+                  📝 Download DOCX
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onCloneToMaster?.();
+                  }}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 font-medium text-gray-700 border-b border-gray-200 flex items-center gap-2"
+                >
+                  📋 Clone to New Master Resume
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onCloneToJobSpecific?.();
+                  }}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 font-medium text-gray-700 border-b border-gray-200 flex items-center gap-2"
+                >
+                  📄 Clone to New Job-Specific Resume
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onDelete?.(version.id, version.name);
+                  }}
+                  className="w-full px-4 py-3 text-left hover:bg-red-50 font-medium text-red-600 flex items-center gap-2"
+                >
+                  🗑️ Delete Master Resume
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Job-Specific PDF Button */}
+        {!isMaster && (
+          <button className="px-4 py-2 rounded-[1rem] bg-white hover:bg-gray-50 text-gray-700 font-bold border-2 border-slate-300 shadow-[0_4px_0_0_rgba(51,65,85,0.3)] hover:translate-y-0.5 hover:shadow-[0_2px_0_0_rgba(51,65,85,0.3)] transition-all duration-200 text-sm">
+            PDF
           </button>
         )}
-        <button className="px-4 py-2 rounded-[1rem] bg-white hover:bg-gray-50 text-gray-700 font-bold border-2 border-slate-300 shadow-[0_4px_0_0_rgba(51,65,85,0.3)] hover:translate-y-0.5 hover:shadow-[0_2px_0_0_rgba(51,65,85,0.3)] transition-all duration-200 text-sm">
-          PDF
-        </button>
       </div>
     </div>
   );

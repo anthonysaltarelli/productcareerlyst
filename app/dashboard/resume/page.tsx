@@ -14,6 +14,7 @@ export default function ResumePage() {
     isLoading,
     createVersion,
     cloneVersion,
+    deleteVersion,
   } = useResumeData();
 
   const handleEditVersion = (versionId: string) => {
@@ -37,14 +38,24 @@ export default function ResumePage() {
     }
   };
 
-  const handleCloneFromMaster = async (sourceVersionId: string, newName: string, applicationId?: string) => {
+  const handleCloneFromMaster = async (sourceVersionId: string, newName: string, applicationId?: string, isMaster?: boolean) => {
     try {
-      const version = await cloneVersion(sourceVersionId, newName, applicationId);
+      const version = await cloneVersion(sourceVersionId, newName, applicationId, isMaster || false);
 
       // Navigate to the new version
       router.push(`/dashboard/resume/${version.id}`);
     } catch (error) {
       console.error('Error cloning resume:', error);
+      // Error already handled by the hook with toast
+    }
+  };
+
+  const handleDeleteVersion = async (versionId: string) => {
+    try {
+      await deleteVersion(versionId);
+      // Success toast is shown by the hook
+    } catch (error) {
+      console.error('Error deleting resume:', error);
       // Error already handled by the hook with toast
     }
   };
@@ -55,6 +66,7 @@ export default function ResumePage() {
       onEditVersion={handleEditVersion}
       onCreateMaster={handleCreateMaster}
       onCloneFromMaster={handleCloneFromMaster}
+      onDeleteVersion={handleDeleteVersion}
     />
   );
 }

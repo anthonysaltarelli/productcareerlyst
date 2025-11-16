@@ -5,7 +5,8 @@ type Props = {
   title: string;
   message: string;
   onConfirm: () => void;
-  onCancel: () => void;
+  onClose: () => void;
+  onCancel?: () => void;
   isDeleting?: boolean;
 };
 
@@ -14,9 +15,11 @@ export default function DeleteConfirmationModal({
   title,
   message,
   onConfirm,
+  onClose,
   onCancel,
   isDeleting = false,
 }: Props) {
+  const handleCancel = onCancel || onClose;
   if (!isOpen) return null;
 
   return (
@@ -50,7 +53,7 @@ export default function DeleteConfirmationModal({
 
           <div className="flex gap-4">
             <button
-              onClick={onCancel}
+              onClick={handleCancel}
               disabled={isDeleting}
               className="flex-1 px-6 py-3.5 bg-gradient-to-br from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300 text-slate-700 font-bold rounded-xl transition-all border-2 border-slate-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >

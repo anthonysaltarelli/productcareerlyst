@@ -209,12 +209,12 @@ export const useResumeData = (versionId?: string) => {
   }, [fetchVersions]);
 
   // Clone version from a master resume
-  const cloneVersion = useCallback(async (sourceVersionId: string, newName: string, applicationId?: string | null) => {
+  const cloneVersion = useCallback(async (sourceVersionId: string, newName: string, applicationId?: string | null, isMaster: boolean = false) => {
     try {
       const response = await fetch(`/api/resume/versions/${sourceVersionId}/clone`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newName, applicationId }),
+        body: JSON.stringify({ newName, applicationId, isMaster }),
       });
       if (!response.ok) throw new Error('Failed to clone version');
       const data = await response.json();

@@ -118,3 +118,65 @@ export const GET = async (
     );
   }
 };
+
+// DELETE /api/resume/versions/[versionId] - Delete a resume version
+export const DELETE = async (
+  request: NextRequest,
+  { params }: { params: Promise<{ versionId: string }> }
+) => {
+  try {
+    const supabase = await createClient();
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { versionId } = await params;
+
+    // Verify version ownership
+    const { data: version, error: versionError } = await supabase
+      .from('resume_versions')
+      .select('*')
+      .eq('id', versionId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (versionError || !version) {
+      return NextResponse.json(
+        { error: 'Resume version not found' },
+        { status: 404 }
+      );
+    }
+
+    // Delete the version (cascade should handle related data)
+    const { error: deleteError } = await supabase
+      .from('resume_versions')
+      .delete()
+      .eq('id', versionId)
+      .eq('user_id', user.id);
+
+    if (deleteError) {
+      console.error('Error deleting resume version:', deleteError);
+      return NextResponse.json(
+        { error: 'Failed to delete resume version' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(
+      { success: true },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+};

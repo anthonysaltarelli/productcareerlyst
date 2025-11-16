@@ -46,6 +46,9 @@ export const POST = async (
     // Generate slug from newName (simple version)
     const slug = body.newName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
+    // Determine if cloning to master or job-specific
+    const isMaster = body.isMaster === true;
+
     // Create new version
     const { data: newVersion, error: createError } = await supabase
       .from('resume_versions')
@@ -53,8 +56,8 @@ export const POST = async (
         user_id: user.id,
         name: body.newName,
         slug: slug,
-        is_master: false, // Cloned versions are always job-specific
-        application_id: body.applicationId || null,
+        is_master: isMaster,
+        application_id: isMaster ? null : (body.applicationId || null), // Masters never have application_id
       })
       .select()
       .single();

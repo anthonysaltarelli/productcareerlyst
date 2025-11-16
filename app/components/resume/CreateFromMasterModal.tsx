@@ -32,6 +32,15 @@ export default function CreateFromMasterModal({
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
 
+  // Auto-select master if there's only one
+  useEffect(() => {
+    if (isOpen && masterResumes.length === 1) {
+      setSelectedMasterId(masterResumes[0].id);
+    } else if (isOpen && masterResumes.length === 0) {
+      setSelectedMasterId('');
+    }
+  }, [isOpen, masterResumes]);
+
   // Fetch job applications when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -111,27 +120,48 @@ export default function CreateFromMasterModal({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Select Master Resume */}
-          <div>
-            <label htmlFor="master-resume" className="block text-sm font-medium text-gray-700 mb-2">
-              Select Master Resume
-            </label>
-            <select
-              id="master-resume"
-              value={selectedMasterId}
-              onChange={(e) => setSelectedMasterId(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              required
-              disabled={isLoading}
-            >
-              <option value="">Choose a master resume...</option>
-              {masterResumes.map((resume) => (
-                <option key={resume.id} value={resume.id}>
-                  {resume.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Select Master Resume - Only show if multiple masters */}
+          {masterResumes.length > 1 && (
+            <div>
+              <label htmlFor="master-resume" className="block text-sm font-medium text-gray-700 mb-2">
+                Select Master Resume
+              </label>
+              <select
+                id="master-resume"
+                value={selectedMasterId}
+                onChange={(e) => setSelectedMasterId(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                required
+                disabled={isLoading}
+              >
+                <option value="">Choose a master resume...</option>
+                {masterResumes.map((resume) => (
+                  <option key={resume.id} value={resume.id}>
+                    {resume.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Show selected master name if only one */}
+          {masterResumes.length === 1 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Cloning From
+              </label>
+              <div className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-1 text-xs font-bold bg-gradient-to-br from-blue-400 to-cyan-400 text-white rounded-md">
+                    MASTER
+                  </span>
+                  <span className="font-medium text-gray-800">
+                    {masterResumes[0].name}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Resume Name */}
           <div>
