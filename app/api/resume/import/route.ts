@@ -417,24 +417,56 @@ export const POST = async (request: NextRequest) => {
       }
 
       // Insert experiences with bullets
-      // Group experiences by company to handle multiple roles at the same company
+      // Group experiences by company only if they are sequential roles (same company, sequential dates)
       if (extractedData.experiences && Array.isArray(extractedData.experiences)) {
-        // Track company groups: company name -> role_group_id
-        const companyGroups = new Map<string, string>();
+        // Track company groups: company name -> { role_group_id, last_end_date }
+        const companyGroups = new Map<string, { roleGroupId: string; lastEndDate: string | null }>();
         let globalDisplayOrder = 0;
+
+        // Helper to parse date for comparison (handles YYYY-MM, YYYY, and "Present")
+        const parseDate = (dateStr: string | null): number => {
+          if (!dateStr || dateStr.toLowerCase() === 'present') return Infinity;
+          const parts = dateStr.split('-');
+          if (parts.length >= 2) {
+            return parseInt(parts[0]) * 12 + parseInt(parts[1] || '1');
+          }
+          return parseInt(parts[0]) * 12;
+        };
 
         for (let expIndex = 0; expIndex < extractedData.experiences.length; expIndex++) {
           const exp = extractedData.experiences[expIndex];
           const companyName = exp.company?.trim() || '';
-          
-          // Check if we've seen this company before (case-insensitive comparison)
           const normalizedCompany = companyName.toLowerCase();
-          let roleGroupId = companyGroups.get(normalizedCompany);
           
-          // If this is the first role at this company, create a new group ID
+          // Check if previous experience was at the same company and sequential
+          let roleGroupId: string | null = null;
+          const prevExp = expIndex > 0 ? extractedData.experiences[expIndex - 1] : null;
+          const isSequentialAtSameCompany = prevExp && 
+            normalizedCompany === (prevExp.company?.trim() || '').toLowerCase() &&
+            exp.start_date && prevExp.end_date &&
+            parseDate(exp.start_date) <= parseDate(prevExp.end_date) + 1; // Allow 1 month gap
+          
+          if (isSequentialAtSameCompany) {
+            // Use the same role_group_id as the previous experience
+            const groupInfo = companyGroups.get(normalizedCompany);
+            if (groupInfo) {
+              roleGroupId = groupInfo.roleGroupId;
+            }
+          }
+          
+          // If not sequential, create a new group (or standalone if first at company)
           if (!roleGroupId) {
             roleGroupId = crypto.randomUUID();
-            companyGroups.set(normalizedCompany, roleGroupId);
+            companyGroups.set(normalizedCompany, {
+              roleGroupId,
+              lastEndDate: exp.end_date?.trim() || null,
+            });
+          } else {
+            // Update the last end date for this company group
+            const groupInfo = companyGroups.get(normalizedCompany);
+            if (groupInfo) {
+              groupInfo.lastEndDate = exp.end_date?.trim() || null;
+            }
           }
 
           const { data: experience, error: expError } = await supabase
@@ -457,20 +489,44 @@ export const POST = async (request: NextRequest) => {
           }
 
           // Insert bullets for this experience
+          // For sequential roles at the same company, only keep bullets that are unique to this role
+          // If all bullets are duplicates, skip inserting bullets for this role (they belong to the first role)
           if (exp.bullets && Array.isArray(exp.bullets) && exp.bullets.length > 0) {
-            const bulletsToInsert = exp.bullets.map((bullet: string, bulletIndex: number) => ({
+            let bulletsToInsert = exp.bullets.map((bullet: string, bulletIndex: number) => ({
               experience_id: experience.id,
               content: bullet.trim(),
               is_selected: true,
               display_order: bulletIndex,
             }));
 
-            const { error: bulletsError } = await supabase
-              .from('resume_experience_bullets')
-              .insert(bulletsToInsert);
+            // If this is a sequential role at the same company, check for duplicate bullets
+            if (isSequentialAtSameCompany && prevExp?.bullets) {
+              const prevBullets = prevExp.bullets.map((b: string) => b.trim().toLowerCase());
+              const currentBullets = exp.bullets.map((b: string) => b.trim().toLowerCase());
+              
+              // Check if ALL bullets are duplicates (meaning this role has no unique bullets)
+              const allDuplicates = currentBullets.every(bullet => prevBullets.includes(bullet));
+              
+              if (allDuplicates) {
+                // All bullets are duplicates - don't insert any bullets for this role
+                // They belong to the first role in the group
+                bulletsToInsert = [];
+              } else {
+                // Some bullets are unique - only keep the unique ones
+                bulletsToInsert = bulletsToInsert.filter(
+                  bullet => !prevBullets.includes(bullet.content.trim().toLowerCase())
+                );
+              }
+            }
 
-            if (bulletsError) {
-              throw new Error(`Failed to insert bullets: ${bulletsError.message}`);
+            if (bulletsToInsert.length > 0) {
+              const { error: bulletsError } = await supabase
+                .from('resume_experience_bullets')
+                .insert(bulletsToInsert);
+
+              if (bulletsError) {
+                throw new Error(`Failed to insert bullets: ${bulletsError.message}`);
+              }
             }
           }
         }
