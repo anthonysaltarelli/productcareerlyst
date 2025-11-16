@@ -328,10 +328,11 @@ export default function ResumeEditor({
             </div>
 
             {/* Render grouped experiences */}
-            {Array.from(groups.entries()).map(([groupId, groupExps]) => {
+            {Array.from(groups.entries()).map(([groupId, groupExps], groupIndex) => {
               const company = groupExps[0].company;
               const location = groupExps[0].location;
               const bulletMode = getBulletModeForGroup(groupExps);
+              const isFirstGroup = groupIndex === 0 && standalone.length === 0;
 
               return (
                 <ExperienceGroup
@@ -359,6 +360,7 @@ export default function ResumeEditor({
                       onEditExperience?.(groupExps[0].id);
                     }
                   }}
+                  isFirst={isFirstGroup}
                 />
               );
             })}
