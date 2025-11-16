@@ -377,6 +377,8 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
               {Array.from(groups.entries()).map(([groupId, groupExps]) => {
                 const company = groupExps[0].company;
                 const location = groupExps[0].location;
+                // Get bulletMode from first experience in group (all experiences in a group share the same bulletMode)
+                const bulletMode = groupExps[0].bulletMode || 'per_role';
                 
                 // Helper to parse date for comparison (handles "September 2021", "2021", "2021-09", and "Present")
                 const parseDate = (dateStr: string | null | undefined): number => {
@@ -446,7 +448,7 @@ export default function ResumePreview({ styles = defaultResumeStyles, resumeData
                   ? `${minStartDate || ''} - ${maxEndDate || ''}`.replace(/^ - | - $/g, '').trim()
                   : '';
 
-                if (displayMode === 'by_role') {
+                if (bulletMode === 'per_role') {
                   // Mode 1: Company header, then each role with its bullets
                   return (
                     <div key={groupId} className="resume-experience-item">

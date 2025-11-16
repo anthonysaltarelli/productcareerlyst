@@ -212,6 +212,8 @@ export const createResumeDocument = (data: ResumeData): Document => {
     Array.from(groups.entries()).forEach(([groupId, groupExps]) => {
       const company = groupExps[0].company;
       const location = groupExps[0].location;
+      // Get bulletMode from first experience in group (all experiences in a group share the same bulletMode)
+      const bulletMode = groupExps[0].bulletMode || 'per_role';
       
       // Helper to parse date for comparison (handles "September 2021", "2021", "2021-09", and "Present")
       const parseDate = (dateStr: string | null | undefined): number => {
@@ -295,7 +297,7 @@ export const createResumeDocument = (data: ResumeData): Document => {
         })
       );
 
-      if (displayMode === 'by_role') {
+      if (bulletMode === 'per_role') {
         // Mode 1: Each role with its bullets
         sortedExps.forEach((exp) => {
           // Role title and dates (italic) - only show dates if multiple roles
