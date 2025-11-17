@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bullet } from "./mockData";
 
 type Props = {
@@ -13,6 +13,7 @@ type Props = {
   onDrop: (e: React.DragEvent) => void;
   onDragEnd: () => void;
   onToggleSelection: (checked: boolean) => void;
+  onContentChange?: (newContent: string) => void;
 };
 
 export default function BulletEditor({ 
@@ -25,13 +26,23 @@ export default function BulletEditor({
   onDrop,
   onDragEnd,
   onToggleSelection,
+  onContentChange,
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState(bullet.content);
 
+  // Sync local content state when bullet prop changes
+  useEffect(() => {
+    if (!isEditing) {
+      setContent(bullet.content);
+    }
+  }, [bullet.content, isEditing]);
+
   const handleSave = () => {
+    if (onContentChange && content !== bullet.content) {
+      onContentChange(content);
+    }
     setIsEditing(false);
-    // In real implementation, this would save to state/database
   };
 
   const getScoreColor = (score: number) => {
@@ -122,7 +133,7 @@ export default function BulletEditor({
                 </div>
                 
                 <p className="text-sm text-gray-900 leading-relaxed mb-4 pr-16">
-                  {bullet.content}
+                  {content}
                 </p>
 
                 {/* Footer Row - Tags and Actions */}

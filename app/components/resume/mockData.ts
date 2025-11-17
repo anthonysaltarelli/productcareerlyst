@@ -112,7 +112,6 @@ export const sections: Section[] = [
   { id: "experience", type: "experience", title: "Work Experience", icon: "", order: 3 },
   { id: "education", type: "education", title: "Education", icon: "", order: 4 },
   { id: "skills", type: "skills", title: "Skills", icon: "", order: 5 },
-  { id: "certifications", type: "certifications", title: "Certifications", icon: "", order: 6 },
 ];
 
 export const mockExperiences: Experience[] = [

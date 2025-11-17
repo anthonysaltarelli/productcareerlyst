@@ -93,6 +93,18 @@ export default function ExperienceGroup({
     setAddingBulletForExperienceId(null);
   };
 
+  const handleBulletContentChange = (bulletId: string, experienceId: string) => (newContent: string) => {
+    const experience = sortedExps.find(exp => exp.id === experienceId);
+    if (!experience) return;
+
+    const newBullets = [...(experience.bullets || [])];
+    const bulletIdx = newBullets.findIndex(b => b.id === bulletId);
+    if (bulletIdx >= 0) {
+      newBullets[bulletIdx] = { ...newBullets[bulletIdx], content: newContent };
+      onExperienceChange(experienceId)({ ...experience, bullets: newBullets });
+    }
+  };
+
   // Drag and drop handlers for per_role mode
   const handleDragStart = (bulletId: string, experienceId: string, index: number) => (e: React.DragEvent) => {
     setDraggedBulletId(bulletId);
@@ -522,6 +534,7 @@ export default function ExperienceGroup({
                                   onExperienceChange(experience.id)({ ...experience, bullets: newBullets });
                                 }
                               }}
+                              onContentChange={handleBulletContentChange(bullet.id, experience.id)}
                             />
                           ))}
                         </div>
@@ -604,6 +617,7 @@ export default function ExperienceGroup({
                             }
                           }
                         }}
+                        onContentChange={experience ? handleBulletContentChange(bullet.id, experience.id) : undefined}
                       />
                     );
                   })

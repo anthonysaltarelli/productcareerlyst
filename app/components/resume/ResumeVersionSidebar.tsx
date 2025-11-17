@@ -230,23 +230,6 @@ export default function ResumeVersionSidebar({
             </button>
           ))}
         </nav>
-
-        <button className="w-full mt-3 px-3 py-2.5 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-all flex items-center gap-2 justify-center border-2 border-dashed border-slate-300 hover:border-slate-400">
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Add Custom Section
-        </button>
       </div>
 
       {/* Overall Score */}

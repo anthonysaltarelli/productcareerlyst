@@ -12,7 +12,7 @@ import AddEducationModal from "@/app/components/resume/AddEducationModal";
 import { defaultResumeStyles, ResumeStyles, ResumeData } from "@/app/components/resume/mockData";
 import { createResumeDocument, downloadDocx } from "@/lib/utils/exportResume";
 import { useResumeData } from "@/lib/hooks/useResumeData";
-import { mapCompleteDBResumeToUI, mapDBStylesToUI, mapUIContactToDB, mapUIStylesToDB } from "@/lib/utils/resumeDataMapper";
+import { mapCompleteDBResumeToUI, mapDBStylesToUI, mapUIContactToDB, mapUIStylesToDB, mapDBExperienceToUI } from "@/lib/utils/resumeDataMapper";
 
 // Deep equality check for resume data
 const deepEqual = (obj1: any, obj2: any): boolean => {
@@ -142,9 +142,18 @@ export default function ResumeEditorPage({ params }: Props) {
       const stylesChanged = !deepEqual(originalResumeStyles, resumeStyles);
 
       console.log('Change detection:', { dataChanged, stylesChanged });
+      console.log('Original experiences count:', originalResumeData.experiences.length);
+      console.log('Current experiences count:', currentResumeData.experiences.length);
+      if (dataChanged) {
+        console.log('Experiences comparison:', {
+          original: originalResumeData.experiences.map(e => ({ id: e.id, bullets: e.bullets.length })),
+          current: currentResumeData.experiences.map(e => ({ id: e.id, bullets: e.bullets.length })),
+        });
+      }
 
       if (!dataChanged && !stylesChanged) {
         toast.info('No changes to save');
+        setIsSaving(false);
         return;
       }
 
@@ -223,21 +232,53 @@ export default function ResumeEditorPage({ params }: Props) {
               }
 
               // Check if bullets changed
-              if (!deepEqual(originalExp.bullets, currentExp.bullets)) {
+              const bulletsChanged = !deepEqual(originalExp.bullets, currentExp.bullets);
+              console.log(`Experience ${currentExp.id} bullets changed:`, bulletsChanged, {
+                originalCount: originalExp.bullets.length,
+                currentCount: currentExp.bullets.length,
+              });
+              
+              if (bulletsChanged) {
                 // Bullets changed for this experience
+                console.log(`Processing bullets for experience ${currentExp.id}`);
                 currentExp.bullets.forEach((bullet, bulletIndex) => {
                   const originalBullet = originalExp.bullets.find(b => b.id === bullet.id);
+                  const originalBulletIndex = originalExp.bullets.findIndex(b => b.id === bullet.id);
                   const originalExperienceId = originalBulletLocations.get(bullet.id);
                   
                   // Check if bullet moved between experiences
                   const movedBetweenExperiences = originalExperienceId && originalExperienceId !== currentExp.id;
+                  // Check if order changed (index is different)
+                  const orderChanged = originalBulletIndex >= 0 && originalBulletIndex !== bulletIndex;
+                  // Check if content or selection changed
+                  const contentChanged = !originalBullet || 
+                    originalBullet.content !== bullet.content || 
+                    originalBullet.isSelected !== bullet.isSelected;
                   
-                  if (!originalBullet || !deepEqual(originalBullet, bullet) || movedBetweenExperiences) {
+                  const bulletChanged = !originalBullet || contentChanged || movedBetweenExperiences || orderChanged;
+                  
+                  console.log(`Bullet ${bullet.id} check:`, {
+                    exists: !!originalBullet,
+                    moved: movedBetweenExperiences,
+                    orderChanged,
+                    contentChanged,
+                    changed: bulletChanged,
+                    originalIndex: originalBulletIndex,
+                    currentIndex: bulletIndex,
+                    originalContent: originalBullet?.content?.substring(0, 50),
+                    currentContent: bullet.content?.substring(0, 50),
+                    originalSelected: originalBullet?.isSelected,
+                    currentSelected: bullet.isSelected,
+                  });
+                  
+                  // Always update if order changed, content changed, or bullet is new
+                  if (bulletChanged || orderChanged) {
                     // Bullet changed - update selection, display order, and experience_id if moved
                     console.log(`Updating bullet ${bullet.id}:`, {
                       isSelected: bullet.isSelected,
                       displayOrder: bulletIndex,
                       movedBetweenExperiences,
+                      orderChanged,
                       newExperienceId: currentExp.id
                     });
                     
@@ -353,15 +394,16 @@ export default function ResumeEditorPage({ params }: Props) {
 
       if (savePromises.length === 0) {
         toast.warning('Changes detected but nothing to save (missing required fields)');
+        setIsSaving(false);
         return;
       }
 
       console.log(`Executing ${savePromises.length} save operations...`);
       await Promise.all(savePromises);
 
-      // Update original data and styles to match current
-      setOriginalResumeData(currentResumeData);
-      setOriginalResumeStyles(resumeStyles);
+      // Update original data and styles to match current (create deep copy to avoid reference issues)
+      setOriginalResumeData(JSON.parse(JSON.stringify(currentResumeData)));
+      setOriginalResumeStyles(JSON.parse(JSON.stringify(resumeStyles)));
 
       console.log('Save completed successfully');
       toast.success('Resume saved successfully!');
@@ -489,10 +531,31 @@ export default function ResumeEditorPage({ params }: Props) {
         const groupId = crypto.randomUUID();
         const baseDisplayOrder = currentResumeData.experiences.length;
 
+        // Optimistically create UI experiences
+        const newUIExperiences = formData.roles.map((role, index) => ({
+          id: `temp-${Date.now()}-${index}`, // Temporary ID
+          title: role.title,
+          company: formData.company,
+          location: formData.location,
+          startDate: role.start_date,
+          endDate: role.end_date,
+          roleGroupId: groupId,
+          bulletMode: index === 0 ? formData.bulletMode : null,
+          bullets: [],
+        }));
+
+        const updatedExperiences = [...currentResumeData.experiences, ...newUIExperiences];
+        const updatedResumeData = {
+          ...currentResumeData,
+          experiences: updatedExperiences,
+        };
+
+        setCurrentResumeData(updatedResumeData);
+
         // Create all roles as separate experiences with the same role_group_id
-        await Promise.all(
+        const createdExperiences = await Promise.all(
           formData.roles.map(async (role, index) => {
-            await createExperience(versionId, {
+            return await createExperience(versionId, {
               title: role.title,
               company: formData.company,
               location: formData.location,
@@ -500,19 +563,43 @@ export default function ResumeEditorPage({ params }: Props) {
               end_date: role.end_date,
               display_order: baseDisplayOrder + index,
               role_group_id: groupId,
-              bullet_mode: index === 0 ? formData.bulletMode : undefined, // Only first role stores bullet_mode
+              bullet_mode: index === 0 ? formData.bulletMode : undefined,
             });
           })
         );
+
+        // Replace temp IDs with real experience data
+        const finalExperiences = updatedExperiences.map(exp => {
+          const tempIndex = newUIExperiences.findIndex(e => e.id === exp.id);
+          if (tempIndex >= 0) {
+            const created = createdExperiences[tempIndex];
+            return mapDBExperienceToUI({
+              ...created,
+              bullets: [], // API doesn't return bullets, they're empty on creation
+            } as any);
+          }
+          return exp;
+        });
+
+        const finalResumeData = {
+          ...updatedResumeData,
+          experiences: finalExperiences,
+        };
+
+        setCurrentResumeData(finalResumeData);
+        // Update originalResumeData to reflect the saved state, so subsequent edits are tracked (deep copy)
+        setOriginalResumeData(JSON.parse(JSON.stringify(finalResumeData)));
         toast.success('Experience added successfully');
       }
 
-      // Immediately refresh the resume data
-      const refreshedData = await fetchResumeData(versionId);
-      if (refreshedData) {
-        const uiData = mapCompleteDBResumeToUI(refreshedData);
-        setCurrentResumeData(uiData);
-        setOriginalResumeData(uiData);
+      // For edit mode, refetch since it's complex with multiple operations
+      if (editingExperience) {
+        const refreshedData = await fetchResumeData(versionId);
+        if (refreshedData) {
+          const uiData = mapCompleteDBResumeToUI(refreshedData);
+          setCurrentResumeData(uiData);
+          setOriginalResumeData(uiData);
+        }
       }
       setShowAddExperienceModal(false);
       setEditingExperience(null);
@@ -658,29 +745,34 @@ export default function ResumeEditorPage({ params }: Props) {
   };
 
   // Add Skill handler
-  const handleAddSkill = async (category: 'technical' | 'product' | 'soft') => {
-    if (!versionId) return;
-
-    // Prompt user for skill name
-    const skillName = prompt(`Enter new ${category} skill:`);
-    if (!skillName || !skillName.trim()) {
+  const handleAddSkill = async (category: 'technical' | 'product' | 'soft', skillName: string) => {
+    if (!versionId || !skillName || !skillName.trim()) {
       return;
     }
 
     try {
-      // Add the skill to the current category
+      // Optimistically update local state
       const updatedSkills = [...currentResumeData.skills[category], skillName.trim()];
+      const updatedResumeData = {
+        ...currentResumeData,
+        skills: {
+          ...currentResumeData.skills,
+          [category]: updatedSkills,
+        },
+      };
+
+      // Update UI immediately
+      setCurrentResumeData(updatedResumeData);
+
+      // Save to database
       await updateSkillsForCategory(versionId, category, updatedSkills);
 
-      // Immediately refresh the resume data
-      const refreshedData = await fetchResumeData(versionId);
-      if (refreshedData) {
-        const uiData = mapCompleteDBResumeToUI(refreshedData);
-        setCurrentResumeData(uiData);
-        setOriginalResumeData(uiData);
-      }
+      // Update originalResumeData to reflect the saved state, so subsequent edits are tracked (deep copy)
+      setOriginalResumeData(JSON.parse(JSON.stringify(updatedResumeData)));
       toast.success('Skill added successfully');
     } catch (error) {
+      // Revert on error
+      setCurrentResumeData(originalResumeData);
       console.error('Error adding skill:', error);
       // Error toast is already shown by the hook
     }
@@ -690,28 +782,80 @@ export default function ResumeEditorPage({ params }: Props) {
   const handleAddBullet = async (experienceId: string, content: string) => {
     if (!versionId) return;
 
-    try {
-      // Get current experience to determine display order
-      const experience = currentResumeData.experiences.find(
-        exp => exp.id === experienceId
-      );
-      const displayOrder = experience ? experience.bullets.length : 0;
+    const experience = currentResumeData.experiences.find(
+      exp => exp.id === experienceId
+    );
+    if (!experience) return;
 
-      await createBullet(experienceId, {
+    const displayOrder = experience.bullets.length;
+    const newBullet = {
+      id: `temp-${Date.now()}`, // Temporary ID, will be replaced
+      content: content,
+      isSelected: true,
+      score: 0,
+      tags: [],
+      suggestions: [],
+    };
+
+    // Optimistically update UI
+    const updatedExperiences = currentResumeData.experiences.map(exp => {
+      if (exp.id === experienceId) {
+        return {
+          ...exp,
+          bullets: [...exp.bullets, newBullet],
+        };
+      }
+      return exp;
+    });
+
+    const updatedResumeData = {
+      ...currentResumeData,
+      experiences: updatedExperiences,
+    };
+
+    setCurrentResumeData(updatedResumeData);
+
+    try {
+      const createdBullet = await createBullet(experienceId, {
         content: content,
-        is_selected: true, // Auto-select new bullets so they appear in preview
+        is_selected: true,
         display_order: displayOrder,
       });
 
-      // Immediately refresh the resume data
-      const refreshedData = await fetchResumeData(versionId);
-      if (refreshedData) {
-        const uiData = mapCompleteDBResumeToUI(refreshedData);
-        setCurrentResumeData(uiData);
-        setOriginalResumeData(uiData);
-      }
+      // Update with real bullet data
+      const finalExperiences = updatedExperiences.map(exp => {
+        if (exp.id === experienceId) {
+          return {
+            ...exp,
+            bullets: exp.bullets.map(b => 
+              b.id === newBullet.id 
+                ? {
+                    id: createdBullet.id,
+                    content: createdBullet.content,
+                    isSelected: createdBullet.is_selected,
+                    score: createdBullet.score || 0,
+                    tags: createdBullet.tags || [],
+                    suggestions: [],
+                  }
+                : b
+            ),
+          };
+        }
+        return exp;
+      });
+
+      const finalResumeData = {
+        ...updatedResumeData,
+        experiences: finalExperiences,
+      };
+
+      setCurrentResumeData(finalResumeData);
+      // Update originalResumeData to reflect the saved state, so subsequent edits are tracked (deep copy)
+      setOriginalResumeData(JSON.parse(JSON.stringify(finalResumeData)));
       toast.success('Bullet added successfully');
     } catch (error) {
+      // Revert on error
+      setCurrentResumeData(originalResumeData);
       console.error('Error adding bullet:', error);
       // Error toast is already shown by the hook
     }
@@ -721,18 +865,25 @@ export default function ResumeEditorPage({ params }: Props) {
   const handleDeleteExperience = async (experienceId: string) => {
     if (!versionId) return;
 
+    // Optimistically remove from UI
+    const updatedExperiences = currentResumeData.experiences.filter(
+      exp => exp.id !== experienceId
+    );
+    const updatedResumeData = {
+      ...currentResumeData,
+      experiences: updatedExperiences,
+    };
+
+    setCurrentResumeData(updatedResumeData);
+
     try {
       await deleteExperience(experienceId);
-
-      // Immediately refresh the resume data
-      const refreshedData = await fetchResumeData(versionId);
-      if (refreshedData) {
-        const uiData = mapCompleteDBResumeToUI(refreshedData);
-        setCurrentResumeData(uiData);
-        setOriginalResumeData(uiData);
-      }
+      // Update originalResumeData to reflect the saved state (deep copy)
+      setOriginalResumeData(JSON.parse(JSON.stringify(updatedResumeData)));
       toast.success('Experience deleted successfully');
     } catch (error) {
+      // Revert on error
+      setCurrentResumeData(originalResumeData);
       console.error('Error deleting experience:', error);
       // Error toast is already shown by the hook
     }
@@ -763,40 +914,52 @@ export default function ResumeEditorPage({ params }: Props) {
   const handleGroupExperience = async (experienceId: string) => {
     if (!versionId) return;
 
-    try {
-      const experience = currentResumeData.experiences.find(exp => exp.id === experienceId);
-      if (!experience) return;
+    const experience = currentResumeData.experiences.find(exp => exp.id === experienceId);
+    if (!experience) return;
 
-      // Find all experiences at the same company
-      const sameCompanyExps = currentResumeData.experiences.filter(
-        exp => exp.company === experience.company && exp.id !== experienceId
-      );
+    // Find all experiences at the same company
+    const sameCompanyExps = currentResumeData.experiences.filter(
+      exp => exp.company === experience.company && exp.id !== experienceId
+    );
 
-      if (sameCompanyExps.length === 0) {
-        toast.error('No other experiences at this company to group with');
-        return;
+    if (sameCompanyExps.length === 0) {
+      toast.error('No other experiences at this company to group with');
+      return;
+    }
+
+    // Generate a new group ID (UUID)
+    const groupId = crypto.randomUUID();
+
+    // Optimistically update UI
+    const allExpsToGroup = [experience, ...sameCompanyExps];
+    const updatedExperiences = currentResumeData.experiences.map(exp => {
+      if (allExpsToGroup.some(e => e.id === exp.id)) {
+        return { ...exp, roleGroupId: groupId };
       }
+      return exp;
+    });
 
-      // Generate a new group ID (UUID)
-      const groupId = crypto.randomUUID();
+    const updatedResumeData = {
+      ...currentResumeData,
+      experiences: updatedExperiences,
+    };
 
+    setCurrentResumeData(updatedResumeData);
+
+    try {
       // Update all experiences at the same company to have the same role_group_id
-      const allExpsToGroup = [experience, ...sameCompanyExps];
       await Promise.all(
         allExpsToGroup.map(exp => 
           updateExperience(exp.id, { role_group_id: groupId })
         )
       );
 
-      // Immediately refresh the resume data
-      const refreshedData = await fetchResumeData(versionId);
-      if (refreshedData) {
-        const uiData = mapCompleteDBResumeToUI(refreshedData);
-        setCurrentResumeData(uiData);
-        setOriginalResumeData(uiData);
-      }
+      // Update originalResumeData to reflect the saved state, so subsequent edits are tracked (deep copy)
+      setOriginalResumeData(JSON.parse(JSON.stringify(updatedResumeData)));
       toast.success('Experiences grouped successfully');
     } catch (error) {
+      // Revert on error
+      setCurrentResumeData(originalResumeData);
       console.error('Error grouping experience:', error);
       toast.error('Failed to group experiences');
     }
@@ -806,18 +969,29 @@ export default function ResumeEditorPage({ params }: Props) {
   const handleUngroupExperience = async (experienceId: string) => {
     if (!versionId) return;
 
+    // Optimistically update UI
+    const updatedExperiences = currentResumeData.experiences.map(exp => {
+      if (exp.id === experienceId) {
+        return { ...exp, roleGroupId: null };
+      }
+      return exp;
+    });
+
+    const updatedResumeData = {
+      ...currentResumeData,
+      experiences: updatedExperiences,
+    };
+
+    setCurrentResumeData(updatedResumeData);
+
     try {
       await updateExperience(experienceId, { role_group_id: null });
-
-      // Immediately refresh the resume data
-      const refreshedData = await fetchResumeData(versionId);
-      if (refreshedData) {
-        const uiData = mapCompleteDBResumeToUI(refreshedData);
-        setCurrentResumeData(uiData);
-        setOriginalResumeData(uiData);
-      }
+      // Update originalResumeData to reflect the saved state, so subsequent edits are tracked (deep copy)
+      setOriginalResumeData(JSON.parse(JSON.stringify(updatedResumeData)));
       toast.success('Experience ungrouped successfully');
     } catch (error) {
+      // Revert on error
+      setCurrentResumeData(originalResumeData);
       console.error('Error ungrouping experience:', error);
       toast.error('Failed to ungroup experience');
     }
@@ -827,27 +1001,39 @@ export default function ResumeEditorPage({ params }: Props) {
   const handleUpdateBulletMode = async (groupId: string, bulletMode: 'per_role' | 'per_experience') => {
     if (!versionId) return;
 
-    try {
-      // Find all experiences in this group
-      const groupExperiences = currentResumeData.experiences.filter(
-        exp => exp.roleGroupId === groupId
-      );
-      
-      // Update the first experience (which stores the bullet_mode)
-      if (groupExperiences.length > 0) {
-        const firstExp = groupExperiences[0];
-        await updateExperience(firstExp.id, { bullet_mode: bulletMode });
-      }
+    // Find all experiences in this group
+    const groupExperiences = currentResumeData.experiences.filter(
+      exp => exp.roleGroupId === groupId
+    );
+    
+    if (groupExperiences.length === 0) return;
 
-      // Immediately refresh the resume data
-      const refreshedData = await fetchResumeData(versionId);
-      if (refreshedData) {
-        const uiData = mapCompleteDBResumeToUI(refreshedData);
-        setCurrentResumeData(uiData);
-        setOriginalResumeData(uiData);
+    const firstExp = groupExperiences[0];
+
+    // Optimistically update UI - update all experiences in group with the bullet mode
+    const updatedExperiences = currentResumeData.experiences.map(exp => {
+      if (exp.roleGroupId === groupId) {
+        return { ...exp, bulletMode };
       }
+      return exp;
+    });
+
+    const updatedResumeData = {
+      ...currentResumeData,
+      experiences: updatedExperiences,
+    };
+
+    setCurrentResumeData(updatedResumeData);
+
+    try {
+      // Update the first experience (which stores the bullet_mode)
+      await updateExperience(firstExp.id, { bullet_mode: bulletMode });
+      // Update originalResumeData to reflect the saved state, so subsequent edits are tracked (deep copy)
+      setOriginalResumeData(JSON.parse(JSON.stringify(updatedResumeData)));
       toast.success('Bullet mode updated successfully');
     } catch (error) {
+      // Revert on error
+      setCurrentResumeData(originalResumeData);
       console.error('Error updating bullet mode:', error);
       toast.error('Failed to update bullet mode');
     }
@@ -857,24 +1043,45 @@ export default function ResumeEditorPage({ params }: Props) {
   const handleAddRoleToExperience = async (groupId: string, roleData: { title: string; start_date: string; end_date: string }) => {
     if (!versionId) return;
 
+    // Find the first experience in the group to get company/location
+    const groupExperiences = currentResumeData.experiences.filter(
+      exp => exp.roleGroupId === groupId
+    );
+    
+    if (groupExperiences.length === 0) {
+      toast.error('Experience group not found');
+      return;
+    }
+
+    const firstExp = groupExperiences[0];
+    const baseDisplayOrder = Math.max(...groupExperiences.map(e => 
+      currentResumeData.experiences.findIndex(exp => exp.id === e.id)
+    )) + 1;
+
+    // Optimistically create new role
+    const newRole = {
+      id: `temp-${Date.now()}`,
+      title: roleData.title,
+      company: firstExp.company,
+      location: firstExp.location,
+      startDate: roleData.start_date,
+      endDate: roleData.end_date,
+      roleGroupId: groupId,
+      bulletMode: null, // New roles don't store bullet mode
+      bullets: [],
+    };
+
+    const updatedExperiences = [...currentResumeData.experiences, newRole];
+    const updatedResumeData = {
+      ...currentResumeData,
+      experiences: updatedExperiences,
+    };
+
+    setCurrentResumeData(updatedResumeData);
+
     try {
-      // Find the first experience in the group to get company/location
-      const groupExperiences = currentResumeData.experiences.filter(
-        exp => exp.roleGroupId === groupId
-      );
-      
-      if (groupExperiences.length === 0) {
-        toast.error('Experience group not found');
-        return;
-      }
-
-      const firstExp = groupExperiences[0];
-      const baseDisplayOrder = Math.max(...groupExperiences.map(e => 
-        currentResumeData.experiences.findIndex(exp => exp.id === e.id)
-      )) + 1;
-
       // Create new role as separate experience with same role_group_id
-      await createExperience(versionId, {
+      const createdExperience = await createExperience(versionId, {
         title: roleData.title,
         company: firstExp.company,
         location: firstExp.location,
@@ -884,15 +1091,29 @@ export default function ResumeEditorPage({ params }: Props) {
         role_group_id: groupId,
       });
 
-      // Immediately refresh the resume data
-      const refreshedData = await fetchResumeData(versionId);
-      if (refreshedData) {
-        const uiData = mapCompleteDBResumeToUI(refreshedData);
-        setCurrentResumeData(uiData);
-        setOriginalResumeData(uiData);
-      }
+      // Replace temp ID with real experience
+      const finalExperiences = updatedExperiences.map(exp => {
+        if (exp.id === newRole.id) {
+          return mapDBExperienceToUI({
+            ...createdExperience,
+            bullets: [],
+          } as any);
+        }
+        return exp;
+      });
+
+      const finalResumeData = {
+        ...updatedResumeData,
+        experiences: finalExperiences,
+      };
+
+      setCurrentResumeData(finalResumeData);
+      // Update originalResumeData to reflect the saved state, so subsequent edits are tracked (deep copy)
+      setOriginalResumeData(JSON.parse(JSON.stringify(finalResumeData)));
       toast.success('Role added successfully');
     } catch (error) {
+      // Revert on error
+      setCurrentResumeData(originalResumeData);
       console.error('Error adding role:', error);
       toast.error('Failed to add role');
     }

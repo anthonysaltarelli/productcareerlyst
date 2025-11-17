@@ -125,6 +125,19 @@ export default function ExperienceCard({
     onExperienceChange({ ...experience, bullets: newBullets });
   };
 
+  const handleBulletContentChange = (bulletId: string) => (newContent: string) => {
+    const bulletIndex = bullets.findIndex((b) => b.id === bulletId);
+    if (bulletIndex === -1) return;
+
+    const newBullets = [...bullets];
+    newBullets[bulletIndex] = {
+      ...newBullets[bulletIndex],
+      content: newContent,
+    };
+
+    onExperienceChange({ ...experience, bullets: newBullets });
+  };
+
   const handleAddBulletClick = () => {
     setIsAddingBullet(true);
   };
@@ -343,6 +356,7 @@ export default function ExperienceCard({
                 onDrop={handleDrop}
                 onDragEnd={handleDragEnd}
                 onToggleSelection={handleToggleSelection(bullet.id)}
+                onContentChange={handleBulletContentChange(bullet.id)}
               />
             ))}
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ResumeData, Experience, Education, Achievement, ResumeStyles } from "./mockData";
 import ExperienceCard from "./ExperienceCard";
 import ExperienceGroup from "./ExperienceGroup";
@@ -25,7 +25,7 @@ type Props = {
   isSaving: boolean;
   onAddExperience?: () => Promise<void>;
   onAddEducation?: () => Promise<void>;
-  onAddSkill?: (category: 'technical' | 'product' | 'soft') => Promise<void>;
+  onAddSkill?: (category: 'technical' | 'product' | 'soft', skillName: string) => Promise<void>;
   onAddBullet?: (experienceId: string, content: string) => Promise<void>;
   onDeleteExperience?: (experienceId: string) => Promise<void>;
   onDeleteEducation?: (educationId: string) => Promise<void>;
@@ -79,6 +79,9 @@ export default function ResumeEditor({
     title: '',
   });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [addingSkillCategory, setAddingSkillCategory] = useState<'technical' | 'product' | 'soft' | null>(null);
+  const [skillInputValue, setSkillInputValue] = useState('');
+  const skillButtonRef = useRef(false);
 
   const handleContactChange = (field: keyof ResumeData['contactInfo'], value: string) => {
     onResumeDataChange({
@@ -173,6 +176,56 @@ export default function ResumeEditor({
 
   const handleCancelDelete = () => {
     setDeleteModal({ isOpen: false, type: null, id: null, ids: undefined, title: '' });
+  };
+
+  const handleStartAddingSkill = (category: 'technical' | 'product' | 'soft') => {
+    setAddingSkillCategory(category);
+    setSkillInputValue('');
+  };
+
+  const handleCancelAddingSkill = () => {
+    if (skillButtonRef.current) {
+      return;
+    }
+    setAddingSkillCategory(null);
+    setSkillInputValue('');
+  };
+
+  const handleCancelSkillClick = () => {
+    skillButtonRef.current = true;
+    handleCancelAddingSkill();
+    setTimeout(() => {
+      skillButtonRef.current = false;
+    }, 0);
+  };
+
+  const handleSubmitSkill = async () => {
+    if (!addingSkillCategory || !skillInputValue.trim() || !onAddSkill) {
+      return;
+    }
+
+    skillButtonRef.current = true;
+    try {
+      await onAddSkill(addingSkillCategory, skillInputValue.trim());
+      setAddingSkillCategory(null);
+      setSkillInputValue('');
+    } catch (error) {
+      console.error('Error adding skill:', error);
+    } finally {
+      setTimeout(() => {
+        skillButtonRef.current = false;
+      }, 0);
+    }
+  };
+
+  const handleSkillInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmitSkill();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancelAddingSkill();
+    }
   };
 
   // Group experiences by roleGroupId
@@ -472,13 +525,15 @@ export default function ResumeEditor({
                 <label className="block text-base font-bold text-gray-800">
                   Technical Skills
                 </label>
-                <button
-                  onClick={() => onAddSkill?.('technical')}
-                  disabled={!onAddSkill}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  + Add Skill
-                </button>
+                {addingSkillCategory !== 'technical' && (
+                  <button
+                    onClick={() => handleStartAddingSkill('technical')}
+                    disabled={!onAddSkill}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    + Add Skill
+                  </button>
+                )}
               </div>
               <div className="flex flex-wrap gap-3">
                 {resumeData.skills.technical.map((skill, skillIndex) => (
@@ -510,6 +565,59 @@ export default function ResumeEditor({
                     </button>
                   </div>
                 ))}
+                {addingSkillCategory === 'technical' && (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-blue-300 rounded-xl shadow-sm">
+                    <input
+                      type="text"
+                      value={skillInputValue}
+                      onChange={(e) => setSkillInputValue(e.target.value)}
+                      onKeyDown={handleSkillInputKeyDown}
+                      onBlur={handleCancelAddingSkill}
+                      placeholder="Enter skill name..."
+                      autoFocus
+                      className="text-sm font-semibold text-gray-900 outline-none flex-1 min-w-[150px]"
+                    />
+                    <button
+                      onClick={handleSubmitSkill}
+                      onMouseDown={(e) => e.preventDefault()}
+                      disabled={!skillInputValue.trim()}
+                      className="text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={handleCancelSkillClick}
+                      onMouseDown={(e) => e.preventDefault()}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -519,13 +627,15 @@ export default function ResumeEditor({
                 <label className="block text-base font-bold text-gray-800">
                   Product Management Skills
                 </label>
-                <button
-                  onClick={() => onAddSkill?.('product')}
-                  disabled={!onAddSkill}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  + Add Skill
-                </button>
+                {addingSkillCategory !== 'product' && (
+                  <button
+                    onClick={() => handleStartAddingSkill('product')}
+                    disabled={!onAddSkill}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    + Add Skill
+                  </button>
+                )}
               </div>
               <div className="flex flex-wrap gap-3">
                 {resumeData.skills.product.map((skill, skillIndex) => (
@@ -557,6 +667,59 @@ export default function ResumeEditor({
                     </button>
                   </div>
                 ))}
+                {addingSkillCategory === 'product' && (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-purple-300 rounded-xl shadow-sm">
+                    <input
+                      type="text"
+                      value={skillInputValue}
+                      onChange={(e) => setSkillInputValue(e.target.value)}
+                      onKeyDown={handleSkillInputKeyDown}
+                      onBlur={handleCancelAddingSkill}
+                      placeholder="Enter skill name..."
+                      autoFocus
+                      className="text-sm font-semibold text-gray-900 outline-none flex-1 min-w-[150px]"
+                    />
+                    <button
+                      onClick={handleSubmitSkill}
+                      onMouseDown={(e) => e.preventDefault()}
+                      disabled={!skillInputValue.trim()}
+                      className="text-purple-600 hover:text-purple-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={handleCancelSkillClick}
+                      onMouseDown={(e) => e.preventDefault()}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -566,13 +729,15 @@ export default function ResumeEditor({
                 <label className="block text-base font-bold text-gray-800">
                   Soft Skills
                 </label>
-                <button
-                  onClick={() => onAddSkill?.('soft')}
-                  disabled={!onAddSkill}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  + Add Skill
-                </button>
+                {addingSkillCategory !== 'soft' && (
+                  <button
+                    onClick={() => handleStartAddingSkill('soft')}
+                    disabled={!onAddSkill}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-bold px-3 py-1.5 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    + Add Skill
+                  </button>
+                )}
               </div>
               <div className="flex flex-wrap gap-3">
                 {resumeData.skills.soft.map((skill, skillIndex) => (
@@ -604,6 +769,59 @@ export default function ResumeEditor({
                     </button>
                   </div>
                 ))}
+                {addingSkillCategory === 'soft' && (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-green-300 rounded-xl shadow-sm">
+                    <input
+                      type="text"
+                      value={skillInputValue}
+                      onChange={(e) => setSkillInputValue(e.target.value)}
+                      onKeyDown={handleSkillInputKeyDown}
+                      onBlur={handleCancelAddingSkill}
+                      placeholder="Enter skill name..."
+                      autoFocus
+                      className="text-sm font-semibold text-gray-900 outline-none flex-1 min-w-[150px]"
+                    />
+                    <button
+                      onClick={handleSubmitSkill}
+                      onMouseDown={(e) => e.preventDefault()}
+                      disabled={!skillInputValue.trim()}
+                      className="text-green-600 hover:text-green-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={handleCancelSkillClick}
+                      onMouseDown={(e) => e.preventDefault()}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
