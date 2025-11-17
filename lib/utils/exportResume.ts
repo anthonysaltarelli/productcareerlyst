@@ -3,7 +3,7 @@
 // FUTURE ENHANCEMENT: Support custom templates and layouts
 // FUTURE ENHANCEMENT: Integrate with Google Docs API for direct upload
 
-import { Document, Paragraph, TextRun, AlignmentType, HeadingLevel, convertInchesToTwip, BorderStyle } from "docx";
+import { Document, Paragraph, TextRun, AlignmentType, convertInchesToTwip, BorderStyle } from "docx";
 
 type ContactInfo = {
   name: string;
@@ -112,11 +112,11 @@ export const createResumeDocument = (data: ResumeData): Document => {
   // Contact Information (Header)
   sections.push(
     new Paragraph({
-      text: contactInfo.name,
-      heading: HeadingLevel.TITLE,
       alignment: AlignmentType.CENTER,
       spacing: { after: 100 },
-      style: "Strong",
+      children: [
+        new TextRun({ text: contactInfo.name, bold: true, size: 24 }),
+      ],
     })
   );
 
@@ -166,17 +166,18 @@ export const createResumeDocument = (data: ResumeData): Document => {
   if (summary) {
     sections.push(
       new Paragraph({
-        text: "PROFESSIONAL SUMMARY",
-        heading: HeadingLevel.HEADING_1,
         spacing: { before: 200, after: 100 },
         border: {
           bottom: {
-            color: "2563eb",
+            color: "000000",
             space: 1,
             style: BorderStyle.SINGLE,
             size: 12,
           },
         },
+        children: [
+          new TextRun({ text: "PROFESSIONAL SUMMARY", bold: true, size: 20 }),
+        ],
       })
     );
 
@@ -193,17 +194,18 @@ export const createResumeDocument = (data: ResumeData): Document => {
   if (groups.size > 0 || standalone.length > 0) {
     sections.push(
       new Paragraph({
-        text: "PROFESSIONAL EXPERIENCE",
-        heading: HeadingLevel.HEADING_1,
         spacing: { before: 200, after: 100 },
         border: {
           bottom: {
-            color: "2563eb",
+            color: "000000",
             space: 1,
             style: BorderStyle.SINGLE,
             size: 12,
           },
         },
+        children: [
+          new TextRun({ text: "PROFESSIONAL EXPERIENCE", bold: true, size: 20 }),
+        ],
       })
     );
 
@@ -418,17 +420,18 @@ export const createResumeDocument = (data: ResumeData): Document => {
   if (education.length > 0) {
     sections.push(
       new Paragraph({
-        text: "EDUCATION",
-        heading: HeadingLevel.HEADING_1,
         spacing: { before: 200, after: 100 },
         border: {
           bottom: {
-            color: "2563eb",
+            color: "000000",
             space: 1,
             style: BorderStyle.SINGLE,
             size: 12,
           },
         },
+        children: [
+          new TextRun({ text: "EDUCATION", bold: true, size: 20 }),
+        ],
       })
     );
 
@@ -491,17 +494,18 @@ export const createResumeDocument = (data: ResumeData): Document => {
   if (skills && (skills.technical || skills.product || skills.soft)) {
     sections.push(
       new Paragraph({
-        text: "SKILLS",
-        heading: HeadingLevel.HEADING_1,
         spacing: { before: 200, after: 100 },
         border: {
           bottom: {
-            color: "2563eb",
+            color: "000000",
             space: 1,
             style: BorderStyle.SINGLE,
             size: 12,
           },
         },
+        children: [
+          new TextRun({ text: "SKILLS", bold: true, size: 20 }),
+        ],
       })
     );
 
