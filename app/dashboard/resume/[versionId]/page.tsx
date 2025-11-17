@@ -198,6 +198,30 @@ export default function ResumeEditorPage({ params }: Props) {
         if (!deepEqual(originalResumeData.experiences, currentResumeData.experiences)) {
           console.log('Experiences/bullets changed');
           
+          // Check if experiences were reordered by comparing their positions
+          const originalOrder = originalResumeData.experiences.map(exp => exp.id);
+          const currentOrder = currentResumeData.experiences.map(exp => exp.id);
+          const orderChanged = JSON.stringify(originalOrder) !== JSON.stringify(currentOrder);
+          
+          if (orderChanged) {
+            console.log('Experiences order changed, updating display_order');
+            // Update display_order for all experiences based on their new position
+            currentResumeData.experiences.forEach((currentExp, index) => {
+              const originalExp = originalResumeData.experiences.find(exp => exp.id === currentExp.id);
+              const originalIndex = originalResumeData.experiences.findIndex(exp => exp.id === currentExp.id);
+              
+              // Only update if the position actually changed
+              if (originalIndex !== index) {
+                console.log(`Updating experience ${currentExp.id} display_order from ${originalIndex} to ${index}`);
+                savePromises.push(
+                  updateExperience(currentExp.id, {
+                    display_order: index,
+                  } as any)
+                );
+              }
+            });
+          }
+          
           // Build a map of original bullet locations (bulletId -> experienceId)
           const originalBulletLocations = new Map<string, string>();
           originalResumeData.experiences.forEach(exp => {
@@ -207,7 +231,7 @@ export default function ResumeEditorPage({ params }: Props) {
           });
 
           // Check each experience for changes
-          currentResumeData.experiences.forEach((currentExp) => {
+          currentResumeData.experiences.forEach((currentExp, currentIndex) => {
             const originalExp = originalResumeData.experiences.find(exp => exp.id === currentExp.id);
             if (originalExp) {
               // Check if experience fields changed (title, company, location, dates)
@@ -220,15 +244,20 @@ export default function ResumeEditorPage({ params }: Props) {
 
               if (expFieldsChanged) {
                 console.log(`Updating experience ${currentExp.id}`);
-                savePromises.push(
-                  updateExperience(currentExp.id, {
-                    title: currentExp.title,
-                    company: currentExp.company,
-                    location: currentExp.location,
-                    start_date: currentExp.startDate,
-                    end_date: currentExp.endDate,
-                  })
-                );
+                const updateData: any = {
+                  title: currentExp.title,
+                  company: currentExp.company,
+                  location: currentExp.location,
+                  start_date: currentExp.startDate,
+                  end_date: currentExp.endDate,
+                };
+                
+                // Also include display_order if order changed
+                if (orderChanged) {
+                  (updateData as any).display_order = currentIndex;
+                }
+                
+                savePromises.push(updateExperience(currentExp.id, updateData));
               }
 
               // Check if bullets changed

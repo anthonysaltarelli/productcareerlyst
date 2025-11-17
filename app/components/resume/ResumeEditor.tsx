@@ -82,6 +82,11 @@ export default function ResumeEditor({
   const [addingSkillCategory, setAddingSkillCategory] = useState<'technical' | 'product' | 'soft' | null>(null);
   const [skillInputValue, setSkillInputValue] = useState('');
   const skillButtonRef = useRef(false);
+  
+  // Drag and drop state for reordering experiences
+  const [draggedExperienceId, setDraggedExperienceId] = useState<string | null>(null);
+  const [draggedGroupId, setDraggedGroupId] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const handleContactChange = (field: keyof ResumeData['contactInfo'], value: string) => {
     onResumeDataChange({
@@ -253,6 +258,92 @@ export default function ResumeEditor({
     return firstExp.bulletMode || 'per_role';
   };
 
+  // Create a flat list of experience items (groups and standalone) for drag-and-drop
+  const getExperienceItems = () => {
+    const { groups, standalone } = groupExperiencesByRole(resumeData.experiences);
+    const items: Array<{ type: 'group' | 'standalone'; id: string; experience?: Experience; groupId?: string; experiences?: Experience[] }> = [];
+    
+    // Add grouped experiences
+    Array.from(groups.entries()).forEach(([groupId, groupExps]) => {
+      items.push({ type: 'group', id: groupId, groupId, experiences: groupExps });
+    });
+    
+    // Add standalone experiences
+    standalone.forEach(exp => {
+      items.push({ type: 'standalone', id: exp.id, experience: exp });
+    });
+    
+    return items;
+  };
+
+  // Handle drag start for experience reordering
+  const handleExperienceDragStart = (experienceId: string | null, groupId: string | null, index: number) => (e: React.DragEvent) => {
+    // Don't start drag if clicking on a button or interactive element
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'BUTTON' || target.closest('button')) {
+      e.preventDefault();
+      return;
+    }
+    
+    setDraggedExperienceId(experienceId);
+    setDraggedGroupId(groupId);
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = "0.5";
+    }
+  };
+
+  // Handle drag over for experience reordering
+  const handleExperienceDragOver = (targetIndex: number) => (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    
+    if (draggedIndex === null || draggedIndex === targetIndex) return;
+    
+    const items = getExperienceItems();
+    const newItems = [...items];
+    const draggedItem = newItems[draggedIndex];
+    newItems.splice(draggedIndex, 1);
+    newItems.splice(targetIndex, 0, draggedItem);
+    
+    // Rebuild experiences array with new order
+    const newExperiences: Experience[] = [];
+    newItems.forEach(item => {
+      if (item.type === 'group' && item.experiences) {
+        newExperiences.push(...item.experiences);
+      } else if (item.type === 'standalone' && item.experience) {
+        newExperiences.push(item.experience);
+      }
+    });
+    
+    // Update resume data with new order
+    onResumeDataChange({
+      ...resumeData,
+      experiences: newExperiences,
+    });
+    
+    setDraggedIndex(targetIndex);
+  };
+
+  // Handle drop for experience reordering
+  const handleExperienceDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  // Handle drag end for experience reordering
+  const handleExperienceDragEnd = () => {
+    setDraggedExperienceId(null);
+    setDraggedGroupId(null);
+    setDraggedIndex(null);
+    const draggedElements = document.querySelectorAll('[data-draggable-experience="true"]');
+    draggedElements.forEach((el) => {
+      if (el instanceof HTMLElement) {
+        el.style.opacity = "1";
+      }
+    });
+  };
+
   const renderSectionContent = () => {
     switch (selectedSection) {
       case "contact":
@@ -367,6 +458,7 @@ export default function ResumeEditor({
         );
 
         const { groups, standalone } = groupExperiencesByRole(resumeData.experiences);
+        const experienceItems = getExperienceItems();
 
         return (
           <div className="space-y-5">
@@ -398,60 +490,83 @@ export default function ResumeEditor({
               </div>
             </div>
 
-            {/* Render grouped experiences */}
-            {Array.from(groups.entries()).map(([groupId, groupExps], groupIndex) => {
-              const company = groupExps[0].company;
-              const location = groupExps[0].location;
-              const bulletMode = getBulletModeForGroup(groupExps);
-              const isFirstGroup = groupIndex === 0 && standalone.length === 0;
+            {/* Render experiences with drag-and-drop support */}
+            {experienceItems.map((item, itemIndex) => {
+              if (item.type === 'group' && item.groupId && item.experiences) {
+                const groupId = item.groupId;
+                const groupExps = item.experiences;
+                const company = groupExps[0].company;
+                const location = groupExps[0].location;
+                const bulletMode = getBulletModeForGroup(groupExps);
+                const isFirstGroup = itemIndex === 0;
 
-              return (
-                <ExperienceGroup
-                  key={groupId}
-                  groupId={groupId}
-                  experiences={groupExps}
-                  company={company}
-                  location={location}
-                  bulletMode={bulletMode}
-                  selectedBulletId={selectedBulletId}
-                  onBulletSelect={onBulletSelect}
-                  onExperienceChange={(experienceId) => {
-                    const expIndex = resumeData.experiences.findIndex(e => e.id === experienceId);
-                    return handleExperienceChange(expIndex);
-                  }}
-                  onEditExperience={onEditExperience}
-                  onDeleteExperience={(id, title, ids) => handleDeleteClick('experience', id, title, ids)}
-                  onAddBullet={onAddBullet}
-                  onUpdateBulletMode={onUpdateBulletMode}
-                  onAddRole={(groupId) => {
-                    // Find the first experience in the group and open edit modal
-                    const groupExps = resumeData.experiences.filter(exp => exp.roleGroupId === groupId);
-                    if (groupExps.length > 0) {
-                      // Open edit modal for the first experience in the group
-                      onEditExperience?.(groupExps[0].id);
-                    }
-                  }}
-                  isFirst={isFirstGroup}
-                />
-              );
-            })}
-
-            {/* Render standalone experiences */}
-            {standalone.map((experience) => {
-              const expIndex = resumeData.experiences.findIndex(e => e.id === experience.id);
-              return (
-                <ExperienceCard
-                  key={experience.id}
-                  experience={experience}
-                  selectedBulletId={selectedBulletId}
-                  onBulletSelect={onBulletSelect}
-                  isFirst={expIndex === 0}
-                  onExperienceChange={handleExperienceChange(expIndex)}
-                  onEdit={() => onEditExperience?.(experience.id)}
-                  onDelete={() => handleDeleteClick('experience', experience.id, `${experience.title} at ${experience.company}`)}
-                  onAddBullet={onAddBullet ? (content) => onAddBullet(experience.id, content) : undefined}
-                />
-              );
+                return (
+                  <div
+                    key={groupId}
+                    data-draggable-experience="true"
+                    draggable
+                    onDragStart={handleExperienceDragStart(null, groupId, itemIndex)}
+                    onDragOver={handleExperienceDragOver(itemIndex)}
+                    onDrop={handleExperienceDrop}
+                    onDragEnd={handleExperienceDragEnd}
+                    className="cursor-move transition-opacity"
+                  >
+                    <ExperienceGroup
+                      groupId={groupId}
+                      experiences={groupExps}
+                      company={company}
+                      location={location}
+                      bulletMode={bulletMode}
+                      selectedBulletId={selectedBulletId}
+                      onBulletSelect={onBulletSelect}
+                      onExperienceChange={(experienceId) => {
+                        const expIndex = resumeData.experiences.findIndex(e => e.id === experienceId);
+                        return handleExperienceChange(expIndex);
+                      }}
+                      onEditExperience={onEditExperience}
+                      onDeleteExperience={(id, title, ids) => handleDeleteClick('experience', id, title, ids)}
+                      onAddBullet={onAddBullet}
+                      onUpdateBulletMode={onUpdateBulletMode}
+                      onAddRole={(groupId) => {
+                        // Find the first experience in the group and open edit modal
+                        const groupExps = resumeData.experiences.filter(exp => exp.roleGroupId === groupId);
+                        if (groupExps.length > 0) {
+                          // Open edit modal for the first experience in the group
+                          onEditExperience?.(groupExps[0].id);
+                        }
+                      }}
+                      isFirst={isFirstGroup}
+                    />
+                  </div>
+                );
+              } else if (item.type === 'standalone' && item.experience) {
+                const experience = item.experience;
+                const expIndex = resumeData.experiences.findIndex(e => e.id === experience.id);
+                return (
+                  <div
+                    key={experience.id}
+                    data-draggable-experience="true"
+                    draggable
+                    onDragStart={handleExperienceDragStart(experience.id, null, itemIndex)}
+                    onDragOver={handleExperienceDragOver(itemIndex)}
+                    onDrop={handleExperienceDrop}
+                    onDragEnd={handleExperienceDragEnd}
+                    className="cursor-move transition-opacity"
+                  >
+                    <ExperienceCard
+                      experience={experience}
+                      selectedBulletId={selectedBulletId}
+                      onBulletSelect={onBulletSelect}
+                      isFirst={expIndex === 0}
+                      onExperienceChange={handleExperienceChange(expIndex)}
+                      onEdit={() => onEditExperience?.(experience.id)}
+                      onDelete={() => handleDeleteClick('experience', experience.id, `${experience.title} at ${experience.company}`)}
+                      onAddBullet={onAddBullet ? (content) => onAddBullet(experience.id, content) : undefined}
+                    />
+                  </div>
+                );
+              }
+              return null;
             })}
 
             <button
