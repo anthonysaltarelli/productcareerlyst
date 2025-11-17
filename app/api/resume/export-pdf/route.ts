@@ -645,11 +645,23 @@ export async function POST(request: NextRequest) {
 
     await browser.close();
 
-    // Return PDF as response
+    // Format date as "Month Year"
+    const formatMonthYear = (date: Date = new Date()): string => {
+      const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return `${months[date.getMonth()]} ${date.getFullYear()}`;
+    };
+
+    // Return PDF as response with improved filename
+    const resumeName = body.contactInfo.name || 'Resume';
+    const filename = `${resumeName} - ${formatMonthYear()}.pdf`;
+    
     return new NextResponse(Buffer.from(pdf), {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${body.contactInfo.name.replace(/\s+/g, '_')}_Resume_${new Date().toISOString().split('T')[0]}.pdf"`,
+        'Content-Disposition': `attachment; filename="${filename}"`,
       },
     });
 

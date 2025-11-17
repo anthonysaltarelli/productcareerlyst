@@ -1235,6 +1235,15 @@ export default function ResumeEditorPage({ params }: Props) {
     setShowUnsavedModal(false);
   };
 
+  // Helper function to format date as "Month Year"
+  const formatMonthYear = (date: Date = new Date()): string => {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
   // Handler to trigger professional PDF export
   const handleExportPDF = async () => {
     setIsExportingPDF(true);
@@ -1261,11 +1270,12 @@ export default function ResumeEditorPage({ params }: Props) {
       // Get the PDF blob
       const blob = await response.blob();
 
-      // Create download link
+      // Create download link with improved filename
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${versionId}_Resume_${new Date().toISOString().split('T')[0]}.pdf`;
+      const resumeName = currentResumeData.contactInfo.name || 'Resume';
+      link.download = `${resumeName} - ${formatMonthYear()}.pdf`;
       document.body.appendChild(link);
       link.click();
 
@@ -1294,7 +1304,8 @@ export default function ResumeEditorPage({ params }: Props) {
       };
 
       const document = createResumeDocument(transformedData);
-      const filename = `${versionId}_Resume_${new Date().toISOString().split('T')[0]}.docx`;
+      const resumeName = currentResumeData.contactInfo.name || 'Resume';
+      const filename = `${resumeName} - ${formatMonthYear()}.docx`;
       await downloadDocx(document, filename);
     } catch (error) {
       console.error("Error exporting DOCX:", error);

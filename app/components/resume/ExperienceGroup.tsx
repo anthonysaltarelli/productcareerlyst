@@ -296,27 +296,58 @@ export default function ExperienceGroup({
     <div className="mb-6 bg-white rounded-2xl border-2 border-slate-200 overflow-hidden shadow-sm">
       {/* Header */}
       <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 border-b-2 border-slate-200">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-4 flex-1">
-            {/* Drag Handle */}
-            <button className="mt-1 cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 p-1 hover:bg-white rounded-lg transition-all">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
-              </svg>
-            </button>
+        <div className="flex items-start gap-4">
+          {/* Drag Handle */}
+          <button className="mt-1 cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 p-1 hover:bg-white rounded-lg transition-all flex-shrink-0">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
+            </svg>
+          </button>
 
-            {/* Experience Info */}
-            <div className="flex-1">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">{company}</h3>
-                  {location && <p className="text-sm font-semibold text-gray-600 mt-1.5">{location}</p>}
-                  <p className="text-sm font-medium text-gray-500 mt-1">
-                    {sortedExps.length} role{sortedExps.length !== 1 ? 's' : ''}
-                  </p>
-                </div>
+          {/* Experience Info */}
+          <div className="flex-1 min-w-0">
+            <div className="truncate">
+              <span className="text-lg font-bold text-gray-900">{company}</span>
+              {location && (
+                <>
+                  <span className="text-gray-400 mx-2">•</span>
+                  <span className="text-sm font-semibold text-gray-600">{location}</span>
+                </>
+              )}
+              {sortedExps.length > 0 && (
+                <>
+                  <span className="text-gray-400 mx-2">•</span>
+                  <span className="text-sm font-medium text-gray-500">
+                    {sortedExps.map(exp => exp.title).join(', ')}
+                  </span>
+                </>
+              )}
+            </div>
 
-                <div className="flex items-center gap-2">
+            {/* Bullet Count Summary */}
+            <div className="mt-4 flex items-center gap-4">
+              <span className="text-xs font-semibold text-gray-600">
+                <span className="font-black text-gray-900">
+                  {selectedBullets.length}
+                </span>{" "}
+                / {allBullets.length} bullets selected
+              </span>
+              <div className="flex items-center gap-1.5">
+                {allBullets.map((bullet) => (
+                  <div
+                    key={bullet.id}
+                    className={`w-2.5 h-2.5 rounded-full transition-all ${
+                      bullet.isSelected ? "bg-blue-500 shadow-sm" : "bg-slate-300"
+                    }`}
+                    title={bullet.isSelected ? "Selected" : "Not selected"}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={() => setIsExpanded(!isExpanded)}
                     className="p-2 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200"
@@ -386,30 +417,6 @@ export default function ExperienceGroup({
                     </svg>
                   </button>
                 </div>
-              </div>
-
-              {/* Bullet Count Summary */}
-              <div className="mt-4 flex items-center gap-4">
-                <span className="text-xs font-semibold text-gray-600">
-                  <span className="font-black text-gray-900">
-                    {selectedBullets.length}
-                  </span>{" "}
-                  / {allBullets.length} bullets selected
-                </span>
-                <div className="flex items-center gap-1.5">
-                  {allBullets.map((bullet) => (
-                    <div
-                      key={bullet.id}
-                      className={`w-2.5 h-2.5 rounded-full transition-all ${
-                        bullet.isSelected ? "bg-blue-500 shadow-sm" : "bg-slate-300"
-                      }`}
-                      title={bullet.isSelected ? "Selected" : "Not selected"}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
       </div>
