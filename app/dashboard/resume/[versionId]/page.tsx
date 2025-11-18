@@ -71,6 +71,7 @@ export default function ResumeEditorPage({ params }: Props) {
     updateVersion,
     optimizeBullet,
     updateBulletContent,
+    deleteBullet,
   } = useResumeData();
 
   // Initialize resume data with empty values (will be populated from DB)
@@ -814,6 +815,27 @@ export default function ResumeEditorPage({ params }: Props) {
     return await optimizeBullet(bulletId);
   };
 
+  // Delete bullet handler
+  const handleDeleteBullet = async (bulletId: string) => {
+    if (!versionId) return;
+
+    try {
+      await deleteBullet(bulletId);
+      
+      // Refresh resume data to get latest from DB
+      const refreshedData = await fetchResumeData(versionId);
+      if (refreshedData) {
+        const uiData = mapCompleteDBResumeToUI(refreshedData);
+        setCurrentResumeData(uiData);
+        setOriginalResumeData(uiData);
+      }
+      toast.success('Bullet deleted successfully');
+    } catch (error) {
+      console.error('Error deleting bullet:', error);
+      // Error toast is already shown by the hook
+    }
+  };
+
   // Add Bullet handler - inline addition
   const handleAddBullet = async (experienceId: string, content: string) => {
     if (!versionId) return;
@@ -1405,6 +1427,7 @@ export default function ResumeEditorPage({ params }: Props) {
             onUpdateBulletMode={handleUpdateBulletMode}
             onAddRoleToExperience={handleAddRoleToExperience}
             onOptimizeBullet={handleOptimizeBullet}
+            onDeleteBullet={handleDeleteBullet}
           />
         </div>
       </div>

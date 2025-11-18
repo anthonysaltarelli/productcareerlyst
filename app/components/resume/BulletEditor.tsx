@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Bullet } from "./mockData";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 type Props = {
   bullet: Bullet;
@@ -15,6 +16,7 @@ type Props = {
   onToggleSelection: (checked: boolean) => void;
   onContentChange?: (newContent: string) => void;
   onOptimize?: (bulletId: string) => Promise<string[]>;
+  onDelete?: (bulletId: string) => Promise<void>;
 };
 
 export default function BulletEditor({ 
@@ -29,11 +31,14 @@ export default function BulletEditor({
   onToggleSelection,
   onContentChange,
   onOptimize,
+  onDelete,
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState(bullet.content);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizedVersions, setOptimizedVersions] = useState<string[] | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Sync local content state when bullet prop changes
   useEffect(() => {
@@ -77,6 +82,29 @@ export default function BulletEditor({
     setContent(version);
     setIsEditing(true);
     setOptimizedVersions(null);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!onDelete || !bullet.id) return;
+    
+    setIsDeleting(true);
+    try {
+      await onDelete(bullet.id);
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error('Error deleting bullet:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
   };
 
 
@@ -164,7 +192,7 @@ export default function BulletEditor({
                   <button
                     onClick={handleOptimize}
                     disabled={isOptimizing}
-                    className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-br from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 rounded-lg shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-br from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 rounded-lg shadow-md transition-all disabled:cursor-not-allowed flex items-center gap-1"
                     title="AI Optimize"
                   >
                     {isOptimizing ? (
@@ -180,9 +208,7 @@ export default function BulletEditor({
                     )}
                   </button>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
+                    onClick={handleDeleteClick}
                     className="p-1.5 text-gray-400 bg-white hover:text-red-600 hover:bg-red-50 rounded-lg border border-slate-200 shadow-md transition-all"
                     title="Delete"
                   >
@@ -239,7 +265,19 @@ export default function BulletEditor({
             {/* Optimized Versions */}
             {optimizedVersions && optimizedVersions.length > 0 && (
               <div className="mt-4 space-y-3 pt-4 border-t border-slate-200">
-                <h4 className="text-xs font-bold text-gray-700 mb-2">AI Optimized Versions:</h4>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-xs font-bold text-gray-700">AI Optimized Versions:</h4>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOptimizedVersions(null);
+                    }}
+                    className="px-2.5 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-all"
+                    title="Discard suggested versions"
+                  >
+                    Discard Suggested Versions
+                  </button>
+                </div>
                 {optimizedVersions.map((version, idx) => (
                   <div
                     key={idx}
@@ -262,6 +300,17 @@ export default function BulletEditor({
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        title="Delete Bullet"
+        message="Are you sure you want to delete this bullet point? This action cannot be undone."
+        onConfirm={handleConfirmDelete}
+        onClose={handleCancelDelete}
+        onCancel={handleCancelDelete}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 }

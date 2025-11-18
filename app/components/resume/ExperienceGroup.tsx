@@ -19,6 +19,7 @@ type Props = {
   onUpdateBulletMode?: (groupId: string, mode: 'per_role' | 'per_experience') => Promise<void>;
   onAddRole?: (groupId: string) => void; // Opens edit modal for the experience group
   onOptimizeBullet?: (bulletId: string) => Promise<string[]>;
+  onDeleteBullet?: (bulletId: string) => Promise<void>;
   isFirst?: boolean;
 };
 
@@ -37,6 +38,7 @@ export default function ExperienceGroup({
   onUpdateBulletMode,
   onAddRole,
   onOptimizeBullet,
+  onDeleteBullet,
   isFirst = false,
 }: Props) {
   const [isExpanded, setIsExpanded] = useState(isFirst);
@@ -484,6 +486,7 @@ export default function ExperienceGroup({
                               }}
                               onContentChange={handleBulletContentChange(bullet.id, experience.id)}
                               onOptimize={onOptimizeBullet}
+                              onDelete={onDeleteBullet}
                             />
                           ))}
                         </div>
@@ -568,6 +571,7 @@ export default function ExperienceGroup({
                         }}
                         onContentChange={experience ? handleBulletContentChange(bullet.id, experience.id) : undefined}
                         onOptimize={onOptimizeBullet}
+                        onDelete={onDeleteBullet}
                       />
                     );
                   })
