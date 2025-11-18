@@ -14,6 +14,7 @@ type Props = {
   onDragEnd: () => void;
   onToggleSelection: (checked: boolean) => void;
   onContentChange?: (newContent: string) => void;
+  onOptimize?: (bulletId: string) => Promise<string[]>;
 };
 
 export default function BulletEditor({ 
@@ -27,9 +28,12 @@ export default function BulletEditor({
   onDragEnd,
   onToggleSelection,
   onContentChange,
+  onOptimize,
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState(bullet.content);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [optimizedVersions, setOptimizedVersions] = useState<string[] | null>(null);
 
   // Sync local content state when bullet prop changes
   useEffect(() => {
@@ -38,18 +42,43 @@ export default function BulletEditor({
     }
   }, [bullet.content, isEditing]);
 
+  // Clear optimized versions when content changes
+  useEffect(() => {
+    if (content !== bullet.content) {
+      setOptimizedVersions(null);
+    }
+  }, [content, bullet.content]);
+
   const handleSave = () => {
     if (onContentChange && content !== bullet.content) {
       onContentChange(content);
     }
     setIsEditing(false);
+    setOptimizedVersions(null);
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 85) return "text-green-700 bg-green-100 border-green-200";
-    if (score >= 70) return "text-yellow-700 bg-yellow-100 border-yellow-200";
-    return "text-red-700 bg-red-100 border-red-200";
+  const handleOptimize = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!onOptimize || !bullet.id) return;
+
+    setIsOptimizing(true);
+    setOptimizedVersions(null);
+    try {
+      const versions = await onOptimize(bullet.id);
+      setOptimizedVersions(versions);
+    } catch (error) {
+      console.error('Error optimizing bullet:', error);
+    } finally {
+      setIsOptimizing(false);
+    }
   };
+
+  const handleUseVersion = (version: string) => {
+    setContent(version);
+    setIsEditing(true);
+    setOptimizedVersions(null);
+  };
+
 
   return (
     <div
@@ -86,9 +115,6 @@ export default function BulletEditor({
                 <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
               </svg>
             </button>
-            <span className="text-xs font-bold text-gray-400">
-              #{index + 1}
-            </span>
           </div>
 
           {/* Content */}
@@ -123,21 +149,24 @@ export default function BulletEditor({
               </div>
             ) : (
               <div className="relative">
-                {/* Score Badge - Absolute positioned top right */}
-                <div
-                  className={`absolute top-0 right-0 px-2 py-0.5 rounded-lg text-xs font-bold border ${getScoreColor(
-                    bullet.score
-                  )}`}
-                >
-                  {bullet.score}/100
-                </div>
-                
-                <p className="text-sm text-gray-900 leading-relaxed mb-4 pr-16">
+                <p className="text-sm text-gray-900 leading-relaxed mb-4">
                   {content}
                 </p>
 
                 {/* Footer Row - Tags and Actions */}
                 <div className="flex items-center gap-2 flex-wrap">
+                  {/* Edit Button - Left Side */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsEditing(true);
+                    }}
+                    className="px-2.5 py-1 text-xs font-semibold text-gray-600 hover:bg-slate-100 rounded transition-all"
+                    title="Edit"
+                  >
+                    Edit
+                  </button>
+
                   {/* Tags */}
                   {bullet.tags.map((tag) => (
                     <span
@@ -148,39 +177,25 @@ export default function BulletEditor({
                     </span>
                   ))}
 
-                  {/* Action Buttons */}
+                  {/* Action Buttons - Right Side */}
                   <div className="flex items-center gap-1.5 ml-auto">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsEditing(true);
-                      }}
-                      className="px-2.5 py-1 text-xs font-semibold text-gray-600 hover:bg-slate-100 rounded transition-all"
-                      title="Edit"
+                      onClick={handleOptimize}
+                      disabled={isOptimizing}
+                      className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-br from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                      title="AI Optimize"
                     >
-                      Edit
-                    </button>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelect();
-                      }}
-                      className="px-2.5 py-1 text-xs font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200 rounded transition-all"
-                      title="Optimize"
-                    >
-                      Optimize
-                    </button>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelect();
-                      }}
-                      className="px-2.5 py-1 text-xs font-semibold bg-purple-100 text-purple-700 hover:bg-purple-200 rounded transition-all"
-                      title="Analyze"
-                    >
-                      Analyze
+                      {isOptimizing ? (
+                        <>
+                          <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Optimizing...
+                        </>
+                      ) : (
+                        'AI Optimize'
+                      )}
                     </button>
 
                     <button
@@ -220,6 +235,30 @@ export default function BulletEditor({
                   />
                 </svg>
                 <span>Customized</span>
+              </div>
+            )}
+
+            {/* Optimized Versions */}
+            {optimizedVersions && optimizedVersions.length > 0 && (
+              <div className="mt-4 space-y-3 pt-4 border-t border-slate-200">
+                <h4 className="text-xs font-bold text-gray-700 mb-2">AI Optimized Versions:</h4>
+                {optimizedVersions.map((version, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200"
+                  >
+                    <p className="text-sm text-gray-900 leading-relaxed mb-2">{version}</p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleUseVersion(version);
+                      }}
+                      className="px-3 py-1.5 text-xs font-semibold bg-gradient-to-br from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 rounded-lg transition-all"
+                    >
+                      Edit this version
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>

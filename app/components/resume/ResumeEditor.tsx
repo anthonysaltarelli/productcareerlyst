@@ -36,6 +36,7 @@ type Props = {
   onUngroupExperience?: (experienceId: string) => Promise<void>;
   onUpdateBulletMode?: (groupId: string, mode: 'per_role' | 'per_experience') => Promise<void>;
   onAddRoleToExperience?: (groupId: string, roleData: { title: string; start_date: string; end_date: string }) => Promise<void>;
+  onOptimizeBullet?: (bulletId: string) => Promise<string[]>;
 };
 
 export default function ResumeEditor({
@@ -64,6 +65,7 @@ export default function ResumeEditor({
   onUngroupExperience,
   onUpdateBulletMode,
   onAddRoleToExperience,
+  onOptimizeBullet,
 }: Props) {
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
@@ -448,48 +450,11 @@ export default function ResumeEditor({
         );
 
       case "experience":
-        const selectedCount = resumeData.experiences.reduce(
-          (acc, exp) => acc + exp.bullets.filter((b) => b.isSelected).length,
-          0
-        );
-        const totalCount = resumeData.experiences.reduce(
-          (acc, exp) => acc + exp.bullets.length,
-          0
-        );
-
         const { groups, standalone } = groupExperiencesByRole(resumeData.experiences);
         const experienceItems = getExperienceItems();
 
         return (
           <div className="space-y-5">
-            <div className="bg-gradient-to-br from-blue-100 to-cyan-100 border-2 border-blue-200 rounded-2xl p-5 flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white rounded-xl border-2 border-blue-300 shadow-sm">
-                  <svg
-                    className="w-5 h-5 text-blue-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-blue-900">
-                    {selectedCount} of {totalCount} bullets selected
-                  </p>
-                  <p className="text-xs font-medium text-blue-700">
-                    Customize which bullets appear in this version
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {/* Render experiences with drag-and-drop support */}
             {experienceItems.map((item, itemIndex) => {
               if (item.type === 'group' && item.groupId && item.experiences) {
@@ -535,6 +500,7 @@ export default function ResumeEditor({
                           onEditExperience?.(groupExps[0].id);
                         }
                       }}
+                      onOptimizeBullet={onOptimizeBullet}
                       isFirst={isFirstGroup}
                     />
                   </div>

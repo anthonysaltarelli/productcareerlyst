@@ -69,6 +69,8 @@ export default function ResumeEditorPage({ params }: Props) {
     deleteExperience,
     deleteEducation,
     updateVersion,
+    optimizeBullet,
+    updateBulletContent,
   } = useResumeData();
 
   // Initialize resume data with empty values (will be populated from DB)
@@ -807,6 +809,11 @@ export default function ResumeEditorPage({ params }: Props) {
     }
   };
 
+  // Optimize bullet handler
+  const handleOptimizeBullet = async (bulletId: string): Promise<string[]> => {
+    return await optimizeBullet(bulletId);
+  };
+
   // Add Bullet handler - inline addition
   const handleAddBullet = async (experienceId: string, content: string) => {
     if (!versionId) return;
@@ -1397,6 +1404,7 @@ export default function ResumeEditorPage({ params }: Props) {
             onUngroupExperience={handleUngroupExperience}
             onUpdateBulletMode={handleUpdateBulletMode}
             onAddRoleToExperience={handleAddRoleToExperience}
+            onOptimizeBullet={handleOptimizeBullet}
           />
         </div>
       </div>
@@ -1434,6 +1442,7 @@ export default function ResumeEditorPage({ params }: Props) {
         mode={editingEducation ? 'edit' : 'add'}
         initialData={editingEducation?.data || null}
       />
+
     </>
   );
 }

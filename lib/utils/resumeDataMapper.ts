@@ -71,6 +71,7 @@ export const mapDBExperienceToUI = (dbExp: DBExperience): UIExperience => {
       score: bullet.score || 0,
       tags: bullet.tags || [],
       suggestions: [], // Suggestions not stored in DB
+      analysis_data: bullet.analysis_data || null,
     })),
   };
 };

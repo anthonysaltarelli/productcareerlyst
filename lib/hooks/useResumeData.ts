@@ -34,6 +34,35 @@ export type Summary = {
   updated_at?: string;
 };
 
+export type VectorScore = {
+  score: number;
+  feedback: string;
+};
+
+export type BulletAnalysis = {
+  overallScore: number;
+  grade: string;
+  vectors: {
+    clarity: VectorScore;
+    impact: VectorScore;
+    action: VectorScore;
+    quantification: VectorScore;
+  };
+  improvedVersions: string[];
+  analyzedAt: string;
+};
+
+export type ScoreHistoryEntry = {
+  score: number;
+  timestamp: string;
+  contentSnapshot: string;
+};
+
+export type AnalysisData = {
+  currentAnalysis?: BulletAnalysis;
+  scoreHistory?: ScoreHistoryEntry[];
+};
+
 export type ExperienceBullet = {
   id: string;
   experience_id: string;
@@ -42,6 +71,7 @@ export type ExperienceBullet = {
   display_order: number;
   score?: number | null;
   tags?: string[] | null;
+  analysis_data?: AnalysisData | null;
   created_at?: string;
   updated_at?: string;
 };
@@ -464,6 +494,46 @@ export const useResumeData = (versionId?: string) => {
     }
   }, []);
 
+  // Optimize bullet with OpenAI
+  const optimizeBullet = useCallback(async (bulletId: string) => {
+    try {
+      const response = await fetch(`/api/resume/bullets/${bulletId}/optimize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to optimize bullet');
+      }
+      const data = await response.json();
+      toast.success('Bullet optimized successfully');
+      return data.optimizedVersions;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to optimize bullet';
+      toast.error(message);
+      throw err;
+    }
+  }, []);
+
+  // Update bullet content
+  const updateBulletContent = useCallback(async (bulletId: string, content: string) => {
+    try {
+      const response = await fetch(`/api/resume/bullets/${bulletId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
+      if (!response.ok) throw new Error('Failed to update bullet content');
+      const data = await response.json();
+      return data.bullet;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to update bullet content';
+      toast.error(message);
+      throw err;
+    }
+  }, []);
+
+
   // Create education
   const createEducation = useCallback(async (vId: string, education: Partial<Education>) => {
     try {
@@ -675,6 +745,8 @@ export const useResumeData = (versionId?: string) => {
     createBullet,
     updateBullet,
     deleteBullet,
+    optimizeBullet,
+    updateBulletContent,
 
     // Education operations
     createEducation,
