@@ -70,6 +70,7 @@ export default function ResumeEditorPage({ params }: Props) {
     deleteEducation,
     updateVersion,
     optimizeBullet,
+    optimizeBulletText,
     updateBulletContent,
     deleteBullet,
   } = useResumeData();
@@ -815,6 +816,11 @@ export default function ResumeEditorPage({ params }: Props) {
     return await optimizeBullet(bulletId);
   };
 
+  // Optimize bullet text handler (for new bullets)
+  const handleOptimizeBulletText = async (bulletContent: string, company?: string, role?: string): Promise<string[]> => {
+    return await optimizeBulletText(bulletContent, company, role);
+  };
+
   // Delete bullet handler
   const handleDeleteBullet = async (bulletId: string) => {
     if (!versionId) return;
@@ -1427,6 +1433,7 @@ export default function ResumeEditorPage({ params }: Props) {
             onUpdateBulletMode={handleUpdateBulletMode}
             onAddRoleToExperience={handleAddRoleToExperience}
             onOptimizeBullet={handleOptimizeBullet}
+            onOptimizeBulletText={handleOptimizeBulletText}
             onDeleteBullet={handleDeleteBullet}
           />
         </div>

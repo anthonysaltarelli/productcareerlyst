@@ -37,6 +37,7 @@ type Props = {
   onUpdateBulletMode?: (groupId: string, mode: 'per_role' | 'per_experience') => Promise<void>;
   onAddRoleToExperience?: (groupId: string, roleData: { title: string; start_date: string; end_date: string }) => Promise<void>;
   onOptimizeBullet?: (bulletId: string) => Promise<string[]>;
+  onOptimizeBulletText?: (bulletContent: string, company?: string, role?: string) => Promise<string[]>;
   onDeleteBullet?: (bulletId: string) => Promise<void>;
 };
 
@@ -67,6 +68,7 @@ export default function ResumeEditor({
   onUpdateBulletMode,
   onAddRoleToExperience,
   onOptimizeBullet,
+  onOptimizeBulletText,
   onDeleteBullet,
 }: Props) {
   const [deleteModal, setDeleteModal] = useState<{
@@ -503,6 +505,7 @@ export default function ResumeEditor({
                         }
                       }}
                       onOptimizeBullet={onOptimizeBullet}
+                      onOptimizeBulletText={onOptimizeBulletText}
                       onDeleteBullet={onDeleteBullet}
                       isFirst={isFirstGroup}
                     />

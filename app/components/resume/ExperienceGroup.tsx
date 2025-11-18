@@ -19,6 +19,7 @@ type Props = {
   onUpdateBulletMode?: (groupId: string, mode: 'per_role' | 'per_experience') => Promise<void>;
   onAddRole?: (groupId: string) => void; // Opens edit modal for the experience group
   onOptimizeBullet?: (bulletId: string) => Promise<string[]>;
+  onOptimizeBulletText?: (bulletContent: string, company?: string, role?: string) => Promise<string[]>;
   onDeleteBullet?: (bulletId: string) => Promise<void>;
   isFirst?: boolean;
 };
@@ -38,12 +39,15 @@ export default function ExperienceGroup({
   onUpdateBulletMode,
   onAddRole,
   onOptimizeBullet,
+  onOptimizeBulletText,
   onDeleteBullet,
   isFirst = false,
 }: Props) {
   const [isExpanded, setIsExpanded] = useState(isFirst);
   const [addingBulletForExperienceId, setAddingBulletForExperienceId] = useState<string | null>(null);
   const [newBulletContent, setNewBulletContent] = useState("");
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [optimizedVersions, setOptimizedVersions] = useState<string[] | null>(null);
   
   // Drag and drop state
   const [draggedBulletId, setDraggedBulletId] = useState<string | null>(null);
@@ -87,6 +91,7 @@ export default function ExperienceGroup({
       await onAddBullet(addingBulletForExperienceId, newBulletContent.trim());
       setNewBulletContent("");
       setAddingBulletForExperienceId(null);
+      setOptimizedVersions(null);
     } catch (error) {
       console.error("Error adding bullet:", error);
     }
@@ -95,6 +100,56 @@ export default function ExperienceGroup({
   const handleCancelAddBullet = () => {
     setNewBulletContent("");
     setAddingBulletForExperienceId(null);
+    setOptimizedVersions(null);
+  };
+
+  const handleOptimizeBulletText = async () => {
+    if (!newBulletContent.trim() || !onOptimizeBulletText) return;
+
+    setIsOptimizing(true);
+    setOptimizedVersions(null);
+
+    try {
+      // Get company and role from the experience
+      const experience = sortedExps.find(exp => exp.id === addingBulletForExperienceId);
+      const versions = await onOptimizeBulletText(
+        newBulletContent.trim(),
+        experience?.company || company,
+        experience?.title
+      );
+      setOptimizedVersions(versions);
+    } catch (error) {
+      console.error("Error optimizing bullet:", error);
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
+
+  const handleEditVersion = (versionIndex: number) => {
+    if (!optimizedVersions) return;
+    const version = optimizedVersions[versionIndex];
+    setNewBulletContent(version);
+    setOptimizedVersions(null);
+  };
+
+  const handleDiscardVersions = () => {
+    setOptimizedVersions(null);
+  };
+
+  const handleSaveVersionAsBullet = async (versionIndex: number) => {
+    if (!addingBulletForExperienceId || !onAddBullet || !optimizedVersions) return;
+    
+    const version = optimizedVersions[versionIndex];
+    if (!version.trim()) return;
+
+    try {
+      await onAddBullet(addingBulletForExperienceId, version.trim());
+      setNewBulletContent("");
+      setAddingBulletForExperienceId(null);
+      setOptimizedVersions(null);
+    } catch (error) {
+      console.error("Error adding bullet:", error);
+    }
   };
 
   const handleBulletContentChange = (bulletId: string, experienceId: string) => (newContent: string) => {
@@ -510,19 +565,73 @@ export default function ExperienceGroup({
                               />
                               <div className="flex gap-2 mt-3">
                                 <button
+                                  onClick={handleOptimizeBulletText}
+                                  disabled={!newBulletContent.trim() || isOptimizing}
+                                  className="flex-[0.4] py-2 text-sm font-semibold bg-gradient-to-br from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 rounded-lg transition-all disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-1"
+                                >
+                                  {isOptimizing ? (
+                                    <>
+                                      <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                      </svg>
+                                      Optimizing...
+                                    </>
+                                  ) : (
+                                    'AI Optimize'
+                                  )}
+                                </button>
+                                <button
                                   onClick={handleSaveBullet}
                                   disabled={!newBulletContent.trim()}
-                                  className="flex-1 px-4 py-2 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-sm font-bold rounded-lg transition-all border-2 border-green-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="flex-[0.4] py-2 text-sm font-semibold bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg transition-all border-2 border-green-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                  Save Bullet
+                                  Save
                                 </button>
                                 <button
                                   onClick={handleCancelAddBullet}
-                                  className="flex-1 px-4 py-2 bg-gradient-to-br from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300 text-slate-700 text-sm font-bold rounded-lg transition-all border-2 border-slate-300 shadow-sm"
+                                  className="flex-[0.2] py-2 text-sm font-semibold text-gray-700 hover:bg-slate-100 rounded-lg transition-all border border-slate-200"
                                 >
                                   Cancel
                                 </button>
                               </div>
+                              {/* Optimized Versions */}
+                              {optimizedVersions && optimizedVersions.length > 0 && (
+                                <div className="mt-4 space-y-3 pt-4 border-t border-green-200">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h4 className="text-xs font-bold text-gray-700">AI Optimized Versions:</h4>
+                                    <button
+                                      onClick={handleDiscardVersions}
+                                      className="px-2.5 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-all"
+                                      title="Discard suggested versions"
+                                    >
+                                      Discard
+                                    </button>
+                                  </div>
+                                  {optimizedVersions.map((version, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="p-3 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200"
+                                    >
+                                      <p className="text-sm text-gray-900 leading-relaxed mb-2">{version}</p>
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={() => handleEditVersion(idx)}
+                                          className="px-3 py-1.5 text-xs font-semibold bg-gradient-to-br from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 rounded-lg transition-all"
+                                        >
+                                          Edit this version
+                                        </button>
+                                        <button
+                                          onClick={() => handleSaveVersionAsBullet(idx)}
+                                          className="px-3 py-1.5 text-xs font-semibold bg-gradient-to-br from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 rounded-lg transition-all"
+                                        >
+                                          Save bullet
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <button
@@ -595,19 +704,73 @@ export default function ExperienceGroup({
                         />
                         <div className="flex gap-2 mt-3">
                           <button
+                            onClick={handleOptimizeBulletText}
+                            disabled={!newBulletContent.trim() || isOptimizing}
+                            className="flex-[0.4] py-2 text-sm font-semibold bg-gradient-to-br from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 rounded-lg transition-all disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-1"
+                          >
+                            {isOptimizing ? (
+                              <>
+                                <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                </svg>
+                                Optimizing...
+                              </>
+                            ) : (
+                              'AI Optimize'
+                            )}
+                          </button>
+                          <button
                             onClick={handleSaveBullet}
                             disabled={!newBulletContent.trim()}
-                            className="flex-1 px-4 py-2 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-sm font-bold rounded-lg transition-all border-2 border-green-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-[0.4] py-2 text-sm font-semibold bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg transition-all border-2 border-green-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Save Bullet
+                            Save
                           </button>
                           <button
                             onClick={handleCancelAddBullet}
-                            className="flex-1 px-4 py-2 bg-gradient-to-br from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300 text-slate-700 text-sm font-bold rounded-lg transition-all border-2 border-slate-300 shadow-sm"
+                            className="flex-[0.2] py-2 text-sm font-semibold text-gray-700 hover:bg-slate-100 rounded-lg transition-all border border-slate-200"
                           >
                             Cancel
                           </button>
                         </div>
+                        {/* Optimized Versions */}
+                        {optimizedVersions && optimizedVersions.length > 0 && (
+                          <div className="mt-4 space-y-3 pt-4 border-t border-green-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="text-xs font-bold text-gray-700">AI Optimized Versions:</h4>
+                              <button
+                                onClick={handleDiscardVersions}
+                                className="px-2.5 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-all"
+                                title="Discard suggested versions"
+                              >
+                                Discard
+                              </button>
+                            </div>
+                            {optimizedVersions.map((version, idx) => (
+                              <div
+                                key={idx}
+                                className="p-3 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200"
+                              >
+                                <p className="text-sm text-gray-900 leading-relaxed mb-2">{version}</p>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleEditVersion(idx)}
+                                    className="px-3 py-1.5 text-xs font-semibold bg-gradient-to-br from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 rounded-lg transition-all"
+                                  >
+                                    Edit this version
+                                  </button>
+                                  <button
+                                    onClick={() => handleSaveVersionAsBullet(idx)}
+                                    className="px-3 py-1.5 text-xs font-semibold bg-gradient-to-br from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 rounded-lg transition-all"
+                                  >
+                                    Save bullet
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <button

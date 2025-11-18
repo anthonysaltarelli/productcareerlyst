@@ -515,6 +515,27 @@ export const useResumeData = (versionId?: string) => {
     }
   }, []);
 
+  // Optimize raw bullet text with OpenAI (for new bullets)
+  const optimizeBulletText = useCallback(async (bulletContent: string, company?: string, role?: string) => {
+    try {
+      const response = await fetch('/api/resume/bullets/optimize-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bulletContent, company, role }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to optimize bullet text');
+      }
+      const data = await response.json();
+      return data.optimizedVersions;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to optimize bullet text';
+      toast.error(message);
+      throw err;
+    }
+  }, []);
+
   // Update bullet content
   const updateBulletContent = useCallback(async (bulletId: string, content: string) => {
     try {
@@ -746,6 +767,7 @@ export const useResumeData = (versionId?: string) => {
     updateBullet,
     deleteBullet,
     optimizeBullet,
+    optimizeBulletText,
     updateBulletContent,
 
     // Education operations
