@@ -87,7 +87,7 @@ export default function BulletEditor({
       onDragOver={onDragOver}
       onDrop={onDrop}
       onDragEnd={onDragEnd}
-      className={`border-2 rounded-xl transition-all ${
+      className={`group border-2 rounded-xl transition-all ${
         isSelected
           ? "border-blue-400 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-md"
           : "border-slate-200 bg-white hover:border-slate-300 shadow-sm"
@@ -149,78 +149,76 @@ export default function BulletEditor({
               </div>
             ) : (
               <div className="relative">
-                <p className="text-sm text-gray-900 leading-relaxed mb-4">
-                  {content}
-                </p>
-
-                {/* Footer Row - Tags and Actions */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  {/* Edit Button - Left Side */}
+                {/* Action Buttons - Top right corner, half in/half out, shown on hover */}
+                <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 flex items-center gap-1.5 transition-opacity z-10">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsEditing(true);
                     }}
-                    className="px-2.5 py-1 text-xs font-semibold text-gray-600 hover:bg-slate-100 rounded transition-all"
+                    className="px-2.5 py-1 text-xs font-semibold text-gray-600 bg-white hover:bg-slate-100 rounded-lg border border-slate-200 shadow-md transition-all"
                     title="Edit"
                   >
                     Edit
                   </button>
-
-                  {/* Tags */}
-                  {bullet.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2.5 py-1 text-xs font-semibold bg-slate-100 text-slate-700 rounded border border-slate-200"
+                  <button
+                    onClick={handleOptimize}
+                    disabled={isOptimizing}
+                    className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-br from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 rounded-lg shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    title="AI Optimize"
+                  >
+                    {isOptimizing ? (
+                      <>
+                        <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Optimizing...
+                      </>
+                    ) : (
+                      'AI Optimize'
+                    )}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                    className="p-1.5 text-gray-400 bg-white hover:text-red-600 hover:bg-red-50 rounded-lg border border-slate-200 shadow-md transition-all"
+                    title="Delete"
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      {tag}
-                    </span>
-                  ))}
-
-                  {/* Action Buttons - Right Side */}
-                  <div className="flex items-center gap-1.5 ml-auto">
-                    <button
-                      onClick={handleOptimize}
-                      disabled={isOptimizing}
-                      className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-br from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                      title="AI Optimize"
-                    >
-                      {isOptimizing ? (
-                        <>
-                          <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                          Optimizing...
-                        </>
-                      ) : (
-                        'AI Optimize'
-                      )}
-                    </button>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-all"
-                      title="Delete"
-                    >
-                      <svg
-                        className="w-3.5 h-3.5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
-                  </div>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
                 </div>
+
+                <p className="text-sm text-gray-900 leading-relaxed">
+                  {content}
+                </p>
+
+                {/* Tags - Always visible */}
+                {bullet.tags.length > 0 && (
+                  <div className="flex items-center gap-2 flex-wrap mt-2">
+                    {bullet.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-2.5 py-1 text-xs font-semibold bg-slate-100 text-slate-700 rounded border border-slate-200"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
