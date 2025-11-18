@@ -66,3 +66,19 @@ body {
   /* FUTURE ENHANCEMENT: Add support for multiple page templates */
   /* FUTURE ENHANCEMENT: Add watermark support for drafts */
 }
+
+/* Animation for recommendation cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out both;
+}

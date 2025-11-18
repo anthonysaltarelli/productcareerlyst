@@ -338,12 +338,18 @@ export default function ResumeAnalysisContent({
               {analysis.keywordAnalysis.present.filter(item => (item.count || 0) > 0).length > 0 ? (
                 analysis.keywordAnalysis.present
                   .filter(item => (item.count || 0) > 0)
+                  .sort((a, b) => (b.count || 0) - (a.count || 0))
                   .map((item, idx) => (
                     <div
                       key={idx}
-                      className="px-3 py-1.5 bg-gradient-to-br from-green-100 to-emerald-100 border-2 border-green-200 text-green-700 rounded-lg text-xs font-semibold"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 text-green-700 rounded-lg text-xs font-medium shadow-sm hover:shadow-md transition-shadow"
                     >
-                      {item.keyword} {item.count !== undefined && `(${item.count})`}
+                      <span className="font-semibold">{item.keyword}</span>
+                      {item.count !== undefined && (
+                        <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded font-bold text-[10px]">
+                          {item.count}
+                        </span>
+                      )}
                     </div>
                   ))
               ) : (
@@ -357,14 +363,19 @@ export default function ResumeAnalysisContent({
             <h4 className="text-sm font-bold text-gray-700 mb-3">Missing Keywords</h4>
             <div className="flex flex-wrap gap-2">
               {analysis.keywordAnalysis.missing.length > 0 ? (
-                analysis.keywordAnalysis.missing.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className={`px-3 py-1.5 border-2 rounded-lg text-xs font-semibold ${getPriorityColor(item.priority || 'low')}`}
-                  >
-                    {item.keyword}
-                  </div>
-                ))
+                analysis.keywordAnalysis.missing
+                  .sort((a, b) => {
+                    const priorityOrder = { high: 0, medium: 1, low: 2 };
+                    return priorityOrder[a.priority || 'low'] - priorityOrder[b.priority || 'low'];
+                  })
+                  .map((item, idx) => (
+                    <div
+                      key={idx}
+                      className={`inline-flex items-center px-3 py-1.5 border rounded-lg text-xs font-medium shadow-sm hover:shadow-md transition-shadow ${getPriorityColor(item.priority || 'low')}`}
+                    >
+                      {item.keyword}
+                    </div>
+                  ))
               ) : (
                 <p className="text-sm text-gray-500">All expected keywords present!</p>
               )}
@@ -387,38 +398,47 @@ export default function ResumeAnalysisContent({
       {/* Recommendations */}
       <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
         <h3 className="text-xl font-bold text-gray-900 mb-6">Recommendations</h3>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {analysis.recommendations
             .sort((a, b) => a.priority - b.priority)
-            .map((rec) => {
+            .map((rec, index) => {
               const isExpanded = expandedRecommendations.has(rec.priority);
               return (
                 <div
                   key={rec.priority}
-                  className="border-2 border-slate-200 rounded-xl overflow-hidden"
+                  className="border-2 border-slate-200 rounded-xl overflow-hidden bg-gradient-to-br from-white to-slate-50 hover:border-blue-300 hover:shadow-md transition-all duration-200 animate-fade-in-up"
+                  style={{
+                    animationDelay: `${index * 100}ms`,
+                  }}
                 >
                   <button
                     onClick={() => toggleRecommendation(rec.priority)}
-                    className="w-full p-5 text-left hover:bg-slate-50 transition-all flex items-center justify-between"
+                    className="w-full p-5 text-left transition-all flex items-start justify-between group"
                   >
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-lg flex items-center justify-center font-bold text-sm">
+                    <div className="flex items-start gap-4 flex-1 min-w-0">
+                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-xl flex items-center justify-center font-bold text-base shadow-sm">
                         {rec.priority}
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-base font-bold text-gray-900">{rec.title}</h4>
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded border ${getImpactColor(rec.impact)}`}>
-                            {rec.impact} impact
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <h4 className="text-base font-bold text-gray-900 leading-snug pr-2">{rec.title}</h4>
+                          <span className={`text-xs font-bold px-2.5 py-1 pr-4 rounded-lg border flex-shrink-0 flex items-center justify-center ${getImpactColor(rec.impact)}`}>
+                            {rec.impact.charAt(0).toUpperCase() + rec.impact.slice(1)}
                           </span>
                         </div>
-                        {!isExpanded && (
-                          <p className="text-sm text-gray-600 line-clamp-2">{rec.description}</p>
-                        )}
+                        <div
+                          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                            isExpanded ? 'max-h-0 opacity-0' : 'max-h-20 opacity-100'
+                          }`}
+                        >
+                          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">{rec.description}</p>
+                        </div>
                       </div>
                     </div>
                     <svg
-                      className={`w-5 h-5 text-gray-400 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`}
+                      className={`w-5 h-5 text-gray-400 transition-all duration-300 flex-shrink-0 mt-1 group-hover:text-gray-600 ${
+                        isExpanded ? 'rotate-180' : ''
+                      }`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -426,11 +446,15 @@ export default function ResumeAnalysisContent({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-                  {isExpanded && (
-                    <div className="px-5 pb-5 pt-0">
-                      <p className="text-sm text-gray-600 leading-relaxed">{rec.description}</p>
+                  <div
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                      isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+                    }`}
+                  >
+                    <div className="px-5 pb-5 pt-0 border-t border-slate-100">
+                      <p className="text-sm text-gray-600 leading-relaxed pt-4">{rec.description}</p>
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
