@@ -39,6 +39,16 @@ export default function ResumeEditorPage({ params }: Props) {
   const [isAddingEducation, setIsAddingEducation] = useState(false);
   const [editingExperience, setEditingExperience] = useState<{ id: string; data: any } | null>(null);
   const [editingEducation, setEditingEducation] = useState<{ id: string; data: any } | null>(null);
+  const [analysisData, setAnalysisData] = useState<any>(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [usageInfo, setUsageInfo] = useState<{ count: number; remaining: number; limit: number; resetDate: string }>({
+    count: 0,
+    remaining: 5,
+    limit: 5,
+    resetDate: '',
+  });
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Unwrap params
   useEffect(() => {
@@ -73,6 +83,8 @@ export default function ResumeEditorPage({ params }: Props) {
     optimizeBulletText,
     updateBulletContent,
     deleteBullet,
+    analyzeResume,
+    getResumeAnalysis,
   } = useResumeData();
 
   // Initialize resume data with empty values (will be populated from DB)
@@ -113,8 +125,55 @@ export default function ResumeEditorPage({ params }: Props) {
           setOriginalResumeStyles(uiStyles);
         }
       });
+
+      // Load analysis data
+      getResumeAnalysis(versionId).then((data) => {
+        if (data) {
+          setAnalysisData(data.analysis || null);
+          setUsageInfo(data.usage || { count: 0, remaining: 5, limit: 5, resetDate: '' });
+        }
+      });
     }
-  }, [versionId, fetchResumeData]);
+  }, [versionId, fetchResumeData, getResumeAnalysis]);
+
+  // Handle analyze resume
+  const handleAnalyzeResume = async () => {
+    if (!versionId) return;
+
+    setIsAnalyzing(true);
+    setAnalysisLoading(true);
+    setAnalysisError(null);
+
+    try {
+      const result = await analyzeResume(versionId);
+      if (result) {
+        setAnalysisData({
+          overallScore: result.overallScore,
+          categoryScores: result.categoryScores,
+          keywordAnalysis: result.keywordAnalysis,
+          atsCompatibility: result.atsCompatibility,
+          atsExplanation: result.atsExplanation,
+          recommendations: result.recommendations,
+          categoryDescriptions: result.categoryDescriptions,
+          createdAt: result.createdAt,
+        });
+        setUsageInfo({
+          count: result.usageCount || 0,
+          remaining: Math.max(0, 5 - (result.usageCount || 0)),
+          limit: 5,
+          resetDate: '',
+        });
+        // Switch to analysis section
+        setSelectedSection('analysis');
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to analyze resume';
+      setAnalysisError(message);
+    } finally {
+      setIsAnalyzing(false);
+      setAnalysisLoading(false);
+    }
+  };
 
   // Navigation blocking state
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
@@ -1379,6 +1438,11 @@ export default function ResumeEditorPage({ params }: Props) {
               onBack={handleBackToLanding}
               resumeData={currentResumeData}
               onUpdateVersionName={handleUpdateVersionName}
+              onAnalyzeResume={handleAnalyzeResume}
+              analysisScore={analysisData?.overallScore ?? null}
+              usageCount={usageInfo.count}
+              usageRemaining={usageInfo.remaining}
+              isAnalyzing={isAnalyzing}
             />
           ) : (
             <CustomizationSidebar
@@ -1435,6 +1499,12 @@ export default function ResumeEditorPage({ params }: Props) {
             onOptimizeBullet={handleOptimizeBullet}
             onOptimizeBulletText={handleOptimizeBulletText}
             onDeleteBullet={handleDeleteBullet}
+            analysisData={analysisData}
+            analysisLoading={analysisLoading}
+            analysisError={analysisError}
+            onAnalyzeResume={handleAnalyzeResume}
+            usageRemaining={usageInfo.remaining}
+            isAnalyzing={isAnalyzing}
           />
         </div>
       </div>

@@ -725,6 +725,52 @@ export const useResumeData = (versionId?: string) => {
     }
   }, [fetchVersions]);
 
+  // Analyze resume
+  const analyzeResume = useCallback(async (vId: string) => {
+    try {
+      const response = await fetch(`/api/resume/versions/${vId}/analyze`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to analyze resume' }));
+        
+        if (response.status === 429) {
+          // Rate limited
+          toast.error(`Monthly limit reached. Reset on ${errorData.resetDate || 'next month'}`);
+          throw new Error('Monthly analysis limit reached');
+        }
+        
+        throw new Error(errorData.error || 'Failed to analyze resume');
+      }
+
+      const data = await response.json();
+      toast.success('Resume analyzed successfully!');
+      return data;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to analyze resume';
+      // Error toast already shown for rate limit
+      if (!message.includes('Monthly')) {
+        toast.error(message);
+      }
+      throw err;
+    }
+  }, []);
+
+  // Get resume analysis and usage
+  const getResumeAnalysis = useCallback(async (vId: string) => {
+    try {
+      const response = await fetch(`/api/resume/versions/${vId}/analyze`);
+      if (!response.ok) throw new Error('Failed to fetch analysis');
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch analysis';
+      // Don't show toast for this - it's a background fetch
+      return { analysis: null, usage: { count: 0, remaining: 5, limit: 5, resetDate: '' } };
+    }
+  }, []);
+
   // Load versions on mount
   useEffect(() => {
     fetchVersions();
@@ -786,6 +832,10 @@ export const useResumeData = (versionId?: string) => {
 
     // Import operations
     importResumeVersion,
+
+    // Analysis operations
+    analyzeResume,
+    getResumeAnalysis,
   };
 };
 

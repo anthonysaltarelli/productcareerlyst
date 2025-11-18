@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { sections, mockResumeScore } from "./mockData";
 import type { ResumeVersion } from "@/lib/hooks/useResumeData";
 import type { ResumeData } from "./mockData";
+import { scoreToGrade, getGradeColor } from "@/lib/utils/gradeUtils";
 
 type Props = {
   versions: ResumeVersion[];
@@ -16,6 +17,11 @@ type Props = {
   onBack: () => void;
   resumeData?: ResumeData;
   onUpdateVersionName?: (versionId: string, newName: string) => Promise<void>;
+  onAnalyzeResume?: () => Promise<void>;
+  analysisScore?: number | null;
+  usageCount?: number;
+  usageRemaining?: number;
+  isAnalyzing?: boolean;
 };
 
 const formatDate = (dateString: string): string => {
@@ -39,11 +45,21 @@ export default function ResumeVersionSidebar({
   onBack,
   resumeData,
   onUpdateVersionName,
+  onAnalyzeResume,
+  analysisScore,
+  usageCount = 0,
+  usageRemaining = 5,
+  isAnalyzing = false,
 }: Props) {
   const currentVersion = versions.find((v) => v.id === selectedVersion);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(currentVersion?.name || "");
   const [isSavingName, setIsSavingName] = useState(false);
+
+  // Update edited name when version changes
+  useEffect(() => {
+    setEditedName(currentVersion?.name || "");
+  }, [currentVersion?.name]);
 
   // Calculate dynamic counts from resume data
   const sectionsWithCounts = useMemo(() => {
@@ -203,6 +219,90 @@ export default function ResumeVersionSidebar({
         </div>
       </div>
 
+      {/* Overall Score - Moved above Sections */}
+      <div className="p-4 border-b border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100">
+        <div 
+          className={`p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl shadow-sm border-2 border-blue-200 ${
+            analysisScore !== null && analysisScore !== undefined 
+              ? 'cursor-pointer hover:from-blue-100 hover:to-cyan-100 hover:shadow-md transition-all' 
+              : ''
+          }`}
+          onClick={() => {
+            if (analysisScore !== null && analysisScore !== undefined) {
+              onSectionChange('analysis');
+            }
+          }}
+          role={analysisScore !== null && analysisScore !== undefined ? "button" : undefined}
+          tabIndex={analysisScore !== null && analysisScore !== undefined ? 0 : undefined}
+          onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && analysisScore !== null && analysisScore !== undefined) {
+              e.preventDefault();
+              onSectionChange('analysis');
+            }
+          }}
+          aria-label={analysisScore !== null && analysisScore !== undefined ? "View detailed analysis" : undefined}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-gray-600 uppercase tracking-wide">
+              Overall Score
+            </span>
+            {analysisScore !== null && analysisScore !== undefined ? (
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-bold px-2 py-1 rounded border ${getGradeColor(scoreToGrade(analysisScore))}`}>
+                  {scoreToGrade(analysisScore)}
+                </span>
+                <span className="text-2xl font-black bg-gradient-to-br from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                  {analysisScore}
+                </span>
+              </div>
+            ) : (
+              <span className="text-2xl font-black bg-gradient-to-br from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                {mockResumeScore.overall}
+              </span>
+            )}
+          </div>
+          <div className="w-full bg-white/50 rounded-full h-2 overflow-hidden mb-3">
+            <div
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full transition-all"
+              style={{ width: `${analysisScore !== null && analysisScore !== undefined ? analysisScore : mockResumeScore.overall}%` }}
+            />
+          </div>
+          {onAnalyzeResume && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAnalyzeResume();
+              }}
+              disabled={isAnalyzing || usageRemaining === 0}
+              className={`w-full px-4 py-2.5 text-sm font-bold rounded-xl transition-all ${
+                isAnalyzing || usageRemaining === 0
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-br from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 shadow-md'
+              }`}
+            >
+              {isAnalyzing ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Analyzing...
+                </span>
+              ) : analysisScore !== null && analysisScore !== undefined ? (
+                'Re-analyze Resume'
+              ) : (
+                'Analyze Resume'
+              )}
+            </button>
+          )}
+          {usageRemaining !== undefined && (
+            <p className="text-xs text-gray-600 mt-2 text-center">
+              {usageRemaining} of 5 analyses remaining this month
+            </p>
+          )}
+        </div>
+      </div>
+
       {/* Section Navigation */}
       <div className="flex-1 overflow-y-auto p-4">
         <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
@@ -230,26 +330,6 @@ export default function ResumeVersionSidebar({
             </button>
           ))}
         </nav>
-      </div>
-
-      {/* Overall Score */}
-      <div className="p-4 border-t border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl shadow-sm border-2 border-blue-200">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-gray-600 uppercase tracking-wide">
-              Overall Score
-            </span>
-            <span className="text-2xl font-black bg-gradient-to-br from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-              {mockResumeScore.overall}
-            </span>
-          </div>
-          <div className="w-full bg-white/50 rounded-full h-2 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full transition-all"
-              style={{ width: `${mockResumeScore.overall}%` }}
-            />
-          </div>
-        </div>
       </div>
     </div>
   );

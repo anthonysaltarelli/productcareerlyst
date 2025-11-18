@@ -9,6 +9,7 @@ import ResumePreview from "./ResumePreview";
 import ResumeEditorHeader from "./ResumeEditorHeader";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import BulletEditor from "./BulletEditor";
+import ResumeAnalysisContent from "./ResumeAnalysisContent";
 
 type Props = {
   selectedVersion: string;
@@ -39,6 +40,12 @@ type Props = {
   onOptimizeBullet?: (bulletId: string) => Promise<string[]>;
   onOptimizeBulletText?: (bulletContent: string, company?: string, role?: string) => Promise<string[]>;
   onDeleteBullet?: (bulletId: string) => Promise<void>;
+  analysisData?: any;
+  analysisLoading?: boolean;
+  analysisError?: string | null;
+  onAnalyzeResume?: () => Promise<void>;
+  usageRemaining?: number;
+  isAnalyzing?: boolean;
 };
 
 export default function ResumeEditor({
@@ -70,6 +77,12 @@ export default function ResumeEditor({
   onOptimizeBullet,
   onOptimizeBulletText,
   onDeleteBullet,
+  analysisData,
+  analysisLoading = false,
+  analysisError = null,
+  onAnalyzeResume,
+  usageRemaining = 5,
+  isAnalyzing = false,
 }: Props) {
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
@@ -599,6 +612,18 @@ export default function ResumeEditor({
               Add Education
             </button>
           </div>
+        );
+
+      case "analysis":
+        return (
+          <ResumeAnalysisContent
+            analysis={analysisData}
+            isLoading={analysisLoading}
+            error={analysisError}
+            onReAnalyze={onAnalyzeResume}
+            usageRemaining={usageRemaining}
+            isAnalyzing={isAnalyzing}
+          />
         );
 
       case "skills":
