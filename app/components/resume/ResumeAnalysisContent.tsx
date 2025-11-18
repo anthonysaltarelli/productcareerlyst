@@ -107,7 +107,7 @@ export default function ResumeAnalysisContent({
   const [expandedRecommendations, setExpandedRecommendations] = useState<Set<number>>(new Set());
   const [currentLoadingMessage, setCurrentLoadingMessage] = useState(0);
 
-  // Cycle through loading messages
+  // Progress through loading messages (6 seconds each, stay on last one)
   useEffect(() => {
     if (!isLoading) {
       setCurrentLoadingMessage(0);
@@ -115,8 +115,14 @@ export default function ResumeAnalysisContent({
     }
 
     const interval = setInterval(() => {
-      setCurrentLoadingMessage((prev) => (prev + 1) % LOADING_MESSAGES.length);
-    }, 4500); // Change message every 4.5 seconds
+      setCurrentLoadingMessage((prev) => {
+        // Stay on the last message once we reach it
+        if (prev >= LOADING_MESSAGES.length - 1) {
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 6000); // Change message every 6 seconds
 
     return () => clearInterval(interval);
   }, [isLoading]);
@@ -161,7 +167,7 @@ export default function ResumeAnalysisContent({
             />
           ))}
         </div>
-        <p className="text-sm text-gray-500 mt-4">This comprehensive analysis may take 30-60 seconds</p>
+        <p className="text-sm text-gray-500 mt-4">This comprehensive analysis may take up to 60 seconds</p>
       </div>
     );
   }
@@ -249,14 +255,9 @@ export default function ResumeAnalysisContent({
             <span className="text-sm font-bold text-gray-600 uppercase tracking-wide">
               Overall Score
             </span>
-            <div className="flex items-center gap-3">
-              <span className={`text-sm font-bold px-3 py-1.5 rounded border ${gradeColor}`}>
-                {grade}
-              </span>
-              <span className="text-4xl font-black bg-gradient-to-br from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                {analysis.overallScore}
-              </span>
-            </div>
+            <span className="text-4xl font-black bg-gradient-to-br from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+              {analysis.overallScore}
+            </span>
           </div>
           <div className="w-full bg-white/50 rounded-full h-3 overflow-hidden">
             <div
@@ -312,22 +313,20 @@ export default function ResumeAnalysisContent({
         <h3 className="text-xl font-bold text-gray-900 mb-6">Keyword Analysis</h3>
         
         <div className="mb-6 p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-slate-200">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <span className="text-sm font-bold text-gray-700">PM Keywords Found</span>
-              <p className="text-xs text-gray-500 mt-1">
-                {analysis.keywordAnalysis.present.filter(item => (item.count || 0) > 0).length} unique keywords detected
-              </p>
-            </div>
-            <span className="text-2xl font-black text-gray-900">
-              {analysis.keywordAnalysis.present
-                .filter(item => (item.count || 0) > 0)
-                .reduce((sum, item) => sum + (item.count || 0), 0)}
-            </span>
-          </div>
-          <p className="text-xs text-gray-600 mt-2">
-            Total occurrences of Product Management keywords throughout your resume
-          </p>
+          {(() => {
+            const presentKeywords = analysis.keywordAnalysis.present.filter(item => (item.count || 0) > 0).length;
+            const totalExpected = presentKeywords + analysis.keywordAnalysis.missing.length;
+            const coverage = totalExpected > 0 ? Math.round((presentKeywords / totalExpected) * 100) : 0;
+            
+            return (
+              <div>
+                <span className="text-sm font-bold text-gray-700">PM Keywords Found</span>
+                <p className="text-lg font-bold text-gray-900 mt-2">
+                  {presentKeywords} of {totalExpected} expected keywords ({coverage}% coverage)
+                </p>
+              </div>
+            );
+          })()}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -422,7 +421,7 @@ export default function ResumeAnalysisContent({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-3 mb-2">
                           <h4 className="text-base font-bold text-gray-900 leading-snug pr-2">{rec.title}</h4>
-                          <span className={`text-xs font-bold px-2.5 py-1 pr-4 rounded-lg border flex-shrink-0 flex items-center justify-center ${getImpactColor(rec.impact)}`}>
+                          <span className={`text-xs font-bold px-3 py-1 rounded-lg border flex-shrink-0 flex items-center justify-center mr-3 ${getImpactColor(rec.impact)}`}>
                             {rec.impact.charAt(0).toUpperCase() + rec.impact.slice(1)}
                           </span>
                         </div>

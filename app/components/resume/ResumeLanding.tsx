@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { MoreVertical } from "lucide-react";
-import { mockResumeScore } from "./mockData";
 import type { ResumeVersion } from "@/lib/hooks/useResumeData";
 import CreateFromMasterModal from "./CreateFromMasterModal";
 import CloneToMasterModal from "./CloneToMasterModal";
@@ -42,6 +41,7 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedMasterForClone, setSelectedMasterForClone] = useState<string | null>(null);
   const [jobApplications, setJobApplications] = useState<Record<string, JobApplication>>({});
+  const [analysisScores, setAnalysisScores] = useState<Record<string, number>>({});
   const [deleteModalState, setDeleteModalState] = useState<{ isOpen: boolean; versionId: string | null; versionName: string }>({
     isOpen: false,
     versionId: null,
@@ -80,6 +80,36 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
 
     fetchJobApplications();
   }, [jobSpecificResumes.length]);
+
+  // Fetch analysis scores for all versions
+  useEffect(() => {
+    const fetchAnalysisScores = async () => {
+      const scoresMap: Record<string, number> = {};
+
+      await Promise.all(
+        versions.map(async (version) => {
+          try {
+            const response = await fetch(`/api/resume/versions/${version.id}/analyze`);
+            if (response.ok) {
+              const data = await response.json();
+              if (data.analysis?.overallScore !== undefined) {
+                scoresMap[version.id] = data.analysis.overallScore;
+              }
+            }
+          } catch (error) {
+            // Silently fail - no analysis available for this version
+            console.debug(`No analysis found for version ${version.id}`);
+          }
+        })
+      );
+
+      setAnalysisScores(scoresMap);
+    };
+
+    if (versions.length > 0) {
+      fetchAnalysisScores();
+    }
+  }, [versions]);
 
   const handleClone = async (sourceVersionId: string, newName: string, applicationId?: string) => {
     if (onCloneFromMaster) {
@@ -122,7 +152,18 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="p-6 rounded-[2rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_10px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300 text-center">
-            <p className="text-4xl font-black text-green-600 mb-2">{mockResumeScore.overall}</p>
+            {(() => {
+              const scores = Object.values(analysisScores);
+              const averageScore = scores.length > 0 
+                ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
+                : null;
+              
+              return averageScore !== null ? (
+                <p className="text-4xl font-black text-green-600 mb-2">{averageScore}</p>
+              ) : (
+                <p className="text-2xl font-black text-green-600 mb-2">—</p>
+              );
+            })()}
             <p className="text-sm font-bold text-gray-700">Resume Score</p>
           </div>
 
@@ -206,6 +247,7 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
                   version={version}
                   onEdit={onEditVersion}
                   isMaster={true}
+                  analysisScore={analysisScores[version.id]}
                   onCloneToJobSpecific={() => {
                     setSelectedMasterForClone(version.id);
                     setIsCloneModalOpen(true);
@@ -263,6 +305,7 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
                   version={version}
                   onEdit={onEditVersion}
                   isMaster={false}
+                  analysisScore={analysisScores[version.id]}
                   jobApplication={version.application_id ? jobApplications[version.application_id] : undefined}
                 />
               ))}
@@ -336,13 +379,14 @@ type ResumeCardProps = {
   version: ResumeVersion;
   onEdit: (versionId: string) => void;
   isMaster: boolean;
+  analysisScore?: number;
   onCloneToJobSpecific?: () => void;
   onCloneToMaster?: () => void;
   onDelete?: (versionId: string, versionName: string) => void;
   jobApplication?: JobApplication;
 };
 
-function ResumeCard({ version, onEdit, isMaster, onCloneToJobSpecific, onCloneToMaster, onDelete, jobApplication }: ResumeCardProps) {
+function ResumeCard({ version, onEdit, isMaster, analysisScore, onCloneToJobSpecific, onCloneToMaster, onDelete, jobApplication }: ResumeCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -359,9 +403,9 @@ function ResumeCard({ version, onEdit, isMaster, onCloneToJobSpecific, onCloneTo
   }, []);
 
   return (
-    <div className="rounded-[2rem] bg-gradient-to-br from-slate-100 to-slate-200 shadow-[0_10px_0_0_rgba(51,65,85,0.3)] border-2 border-slate-300 hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(51,65,85,0.3)] transition-all duration-200 overflow-visible relative">
+    <div className="rounded-[2rem] bg-gradient-to-br from-slate-100 to-slate-200 shadow-[0_10px_0_0_rgba(51,65,85,0.3)] border-2 border-slate-300 hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(51,65,85,0.3)] transition-all duration-200 overflow-visible relative flex flex-col h-full">
       {/* Card Header */}
-      <div className="p-6">
+      <div className="p-6 flex-1 flex flex-col">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
@@ -396,13 +440,19 @@ function ResumeCard({ version, onEdit, isMaster, onCloneToJobSpecific, onCloneTo
         </div>
 
         {/* Score */}
-        <div className="mb-4">
+        <div className="mt-auto">
           <div className="bg-white rounded-[1rem] p-4 border-2 border-slate-300">
             <p className="text-xs text-gray-600 font-bold mb-1">Resume Score</p>
-            <p className="text-3xl font-black text-gray-800">
-              {mockResumeScore.overall}
-              <span className="text-lg text-gray-500 font-semibold">/100</span>
-            </p>
+            {analysisScore !== undefined ? (
+              <p className="text-3xl font-black text-gray-800">
+                {analysisScore}
+                <span className="text-lg text-gray-500 font-semibold">/100</span>
+              </p>
+            ) : (
+              <p className="text-lg font-medium text-gray-400 italic">
+                No analysis yet
+              </p>
+            )}
           </div>
         </div>
       </div>

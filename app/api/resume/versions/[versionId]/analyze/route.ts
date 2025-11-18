@@ -553,21 +553,18 @@ export const POST = async (
             isSelected: b.is_selected,
           }));
 
-        // Create a single entry for the group with all roles listed
-        const roleTitles = sortedGroup.map(e => e.title).join(' → ');
-        // Get earliest start date and latest end date
-        const startDates = sortedGroup.map(e => e.start_date).filter(Boolean);
-        const endDates = sortedGroup.map(e => e.end_date).filter(Boolean);
-        const earliestStart = startDates.length > 0 ? startDates[0] : '';
-        const latestEnd = endDates.length > 0 ? endDates[endDates.length - 1] : '';
-        
+        // Create separate entries for each role with distinct dates
+        // Bullets will only appear after the last role
+        sortedGroup.forEach((exp: any, index: number) => {
+          const isLastRole = index === sortedGroup.length - 1;
         processedGroupedExperiences.push({
-          title: roleTitles,
-          company: firstExp.company,
-          location: firstExp.location || '',
-          startDate: earliestStart,
-          endDate: latestEnd,
-          bullets: allBullets,
+            title: exp.title,
+            company: exp.company,
+            location: exp.location || '',
+            startDate: exp.start_date || '',
+            endDate: exp.end_date || '',
+            bullets: isLastRole ? allBullets : [], // Only add bullets to the last role
+          });
         });
       } else {
         // For per_role mode, show each role with its own bullets

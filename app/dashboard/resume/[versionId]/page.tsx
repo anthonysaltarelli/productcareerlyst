@@ -140,6 +140,8 @@ export default function ResumeEditorPage({ params }: Props) {
   const handleAnalyzeResume = async () => {
     if (!versionId) return;
 
+    // Switch to analysis section immediately to show loading state
+    setSelectedSection('analysis');
     setIsAnalyzing(true);
     setAnalysisLoading(true);
     setAnalysisError(null);
@@ -163,8 +165,6 @@ export default function ResumeEditorPage({ params }: Props) {
           limit: 5,
           resetDate: '',
         });
-        // Switch to analysis section
-        setSelectedSection('analysis');
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to analyze resume';

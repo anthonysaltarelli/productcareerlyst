@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { sections, mockResumeScore } from "./mockData";
+import { sections } from "./mockData";
 import type { ResumeVersion } from "@/lib/hooks/useResumeData";
 import type { ResumeData } from "./mockData";
-import { scoreToGrade, getGradeColor } from "@/lib/utils/gradeUtils";
 
 type Props = {
   versions: ResumeVersion[];
@@ -242,31 +241,29 @@ export default function ResumeVersionSidebar({
           }}
           aria-label={analysisScore !== null && analysisScore !== undefined ? "View detailed analysis" : undefined}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-gray-600 uppercase tracking-wide">
-              Overall Score
-            </span>
-            {analysisScore !== null && analysisScore !== undefined ? (
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-bold px-2 py-1 rounded border ${getGradeColor(scoreToGrade(analysisScore))}`}>
-                  {scoreToGrade(analysisScore)}
+          {analysisScore !== null && analysisScore !== undefined ? (
+            <>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-gray-600 uppercase tracking-wide">
+                  Overall Score
                 </span>
                 <span className="text-2xl font-black bg-gradient-to-br from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                   {analysisScore}
                 </span>
               </div>
-            ) : (
-              <span className="text-2xl font-black bg-gradient-to-br from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                {mockResumeScore.overall}
-              </span>
-            )}
-          </div>
-          <div className="w-full bg-white/50 rounded-full h-2 overflow-hidden mb-3">
-            <div
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full transition-all"
-              style={{ width: `${analysisScore !== null && analysisScore !== undefined ? analysisScore : mockResumeScore.overall}%` }}
-            />
-          </div>
+              <div className="w-full bg-white/50 rounded-full h-2 overflow-hidden mb-3">
+                <div
+                  className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full transition-all"
+                  style={{ width: `${analysisScore}%` }}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-sm text-gray-500 font-medium mb-1">No analysis yet</p>
+              <p className="text-xs text-gray-400">Click below to analyze your resume</p>
+            </div>
+          )}
           {onAnalyzeResume && (
             <button
               onClick={(e) => {
