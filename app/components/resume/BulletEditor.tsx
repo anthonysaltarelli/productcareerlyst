@@ -123,9 +123,17 @@ export default function BulletEditor({
       onClick={onSelect}
     >
       <div className="p-4">
-        <div className="flex items-start gap-3">
-          {/* Compact Left Controls - Vertical Layout */}
-          <div className="flex flex-col items-center gap-1 pt-0.5">
+        <div className="flex items-center gap-3">
+          {/* Compact Left Controls - Horizontal Layout */}
+          <div className="flex items-center gap-2">
+            <button 
+              className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 p-0.5 rounded transition-all"
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
+              </svg>
+            </button>
             <input
               type="checkbox"
               checked={bullet.isSelected}
@@ -135,14 +143,6 @@ export default function BulletEditor({
               }}
               className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 focus:ring-2"
             />
-            <button 
-              className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 p-0.5 rounded transition-all"
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
-              </svg>
-            </button>
           </div>
 
           {/* Content */}
