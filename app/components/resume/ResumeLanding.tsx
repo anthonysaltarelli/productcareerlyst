@@ -150,7 +150,7 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="p-6 rounded-[2rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_10px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300 text-center">
             {(() => {
               const scores = Object.values(analysisScores);
@@ -175,11 +175,6 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
           <div className="p-6 rounded-[2rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_10px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 text-center">
             <p className="text-4xl font-black text-purple-600 mb-2">Good</p>
             <p className="text-sm font-bold text-gray-700">ATS Compatible</p>
-          </div>
-
-          <div className="p-6 rounded-[2rem] bg-gradient-to-br from-orange-200 to-yellow-200 shadow-[0_10px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-300 text-center">
-            <p className="text-4xl font-black text-orange-600 mb-2">1</p>
-            <p className="text-sm font-bold text-gray-700">Page Count</p>
           </div>
         </div>
 
