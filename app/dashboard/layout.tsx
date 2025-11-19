@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { UserInfoWithLogout } from '@/app/components/UserInfoWithLogout'
+import { DashboardNavigation } from '@/app/components/DashboardNavigation'
 
 export default async function DashboardLayout({
   children,
@@ -33,17 +33,7 @@ export default async function DashboardLayout({
         </div>
 
         {/* Navigation Links - Scrollable if needed */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          <NavLink href="/dashboard" label="Dashboard Home" />
-          <NavLink href="/dashboard/courses" label="Courses" />
-          <NavLink href="/dashboard/jobs" label="Job Applications" />
-          <NavLink href="/dashboard/resume" label="Resume Builder" />
-          <NavLink href="/dashboard/interview" label="Interview Coach" />
-          <NavLink href="/dashboard/career" label="Career Tracker" />
-          <NavLink href="/dashboard/portfolio" label="Impact Portfolio" />
-          <NavLink href="/dashboard/compensation" label="Compensation" />
-          <NavLink href="/dashboard/templates" label="PM Templates" />
-        </nav>
+        <DashboardNavigation />
 
         {/* User Info & Logout */}
         <UserInfoWithLogout email={user.email} />
@@ -54,17 +44,6 @@ export default async function DashboardLayout({
         {children}
       </main>
     </div>
-  )
-}
-
-const NavLink = ({ href, label }: { href: string; label: string }) => {
-  return (
-    <Link
-      href={href}
-      className="flex items-center px-4 py-3 rounded-[1rem] text-gray-300 hover:bg-slate-700 hover:text-white transition-all duration-200 font-semibold group"
-    >
-      <span>{label}</span>
-    </Link>
   )
 }
 
