@@ -4,7 +4,7 @@ import { useFlags } from 'launchdarkly-react-client-sdk'
 import Link from 'next/link'
 
 export const DashboardNavigation = () => {
-  const { coach } = useFlags()
+  const { coach, compensation, impactPortfolio, careerTracker } = useFlags()
 
   return (
     <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
@@ -13,9 +13,9 @@ export const DashboardNavigation = () => {
       <NavLink href="/dashboard/jobs" label="Job Applications" />
       <NavLink href="/dashboard/resume" label="Resume Builder" />
       {coach && <NavLink href="/dashboard/interview" label="Interview Coach" />}
-      <NavLink href="/dashboard/career" label="Career Tracker" />
-      <NavLink href="/dashboard/portfolio" label="Impact Portfolio" />
-      <NavLink href="/dashboard/compensation" label="Compensation" />
+      {careerTracker && <NavLink href="/dashboard/career" label="Career Tracker" />}
+      {impactPortfolio && <NavLink href="/dashboard/portfolio" label="Impact Portfolio" />}
+      {compensation && <NavLink href="/dashboard/compensation" label="Compensation" />}
       <NavLink href="/dashboard/templates" label="PM Templates" />
     </nav>
   )

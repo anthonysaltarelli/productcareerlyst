@@ -4,7 +4,7 @@ import { useFlags } from 'launchdarkly-react-client-sdk'
 import Link from 'next/link'
 
 export const DashboardHomeContent = () => {
-  const { coach } = useFlags()
+  const { coach, compensation, impactPortfolio, careerTracker } = useFlags()
 
   return (
     <>
@@ -36,73 +36,79 @@ export const DashboardHomeContent = () => {
         )}
 
         {/* Career Tracker */}
-        <Link href="/dashboard/career" className="group">
-          <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_12px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(147,51,234,0.3)] transition-all duration-200">
-            <div className="flex items-start gap-6 mb-6">
-              <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-purple-400 to-pink-400 shadow-[0_6px_0_0_rgba(147,51,234,0.4)] border-2 border-purple-500 flex items-center justify-center flex-shrink-0">
-                <span className="text-3xl">📊</span>
+        {careerTracker && (
+          <Link href="/dashboard/career" className="group">
+            <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_12px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(147,51,234,0.3)] transition-all duration-200">
+              <div className="flex items-start gap-6 mb-6">
+                <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-purple-400 to-pink-400 shadow-[0_6px_0_0_rgba(147,51,234,0.4)] border-2 border-purple-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">📊</span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-2">Career Progression</h3>
+                  <p className="text-gray-700 font-medium">
+                    Track your skills and roadmap to Senior PM, Principal, and beyond
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">Career Progression</h3>
-                <p className="text-gray-700 font-medium">
-                  Track your skills and roadmap to Senior PM, Principal, and beyond
-                </p>
+              <div className="flex items-center justify-between">
+                <span className="text-purple-600 font-black">View roadmap →</span>
+                <span className="text-sm font-bold text-gray-600 bg-white/60 px-3 py-1 rounded-full">
+                  Not started
+                </span>
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-purple-600 font-black">View roadmap →</span>
-              <span className="text-sm font-bold text-gray-600 bg-white/60 px-3 py-1 rounded-full">
-                Not started
-              </span>
-            </div>
-          </div>
-        </Link>
+          </Link>
+        )}
 
         {/* Impact Portfolio */}
-        <Link href="/dashboard/portfolio" className="group">
-          <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_12px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(22,163,74,0.3)] transition-all duration-200">
-            <div className="flex items-start gap-6 mb-6">
-              <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-green-400 to-emerald-400 shadow-[0_6px_0_0_rgba(22,163,74,0.4)] border-2 border-green-500 flex items-center justify-center flex-shrink-0">
-                <span className="text-3xl">🏆</span>
+        {impactPortfolio && (
+          <Link href="/dashboard/portfolio" className="group">
+            <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_12px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(22,163,74,0.3)] transition-all duration-200">
+              <div className="flex items-start gap-6 mb-6">
+                <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-green-400 to-emerald-400 shadow-[0_6px_0_0_rgba(22,163,74,0.4)] border-2 border-green-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">🏆</span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-2">Impact Portfolio</h3>
+                  <p className="text-gray-700 font-medium">
+                    Auto-document wins, metrics, and launches for promotion time
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">Impact Portfolio</h3>
-                <p className="text-gray-700 font-medium">
-                  Auto-document wins, metrics, and launches for promotion time
-                </p>
+              <div className="flex items-center justify-between">
+                <span className="text-green-600 font-black">Add achievement →</span>
+                <span className="text-sm font-bold text-gray-600 bg-white/60 px-3 py-1 rounded-full">
+                  0 wins logged
+                </span>
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-green-600 font-black">Add achievement →</span>
-              <span className="text-sm font-bold text-gray-600 bg-white/60 px-3 py-1 rounded-full">
-                0 wins logged
-              </span>
-            </div>
-          </div>
-        </Link>
+          </Link>
+        )}
 
         {/* Compensation Intel */}
-        <Link href="/dashboard/compensation" className="group">
-          <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-orange-200 to-yellow-200 shadow-[0_12px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(234,88,12,0.3)] transition-all duration-200">
-            <div className="flex items-start gap-6 mb-6">
-              <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-orange-400 to-yellow-400 shadow-[0_6px_0_0_rgba(234,88,12,0.4)] border-2 border-orange-500 flex items-center justify-center flex-shrink-0">
-                <span className="text-3xl">💰</span>
+        {compensation && (
+          <Link href="/dashboard/compensation" className="group">
+            <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-orange-200 to-yellow-200 shadow-[0_12px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(234,88,12,0.3)] transition-all duration-200">
+              <div className="flex items-start gap-6 mb-6">
+                <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-orange-400 to-yellow-400 shadow-[0_6px_0_0_rgba(234,88,12,0.4)] border-2 border-orange-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">💰</span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-2">Compensation Intelligence</h3>
+                  <p className="text-gray-700 font-medium">
+                    Real salary data and negotiation simulator for PM offers
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">Compensation Intelligence</h3>
-                <p className="text-gray-700 font-medium">
-                  Real salary data and negotiation simulator for PM offers
-                </p>
+              <div className="flex items-center justify-between">
+                <span className="text-orange-600 font-black">Check salaries →</span>
+                <span className="text-sm font-bold text-gray-600 bg-white/60 px-3 py-1 rounded-full">
+                  Unlock data
+                </span>
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-orange-600 font-black">Check salaries →</span>
-              <span className="text-sm font-bold text-gray-600 bg-white/60 px-3 py-1 rounded-full">
-                Unlock data
-              </span>
-            </div>
-          </div>
-        </Link>
+          </Link>
+        )}
 
         {/* Courses */}
         <Link href="/dashboard/courses" className="group">
