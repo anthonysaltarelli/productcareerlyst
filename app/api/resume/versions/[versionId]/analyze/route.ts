@@ -53,18 +53,13 @@ export const GET = async (
       .limit(1)
       .maybeSingle();
 
-    // Get usage info
-    const monthYear = getCurrentMonthYear();
-    const { data: usage } = await supabase
-      .from('resume_analysis_usage')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('month_year', monthYear)
-      .maybeSingle();
-
-    const usageCount = usage?.analysis_count || 0;
-    const MAX_ANALYSES_PER_MONTH = 5;
-    const remaining = Math.max(0, MAX_ANALYSES_PER_MONTH - usageCount);
+    // Get usage info from subscription system
+    const { canUseFeature } = await import('@/lib/utils/subscription');
+    const usageCheck = await canUseFeature(user.id, 'resume_bullet_optimizations');
+    
+    const usageCount = usageCheck.current;
+    const limit = usageCheck.limit === Infinity ? null : usageCheck.limit;
+    const remaining = limit === null ? Infinity : Math.max(0, limit - usageCount);
 
     // Calculate reset date
     const now = new Date();
@@ -77,7 +72,7 @@ export const GET = async (
         usage: {
           count: usageCount,
           remaining,
-          limit: MAX_ANALYSES_PER_MONTH,
+          limit: limit,
           resetDate,
         },
       });
@@ -100,7 +95,7 @@ export const GET = async (
       usage: {
         count: usageCount,
         remaining,
-        limit: MAX_ANALYSES_PER_MONTH,
+        limit: limit,
         resetDate,
       },
     });
@@ -356,69 +351,32 @@ ${resumeText}
 - Be honest but encouraging`;
 };
 
-// Check and increment usage limit
+// Check and increment usage limit using subscription system
 const checkAndIncrementUsage = async (supabase: any, userId: string): Promise<{ allowed: boolean; count: number; resetDate: string }> => {
-  const monthYear = getCurrentMonthYear();
-  const MAX_ANALYSES_PER_MONTH = 5;
-
-  // Get or create usage record
-  const { data: usage, error: fetchError } = await supabase
-    .from('resume_analysis_usage')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('month_year', monthYear)
-    .maybeSingle();
-
-  if (fetchError) {
-    throw new Error('Failed to check usage limit');
-  }
-
-  const currentCount = usage?.analysis_count || 0;
-
-  if (currentCount >= MAX_ANALYSES_PER_MONTH) {
-    // Calculate reset date (first day of next month)
-    const now = new Date();
-    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    const resetDate = nextMonth.toISOString().split('T')[0];
-
+  const { canUseFeature, incrementFeatureUsage } = await import('@/lib/utils/subscription');
+  
+  // Check if user can use resume bullet optimizations
+  const usageCheck = await canUseFeature(userId, 'resume_bullet_optimizations');
+  
+  if (!usageCheck.allowed) {
     return {
       allowed: false,
-      count: currentCount,
-      resetDate,
+      count: usageCheck.current,
+      resetDate: usageCheck.resetDate,
     };
   }
 
-  // Increment count
-  const newCount = currentCount + 1;
-  if (usage) {
-    // Update existing record
-    const { error: updateError } = await supabase
-      .from('resume_analysis_usage')
-      .update({ analysis_count: newCount })
-      .eq('id', usage.id);
-
-    if (updateError) {
-      throw new Error('Failed to update usage count');
-    }
-  } else {
-    // Create new record
-    const { error: insertError } = await supabase
-      .from('resume_analysis_usage')
-      .insert({
-        user_id: userId,
-        month_year: monthYear,
-        analysis_count: newCount,
-      });
-
-    if (insertError) {
-      throw new Error('Failed to create usage record');
-    }
+  // Increment usage
+  const { success, newCount } = await incrementFeatureUsage(userId, 'resume_bullet_optimizations');
+  
+  if (!success) {
+    throw new Error('Failed to increment usage count');
   }
 
   return {
     allowed: true,
     count: newCount,
-    resetDate: '',
+    resetDate: usageCheck.resetDate,
   };
 };
 
