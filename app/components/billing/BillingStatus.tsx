@@ -30,7 +30,24 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
 
   const isActive = subscription.status === 'active' || subscription.status === 'trialing';
   const isPastDue = subscription.status === 'past_due';
-  const willCancel = subscription.cancel_at_period_end;
+  
+  // Ensure cancel_at_period_end is properly converted to boolean
+  // Handle cases where it might be a string "true"/"false" or null/undefined from database
+  const cancelAtPeriodEnd = subscription.cancel_at_period_end as any;
+  const willCancel = Boolean(
+    cancelAtPeriodEnd === true || 
+    cancelAtPeriodEnd === 'true' ||
+    cancelAtPeriodEnd === 1
+  );
+
+  // Debug logging
+  console.log('BillingStatus - Subscription data:', {
+    cancel_at_period_end: subscription.cancel_at_period_end,
+    cancel_at_period_end_type: typeof subscription.cancel_at_period_end,
+    willCancel,
+    status: subscription.status,
+    current_period_end: subscription.current_period_end,
+  });
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -75,16 +92,23 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
           </p>
         </div>
         <div className="text-right">
-          <div
-            className={`px-4 py-2 rounded-xl font-bold ${
-              isActive
-                ? 'bg-green-100 text-green-700'
-                : isPastDue
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-gray-100 text-gray-700'
-            }`}
-          >
-            {subscription.status.toUpperCase().replace('_', ' ')}
+          <div className="flex flex-col items-end gap-2">
+            <div
+              className={`px-4 py-2 rounded-xl font-bold ${
+                isActive
+                  ? 'bg-green-100 text-green-700'
+                  : isPastDue
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-gray-100 text-gray-700'
+              }`}
+            >
+              {subscription.status.toUpperCase().replace('_', ' ')}
+            </div>
+            {willCancel && (
+              <div className="px-3 py-1 rounded-lg bg-yellow-100 text-yellow-800 text-sm font-bold">
+                Canceling on {formatDate(subscription.current_period_end)}
+              </div>
+            )}
           </div>
         </div>
       </div>

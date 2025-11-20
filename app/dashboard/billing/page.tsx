@@ -4,6 +4,7 @@ import { getUserSubscription } from '@/lib/utils/subscription';
 import { BillingStatus } from '@/app/components/billing/BillingStatus';
 import { BillingActions } from '@/app/components/billing/BillingActions';
 import { SuccessHandler } from '@/app/components/billing/SuccessHandler';
+import { AutoSyncSubscription } from '@/app/components/billing/AutoSyncSubscription';
 
 export default async function BillingPage() {
   const supabase = await createClient();
@@ -13,7 +14,17 @@ export default async function BillingPage() {
     redirect('/auth/login');
   }
 
+  // Get subscription from database
   const subscription = await getUserSubscription(user.id);
+  
+  // Debug logging
+  if (subscription) {
+    console.log('BillingPage - Subscription:', {
+      cancel_at_period_end: subscription.cancel_at_period_end,
+      cancel_at_period_end_type: typeof subscription.cancel_at_period_end,
+      status: subscription.status,
+    });
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-8 px-4">
@@ -27,6 +38,7 @@ export default async function BillingPage() {
           </p>
         </div>
 
+        <AutoSyncSubscription subscription={subscription} />
         <SuccessHandler />
         <BillingStatus subscription={subscription} />
         <BillingActions subscription={subscription} />

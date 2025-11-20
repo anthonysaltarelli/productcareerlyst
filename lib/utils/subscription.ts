@@ -60,6 +60,17 @@ export const getUserSubscription = async (userId: string): Promise<Subscription 
     return null;
   }
 
+  // Debug logging
+  if (data) {
+    console.log('getUserSubscription - Fetched subscription:', {
+      id: data.id,
+      cancel_at_period_end: data.cancel_at_period_end,
+      cancel_at_period_end_type: typeof data.cancel_at_period_end,
+      status: data.status,
+      current_period_end: data.current_period_end,
+    });
+  }
+
   return data as Subscription | null;
 };
 

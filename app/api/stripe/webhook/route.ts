@@ -162,6 +162,11 @@ async function syncSubscriptionToDatabase(
   subscription: Stripe.Subscription,
   customerId: string
 ) {
+  // Debug: Log the full subscription object to see what Stripe is returning
+  console.log('Webhook - Full Stripe subscription object:', JSON.stringify(subscription, null, 2));
+  console.log('Webhook - cancel_at_period_end from subscription:', (subscription as any).cancel_at_period_end);
+  console.log('Webhook - cancel_at from subscription:', (subscription as any).cancel_at);
+  
   const metadata = subscription.metadata;
   const userId = metadata?.user_id;
 
@@ -207,6 +212,86 @@ async function syncSubscriptionToDatabase(
 
   const status = statusMap[subscription.status] || 'incomplete';
 
+  // Helper function to safely convert timestamp to ISO string
+  // Optional fields (canceled_at, trial_start, trial_end) can be null - don't warn for those
+  const timestampToISO = (timestamp: number | null | undefined, fieldName: string, isOptional: boolean = false): string | null => {
+    if (timestamp === null || timestamp === undefined) {
+      if (!isOptional) {
+        console.warn(`Missing ${fieldName} in subscription ${subscription.id}`);
+      }
+      return null;
+    }
+    if (typeof timestamp !== 'number') {
+      console.warn(`Invalid ${fieldName} type in subscription ${subscription.id}:`, typeof timestamp);
+      return null;
+    }
+    const date = new Date(timestamp * 1000);
+    if (isNaN(date.getTime())) {
+      console.warn(`Invalid ${fieldName} date in subscription ${subscription.id}:`, timestamp);
+      return null;
+    }
+    return date.toISOString();
+  };
+
+  const sub = subscription as any;
+  
+  // Log cancel_at_period_end for debugging
+  console.log('Webhook sync - cancel_at_period_end:', {
+    subscriptionId: subscription.id,
+    cancel_at_period_end: sub.cancel_at_period_end,
+    status: subscription.status,
+    eventType: 'subscription.updated',
+  });
+  
+  // Helper to extract period dates - for flexible billing, they're on subscription items
+  const getPeriodDates = (sub: Stripe.Subscription) => {
+    const subAny = sub as any;
+    
+    // Try subscription object first
+    let start = subAny.current_period_start;
+    let end = subAny.current_period_end;
+    
+    // If not on subscription object, check subscription items (for flexible billing mode)
+    if (!start || !end) {
+      const firstItem = sub.items.data[0];
+      if (firstItem) {
+        const itemAny = firstItem as any;
+        start = itemAny.current_period_start || start;
+        end = itemAny.current_period_end || end;
+      }
+    }
+    
+    return { start, end };
+  };
+  
+  const { start: periodStartTimestamp, end: periodEndTimestamp } = getPeriodDates(subscription);
+  
+  // These are required fields - if missing, we should error, not use fallback
+  const periodStart = timestampToISO(periodStartTimestamp, 'current_period_start');
+  const periodEnd = timestampToISO(periodEndTimestamp, 'current_period_end');
+  
+  if (!periodStart || !periodEnd) {
+    console.error('Missing required period dates for subscription:', {
+      subscriptionId: subscription.id,
+      current_period_start: periodStartTimestamp,
+      current_period_end: periodEndTimestamp,
+      subscriptionObject: sub.current_period_start,
+      subscriptionObjectEnd: sub.current_period_end,
+      firstItem: subscription.items.data[0] ? {
+        start: (subscription.items.data[0] as any).current_period_start,
+        end: (subscription.items.data[0] as any).current_period_end,
+      } : null,
+    });
+    throw new Error('Subscription missing required period dates');
+  }
+
+  // For flexible billing mode, Stripe uses cancel_at instead of cancel_at_period_end
+  // If cancel_at is set and matches current_period_end (or close), treat as cancel_at_period_end
+  const cancelAt = sub.cancel_at;
+  const periodEndTimestampNum = periodEndTimestamp;
+  const isCancelingAtPeriodEnd = Boolean(sub.cancel_at_period_end) || 
+    (cancelAt && periodEndTimestampNum && Math.abs(cancelAt - periodEndTimestampNum) < 86400); // Within 24 hours
+
   const subscriptionData = {
     user_id: userId,
     stripe_customer_id: customerId,
@@ -214,12 +299,12 @@ async function syncSubscriptionToDatabase(
     plan,
     billing_cadence: billingCadence,
     status,
-    current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
-    current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
-    cancel_at_period_end: (subscription as any).cancel_at_period_end,
-    canceled_at: (subscription as any).canceled_at ? new Date((subscription as any).canceled_at * 1000).toISOString() : null,
-    trial_start: (subscription as any).trial_start ? new Date((subscription as any).trial_start * 1000).toISOString() : null,
-    trial_end: (subscription as any).trial_end ? new Date((subscription as any).trial_end * 1000).toISOString() : null,
+    current_period_start: periodStart,
+    current_period_end: periodEnd,
+    cancel_at_period_end: isCancelingAtPeriodEnd,
+    canceled_at: timestampToISO(sub.canceled_at, 'canceled_at', true), // Optional field
+    trial_start: timestampToISO(sub.trial_start, 'trial_start', true), // Optional field
+    trial_end: timestampToISO(sub.trial_end, 'trial_end', true), // Optional field
     stripe_price_id: priceId,
   };
 

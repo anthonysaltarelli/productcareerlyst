@@ -178,8 +178,83 @@ export const POST = async (request: NextRequest) => {
 
     const status = statusMap[stripeSubscription.status] || 'incomplete';
 
+    // Helper function to safely convert timestamp to ISO string
+    // Optional fields (canceled_at, trial_start, trial_end) can be null - don't warn for those
+    const timestampToISO = (timestamp: number | null | undefined, fieldName: string, isOptional: boolean = false): string | null => {
+      if (timestamp === null || timestamp === undefined) {
+        if (!isOptional) {
+          console.warn(`Missing ${fieldName} in subscription ${stripeSubscription.id}`);
+        }
+        return null;
+      }
+      if (typeof timestamp !== 'number') {
+        console.warn(`Invalid ${fieldName} type in subscription ${stripeSubscription.id}:`, typeof timestamp);
+        return null;
+      }
+      const date = new Date(timestamp * 1000);
+      if (isNaN(date.getTime())) {
+        console.warn(`Invalid ${fieldName} date in subscription ${stripeSubscription.id}:`, timestamp);
+        return null;
+      }
+      return date.toISOString();
+    };
+
     // Extract values - foundSubscription is definitely a Stripe.Subscription at runtime
     const stripeSub = foundSubscription as unknown as Stripe.Subscription;
+    const sub = stripeSub as any;
+    
+    // Helper to extract period dates - for flexible billing, they're on subscription items
+    const getPeriodDates = (subscription: Stripe.Subscription) => {
+      const subAny = subscription as any;
+      
+      // Try subscription object first
+      let start = subAny.current_period_start;
+      let end = subAny.current_period_end;
+      
+      // If not on subscription object, check subscription items (for flexible billing mode)
+      if (!start || !end) {
+        const firstItem = subscription.items.data[0];
+        if (firstItem) {
+          const itemAny = firstItem as any;
+          start = itemAny.current_period_start || start;
+          end = itemAny.current_period_end || end;
+        }
+      }
+      
+      return { start, end };
+    };
+    
+    const { start: periodStartTimestamp, end: periodEndTimestamp } = getPeriodDates(stripeSub);
+    
+    // These are required fields - if missing, we should error, not use fallback
+    const periodStart = timestampToISO(periodStartTimestamp, 'current_period_start');
+    const periodEnd = timestampToISO(periodEndTimestamp, 'current_period_end');
+    
+    if (!periodStart || !periodEnd) {
+      console.error('Missing required period dates for subscription:', {
+        subscriptionId: stripeSub.id,
+        current_period_start: periodStartTimestamp,
+        current_period_end: periodEndTimestamp,
+        subscriptionObject: sub.current_period_start,
+        subscriptionObjectEnd: sub.current_period_end,
+        firstItem: stripeSub.items.data[0] ? {
+          start: (stripeSub.items.data[0] as any).current_period_start,
+          end: (stripeSub.items.data[0] as any).current_period_end,
+        } : null,
+      });
+      return NextResponse.json(
+        { error: 'Subscription missing required period dates' },
+        { status: 400 }
+      );
+    }
+
+    // For flexible billing mode, Stripe uses cancel_at instead of cancel_at_period_end
+    // If cancel_at is set and matches current_period_end (or close), treat as cancel_at_period_end
+    const cancelAt = sub.cancel_at;
+    const periodEndTimestampNum = periodEndTimestamp;
+    const isCancelingAtPeriodEnd = Boolean(sub.cancel_at_period_end) || 
+      (cancelAt && periodEndTimestampNum && Math.abs(cancelAt - periodEndTimestampNum) < 86400); // Within 24 hours
+
     const subscriptionData = {
       user_id: user.id,
       stripe_customer_id: bubbleUser.stripe_customer_id,
@@ -187,12 +262,12 @@ export const POST = async (request: NextRequest) => {
       plan,
       billing_cadence: billingCadence,
       status,
-      current_period_start: new Date((stripeSub as any).current_period_start * 1000).toISOString(),
-      current_period_end: new Date((stripeSub as any).current_period_end * 1000).toISOString(),
-      cancel_at_period_end: (stripeSub as any).cancel_at_period_end,
-      canceled_at: (stripeSub as any).canceled_at ? new Date((stripeSub as any).canceled_at * 1000).toISOString() : null,
-      trial_start: (stripeSub as any).trial_start ? new Date((stripeSub as any).trial_start * 1000).toISOString() : null,
-      trial_end: (stripeSub as any).trial_end ? new Date((stripeSub as any).trial_end * 1000).toISOString() : null,
+      current_period_start: periodStart,
+      current_period_end: periodEnd,
+      cancel_at_period_end: isCancelingAtPeriodEnd,
+      canceled_at: timestampToISO(sub.canceled_at, 'canceled_at', true), // Optional field
+      trial_start: timestampToISO(sub.trial_start, 'trial_start', true), // Optional field
+      trial_end: timestampToISO(sub.trial_end, 'trial_end', true), // Optional field
       stripe_price_id: priceId,
       transferred_from_bubble: true,
       transferred_at: new Date().toISOString(),
