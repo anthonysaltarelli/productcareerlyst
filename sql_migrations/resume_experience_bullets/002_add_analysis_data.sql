@@ -42,3 +42,4 @@ COMMENT ON COLUMN resume_experience_bullets.analysis_data IS
   ]
 }';
 
+
