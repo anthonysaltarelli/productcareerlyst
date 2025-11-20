@@ -76,7 +76,7 @@ export const CheckoutFlow = ({ plan, billingCadence }: CheckoutFlowProps) => {
           throw new Error('Stripe failed to load');
         }
 
-        const { error: stripeError } = await stripe.redirectToCheckout({
+        const { error: stripeError } = await (stripe as any).redirectToCheckout({
           sessionId,
         });
 

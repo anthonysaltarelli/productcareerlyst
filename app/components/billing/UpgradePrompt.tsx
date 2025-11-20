@@ -5,7 +5,7 @@ import { Zap, ArrowRight } from 'lucide-react';
 
 interface UpgradePromptProps {
   feature: string;
-  currentPlan?: 'learn' | null;
+  currentPlan?: 'learn' | 'accelerate' | null;
   limit?: number | null;
   current?: number;
 }
@@ -13,8 +13,8 @@ interface UpgradePromptProps {
 export const UpgradePrompt = ({ feature, currentPlan, limit, current }: UpgradePromptProps) => {
   const router = useRouter();
 
-  if (currentPlan === 'accelerate') {
-    return null; // Already on highest plan
+  if (currentPlan === 'accelerate' || !currentPlan) {
+    return null; // Already on highest plan or no plan
   }
 
   return (

@@ -39,7 +39,7 @@ export const POST = async (request: NextRequest) => {
     }
 
     const stripe = getStripeClient();
-    const priceId = STRIPE_PRICE_IDS[plan][billingCadence as 'monthly' | 'quarterly' | 'yearly'];
+    const priceId = STRIPE_PRICE_IDS[plan as 'learn' | 'accelerate'][billingCadence as 'monthly' | 'quarterly' | 'yearly'];
 
     // Check if user already has a Stripe customer ID
     let customerId: string;

@@ -7,6 +7,7 @@ const plans = {
   learn: {
     name: 'Learn',
     description: 'Perfect for getting started',
+    popular: false,
     monthly: { price: 12, priceId: 'price_learn_monthly_12' },
     quarterly: { price: 27, priceId: 'price_learn_quarterly_27', savings: '25%' },
     yearly: { price: 84, priceId: 'price_learn_yearly_84', savings: '42%' },
