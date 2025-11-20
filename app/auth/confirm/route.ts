@@ -230,6 +230,13 @@ async function transferBubbleSubscription(userId: string, email: string) {
     return; // Silently fail for auto-transfer
   }
 
+  // For flexible billing mode, Stripe uses cancel_at instead of cancel_at_period_end
+  // If cancel_at is set and matches current_period_end (or close), treat as cancel_at_period_end
+  const cancelAt = sub.cancel_at;
+  const periodEndTimestampNum = periodEndTimestamp;
+  const isCancelingAtPeriodEnd = Boolean(sub.cancel_at_period_end) || 
+    (cancelAt && periodEndTimestampNum && Math.abs(cancelAt - periodEndTimestampNum) < 86400); // Within 24 hours
+
   const subscriptionData = {
     user_id: userId,
     stripe_customer_id: bubbleUser.stripe_customer_id,
@@ -239,7 +246,7 @@ async function transferBubbleSubscription(userId: string, email: string) {
     status,
     current_period_start: periodStart,
     current_period_end: periodEnd,
-    cancel_at_period_end: sub.cancel_at_period_end || false,
+    cancel_at_period_end: isCancelingAtPeriodEnd,
     canceled_at: timestampToISO(sub.canceled_at, 'canceled_at', true), // Optional field
     trial_start: timestampToISO(sub.trial_start, 'trial_start', true), // Optional field
     trial_end: timestampToISO(sub.trial_end, 'trial_end', true), // Optional field
