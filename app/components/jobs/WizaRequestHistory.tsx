@@ -129,7 +129,7 @@ export const WizaRequestHistory = ({
 
   return (
     <div className="p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300">
-      <h3 className="text-xl font-black text-gray-900 mb-4">Wiza Request History</h3>
+      <h3 className="text-xl font-black text-gray-900 mb-4">Contact Search History</h3>
       <div className="space-y-3">
         {allRequests.map((request) => {
           const isCurrent = request.id === currentRequestId;
@@ -153,20 +153,10 @@ export const WizaRequestHistory = ({
                         Current
                       </span>
                     )}
-                    {request.wiza_status && (
-                      <span className="text-xs text-gray-600 font-semibold">
-                        Wiza: {request.wiza_status}
-                      </span>
-                    )}
                   </div>
                   <div className="text-sm font-bold text-gray-900">
                     Search: {request.search_name}
                   </div>
-                  {request.wiza_list_id && (
-                    <div className="text-xs text-gray-600 font-medium mt-1">
-                      List ID: {request.wiza_list_id}
-                    </div>
-                  )}
                 </div>
                 <div className="text-right text-xs text-gray-600 font-medium">
                   {formatDate(request.created_at)}

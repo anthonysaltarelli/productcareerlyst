@@ -75,7 +75,7 @@ export const WizaIntegration = ({
       const newListId = data.list_id || data.id;
       
       if (!newListId) {
-        throw new Error('Failed to get list ID from Wiza');
+        throw new Error('Failed to get list ID');
       }
       
       setListId(String(newListId));
@@ -269,7 +269,7 @@ export const WizaIntegration = ({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xl font-black text-gray-900 mb-2">Wiza Integration</h3>
+        <h3 className="text-xl font-black text-gray-900 mb-2">Contact Search Integration</h3>
         <p className="text-gray-700 font-semibold text-sm mb-4">
           Step-by-step process to find and import contacts from {companyName}
         </p>
@@ -359,7 +359,7 @@ export const WizaIntegration = ({
           <div>
             <h4 className="text-lg font-black text-gray-900">Step 1: Create Prospect List</h4>
             <p className="text-sm text-gray-600 font-semibold mt-1">
-              Create a list in Wiza to search for contacts
+              Create a search to find contacts
             </p>
           </div>
           {step === 'created' || step === 'fetching' || step === 'fetched' || step === 'importing' || step === 'imported' ? (

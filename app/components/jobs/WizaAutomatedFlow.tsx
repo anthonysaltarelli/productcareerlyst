@@ -67,58 +67,28 @@ export const WizaAutomatedFlow = ({
     // Log status for debugging
     console.log('[WizaAutomatedFlow] Status:', wizaStatus, 'Attempt:', attempt);
     
-    // Map actual Wiza status values to friendly messages
-    // Based on log analysis, status progression: queued -> scraping -> resolving -> finished
-    if (statusLower.includes('queued') || statusLower === 'queued') {
-      const messages = [
-        'Getting in line...',
-        'Preparing your search...',
-        'Almost ready!',
-        'Setting things up...',
-      ];
-      return messages[attempt % messages.length];
-    }
+    // Cycle through friendly search messages regardless of status
+    // This keeps the UI simple and user-friendly
+    const searchMessages = [
+      'Searching for product managers...',
+      'Finding contacts at the company...',
+      'Looking for decision makers...',
+      'Discovering potential connections...',
+      'Scanning professional networks...',
+      'Identifying key contacts...',
+    ];
     
-    if (statusLower.includes('scraping') || statusLower === 'scraping') {
-      const messages = [
-        'Scraping LinkedIn profiles...',
-        'Finding product managers...',
-        'Searching for contacts...',
-        'Discovering potential matches...',
-      ];
-      return messages[attempt % messages.length];
-    }
-    
-    if (statusLower.includes('resolving') || statusLower === 'resolving') {
-      const messages = [
-        'Enriching contact data...',
-        'Resolving email addresses...',
-        'Validating contact information...',
-        'Finalizing contact details...',
-      ];
-      return messages[attempt % messages.length];
-    }
-    
-    if (statusLower.includes('process') || statusLower === 'processing') {
-      const messages = [
-        'Processing your request...',
-        'Working on it...',
-        'Almost there...',
-        'Hang tight...',
-      ];
-      return messages[attempt % messages.length];
-    }
-    
+    // Check if search is complete
     if (statusLower.includes('finish') || statusLower === 'finished' || statusLower === 'completed' || statusLower === 'ready') {
       return 'Search complete! Ready to import contacts.';
     }
     
     if (statusLower.includes('fail') || statusLower.includes('error')) {
-      return `Status: ${wizaStatus}`;
+      return 'Search encountered an issue.';
     }
     
-    // Default: show the actual status
-    return `Status: ${wizaStatus}`;
+    // Return cycling message based on attempt number
+    return searchMessages[attempt % searchMessages.length];
   }, []);
 
   const handleCreateList = useCallback(async () => {
@@ -521,12 +491,9 @@ export const WizaAutomatedFlow = ({
           <p className="text-gray-700 font-semibold mb-2">
             {currentListStatus ? getStatusMessage(currentListStatus, pollAttempts) : 'Searching...'}
           </p>
-          <p className="text-sm text-gray-600 font-medium">
-            Attempt {pollAttempts} of {MAX_POLL_ATTEMPTS} ({Math.round((pollAttempts / MAX_POLL_ATTEMPTS) * 100)}%)
+          <p className="text-sm text-gray-500 font-medium mt-4">
+            This usually takes between 2-5 minutes
           </p>
-          {listId && (
-            <p className="text-xs text-gray-500 font-medium mt-2">List ID: {listId}</p>
-          )}
         </div>
       )}
 
@@ -539,7 +506,7 @@ export const WizaAutomatedFlow = ({
             </svg>
           </div>
           <h3 className="text-2xl font-black text-gray-900 mb-2">Fetching Contacts</h3>
-          <p className="text-gray-700 font-semibold">Retrieving contacts from Wiza...</p>
+          <p className="text-gray-700 font-semibold">Retrieving contact information...</p>
         </div>
       )}
 
@@ -595,7 +562,7 @@ export const WizaAutomatedFlow = ({
           </div>
           <h3 className="text-2xl font-black text-gray-900 mb-2">No Contacts Found</h3>
           <p className="text-gray-700 font-semibold mb-4">
-            Wiza couldn't find any product management contacts for {companyName}.
+            We couldn't find any product management contacts for {companyName}.
           </p>
           <p className="text-sm text-gray-600 font-medium">Try using the manual flow to search with different parameters.</p>
         </div>
@@ -612,9 +579,6 @@ export const WizaAutomatedFlow = ({
           <p className="text-gray-700 font-semibold mb-4">
             The search has been running for 5 minutes. You can check the status manually.
           </p>
-          {listId && (
-            <p className="text-sm text-gray-600 font-medium mb-4">List ID: {listId}</p>
-          )}
           <button
             onClick={handleCheckStatus}
             disabled={contactsImported > 0}
