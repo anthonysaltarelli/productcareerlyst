@@ -2,46 +2,61 @@
 
 import { useEffect, useState } from 'react';
 import { Subscription } from '@/lib/utils/subscription';
+import { useRouter } from 'next/navigation';
 
 interface AutoSyncSubscriptionProps {
   subscription: Subscription | null;
 }
 
 export const AutoSyncSubscription = ({ subscription }: AutoSyncSubscriptionProps) => {
-  const [synced, setSynced] = useState(false);
+  const router = useRouter();
+  const [hasSynced, setHasSynced] = useState(false);
 
   useEffect(() => {
-    // Only sync if we have a subscription and haven't synced yet
-    if (!subscription || synced) return;
-
-    // Check if data is stale (older than 5 minutes)
-    const lastUpdated = new Date(subscription.updated_at);
-    const now = new Date();
-    const minutesSinceUpdate = (now.getTime() - lastUpdated.getTime()) / (1000 * 60);
-
-    // If data is older than 5 minutes, sync from Stripe
-    if (minutesSinceUpdate > 5) {
-      const syncSubscription = async () => {
-        try {
-          await fetch('/api/stripe/sync-subscription', {
-            method: 'POST',
-          });
-          setSynced(true);
-          // Refresh the page to show updated data
-          window.location.reload();
-        } catch (err) {
-          console.error('Auto-sync failed:', err);
-          // Don't show error to user, just log it
-        }
-      };
-
-      syncSubscription();
-    } else {
-      setSynced(true);
+    if (hasSynced) {
+      return;
     }
-  }, [subscription, synced]);
 
-  // This component doesn't render anything
+    if (!subscription) {
+      setHasSynced(true);
+      return;
+    }
+
+    let isMounted = true;
+    const syncSubscription = async () => {
+      try {
+        const response = await fetch('/api/stripe/sync-subscription', {
+          method: 'POST',
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Failed to sync subscription');
+        }
+
+        if (!isMounted) {
+          return;
+        }
+
+        setHasSynced(true);
+        router.refresh();
+      } catch (err) {
+        if (!isMounted) {
+          return;
+        }
+
+        console.error('Auto-sync failed:', err);
+        setHasSynced(true);
+      }
+    };
+
+    syncSubscription();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [hasSynced, router, subscription]);
+
   return null;
 };
 
