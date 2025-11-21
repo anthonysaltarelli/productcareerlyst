@@ -18,7 +18,9 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { companies, loading: loadingCompanies } = useCompanies(searchTerm, true);
+  // When searching, include all companies (approved and unapproved) to avoid suggesting duplicates
+  // When not searching, only show approved companies
+  const { companies, loading: loadingCompanies } = useCompanies(searchTerm, searchTerm ? undefined : true);
 
   // Form state
   const [formData, setFormData] = useState({

@@ -252,3 +252,4 @@ echo "$OUTPUT_TEXT" | jq '.'
 echo -e "\n${GREEN}Test completed successfully!${NC}"
 
 
+
