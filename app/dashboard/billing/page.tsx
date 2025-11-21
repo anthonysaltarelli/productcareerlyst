@@ -5,6 +5,8 @@ import { BillingStatus } from '@/app/components/billing/BillingStatus';
 import { BillingActions } from '@/app/components/billing/BillingActions';
 import { SuccessHandler } from '@/app/components/billing/SuccessHandler';
 import { AutoSyncSubscription } from '@/app/components/billing/AutoSyncSubscription';
+import { PlanSwitcher } from '@/app/components/billing/PlanSwitcher';
+import { InvoicesList } from '@/app/components/billing/InvoicesList';
 
 export default async function BillingPage() {
   const supabase = await createClient();
@@ -40,8 +42,22 @@ export default async function BillingPage() {
 
         <AutoSyncSubscription subscription={subscription} />
         <SuccessHandler />
-        <BillingStatus subscription={subscription} />
-        <BillingActions subscription={subscription} />
+        <div className="mb-6">
+          <BillingStatus subscription={subscription} />
+        </div>
+        {subscription && (
+          <div className="mb-6">
+            <PlanSwitcher subscription={subscription} />
+          </div>
+        )}
+        <div className="mb-6">
+          <BillingActions subscription={subscription} />
+        </div>
+        {subscription && (
+          <div className="mb-6">
+            <InvoicesList subscription={subscription} />
+          </div>
+        )}
       </div>
     </div>
   );

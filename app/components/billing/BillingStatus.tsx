@@ -1,13 +1,27 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Subscription } from '@/lib/utils/subscription';
-import { Check, X, Clock } from 'lucide-react';
+import { Check, X, Clock, DollarSign, Calendar } from 'lucide-react';
 
 interface BillingStatusProps {
   subscription: Subscription | null;
 }
 
+interface UpcomingInvoice {
+  amount_due: number;
+  currency: string | null;
+  period_start: number | null;
+  period_end: number | null;
+  next_payment_date?: number | null;
+  subtotal: number;
+  total: number;
+  description: string | null;
+}
+
 export const BillingStatus = ({ subscription }: BillingStatusProps) => {
+  const [upcomingInvoice, setUpcomingInvoice] = useState<UpcomingInvoice | null>(null);
+  const [loadingInvoice, setLoadingInvoice] = useState(true);
   if (!subscription) {
     return (
       <div className="bg-white rounded-[2.5rem] shadow-lg border-2 border-gray-200 p-8 mb-6">
@@ -49,14 +63,6 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
     current_period_end: subscription.current_period_end,
   });
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
   const planNames = {
     learn: 'Learn',
     accelerate: 'Accelerate',
@@ -68,8 +74,51 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
     yearly: 'Yearly',
   };
 
+  useEffect(() => {
+    const fetchUpcomingInvoice = async () => {
+      if (!subscription) {
+        setLoadingInvoice(false);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/billing/upcoming-invoice');
+        if (response.ok) {
+          const data = await response.json();
+          setUpcomingInvoice(data);
+        }
+      } catch (error) {
+        console.error('Error fetching upcoming invoice:', error);
+      } finally {
+        setLoadingInvoice(false);
+      }
+    };
+
+    fetchUpcomingInvoice();
+  }, [subscription]);
+
+  const formatDate = (dateInput: string | number | null) => {
+    if (!dateInput) return null;
+    const date = typeof dateInput === 'string' 
+      ? new Date(dateInput) 
+      : new Date(dateInput * 1000);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  const formatAmount = (amount: number, currency: string | null) => {
+    if (!currency) return '$0.00';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency.toUpperCase(),
+    }).format(amount / 100);
+  };
+
   return (
-    <div className="bg-white rounded-[2.5rem] shadow-lg border-2 border-gray-200 p-8 mb-6">
+    <div className="bg-white rounded-[2.5rem] shadow-lg border-2 border-gray-200 p-8">
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
@@ -106,7 +155,7 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
             </div>
             {willCancel && (
               <div className="px-3 py-1 rounded-lg bg-yellow-100 text-yellow-800 text-sm font-bold">
-                Canceling on {formatDate(subscription.current_period_end)}
+                Canceling on {formatDate(subscription.current_period_end) || 'N/A'}
               </div>
             )}
           </div>
@@ -116,7 +165,7 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
       {willCancel && (
         <div className="mb-6 p-4 rounded-xl bg-yellow-50 border-2 border-yellow-200">
           <p className="text-yellow-800 font-semibold">
-            ⚠️ Your subscription will cancel on {formatDate(subscription.current_period_end)}.
+            ⚠️ Your subscription will cancel on {formatDate(subscription.current_period_end) || 'the end of the billing period'}.
             You'll continue to have access until then.
           </p>
         </div>
@@ -130,23 +179,68 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div className="p-4 rounded-xl bg-gray-50">
           <div className="text-sm text-gray-600 font-semibold mb-1">Current Period</div>
           <div className="text-lg font-black text-gray-900">
-            {formatDate(subscription.current_period_start)} -{' '}
-            {formatDate(subscription.current_period_end)}
+            {formatDate(subscription.current_period_start) || 'N/A'} -{' '}
+            {formatDate(subscription.current_period_end) || 'N/A'}
           </div>
         </div>
         {subscription.trial_end && (
           <div className="p-4 rounded-xl bg-blue-50">
             <div className="text-sm text-blue-600 font-semibold mb-1">Trial Ends</div>
             <div className="text-lg font-black text-blue-900">
-              {formatDate(subscription.trial_end)}
+              {formatDate(subscription.trial_end) || 'N/A'}
             </div>
           </div>
         )}
       </div>
+
+      {upcomingInvoice && upcomingInvoice.amount_due > 0 && !willCancel && (
+        <div className="p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
+          <div className="flex items-center gap-3 mb-3">
+            <DollarSign className="w-5 h-5 text-purple-600" />
+            <div className="text-sm text-purple-600 font-semibold">Next Payment</div>
+          </div>
+          <div className="text-2xl font-black text-purple-900 mb-3">
+            {formatAmount(upcomingInvoice.amount_due, upcomingInvoice.currency)}
+          </div>
+          {(upcomingInvoice.next_payment_date || upcomingInvoice.period_start || upcomingInvoice.period_end) && (
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-white/50">
+              <Calendar className="w-4 h-4 text-purple-600" />
+              <div className="text-sm text-purple-600 font-semibold">Due on:</div>
+              <div className="text-base font-black text-purple-900">
+                {formatDate(upcomingInvoice.next_payment_date || upcomingInvoice.period_start || upcomingInvoice.period_end) || 'N/A'}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {upcomingInvoice && upcomingInvoice.amount_due === 0 && !willCancel && (
+        <div className="p-4 rounded-xl bg-gray-50 border-2 border-gray-200">
+          <div className="flex items-center gap-3 mb-2">
+            <DollarSign className="w-5 h-5 text-gray-600" />
+            <div className="text-sm text-gray-600 font-semibold">Next Payment</div>
+          </div>
+          <div className="text-lg font-black text-gray-700">
+            No upcoming charges
+          </div>
+        </div>
+      )}
+
+      {willCancel && (
+        <div className="p-4 rounded-xl bg-gray-50 border-2 border-gray-200">
+          <div className="flex items-center gap-3 mb-2">
+            <DollarSign className="w-5 h-5 text-gray-600" />
+            <div className="text-sm text-gray-600 font-semibold">Next Payment</div>
+          </div>
+          <div className="text-lg font-black text-gray-700">
+            No upcoming charges (subscription ending)
+          </div>
+        </div>
+      )}
     </div>
   );
 };
