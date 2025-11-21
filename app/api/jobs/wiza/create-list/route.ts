@@ -123,6 +123,13 @@ export const POST = async (request: NextRequest) => {
     const listId = responseData.id || listResponse.id;
     const wizaStatus = responseData.status || listResponse.status || 'queued';
     
+    // Log the full response structure to understand actual status values
+    console.log('[Wiza API] create-list response structure:', JSON.stringify(listResponse, null, 2));
+    console.log('[Wiza API] Initial status:', wizaStatus);
+    console.log('[Wiza API] responseData.status:', responseData.status);
+    console.log('[Wiza API] listResponse.status:', listResponse.status);
+    console.log('[Wiza API] Full responseData keys:', Object.keys(responseData));
+    
     if (!listId) {
       console.error('Wiza response missing list ID:', listResponse);
       return NextResponse.json(

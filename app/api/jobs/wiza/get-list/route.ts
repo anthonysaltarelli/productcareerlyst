@@ -34,6 +34,12 @@ export const GET = async (request: NextRequest) => {
     // Get list status from Wiza
     const listData = await getWizaListStatus(listId);
 
+    // Log the full response structure to understand actual status values
+    console.log('[Wiza API] get-list response structure:', JSON.stringify(listData, null, 2));
+    console.log('[Wiza API] listData.status:', listData.status);
+    console.log('[Wiza API] listData.data?.status:', (listData as any).data?.status);
+    console.log('[Wiza API] Full listData keys:', Object.keys(listData));
+
     return NextResponse.json({
       list_id: listId,
       list: listData,

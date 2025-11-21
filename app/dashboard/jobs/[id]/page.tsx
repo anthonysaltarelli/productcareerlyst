@@ -9,6 +9,7 @@ import { useContacts, createContact, updateContact, deleteContact } from '@/lib/
 import { ApplicationStatus, InterviewType, InterviewStatus, ContactRelationship } from '@/lib/types/jobs';
 import { EditJobModal } from '@/app/components/jobs/EditJobModal';
 import { WizaIntegration } from '@/app/components/jobs/WizaIntegration';
+import { WizaAutomatedFlow } from '@/app/components/jobs/WizaAutomatedFlow';
 
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
   wishlist: { label: 'Wishlist', color: 'text-gray-700', bgColor: 'bg-gray-50' },
@@ -34,6 +35,7 @@ export default function JobDetailPage() {
   const [showAddInterview, setShowAddInterview] = useState(false);
   const [showAddContact, setShowAddContact] = useState(false);
   const [showWizaIntegration, setShowWizaIntegration] = useState(false);
+  const [showWizaAutomated, setShowWizaAutomated] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -618,13 +620,23 @@ export default function JobDetailPage() {
               </div>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setShowWizaIntegration(true)}
+                  onClick={() => setShowWizaAutomated(true)}
                   className="px-6 py-4 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-purple-500 shadow-[0_6px_0_0_rgba(59,130,246,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(59,130,246,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  Find from Wiza
+                  Find from Wiza (Automated)
+                </button>
+                <button
+                  onClick={() => setShowWizaIntegration(true)}
+                  className="px-6 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Find from Wiza (Manual)
                 </button>
                 <button
                   onClick={() => setShowAddContact(true)}
@@ -637,6 +649,25 @@ export default function JobDetailPage() {
                 </button>
               </div>
             </div>
+
+            {/* Show automated flow if active */}
+            {showWizaAutomated && application && (
+              <div className="mb-8">
+                <WizaAutomatedFlow
+                  companyName={application.company?.name || 'Unknown Company'}
+                  companyId={application.company_id}
+                  companyLinkedinUrl={typeof application.company?.linkedin_url === 'string' 
+                    ? application.company.linkedin_url 
+                    : undefined}
+                  applicationId={application.id}
+                  onImportComplete={() => {
+                    refetchContacts();
+                    // Optionally hide the flow after success
+                    // setShowWizaAutomated(false);
+                  }}
+                />
+              </div>
+            )}
 
             <div className="grid gap-4">
               {contacts.length === 0 ? (

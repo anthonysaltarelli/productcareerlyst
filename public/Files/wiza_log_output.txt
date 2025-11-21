@@ -1,0 +1,1845 @@
+[WizaAutomatedFlow] Component mounted, isMountedRef set to true
+WizaAutomatedFlow.tsx:389 [WizaAutomatedFlow] Auto-start effect, isMountedRef set to true, status: idle
+WizaAutomatedFlow.tsx:43 [WizaAutomatedFlow] Component unmounting, cleaning up polling
+WizaAutomatedFlow.tsx:40 [WizaAutomatedFlow] Component mounted, isMountedRef set to true
+WizaAutomatedFlow.tsx:389 [WizaAutomatedFlow] Auto-start effect, isMountedRef set to true, status: idle
+WizaAutomatedFlow.tsx:343 [WizaAutomatedFlow] Starting polling for list: 4485680
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 1/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485680
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485680
+WizaAutomatedFlow.tsx:357 [WizaAutomatedFlow] Polling interval set up: 44
+WizaAutomatedFlow.tsx:343 [WizaAutomatedFlow] Starting polling for list: 4485679
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 1/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:357 [WizaAutomatedFlow] Polling interval set up: 51
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "scraping",
+    "stats": {
+      "people": 0,
+      "valid": 0,
+      "risky": 0,
+      "unfound": 0,
+      "duplicate": 0
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "scraping",
+  "stats": {
+    "people": 0,
+    "valid": 0,
+    "risky": 0,
+    "unfound": 0,
+    "duplicate": 0
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: scraping
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: scraping
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "scraping" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="scraping", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (scraping), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 1
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 1
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485680",
+  "list": {
+    "id": 4485680,
+    "name": "Product Managers at Airbnb",
+    "status": "scraping",
+    "stats": {
+      "people": 0,
+      "valid": 0,
+      "risky": 0,
+      "unfound": 0,
+      "duplicate": 0
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.947Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485680,
+  "name": "Product Managers at Airbnb",
+  "status": "scraping",
+  "stats": {
+    "people": 0,
+    "valid": 0,
+    "risky": 0,
+    "unfound": 0,
+    "duplicate": 0
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.947Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: scraping
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: scraping
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "scraping" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="scraping", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (scraping), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 1
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 1
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 2/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 2
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 2
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "scraping",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "scraping",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: scraping
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: scraping
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "scraping" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="scraping", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (scraping), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 2
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 2
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 3/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 3
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 3
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "scraping",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "scraping",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: scraping
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: scraping
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "scraping" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="scraping", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (scraping), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 3
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 3
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 4/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 4
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 4
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "scraping",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "scraping",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: scraping
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: scraping
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "scraping" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="scraping", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (scraping), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 4
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 4
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 5/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 5
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 5
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "scraping",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "scraping",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: scraping
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: scraping
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "scraping" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="scraping", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (scraping), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 5
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 5
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 6/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 6
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: scraping Attempt: 6
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 6
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 6
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 7/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 7
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 7
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 7
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 7
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 8/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 8
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 8
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 8
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 8
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 9/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 9
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 9
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 9
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 9
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 10/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 10
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 10
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 10
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 10
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 11/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 11
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 11
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 11
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 11
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 12/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 12
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 12
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 12
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 12
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 13/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 13
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 13
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 13
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 13
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 14/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 14
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 14
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 14
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 14
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 15/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 15
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 15
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 15
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 15
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 16/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 16
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 16
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 16
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 16
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 17/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 17
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 17
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 17
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 17
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 18/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 18
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 18
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 18
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 18
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 19/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 19
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 19
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 19
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 19
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 20/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 20
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 20
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 20
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 20
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 21/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 21
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 21
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 21
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 21
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 22/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 22
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 22
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 22
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 22
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 22
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 22
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 23/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 23
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 23
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 23
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 23
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 23
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 23
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 24/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 24
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 24
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 24
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 24
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 25/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 25
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 25
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 25
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 25
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 26/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 26
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 26
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 26
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 26
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 27/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 27
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 27
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 27
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 27
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 28/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 28
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 28
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 28
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 28
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 29/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 29
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 29
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 29
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 29
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 30/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 30
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 30
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 30
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 30
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 31/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 31
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 31
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 31
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 31
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 32/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 32
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 32
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "resolving",
+    "stats": {
+      "people": 10
+    },
+    "finished_at": null,
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "resolving",
+  "stats": {
+    "people": 10
+  },
+  "finished_at": null,
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: resolving
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: resolving
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "resolving" -> isComplete: false
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="resolving", isComplete=false
+WizaAutomatedFlow.tsx:324 [WizaAutomatedFlow] List not complete yet (resolving), continuing to poll...
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 32
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 32
+WizaAutomatedFlow.tsx:282 [WizaAutomatedFlow] Poll function called, isPolling: true
+WizaAutomatedFlow.tsx:292 [WizaAutomatedFlow] Polling attempt 33/60
+WizaAutomatedFlow.tsx:307 [WizaAutomatedFlow] Calling checkListStatus for list: 4485679
+WizaAutomatedFlow.tsx:141 [WizaAutomatedFlow] Fetching status for list: 4485679
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 33
+WizaAutomatedFlow.tsx:56 [WizaAutomatedFlow] Status: resolving Attempt: 33
+WizaAutomatedFlow.tsx:146 [WizaAutomatedFlow] Status response status: 200, ok: true
+WizaAutomatedFlow.tsx:155 [WizaAutomatedFlow] Raw API response: {
+  "list_id": "4485679",
+  "list": {
+    "id": 4485679,
+    "name": "Product Managers at Airbnb",
+    "status": "finished",
+    "stats": {
+      "people": 10,
+      "duplicate": null,
+      "valid": 8,
+      "risky": 1,
+      "unfound": 1,
+      "emails": 9,
+      "phones": 0,
+      "export_credits": 10,
+      "credits": {
+        "export_credits": 10
+      }
+    },
+    "finished_at": "2025-11-21T21:04:55.579Z",
+    "created_at": "2025-11-21T21:02:18.945Z",
+    "enrichment_level": "partial",
+    "email_options": {
+      "accept_work": true,
+      "accept_personal": false,
+      "accept_generic": false
+    },
+    "report_type": "people"
+  }
+}
+WizaAutomatedFlow.tsx:160 [WizaAutomatedFlow] List status response: {
+  "id": 4485679,
+  "name": "Product Managers at Airbnb",
+  "status": "finished",
+  "stats": {
+    "people": 10,
+    "duplicate": null,
+    "valid": 8,
+    "risky": 1,
+    "unfound": 1,
+    "emails": 9,
+    "phones": 0,
+    "export_credits": 10,
+    "credits": {
+      "export_credits": 10
+    }
+  },
+  "finished_at": "2025-11-21T21:04:55.579Z",
+  "created_at": "2025-11-21T21:02:18.945Z",
+  "enrichment_level": "partial",
+  "email_options": {
+    "accept_work": true,
+    "accept_personal": false,
+    "accept_generic": false
+  },
+  "report_type": "people"
+}
+WizaAutomatedFlow.tsx:161 [WizaAutomatedFlow] listData.status: finished
+WizaAutomatedFlow.tsx:162 [WizaAutomatedFlow] listData.data?.status: undefined
+WizaAutomatedFlow.tsx:163 [WizaAutomatedFlow] listData keys: (9) ['id', 'name', 'status', 'stats', 'finished_at', 'created_at', 'enrichment_level', 'email_options', 'report_type']
+WizaAutomatedFlow.tsx:173 [WizaAutomatedFlow] Extracted status: finished
+WizaAutomatedFlow.tsx:184 [WizaAutomatedFlow] Status check: "finished" -> isComplete: true
+WizaAutomatedFlow.tsx:310 [WizaAutomatedFlow] Status check result: status="finished", isComplete=true
+WizaAutomatedFlow.tsx:313 [WizaAutomatedFlow] List is complete, stopping polling and fetching contacts
