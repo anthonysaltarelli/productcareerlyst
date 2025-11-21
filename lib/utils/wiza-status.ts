@@ -146,6 +146,8 @@ export const prepareStatusUpdate = (
   stats_phones_count: number;
   contacts_found: number;
   completed_at?: string;
+  updated_at?: string;
+  error_message?: string;
   wiza_response?: any;
 } => {
   const internalStatus = mapWizaStatusToInternal(wizaStatus, stats || undefined);
