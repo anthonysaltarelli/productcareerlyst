@@ -11,6 +11,13 @@ interface WizaRequest {
   wiza_status: string | null;
   contacts_found: number;
   contacts_imported: number;
+  stats_people_count?: number;
+  stats_valid_count?: number;
+  stats_risky_count?: number;
+  stats_unfound_count?: number;
+  stats_duplicate_count?: number;
+  stats_emails_count?: number;
+  stats_phones_count?: number;
   error_message: string | null;
   created_at: string;
   completed_at: string | null;
@@ -164,7 +171,7 @@ export const WizaRequestHistory = ({
                 </div>
               </div>
               
-              <div className="flex items-center gap-4 mt-3 text-sm">
+              <div className="flex items-center gap-4 mt-3 text-sm flex-wrap">
                 {request.contacts_found > 0 && (
                   <span className="font-semibold text-gray-700">
                     Found: {request.contacts_found}
@@ -173,6 +180,21 @@ export const WizaRequestHistory = ({
                 {request.contacts_imported > 0 && (
                   <span className="font-semibold text-green-700">
                     Imported: {request.contacts_imported}
+                  </span>
+                )}
+                {request.stats_valid_count !== undefined && request.stats_valid_count > 0 && (
+                  <span className="font-semibold text-green-600">
+                    Valid: {request.stats_valid_count}
+                  </span>
+                )}
+                {request.stats_risky_count !== undefined && request.stats_risky_count > 0 && (
+                  <span className="font-semibold text-yellow-600">
+                    Risky: {request.stats_risky_count}
+                  </span>
+                )}
+                {request.stats_unfound_count !== undefined && request.stats_unfound_count > 0 && (
+                  <span className="font-semibold text-gray-500">
+                    Unfound: {request.stats_unfound_count}
                   </span>
                 )}
                 {request.completed_at && (

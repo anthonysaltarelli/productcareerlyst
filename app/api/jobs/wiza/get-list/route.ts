@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getWizaListStatus } from '@/lib/utils/wiza';
+import { extractWizaStatus, extractWizaStats, prepareStatusUpdate } from '@/lib/utils/wiza-status';
 
 /**
  * GET /api/jobs/wiza/get-list?list_id=<id>
@@ -34,11 +35,42 @@ export const GET = async (request: NextRequest) => {
     // Get list status from Wiza
     const listData = await getWizaListStatus(listId);
 
-    // Log the full response structure to understand actual status values
-    console.log('[Wiza API] get-list response structure:', JSON.stringify(listData, null, 2));
-    console.log('[Wiza API] listData.status:', listData.status);
-    console.log('[Wiza API] listData.data?.status:', (listData as any).data?.status);
-    console.log('[Wiza API] Full listData keys:', Object.keys(listData));
+    // Extract status and stats using utility functions
+    const wizaStatus = extractWizaStatus(listData);
+    const stats = extractWizaStats(listData);
+
+    // Update the database record with the latest status
+    const { data: wizaRequest } = await supabase
+      .from('wiza_requests')
+      .select('id, wiza_status, status')
+      .eq('wiza_list_id', listId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (wizaRequest) {
+      // Check if status or stats have changed
+      const statusChanged = wizaRequest.wiza_status !== wizaStatus;
+      const needsUpdate = statusChanged || wizaStatus === 'finished';
+
+      if (needsUpdate) {
+        // Prepare update data using utility function
+        const updateData = prepareStatusUpdate(wizaStatus, stats, listData);
+        updateData.updated_at = new Date().toISOString();
+
+        // Only update status if it's still processing (don't override completed/no_contacts)
+        if (wizaRequest.status !== 'completed' && wizaRequest.status !== 'no_contacts' && wizaRequest.status !== 'failed') {
+          // Status will be set by prepareStatusUpdate
+        } else {
+          // Keep existing status but update wiza_status and stats
+          updateData.status = wizaRequest.status;
+        }
+
+        await supabase
+          .from('wiza_requests')
+          .update(updateData)
+          .eq('id', wizaRequest.id);
+      }
+    }
 
     return NextResponse.json({
       list_id: listId,

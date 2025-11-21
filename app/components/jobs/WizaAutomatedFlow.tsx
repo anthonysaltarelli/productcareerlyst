@@ -3,21 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
-interface WizaRequest {
-  id: string;
-  wiza_list_id: string | null;
-  search_name: string;
-  search_type: string;
-  status: string;
-  wiza_status: string | null;
-  contacts_found: number;
-  contacts_imported: number;
-  error_message: string | null;
-  created_at: string;
-  completed_at: string | null;
-  started_at: string;
-}
-
 interface WizaAutomatedFlowProps {
   companyName: string;
   companyId: string;
@@ -47,23 +32,18 @@ export const WizaAutomatedFlow = ({
   const [contactsImported, setContactsImported] = useState<number>(0);
   const [pollAttempts, setPollAttempts] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [allRequests, setAllRequests] = useState<WizaRequest[]>([]);
-  const [currentRequestId, setCurrentRequestId] = useState<string | null>(null);
   
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef<boolean>(true);
-  const fetchingRequestsRef = useRef<boolean>(false);
 
   // Set mounted flag on mount and cleanup on unmount
   useEffect(() => {
     isMountedRef.current = true;
-    fetchingRequestsRef.current = false; // Reset fetch guard on mount
     console.log('[WizaAutomatedFlow] Component mounted, isMountedRef set to true');
     
     return () => {
       console.log('[WizaAutomatedFlow] Component unmounting, cleaning up polling');
       isMountedRef.current = false;
-      fetchingRequestsRef.current = false; // Reset fetch guard on unmount
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
         pollIntervalRef.current = null;
@@ -78,7 +58,7 @@ export const WizaAutomatedFlow = ({
     console.log('[WizaAutomatedFlow] Status:', wizaStatus, 'Attempt:', attempt);
     
     // Map actual Wiza status values to friendly messages
-    // These will be updated based on actual API responses from logging
+    // Based on log analysis, status progression: queued -> scraping -> resolving -> finished
     if (statusLower.includes('queued') || statusLower === 'queued') {
       const messages = [
         'Getting in line...',
@@ -89,12 +69,32 @@ export const WizaAutomatedFlow = ({
       return messages[attempt % messages.length];
     }
     
+    if (statusLower.includes('scraping') || statusLower === 'scraping') {
+      const messages = [
+        'Scraping LinkedIn profiles...',
+        'Finding product managers...',
+        'Searching for contacts...',
+        'Discovering potential matches...',
+      ];
+      return messages[attempt % messages.length];
+    }
+    
+    if (statusLower.includes('resolving') || statusLower === 'resolving') {
+      const messages = [
+        'Enriching contact data...',
+        'Resolving email addresses...',
+        'Validating contact information...',
+        'Finalizing contact details...',
+      ];
+      return messages[attempt % messages.length];
+    }
+    
     if (statusLower.includes('process') || statusLower === 'processing') {
       const messages = [
-        'Searching for contacts...',
-        'Scouring the web...',
-        'Finding product managers...',
-        'Looking for the perfect matches...',
+        'Processing your request...',
+        'Working on it...',
+        'Almost there...',
+        'Hang tight...',
       ];
       return messages[attempt % messages.length];
     }
@@ -137,19 +137,14 @@ export const WizaAutomatedFlow = ({
 
       const data = await response.json();
       const newListId = data.list_id || data.id;
-      const requestId = data.request_id;
       
       if (!newListId) {
         throw new Error('Failed to get list ID from Wiza');
       }
       
       setListId(String(newListId));
-      setCurrentRequestId(requestId || null);
       setStatus('polling');
       setPollAttempts(0);
-      
-      // Refresh requests list
-      await fetchAllRequests();
       
       // Start polling immediately
       startPolling(String(newListId));
@@ -201,7 +196,9 @@ export const WizaAutomatedFlow = ({
       setCurrentListStatus(wizaStatus);
       
       // Check if status indicates completion
-      // Based on API logs, status can be "queued", "processing", "finished", etc.
+      // Based on log analysis, Wiza status progression is:
+      // queued -> scraping -> resolving -> finished
+      // Only "finished" (and variants) indicates completion
       const statusLower = String(wizaStatus).toLowerCase().trim();
       const isComplete = statusLower === 'finished' || 
                         statusLower === 'completed' || 
@@ -279,9 +276,6 @@ export const WizaAutomatedFlow = ({
       
       // Call completion callback
       onImportComplete();
-      
-      // Refresh requests list
-      await fetchAllRequests();
       
       // Auto-hide after 3 seconds
       setTimeout(() => {
@@ -413,115 +407,16 @@ export const WizaAutomatedFlow = ({
     }
   }, [listId, checkListStatus, fetchAndImportContacts]);
 
-  // Fetch all requests on mount and when applicationId changes
-  const fetchAllRequests = useCallback(async () => {
-    if (!applicationId) {
-      console.log('[WizaAutomatedFlow] No applicationId, skipping fetch');
-      return;
-    }
-    
-    // Prevent duplicate concurrent fetches (with timeout safety)
-    if (fetchingRequestsRef.current) {
-      console.log('[WizaAutomatedFlow] Already fetching requests, skipping duplicate call');
-      return;
-    }
-
-    fetchingRequestsRef.current = true;
-    console.log('[WizaAutomatedFlow] Fetching requests for application_id:', applicationId);
-    
-    // Safety timeout to reset ref if fetch takes too long
-    const timeoutId = setTimeout(() => {
-      console.warn('[WizaAutomatedFlow] Fetch timeout, resetting ref');
-      fetchingRequestsRef.current = false;
-    }, 10000); // 10 second timeout
-    
-    try {
-      const response = await fetch(
-        `/api/jobs/wiza/requests?application_id=${encodeURIComponent(applicationId)}`
-      );
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        const data = await response.json();
-        const requests = data.requests || [];
-        
-        console.log('[WizaAutomatedFlow] Received requests:', requests.length);
-        
-        // Deduplicate by ID to prevent duplicate rows
-        const uniqueRequests = requests.reduce((acc: WizaRequest[], request: WizaRequest) => {
-          if (!acc.find(r => r.id === request.id)) {
-            acc.push(request);
-          }
-          return acc;
-        }, []);
-        
-        console.log('[WizaAutomatedFlow] Unique requests after deduplication:', uniqueRequests.length);
-        setAllRequests(uniqueRequests);
-      } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('[WizaAutomatedFlow] Failed to fetch requests:', response.status, errorData);
-      }
-    } catch (err) {
-      clearTimeout(timeoutId);
-      console.error('[WizaAutomatedFlow] Error fetching requests:', err);
-    } finally {
-      fetchingRequestsRef.current = false;
-    }
-  }, [applicationId]);
-
-  // Fetch requests when applicationId changes
-  useEffect(() => {
-    console.log('[WizaAutomatedFlow] applicationId effect running, applicationId:', applicationId);
-    if (applicationId) {
-      console.log('[WizaAutomatedFlow] applicationId is set, calling fetchAllRequests');
-      fetchAllRequests();
-    } else {
-      console.log('[WizaAutomatedFlow] applicationId is not set, skipping fetch');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applicationId]); // Only depend on applicationId, fetchAllRequests is stable
-
   // Auto-start on mount
   useEffect(() => {
     isMountedRef.current = true;
     console.log('[WizaAutomatedFlow] Auto-start effect, isMountedRef set to true, status:', status);
-    
-    // Note: fetchAllRequests is handled by the applicationId effect above
     
     if (status === 'idle') {
       handleCreateList();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
-
-  // Refetch requests when import completes
-  useEffect(() => {
-    if (status === 'success' || status === 'no_contacts') {
-      fetchAllRequests();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]); // Only depend on status, not fetchAllRequests to avoid unnecessary re-runs
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
-
-  const getStatusColor = (requestStatus: string) => {
-    const statusLower = requestStatus.toLowerCase();
-    if (statusLower === 'completed') return 'bg-green-100 text-green-700 border-green-400';
-    if (statusLower === 'processing') return 'bg-blue-100 text-blue-700 border-blue-400';
-    if (statusLower === 'no_contacts') return 'bg-yellow-100 text-yellow-700 border-yellow-400';
-    if (statusLower === 'failed') return 'bg-red-100 text-red-700 border-red-400';
-    return 'bg-gray-100 text-gray-700 border-gray-400';
-  };
 
   return (
     <div className="space-y-6">
@@ -659,83 +554,6 @@ export const WizaAutomatedFlow = ({
         </div>
       )}
       </div>
-
-      {/* All Wiza Requests History */}
-      {allRequests.length > 0 && (
-        <div className="p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300">
-          <h3 className="text-xl font-black text-gray-900 mb-4">Wiza Request History</h3>
-          <div className="space-y-3">
-            {allRequests.map((request) => {
-              const isCurrent = request.id === currentRequestId;
-              return (
-                <div
-                  key={request.id}
-                  className={`p-4 rounded-[1.5rem] border-2 ${
-                    isCurrent
-                      ? 'bg-blue-50 border-blue-400 shadow-[0_4px_0_0_rgba(59,130,246,0.2)]'
-                      : 'bg-gray-50 border-gray-200'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`px-3 py-1 rounded-[0.75rem] text-xs font-black border-2 ${getStatusColor(request.status)}`}>
-                          {request.status}
-                        </span>
-                        {isCurrent && (
-                          <span className="px-3 py-1 rounded-[0.75rem] text-xs font-black bg-blue-100 text-blue-700 border-2 border-blue-400">
-                            Current
-                          </span>
-                        )}
-                        {request.wiza_status && (
-                          <span className="text-xs text-gray-600 font-semibold">
-                            Wiza: {request.wiza_status}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm font-bold text-gray-900">
-                        Search: {request.search_name}
-                      </div>
-                      {request.wiza_list_id && (
-                        <div className="text-xs text-gray-600 font-medium mt-1">
-                          List ID: {request.wiza_list_id}
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-right text-xs text-gray-600 font-medium">
-                      {formatDate(request.created_at)}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 mt-3 text-sm">
-                    {request.contacts_found > 0 && (
-                      <span className="font-semibold text-gray-700">
-                        Found: {request.contacts_found}
-                      </span>
-                    )}
-                    {request.contacts_imported > 0 && (
-                      <span className="font-semibold text-green-700">
-                        Imported: {request.contacts_imported}
-                      </span>
-                    )}
-                    {request.completed_at && (
-                      <span className="text-gray-500">
-                        Completed: {formatDate(request.completed_at)}
-                      </span>
-                    )}
-                  </div>
-                  
-                  {request.error_message && (
-                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-[0.75rem] text-xs text-red-700 font-medium">
-                      {request.error_message}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

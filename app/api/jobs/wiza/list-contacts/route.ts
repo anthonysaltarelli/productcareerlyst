@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getWizaListContacts } from '@/lib/utils/wiza';
+import { getWizaListContacts, getWizaListStatus } from '@/lib/utils/wiza';
+import { extractWizaStatus, extractWizaStats, prepareStatusUpdate } from '@/lib/utils/wiza-status';
 
 /**
  * GET /api/jobs/wiza/list-contacts?list_id=<id>
@@ -40,6 +41,16 @@ export const GET = async (request: NextRequest) => {
       if (error instanceof Error && (error.message.includes('400') || error.message.includes('No contacts'))) {
         console.warn(`List ${listId} has no contacts`);
         
+        // Get list status to extract stats
+        let listData = null;
+        let stats = null;
+        try {
+          listData = await getWizaListStatus(listId);
+          stats = extractWizaStats(listData);
+        } catch (e) {
+          // If we can't get list status, continue with empty stats
+        }
+        
         // Update request status in database
         const { data: wizaRequest } = await supabase
           .from('wiza_requests')
@@ -49,14 +60,15 @@ export const GET = async (request: NextRequest) => {
           .single();
         
         if (wizaRequest) {
+          const updateData = prepareStatusUpdate('finished', stats, listData);
+          updateData.status = 'no_contacts';
+          updateData.contacts_found = 0;
+          updateData.error_message = 'No contacts found';
+          updateData.updated_at = new Date().toISOString();
+          
           await supabase
             .from('wiza_requests')
-            .update({
-              status: 'no_contacts',
-              contacts_found: 0,
-              completed_at: new Date().toISOString(),
-              error_message: 'No contacts found',
-            })
+            .update(updateData)
             .eq('id', wizaRequest.id);
         }
         
@@ -83,6 +95,16 @@ export const GET = async (request: NextRequest) => {
 
     const contacts = contactsResponse.contacts || [];
     
+    // Get list status to extract stats
+    let listData = null;
+    let stats = null;
+    try {
+      listData = await getWizaListStatus(listId);
+      stats = extractWizaStats(listData);
+    } catch (e) {
+      // If we can't get list status, continue with empty stats
+    }
+    
     // Update request in database with results
     const { data: wizaRequest } = await supabase
       .from('wiza_requests')
@@ -92,13 +114,14 @@ export const GET = async (request: NextRequest) => {
       .single();
     
     if (wizaRequest) {
+      const updateData = prepareStatusUpdate('finished', stats, listData);
+      updateData.status = contacts.length > 0 ? 'completed' : 'no_contacts';
+      updateData.contacts_found = contacts.length;
+      updateData.updated_at = new Date().toISOString();
+      
       await supabase
         .from('wiza_requests')
-        .update({
-          status: contacts.length > 0 ? 'completed' : 'no_contacts',
-          contacts_found: contacts.length,
-          completed_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', wizaRequest.id);
     }
 
