@@ -10,6 +10,7 @@ import { ApplicationStatus, InterviewType, InterviewStatus, ContactRelationship 
 import { EditJobModal } from '@/app/components/jobs/EditJobModal';
 import { WizaIntegration } from '@/app/components/jobs/WizaIntegration';
 import { WizaAutomatedFlow } from '@/app/components/jobs/WizaAutomatedFlow';
+import { WizaRequestHistory } from '@/app/components/jobs/WizaRequestHistory';
 
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
   wishlist: { label: 'Wishlist', color: 'text-gray-700', bgColor: 'bg-gray-50' },
@@ -666,6 +667,13 @@ export default function JobDetailPage() {
                     // setShowWizaAutomated(false);
                   }}
                 />
+              </div>
+            )}
+
+            {/* Always show Wiza Request History if application exists */}
+            {application && (
+              <div className="mb-8">
+                <WizaRequestHistory applicationId={application.id} />
               </div>
             )}
 
