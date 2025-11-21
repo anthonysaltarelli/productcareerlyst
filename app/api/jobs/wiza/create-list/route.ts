@@ -28,7 +28,7 @@ export const POST = async (request: NextRequest) => {
     }
 
     const body = await request.json();
-    const { company_id, company_name, company_linkedin_url, job_titles } = body;
+    const { company_id, company_name, company_linkedin_url, job_titles, application_id } = body;
     const max_profiles = 10; // Fixed to 10
 
     if (!company_id) {
@@ -139,6 +139,7 @@ export const POST = async (request: NextRequest) => {
       .insert({
         user_id: user.id,
         company_id: company_id,
+        application_id: application_id || null,
         wiza_list_id: String(listId),
         search_name: searchValue,
         search_type: searchType,

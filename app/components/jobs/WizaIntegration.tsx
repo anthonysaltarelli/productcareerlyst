@@ -62,6 +62,7 @@ export const WizaIntegration = ({
           company_id: companyId,
           company_name: companyName,
           company_linkedin_url: companyLinkedinUrl,
+          application_id: applicationId,
         }),
       });
 
