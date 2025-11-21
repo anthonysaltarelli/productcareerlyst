@@ -31,7 +31,7 @@ export default function JobDetailPage() {
   const { interviews, refetch: refetchInterviews } = useInterviews(jobId);
   const { contacts, refetch: refetchContacts } = useContacts(undefined, jobId);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'interviews' | 'contacts' | 'research' | 'documents'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'interviews' | 'contacts' | 'research'>('overview');
   const [showAddInterview, setShowAddInterview] = useState(false);
   const [showAddContact, setShowAddContact] = useState(false);
   const [showWizaAutomated, setShowWizaAutomated] = useState(false);
@@ -251,7 +251,6 @@ export default function JobDetailPage() {
     { id: 'interviews', label: 'Interviews', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', count: interviews.length },
     { id: 'contacts', label: 'Contacts', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', count: contacts.length },
     { id: 'research', label: 'Research', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-    { id: 'documents', label: 'Documents', icon: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z' },
   ];
 
   return (
@@ -729,99 +728,103 @@ export default function JobDetailPage() {
                 </div>
               ) : (
                 contacts.map((contact) => (
-                  <div key={contact.id} className="p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 hover:border-purple-400 hover:shadow-[0_10px_0_0_rgba(147,51,234,0.3)] transition-all">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-start gap-4 flex-1">
-                        {/* Avatar */}
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-[0_4px_0_0_rgba(147,51,234,0.4)] flex items-center justify-center text-white font-black text-xl flex-shrink-0">
-                          {contact.name.split(' ').map(n => n[0]).join('')}
+                  <div key={contact.id} className="p-5 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 hover:border-purple-400 hover:shadow-[0_10px_0_0_rgba(147,51,234,0.3)] transition-all">
+                    {/* Header with Avatar, Name, Title, and Relationship Tag */}
+                    <div className="flex items-start gap-4 mb-3">
+                      {/* Avatar */}
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-[0_4px_0_0_rgba(147,51,234,0.4)] flex items-center justify-center text-white font-black text-xl flex-shrink-0">
+                        {contact.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+
+                      {/* Name, Title, and Relationship */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-xl font-black text-gray-900 truncate">{contact.name}</h3>
+                            {contact.title && (
+                              <p className="text-gray-700 font-semibold text-sm mt-1 truncate">{contact.title}</p>
+                            )}
+                          </div>
+                          {contact.relationship && (
+                            <span className="px-3 py-1.5 bg-blue-100 text-blue-700 border-2 border-blue-400 rounded-[0.75rem] text-xs font-black capitalize flex-shrink-0 whitespace-nowrap">
+                              {contact.relationship.replace('_', ' ')}
+                            </span>
+                          )}
                         </div>
 
-                        <div className="flex-1">
-                          <h3 className="text-xl font-black text-gray-900">{contact.name}</h3>
-                          <p className="text-gray-700 font-semibold">{contact.title}</p>
-                        </div>
-                      </div>
-                      {contact.relationship && (
-                        <span className="px-3 py-1.5 bg-blue-100 text-blue-700 border-2 border-blue-400 rounded-[0.75rem] text-xs font-black capitalize flex-shrink-0">
-                          {contact.relationship.replace('_', ' ')}
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div className="ml-20">
-                      {/* Contact Info */}
-                      <div className="flex items-center gap-4 mb-4 text-sm font-semibold">
+                        {/* Contact Info */}
+                        <div className="flex items-center gap-4 flex-wrap text-sm font-semibold">
                           {contact.email && (
                             <a href={`mailto:${contact.email}`} className="flex items-center gap-1.5 text-gray-700 hover:text-blue-600 transition-colors">
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                               </svg>
-                              Email
+                              <span className="truncate">Email</span>
                             </a>
                           )}
                           {contact.linkedin_url && (
                             <a href={contact.linkedin_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-gray-600 hover:text-blue-600 transition-colors">
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
                               </svg>
-                              LinkedIn
+                              <span className="truncate">LinkedIn</span>
                             </a>
                           )}
                           {contact.phone && (
                             <a href={`tel:${contact.phone}`} className="flex items-center gap-1.5 text-gray-600 hover:text-blue-600 transition-colors">
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                               </svg>
-                              Phone
+                              <span className="truncate">Phone</span>
                             </a>
                           )}
+                        </div>
                       </div>
-
-                      {/* Last Contact */}
-                      {contact.last_contact_date && (
-                        <div className="text-sm text-gray-600 mb-4">
-                          Last contact: {handleFormatDate(contact.last_contact_date)}
-                        </div>
-                      )}
-
-                      {/* Interactions */}
-                      {contact.interactions && contact.interactions.length > 0 && (
-                        <div>
-                          <div className="text-sm font-bold text-gray-700 mb-2">Recent Interactions ({contact.interactions.length})</div>
-                          <div className="space-y-2">
-                            {contact.interactions.slice(0, 2).map((interaction) => (
-                                <div key={interaction.id} className="flex items-start gap-3 text-sm p-3 bg-gray-50 rounded-[1rem]">
-                                  <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    {interaction.type === 'email' && (
-                                      <svg className="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                      </svg>
-                                    )}
-                                    {interaction.type === 'linkedin' && (
-                                      <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                                      </svg>
-                                    )}
-                                    {interaction.type === 'phone' && (
-                                      <svg className="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                      </svg>
-                                    )}
-                                  </div>
-                                  <div className="flex-1">
-                                    <div className="text-gray-900 font-bold">{interaction.summary}</div>
-                                    <div className="text-xs text-gray-500">{handleFormatDate(interaction.date)}</div>
-                                    {interaction.notes && (
-                                      <div className="text-gray-600 mt-1">{interaction.notes}</div>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      )}
                     </div>
+
+                    {/* Last Contact */}
+                    {contact.last_contact_date && (
+                      <div className="text-sm text-gray-600 mb-2 pt-2 border-t border-gray-200">
+                        Last contact: {handleFormatDate(contact.last_contact_date)}
+                      </div>
+                    )}
+
+                    {/* Interactions */}
+                    {contact.interactions && contact.interactions.length > 0 && (
+                      <div className="pt-2 border-t border-gray-200">
+                        <div className="text-sm font-bold text-gray-700 mb-2">Recent Interactions ({contact.interactions.length})</div>
+                        <div className="space-y-2">
+                          {contact.interactions.slice(0, 2).map((interaction) => (
+                            <div key={interaction.id} className="flex items-start gap-3 text-sm p-3 bg-gray-50 rounded-[1rem]">
+                              <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                {interaction.type === 'email' && (
+                                  <svg className="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                  </svg>
+                                )}
+                                {interaction.type === 'linkedin' && (
+                                  <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                                  </svg>
+                                )}
+                                {interaction.type === 'phone' && (
+                                  <svg className="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                  </svg>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-gray-900 font-bold">{interaction.summary}</div>
+                                <div className="text-xs text-gray-500">{handleFormatDate(interaction.date)}</div>
+                                {interaction.notes && (
+                                  <div className="text-gray-600 mt-1">{interaction.notes}</div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))
               )}
@@ -854,17 +857,6 @@ export default function JobDetailPage() {
             </svg>
             <h3 className="text-2xl font-black text-gray-900 mb-3">Research Coming Soon</h3>
             <p className="text-gray-700 font-semibold mb-6">Company research and preparation materials will be available here</p>
-          </div>
-        )}
-
-        {/* Documents Tab */}
-        {activeTab === 'documents' && (
-          <div className="p-16 rounded-[2.5rem] bg-gradient-to-br from-gray-100 to-gray-200 shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 text-center">
-            <svg className="w-20 h-20 mx-auto text-gray-500 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-            <h3 className="text-2xl font-black text-gray-900 mb-3">Documents Coming Soon</h3>
-            <p className="text-gray-700 font-semibold mb-6">Upload and manage your resumes, cover letters, and other materials here</p>
           </div>
         )}
       </div>
