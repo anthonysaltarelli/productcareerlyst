@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useCompanies, createCompany } from '@/lib/hooks/useCompanies';
 import { createJobApplication } from '@/lib/hooks/useJobApplications';
 import { Company, ApplicationStatus, PriorityLevel, WorkMode } from '@/lib/types/jobs';
@@ -11,16 +11,103 @@ interface AddJobModalProps {
   onSuccess: () => void;
 }
 
+interface BrandfetchBrand {
+  icon?: string | null;
+  name?: string | null;
+  domain?: string;
+  claimed?: boolean;
+  brandId?: string;
+}
+
 export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [showCompanyForm, setShowCompanyForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [brandfetchBrands, setBrandfetchBrands] = useState<BrandfetchBrand[]>([]);
+  const [loadingBrandfetch, setLoadingBrandfetch] = useState(false);
 
   // When searching, include all companies (approved and unapproved) to avoid suggesting duplicates
   // When not searching, only show approved companies
   const { companies, loading: loadingCompanies } = useCompanies(searchTerm, searchTerm ? undefined : true);
+
+  // Search Brandfetch API
+  const searchBrandfetch = useCallback(async (name: string) => {
+    if (!name || name.trim().length < 2) {
+      setBrandfetchBrands([]);
+      return;
+    }
+
+    setLoadingBrandfetch(true);
+    try {
+      const response = await fetch(`/api/jobs/brandfetch/search?name=${encodeURIComponent(name)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setBrandfetchBrands(data.brands || []);
+      } else {
+        setBrandfetchBrands([]);
+      }
+    } catch (err) {
+      console.error('Error searching Brandfetch:', err);
+      setBrandfetchBrands([]);
+    } finally {
+      setLoadingBrandfetch(false);
+    }
+  }, []);
+
+  // Debounce Brandfetch search
+  useEffect(() => {
+    if (!searchTerm || searchTerm.trim().length < 2) {
+      setBrandfetchBrands([]);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      searchBrandfetch(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, searchBrandfetch]);
+
+  // Helper function to normalize strings for comparison
+  const normalizeString = (str: string | null | undefined): string => {
+    if (!str) return '';
+    return str.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+  };
+
+  // Helper function to extract domain from URL
+  const extractDomain = (url: string | null | undefined): string => {
+    if (!url) return '';
+    try {
+      // Remove protocol if present
+      let domain = url.replace(/^https?:\/\//, '').replace(/^www\./, '');
+      // Remove path
+      domain = domain.split('/')[0];
+      return normalizeString(domain);
+    } catch {
+      return normalizeString(url);
+    }
+  };
+
+  // Filter out Brandfetch brands that match existing companies
+  const filteredBrandfetchBrands = brandfetchBrands.filter((brand) => {
+    if (!brand.name) return false;
+    
+    const brandNameNormalized = normalizeString(brand.name);
+    const brandDomainNormalized = brand.domain ? extractDomain(brand.domain) : '';
+
+    // Check if any existing company matches by name or domain
+    return !companies.some((company) => {
+      const companyNameNormalized = normalizeString(company.name);
+      const companyDomainNormalized = company.website ? extractDomain(company.website) : '';
+      
+      return (
+        companyNameNormalized === brandNameNormalized ||
+        (brandDomainNormalized && companyDomainNormalized && brandDomainNormalized === companyDomainNormalized)
+      );
+    });
+  });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -74,6 +161,7 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
       setSearchTerm('');
       setShowCompanyForm(false);
       setError(null);
+      setBrandfetchBrands([]);
     }
   }, [isOpen]);
 
@@ -142,6 +230,35 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
       setSearchTerm('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create company');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSelectBrandfetchBrand = async (brand: BrandfetchBrand) => {
+    if (!brand.name) {
+      setError('Invalid brand data');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      // Create company from Brandfetch data
+      const result = await createCompany({
+        name: brand.name,
+        website: brand.domain || undefined,
+        // Brandfetch doesn't provide industry/size, so we'll use defaults
+        industry: 'technology' as const,
+        size: '51-200' as const,
+      });
+
+      setSelectedCompany(result.company);
+      setSearchTerm('');
+      setBrandfetchBrands([]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create company from Brandfetch');
     } finally {
       setIsSubmitting(false);
     }
@@ -263,37 +380,78 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
                 />
                 
                 {searchTerm && (
-                  <div className="mt-3 max-h-48 overflow-y-auto border-2 border-gray-300 rounded-[1rem] bg-white">
-                    {loadingCompanies ? (
+                  <div className="mt-3 max-h-96 overflow-y-auto border-2 border-gray-300 rounded-[1rem] bg-white">
+                    {(loadingCompanies || loadingBrandfetch) ? (
                       <div className="p-4 text-center text-gray-600 font-semibold">Searching...</div>
-                    ) : companies.length > 0 ? (
-                      companies.map((company) => (
-                        <button
-                          key={company.id}
-                          type="button"
-                          onClick={() => setSelectedCompany(company)}
-                          className="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors border-b border-gray-200 last:border-b-0"
-                        >
-                          <p className="font-bold text-gray-900">{company.name}</p>
-                          {company.website && (
-                            <p className="text-sm text-gray-600">{company.website}</p>
-                          )}
-                        </button>
-                      ))
                     ) : (
-                      <div className="p-4">
-                        <p className="text-gray-600 font-semibold mb-3">No companies found</p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setNewCompanyData({ ...newCompanyData, name: searchTerm });
-                            setShowCompanyForm(true);
-                          }}
-                          className="w-full px-4 py-2 rounded-[1rem] bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 transition-colors"
-                        >
-                          + Create "{searchTerm}"
-                        </button>
-                      </div>
+                      <>
+                        {/* Database Companies */}
+                        {companies.map((company) => (
+                          <button
+                            key={company.id}
+                            type="button"
+                            onClick={() => setSelectedCompany(company)}
+                            disabled={isSubmitting}
+                            className="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors border-b border-gray-200 last:border-b-0 disabled:opacity-50"
+                          >
+                            <p className="font-bold text-gray-900">{company.name}</p>
+                            {company.website && (
+                              <p className="text-sm text-gray-600">{company.website}</p>
+                            )}
+                          </button>
+                        ))}
+
+                        {/* Brandfetch Results (de-duplicated) */}
+                        {filteredBrandfetchBrands.map((brand, index) => (
+                          <button
+                            key={brand.brandId || `brandfetch-${index}`}
+                            type="button"
+                            onClick={() => handleSelectBrandfetchBrand(brand)}
+                            disabled={isSubmitting}
+                            className="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors border-b border-gray-200 last:border-b-0 disabled:opacity-50 flex items-center gap-3"
+                          >
+                            {brand.icon && (
+                              <img
+                                src={brand.icon}
+                                alt={brand.name || 'Brand icon'}
+                                className="w-8 h-8 object-contain flex-shrink-0"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-gray-900">{brand.name}</p>
+                              {brand.domain && (
+                                <p className="text-sm text-gray-600">{brand.domain}</p>
+                              )}
+                            </div>
+                            {brand.claimed && (
+                              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-semibold flex-shrink-0">
+                                Verified
+                              </span>
+                            )}
+                          </button>
+                        ))}
+
+                        {/* No Results */}
+                        {companies.length === 0 && filteredBrandfetchBrands.length === 0 && !loadingCompanies && !loadingBrandfetch && (
+                          <div className="p-4">
+                            <p className="text-gray-600 font-semibold mb-3">No companies found</p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setNewCompanyData({ ...newCompanyData, name: searchTerm });
+                                setShowCompanyForm(true);
+                              }}
+                              disabled={isSubmitting}
+                              className="w-full px-4 py-2 rounded-[1rem] bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 transition-colors disabled:opacity-50"
+                            >
+                              + Create "{searchTerm}"
+                            </button>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 )}
