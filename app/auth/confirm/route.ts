@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
 
     // Handle both token_hash (PKCE flow) and token (legacy flow)
+    // Note: Email templates use token_hash, so token_hash is the primary flow
     let result;
     if (token_hash) {
       result = await supabase.auth.verifyOtp({
@@ -31,10 +32,20 @@ export async function GET(request: NextRequest) {
         token_hash: token_hash,
       });
     } else if (token) {
-      result = await supabase.auth.verifyOtp({
-        type,
-        token: token,
-      });
+      // Legacy token flow requires email - try to get from URL or skip
+      // Since we're using token_hash in email templates, this is a fallback
+      const email = searchParams.get('email');
+      if (email) {
+        result = await supabase.auth.verifyOtp({
+          type,
+          token: token,
+          email: email,
+        });
+      } else {
+        // If no email provided with legacy token, redirect to error
+        redirect(`/auth/error?error=${encodeURIComponent('Email is required for token verification. Please use the link from your email.')}`)
+        return;
+      }
     } else {
       redirect(`/auth/error?error=${encodeURIComponent('No verification token provided. Please check your email and click the confirmation link.')}`)
       return;
