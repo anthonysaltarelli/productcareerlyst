@@ -9,9 +9,10 @@ interface WizaAutomatedFlowProps {
   companyLinkedinUrl?: string;
   applicationId?: string;
   onImportComplete: () => void;
+  onComplete?: () => void; // Callback to hide the component after completion
 }
 
-type FlowStatus = 'idle' | 'creating' | 'polling' | 'fetching' | 'importing' | 'success' | 'no_contacts' | 'timeout' | 'error';
+type FlowStatus = 'idle' | 'creating' | 'polling' | 'fetching' | 'importing' | 'success' | 'completed' | 'no_contacts' | 'timeout' | 'error';
 
 const POLL_INTERVAL_MS = 5000; // 5 seconds
 const MAX_POLL_ATTEMPTS = 60; // 5 minutes total
@@ -22,6 +23,7 @@ export const WizaAutomatedFlow = ({
   companyLinkedinUrl,
   applicationId,
   onImportComplete,
+  onComplete,
 }: WizaAutomatedFlowProps) => {
   console.log('[WizaAutomatedFlow] Component rendering with applicationId:', applicationId);
   
@@ -32,9 +34,13 @@ export const WizaAutomatedFlow = ({
   const [contactsImported, setContactsImported] = useState<number>(0);
   const [pollAttempts, setPollAttempts] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isFadingOut, setIsFadingOut] = useState<boolean>(false);
   
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef<boolean>(true);
+  const hasStartedRef = useRef<boolean>(false); // Prevent duplicate requests
+  const isCreatingRef = useRef<boolean>(false); // Track if a create request is in-flight
+  const autoStartLockRef = useRef<boolean>(false); // Lock to prevent double auto-start
 
   // Set mounted flag on mount and cleanup on unmount
   useEffect(() => {
@@ -44,6 +50,10 @@ export const WizaAutomatedFlow = ({
     return () => {
       console.log('[WizaAutomatedFlow] Component unmounting, cleaning up polling');
       isMountedRef.current = false;
+      // Reset hasStartedRef on unmount so component can be reused
+      hasStartedRef.current = false;
+      isCreatingRef.current = false;
+      autoStartLockRef.current = false;
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
         pollIntervalRef.current = null;
@@ -112,6 +122,30 @@ export const WizaAutomatedFlow = ({
   }, []);
 
   const handleCreateList = useCallback(async () => {
+    // Atomic check-and-set to prevent duplicate calls
+    // If refs are already set (from auto-start), we still proceed
+    const wasAlreadySet = isCreatingRef.current || hasStartedRef.current;
+    
+    if (!wasAlreadySet) {
+      // Check if another request is in flight
+      if (isCreatingRef.current) {
+        console.log('[WizaAutomatedFlow] handleCreateList called but request already in-flight');
+        return;
+      }
+      
+      // Additional guard to prevent duplicate calls
+      if (hasStartedRef.current && status !== 'idle' && status !== 'error') {
+        console.log('[WizaAutomatedFlow] handleCreateList called but already started, status:', status);
+        return;
+      }
+
+      // Set both flags atomically to prevent race conditions
+      isCreatingRef.current = true;
+      hasStartedRef.current = true;
+    } else {
+      console.log('[WizaAutomatedFlow] handleCreateList called with refs already set (from auto-start)');
+    }
+    
     setStatus('creating');
     setErrorMessage(null);
     setPollAttempts(0);
@@ -148,15 +182,22 @@ export const WizaAutomatedFlow = ({
       
       // Start polling immediately
       startPolling(String(newListId));
+      
+      // Clear the creating flag after successful creation
+      isCreatingRef.current = false;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setErrorMessage(errorMessage);
       setStatus('error');
+      // Reset both refs on error so user can retry
+      hasStartedRef.current = false;
+      isCreatingRef.current = false;
       toast.error('Failed to create list', {
         description: errorMessage,
       });
     }
-  }, [companyId, companyName, companyLinkedinUrl, applicationId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId, companyName, companyLinkedinUrl, applicationId, status]);
 
   const checkListStatus = useCallback(async (listIdToCheck: string): Promise<{ status: string; isComplete: boolean }> => {
     try {
@@ -274,15 +315,24 @@ export const WizaAutomatedFlow = ({
       
       toast.success(`Successfully imported ${importedCount} contact${importedCount !== 1 ? 's' : ''}!`);
       
-      // Call completion callback
+      // Call completion callback to refresh contacts
       onImportComplete();
       
-      // Auto-hide after 3 seconds
+      // Smoothly transition out after showing success for 2.5 seconds
       setTimeout(() => {
         if (isMountedRef.current) {
-          setStatus('idle');
+          // Trigger fade-out animation
+          setIsFadingOut(true);
+          setStatus('completed');
+          
+          // Hide component after fade-out animation completes
+          setTimeout(() => {
+            if (isMountedRef.current && onComplete) {
+              onComplete();
+            }
+          }, 500); // Wait for fade-out animation
         }
-      }, 3000);
+      }, 2500);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setErrorMessage(errorMessage);
@@ -407,21 +457,45 @@ export const WizaAutomatedFlow = ({
     }
   }, [listId, checkListStatus, fetchAndImportContacts]);
 
-  // Auto-start on mount
+  // Auto-start on mount (only once, prevent duplicates)
   useEffect(() => {
     isMountedRef.current = true;
     console.log('[WizaAutomatedFlow] Auto-start effect, isMountedRef set to true, status:', status);
     
-    if (status === 'idle') {
-      handleCreateList();
+    // Use a lock to prevent double execution - check and set atomically
+    if (autoStartLockRef.current) {
+      console.log('[WizaAutomatedFlow] Auto-start already locked, skipping');
+      return;
     }
+    
+    // Additional checks
+    if (isCreatingRef.current || hasStartedRef.current || status !== 'idle') {
+      console.log('[WizaAutomatedFlow] Skipping auto-start - isCreating:', isCreatingRef.current, 'hasStarted:', hasStartedRef.current, 'status:', status);
+      return;
+    }
+    
+    // Set lock IMMEDIATELY to prevent any other execution
+    autoStartLockRef.current = true;
+    
+    // Set refs IMMEDIATELY before calling to prevent duplicate calls
+    isCreatingRef.current = true;
+    hasStartedRef.current = true;
+    console.log('[WizaAutomatedFlow] Starting initial request (lock and refs set)');
+    handleCreateList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
+
+  // Don't render anything if status is idle
+  if (status === 'idle') {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
       {/* Current Active Flow */}
-      <div className="p-8 rounded-[2rem] bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-300">
+      <div className={`p-8 rounded-[2rem] bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-300 transition-opacity duration-500 ${
+        isFadingOut ? 'opacity-0' : 'opacity-100'
+      }`}>
       {status === 'creating' && (
         <div className="text-center">
           <div className="mb-6">
@@ -483,7 +557,7 @@ export const WizaAutomatedFlow = ({
       )}
 
       {status === 'success' && (
-        <div className="text-center">
+        <div className="text-center animate-fade-in-up">
           <div className="mb-6">
             <svg className="h-16 w-16 mx-auto text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -494,6 +568,21 @@ export const WizaAutomatedFlow = ({
             Successfully imported {contactsImported} contact{contactsImported !== 1 ? 's' : ''}!
           </p>
           <p className="text-sm text-gray-600 font-medium">Contacts are now available in your contacts list.</p>
+        </div>
+      )}
+
+      {status === 'completed' && (
+        <div className="text-center opacity-0 transition-opacity duration-500">
+          <div className="mb-6">
+            <svg className="h-16 w-16 mx-auto text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-black text-gray-900 mb-2">Complete!</h3>
+          <p className="text-gray-700 font-semibold mb-4">
+            {contactsImported} contact{contactsImported !== 1 ? 's' : ''} imported successfully.
+          </p>
+          <p className="text-sm text-gray-600 font-medium">Check the request history below for details.</p>
         </div>
       )}
 

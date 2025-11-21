@@ -27,11 +27,13 @@ interface WizaRequest {
 interface WizaRequestHistoryProps {
   applicationId: string;
   currentRequestId?: string | null;
+  refreshTrigger?: number; // Trigger refresh when this changes
 }
 
 export const WizaRequestHistory = ({
   applicationId,
   currentRequestId,
+  refreshTrigger,
 }: WizaRequestHistoryProps) => {
   const [allRequests, setAllRequests] = useState<WizaRequest[]>([]);
   const fetchingRequestsRef = useRef<boolean>(false);
@@ -112,14 +114,14 @@ export const WizaRequestHistory = ({
     }
   }, [applicationId]);
 
-  // Fetch requests when applicationId changes
+  // Fetch requests when applicationId or refreshTrigger changes
   useEffect(() => {
     console.log('[WizaRequestHistory] Component mounted/applicationId changed, applicationId:', applicationId);
     if (applicationId) {
       fetchAllRequests();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applicationId]);
+  }, [applicationId, refreshTrigger]);
 
   if (allRequests.length === 0) {
     return null;

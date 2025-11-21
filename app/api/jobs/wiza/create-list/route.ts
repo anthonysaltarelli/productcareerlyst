@@ -29,7 +29,7 @@ export const POST = async (request: NextRequest) => {
 
     const body = await request.json();
     const { company_id, company_name, company_linkedin_url, job_titles, application_id } = body;
-    const max_profiles = 10; // Fixed to 10
+    const max_profiles = 2; // Set to 2 for testing
 
     if (!company_id) {
       return NextResponse.json(
@@ -97,6 +97,130 @@ export const POST = async (request: NextRequest) => {
       filters.job_company = [{ v: searchValue, s: 'i' }];
     }
 
+    // IDEMPOTENCY CHECK: Insert pending record first, use unique constraint to prevent duplicates
+    // The unique constraint on (user_id, company_id, application_id) for pending/processing status
+    // will prevent the second insert from succeeding, causing a conflict error
+    let reservationRecord = null;
+    
+    try {
+      // Try to insert a pending reservation record FIRST
+      // If a duplicate exists (pending/processing), the unique constraint will prevent this insert
+      const { data: insertResult, error: insertError } = await supabase
+        .from('wiza_requests')
+        .insert({
+          user_id: user.id,
+          company_id: company_id,
+          application_id: application_id || null,
+          search_name: searchValue,
+          search_type: searchType,
+          max_profiles: max_profiles,
+          job_titles: titlesToSearch,
+          status: 'pending',
+          wiza_status: 'queued',
+          wiza_list_id: null, // Will be set after Wiza API call
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        // Check if it's a unique constraint violation (duplicate)
+        const isDuplicateError = insertError.code === '23505' || 
+                                 insertError.message?.includes('duplicate') ||
+                                 insertError.message?.includes('unique') ||
+                                 insertError.message?.includes('idx_wiza_requests_unique_active');
+        
+        if (isDuplicateError) {
+          console.log('[Wiza API] Duplicate detected via unique constraint violation, fetching existing request');
+          
+          // Query for the existing pending/processing request
+          let existingQuery = supabase
+            .from('wiza_requests')
+            .select('id, wiza_list_id, status, wiza_status')
+            .eq('user_id', user.id)
+            .eq('company_id', company_id)
+            .in('status', ['pending', 'processing'])
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+          if (application_id) {
+            existingQuery = existingQuery.eq('application_id', application_id);
+          } else {
+            existingQuery = existingQuery.is('application_id', null);
+          }
+
+          const { data: existingRequests } = await existingQuery;
+          
+          if (existingRequests && existingRequests.length > 0) {
+            const existing = existingRequests[0];
+            
+            // If list_id exists, return it immediately
+            if (existing.wiza_list_id) {
+              console.log('[Wiza API] Found existing request with list_id:', existing.wiza_list_id);
+              return NextResponse.json({
+                list_id: String(existing.wiza_list_id),
+                request_id: existing.id,
+                status: existing.wiza_status || 'processing',
+                message: 'Using existing prospect list (duplicate request prevented).',
+              });
+            }
+            
+            // If no list_id yet, wait for it (other request is still calling Wiza API)
+            console.log('[Wiza API] Found existing reservation, waiting for list_id...');
+            let waited = 0;
+            while (waited < 2000) {
+              await new Promise(resolve => setTimeout(resolve, 200));
+              waited += 200;
+              
+              const { data: checkResult } = await supabase
+                .from('wiza_requests')
+                .select('id, wiza_list_id, wiza_status')
+                .eq('id', existing.id)
+                .single();
+              
+              if (checkResult?.wiza_list_id) {
+                console.log('[Wiza API] Got list_id after waiting:', checkResult.wiza_list_id);
+                return NextResponse.json({
+                  list_id: String(checkResult.wiza_list_id),
+                  request_id: existing.id,
+                  status: checkResult.wiza_status || 'processing',
+                  message: 'Using existing prospect list (duplicate request prevented).',
+                });
+              }
+            }
+            
+            // Still no list_id after waiting
+            return NextResponse.json({
+              error: 'Another request is in progress. Please try again in a moment.',
+            }, { status: 409 });
+          }
+        }
+        
+        // Not a duplicate error, or couldn't find existing - return error
+        console.error('[Wiza API] Insert failed with non-duplicate error:', insertError);
+        return NextResponse.json({
+          error: 'Failed to create request. Please try again.',
+        }, { status: 500 });
+      }
+      
+      // Insert succeeded - we have a new reservation
+      reservationRecord = insertResult;
+      console.log('[Wiza API] New reservation created:', reservationRecord.id);
+      
+    } catch (error) {
+      console.error('[Wiza API] Exception in duplicate prevention:', error);
+      return NextResponse.json({
+        error: 'Failed to prevent duplicate requests. Please try again.',
+      }, { status: 500 });
+    }
+    
+    // If we don't have a reservation record, something went wrong
+    if (!reservationRecord) {
+      console.error('[Wiza API] No reservation record after insert - this should not happen');
+      return NextResponse.json({
+        error: 'Failed to create reservation. Please try again.',
+      }, { status: 500 });
+    }
+
     const enrichmentLevel: 'partial' = 'partial';
     const wizaRequest: WizaProspectListRequest = {
       list: {
@@ -113,6 +237,7 @@ export const POST = async (request: NextRequest) => {
     };
 
     // Create the list (this is async, returns immediately)
+    // Only called if no duplicate was found
     const listResponse = await createWizaProspectList(wizaRequest);
 
     // Log the response for debugging
@@ -140,28 +265,55 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
-    // Store request in database
-    const { data: wizaRequestRecord, error: dbError } = await supabase
-      .from('wiza_requests')
-      .insert({
-        user_id: user.id,
-        company_id: company_id,
-        application_id: application_id || null,
-        wiza_list_id: String(listId),
-        search_name: searchValue,
-        search_type: searchType,
-        max_profiles: max_profiles,
-        job_titles: titlesToSearch,
-        status: 'processing',
-        wiza_status: wizaStatus,
-        wiza_response: listResponse,
-      })
-      .select()
-      .single();
+    // Update the reservation record with the Wiza API response
+    let wizaRequestRecord = reservationRecord;
+    
+    if (reservationRecord && reservationRecord.id) {
+      // Update the existing reservation record
+      const { data: updatedRecord, error: updateError } = await supabase
+        .from('wiza_requests')
+        .update({
+          wiza_list_id: String(listId),
+          status: 'processing',
+          wiza_status: wizaStatus,
+          wiza_response: listResponse,
+        })
+        .eq('id', reservationRecord.id)
+        .select()
+        .single();
 
-    if (dbError) {
-      console.error('Error storing wiza request:', dbError);
-      // Don't fail the request, just log the error
+      if (updateError) {
+        console.error('[Wiza API] Error updating reservation record:', updateError);
+        wizaRequestRecord = reservationRecord; // Use original if update fails
+      } else {
+        wizaRequestRecord = updatedRecord;
+      }
+    } else {
+      // Fallback: insert new record (shouldn't happen, but handle gracefully)
+      console.warn('[Wiza API] No reservation record, inserting new record');
+      const { data: newRecord, error: insertError } = await supabase
+        .from('wiza_requests')
+        .insert({
+          user_id: user.id,
+          company_id: company_id,
+          application_id: application_id || null,
+          wiza_list_id: String(listId),
+          search_name: searchValue,
+          search_type: searchType,
+          max_profiles: max_profiles,
+          job_titles: titlesToSearch,
+          status: 'processing',
+          wiza_status: wizaStatus,
+          wiza_response: listResponse,
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('[Wiza API] Error inserting wiza request:', insertError);
+      } else {
+        wizaRequestRecord = newRecord;
+      }
     }
 
     // Return the list ID immediately - client will poll for completion

@@ -38,8 +38,10 @@ export default function JobDetailPage() {
   const [showWizaIntegration, setShowWizaIntegration] = useState(false);
   const [showWizaAutomated, setShowWizaAutomated] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isWizaButtonDisabled, setIsWizaButtonDisabled] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [wizaHistoryRefreshTrigger, setWizaHistoryRefreshTrigger] = useState(0);
 
   // Interview form state
   const [interviewForm, setInterviewForm] = useState({
@@ -621,8 +623,15 @@ export default function JobDetailPage() {
               </div>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setShowWizaAutomated(true)}
-                  className="px-6 py-4 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-purple-500 shadow-[0_6px_0_0_rgba(59,130,246,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(59,130,246,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2"
+                  onClick={() => {
+                    if (isWizaButtonDisabled) return;
+                    setIsWizaButtonDisabled(true);
+                    setShowWizaAutomated(true);
+                    // Re-enable after a short delay to prevent rapid clicks
+                    setTimeout(() => setIsWizaButtonDisabled(false), 2000);
+                  }}
+                  disabled={isWizaButtonDisabled}
+                  className="px-6 py-4 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-purple-500 shadow-[0_6px_0_0_rgba(59,130,246,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(59,130,246,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -653,7 +662,7 @@ export default function JobDetailPage() {
 
             {/* Show automated flow if active */}
             {showWizaAutomated && application && (
-              <div className="mb-8">
+              <div className="mb-8" key={`wiza-automated-${application.id}`}>
                 <WizaAutomatedFlow
                   companyName={application.company?.name || 'Unknown Company'}
                   companyId={application.company_id}
@@ -663,8 +672,15 @@ export default function JobDetailPage() {
                   applicationId={application.id}
                   onImportComplete={() => {
                     refetchContacts();
-                    // Optionally hide the flow after success
-                    // setShowWizaAutomated(false);
+                    // Trigger history refresh after a short delay to ensure DB is updated
+                    setTimeout(() => {
+                      setWizaHistoryRefreshTrigger(prev => prev + 1);
+                    }, 1000);
+                  }}
+                  onComplete={() => {
+                    // Hide the automated flow after completion animation
+                    setShowWizaAutomated(false);
+                    setIsWizaButtonDisabled(false);
                   }}
                 />
               </div>
@@ -673,7 +689,10 @@ export default function JobDetailPage() {
             {/* Always show Wiza Request History if application exists */}
             {application && (
               <div className="mb-8">
-                <WizaRequestHistory applicationId={application.id} />
+                <WizaRequestHistory 
+                  applicationId={application.id}
+                  refreshTrigger={wizaHistoryRefreshTrigger}
+                />
               </div>
             )}
 
