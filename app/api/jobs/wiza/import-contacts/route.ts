@@ -85,6 +85,14 @@ export const POST = async (request: NextRequest) => {
                          wizaContact.linkedin || 
                          null;
 
+      // Format date as "Nov 21, 2025"
+      const importDate = new Date();
+      const formattedDate = importDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+
       return {
         user_id: user.id,
         company_id: company_id,
@@ -95,7 +103,7 @@ export const POST = async (request: NextRequest) => {
         phone: wizaContact.phone || null,
         linkedin_url: linkedinUrl,
         relationship: 'team_member' as const, // Default, user can update later
-        notes: `Imported from Wiza on ${new Date().toISOString().split('T')[0]}${wizaContact.email_status === 'risky' ? ' (risky email)' : ''}`,
+        notes: `Automatically discovered and imported on ${formattedDate}${wizaContact.email_status === 'risky' ? ' (risky email)' : ''}`,
       };
     });
 

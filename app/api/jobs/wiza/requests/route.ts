@@ -30,10 +30,13 @@ export const GET = async (request: NextRequest) => {
       );
     }
 
-    // Get all Wiza requests for this application
+    // Get all Wiza requests for this application with company name
     const { data: requests, error } = await supabase
       .from('wiza_requests')
-      .select('*')
+      .select(`
+        *,
+        company:companies(name)
+      `)
       .eq('application_id', applicationId)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });

@@ -709,19 +709,9 @@ export default function JobDetailPage() {
               </div>
             )}
 
-            {/* Always show Wiza Request History if application exists */}
-            {application && (
-              <div className="mb-8">
-                <WizaRequestHistory 
-                  applicationId={application.id}
-                  refreshTrigger={wizaHistoryRefreshTrigger}
-                />
-              </div>
-            )}
-
-            <div className="grid gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {contacts.length === 0 ? (
-                <div className="p-16 rounded-[2.5rem] bg-gradient-to-br from-gray-100 to-gray-200 shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 text-center">
+                <div className="md:col-span-2 p-16 rounded-[2.5rem] bg-gradient-to-br from-gray-100 to-gray-200 shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 text-center">
                   <svg className="w-20 h-20 mx-auto text-gray-500 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
@@ -740,27 +730,28 @@ export default function JobDetailPage() {
               ) : (
                 contacts.map((contact) => (
                   <div key={contact.id} className="p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 hover:border-purple-400 hover:shadow-[0_10px_0_0_rgba(147,51,234,0.3)] transition-all">
-                    <div className="flex items-start gap-4">
-                      {/* Avatar */}
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-[0_4px_0_0_rgba(147,51,234,0.4)] flex items-center justify-center text-white font-black text-xl flex-shrink-0">
-                        {contact.name.split(' ').map(n => n[0]).join('')}
-                      </div>
-
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="text-xl font-black text-gray-900">{contact.name}</h3>
-                            <p className="text-gray-700 font-semibold">{contact.title}</p>
-                            {contact.relationship && (
-                              <span className="inline-block mt-2 px-3 py-1.5 bg-blue-100 text-blue-700 border-2 border-blue-400 rounded-[0.75rem] text-xs font-black capitalize">
-                                {contact.relationship.replace('_', ' ')}
-                              </span>
-                            )}
-                          </div>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-start gap-4 flex-1">
+                        {/* Avatar */}
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-[0_4px_0_0_rgba(147,51,234,0.4)] flex items-center justify-center text-white font-black text-xl flex-shrink-0">
+                          {contact.name.split(' ').map(n => n[0]).join('')}
                         </div>
 
-                        {/* Contact Info */}
-                        <div className="flex items-center gap-4 mb-4 text-sm font-semibold">
+                        <div className="flex-1">
+                          <h3 className="text-xl font-black text-gray-900">{contact.name}</h3>
+                          <p className="text-gray-700 font-semibold">{contact.title}</p>
+                        </div>
+                      </div>
+                      {contact.relationship && (
+                        <span className="px-3 py-1.5 bg-blue-100 text-blue-700 border-2 border-blue-400 rounded-[0.75rem] text-xs font-black capitalize flex-shrink-0">
+                          {contact.relationship.replace('_', ' ')}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="ml-20">
+                      {/* Contact Info */}
+                      <div className="flex items-center gap-4 mb-4 text-sm font-semibold">
                           {contact.email && (
                             <a href={`mailto:${contact.email}`} className="flex items-center gap-1.5 text-gray-700 hover:text-blue-600 transition-colors">
                               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -785,26 +776,21 @@ export default function JobDetailPage() {
                               Phone
                             </a>
                           )}
+                      </div>
+
+                      {/* Last Contact */}
+                      {contact.last_contact_date && (
+                        <div className="text-sm text-gray-600 mb-4">
+                          Last contact: {handleFormatDate(contact.last_contact_date)}
                         </div>
+                      )}
 
-                        {/* Last Contact */}
-                        {contact.last_contact_date && (
-                          <div className="text-sm text-gray-600 mb-4">
-                            Last contact: {handleFormatDate(contact.last_contact_date)}
-                          </div>
-                        )}
-
-                        {/* Notes */}
-                        {contact.notes && (
-                          <p className="text-sm text-gray-700 mb-4 p-3 bg-gray-50 rounded-[1rem] whitespace-pre-wrap">{contact.notes}</p>
-                        )}
-
-                        {/* Interactions */}
-                        {contact.interactions && contact.interactions.length > 0 && (
-                          <div>
-                            <div className="text-sm font-bold text-gray-700 mb-2">Recent Interactions ({contact.interactions.length})</div>
-                            <div className="space-y-2">
-                              {contact.interactions.slice(0, 2).map((interaction) => (
+                      {/* Interactions */}
+                      {contact.interactions && contact.interactions.length > 0 && (
+                        <div>
+                          <div className="text-sm font-bold text-gray-700 mb-2">Recent Interactions ({contact.interactions.length})</div>
+                          <div className="space-y-2">
+                            {contact.interactions.slice(0, 2).map((interaction) => (
                                 <div key={interaction.id} className="flex items-start gap-3 text-sm p-3 bg-gray-50 rounded-[1rem]">
                                   <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                                     {interaction.type === 'email' && (
@@ -832,15 +818,31 @@ export default function JobDetailPage() {
                                   </div>
                                 </div>
                               ))}
-                            </div>
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
               )}
             </div>
+
+            {/* Always show Wiza Request History if application exists - moved below contacts */}
+            {application && (
+              <div className="mt-8">
+                <WizaRequestHistory 
+                  applicationId={application.id}
+                  refreshTrigger={wizaHistoryRefreshTrigger}
+                  onImportComplete={() => {
+                    refetchContacts();
+                    // Trigger history refresh after a short delay to ensure DB is updated
+                    setTimeout(() => {
+                      setWizaHistoryRefreshTrigger(prev => prev + 1);
+                    }, 1000);
+                  }}
+                />
+              </div>
+            )}
           </div>
         )}
 
