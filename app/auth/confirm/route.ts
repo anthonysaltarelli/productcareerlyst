@@ -24,14 +24,23 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
 
     // Handle both token_hash (PKCE flow) and token (legacy flow)
-    const verifyParams: { type: EmailOtpType; token_hash?: string; token?: string } = { type };
+    let result;
     if (token_hash) {
-      verifyParams.token_hash = token_hash;
+      result = await supabase.auth.verifyOtp({
+        type,
+        token_hash: token_hash,
+      });
     } else if (token) {
-      verifyParams.token = token;
+      result = await supabase.auth.verifyOtp({
+        type,
+        token: token,
+      });
+    } else {
+      redirect(`/auth/error?error=${encodeURIComponent('No verification token provided. Please check your email and click the confirmation link.')}`)
+      return;
     }
 
-    const { data: { user }, error } = await supabase.auth.verifyOtp(verifyParams)
+    const { data: { user }, error } = result
     if (!error && user?.email) {
       // Check if this is a Bubble user and transfer subscription
       try {
