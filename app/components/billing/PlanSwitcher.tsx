@@ -261,7 +261,7 @@ export const PlanSwitcher = ({ subscription }: PlanSwitcherProps) => {
                       : 'border-gray-200 hover:border-purple-300'
                   } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
-                  {billingData.savings && (
+                  {'savings' in billingData && billingData.savings && (
                     <div className="absolute -top-2 -right-2 px-2 py-1 rounded-lg bg-green-500 text-white text-xs font-bold">
                       {billingData.savings} OFF
                     </div>

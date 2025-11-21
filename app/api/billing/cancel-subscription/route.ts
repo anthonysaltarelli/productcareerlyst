@@ -67,7 +67,7 @@ export const POST = async (request: NextRequest) => {
       },
     };
 
-    const updatedSubscription = await stripe.subscriptions.update(
+    const updatedSubscription: Stripe.Subscription = await stripe.subscriptions.update(
       subscription.stripe_subscription_id,
       updateParams
     );
@@ -98,14 +98,39 @@ export const POST = async (request: NextRequest) => {
       return new Date(timestamp * 1000).toISOString();
     };
 
-    const periodStart = timestampToISO(updatedSubscription.current_period_start, 'current_period_start');
-    const periodEnd = timestampToISO(updatedSubscription.current_period_end, 'current_period_end');
-    const periodEndTimestamp = updatedSubscription.current_period_end;
+    // Use type assertion to access properties that may not be in the type definition
+    const sub = updatedSubscription as any;
+
+    // Helper to extract period dates - for flexible billing, they're on subscription items
+    const getPeriodDates = (subscription: Stripe.Subscription) => {
+      const subAny = subscription as any;
+      
+      // Try subscription object first
+      let start = subAny.current_period_start;
+      let end = subAny.current_period_end;
+      
+      // If not on subscription object, check subscription items (for flexible billing mode)
+      if (!start || !end) {
+        const firstItem = subscription.items.data[0];
+        if (firstItem) {
+          const itemAny = firstItem as any;
+          start = itemAny.current_period_start || start;
+          end = itemAny.current_period_end || end;
+        }
+      }
+      
+      return { start, end };
+    };
+    
+    const { start: periodStartTimestamp, end: periodEndTimestamp } = getPeriodDates(updatedSubscription);
+    
+    const periodStart = timestampToISO(periodStartTimestamp, 'current_period_start');
+    const periodEnd = timestampToISO(periodEndTimestamp, 'current_period_end');
 
     // For flexible billing mode, Stripe uses cancel_at instead of cancel_at_period_end
-    const cancelAt = updatedSubscription.cancel_at;
+    const cancelAt = sub.cancel_at;
     const periodEndTimestampNum = periodEndTimestamp;
-    const isCancelingAtPeriodEnd = Boolean(updatedSubscription.cancel_at_period_end) || 
+    const isCancelingAtPeriodEnd = Boolean(sub.cancel_at_period_end) || 
       (cancelAt && periodEndTimestampNum && Math.abs(cancelAt - periodEndTimestampNum) < 86400);
 
     const subscriptionData = {
@@ -118,9 +143,9 @@ export const POST = async (request: NextRequest) => {
       current_period_start: periodStart,
       current_period_end: periodEnd,
       cancel_at_period_end: isCancelingAtPeriodEnd,
-      canceled_at: timestampToISO(updatedSubscription.canceled_at, 'canceled_at', true),
-      trial_start: timestampToISO(updatedSubscription.trial_start, 'trial_start', true),
-      trial_end: timestampToISO(updatedSubscription.trial_end, 'trial_end', true),
+      canceled_at: timestampToISO(sub.canceled_at, 'canceled_at', true),
+      trial_start: timestampToISO(sub.trial_start, 'trial_start', true),
+      trial_end: timestampToISO(sub.trial_end, 'trial_end', true),
       stripe_price_id: subscription.stripe_price_id,
     };
 

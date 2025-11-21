@@ -81,7 +81,7 @@ export const POST = async (request: NextRequest) => {
     const newPriceId = STRIPE_PRICE_IDS[plan as 'learn' | 'accelerate'][billingCadence as 'monthly' | 'quarterly' | 'yearly'];
 
     // Get the Stripe subscription
-    const stripeSubscription = await stripe.subscriptions.retrieve(
+    const stripeSubscription: Stripe.Subscription = await stripe.subscriptions.retrieve(
       subscription.stripe_subscription_id
     );
 
@@ -108,7 +108,7 @@ export const POST = async (request: NextRequest) => {
       updateParams.cancel_at_period_end = false;
     }
 
-    const updatedSubscription = await stripe.subscriptions.update(
+    const updatedSubscription: Stripe.Subscription = await stripe.subscriptions.update(
       subscription.stripe_subscription_id,
       updateParams
     );

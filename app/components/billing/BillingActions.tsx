@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Subscription } from '@/lib/utils/subscription';
-import { CreditCard, X, RotateCcw } from 'lucide-react';
+import { CreditCard, X, RotateCcw, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PaymentMethodUpdate } from './PaymentMethodUpdate';
 
@@ -10,11 +10,79 @@ interface BillingActionsProps {
   subscription: Subscription | null;
 }
 
+interface CancelConfirmModalProps {
+  onConfirm: () => void;
+  onCancel: () => void;
+  loading: boolean;
+}
+
+const CancelConfirmModal = ({ onConfirm, onCancel, loading }: CancelConfirmModalProps) => {
+  return (
+    <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-[2.5rem] shadow-2xl border-2 border-gray-200 p-10 max-w-2xl w-full">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-red-100 to-orange-100">
+              <AlertTriangle className="w-7 h-7 text-red-600" />
+            </div>
+            <div>
+              <h2 className="text-3xl font-black text-gray-900">Cancel Subscription</h2>
+              <p className="text-sm text-gray-600 font-semibold mt-1">
+                Are you sure you want to cancel?
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
+            aria-label="Close"
+            tabIndex={0}
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="space-y-6 mb-8">
+          <div className="p-5 rounded-xl bg-yellow-50 border-2 border-yellow-200">
+            <p className="text-yellow-800 font-semibold">
+              You will continue to have access to all features until the end of your current billing period.
+            </p>
+          </div>
+          <p className="text-gray-700 font-semibold">
+            After your subscription ends, you'll lose access to premium features. You can reactivate at any time before the period ends.
+          </p>
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={loading}
+            className="flex-1 px-8 py-4 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base"
+          >
+            Keep Subscription
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={loading}
+            className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold hover:from-red-700 hover:to-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base shadow-lg hover:shadow-xl"
+          >
+            {loading ? 'Processing...' : 'Yes, Cancel Subscription'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const BillingActions = ({ subscription }: BillingActionsProps) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPaymentUpdate, setShowPaymentUpdate] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Ensure cancel_at_period_end is properly converted to boolean
@@ -25,11 +93,11 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
     cancelAtPeriodEnd === 1
   );
 
-  const handleCancelSubscription = async () => {
-    if (!confirm('Are you sure you want to cancel your subscription? You will continue to have access until the end of your billing period.')) {
-      return;
-    }
+  const handleCancelClick = () => {
+    setShowCancelConfirm(true);
+  };
 
+  const handleCancelConfirm = async () => {
     setLoading(true);
     setError(null);
     setSuccessMessage(null);
@@ -49,6 +117,7 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
       }
 
       setSuccessMessage('Your subscription will be canceled at the end of the current billing period.');
+      setShowCancelConfirm(false);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -113,13 +182,13 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="flex gap-4">
           <button
             onClick={handlePaymentMethodUpdate}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:from-purple-700 hover:to-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-purple-200"
           >
-            <CreditCard className="w-5 h-5" />
+            <CreditCard className="w-4 h-4" />
             Update Payment Method
           </button>
 
@@ -127,19 +196,19 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
             <button
               onClick={handleReactivateSubscription}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold hover:from-green-700 hover:to-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-green-100 text-green-700 font-bold hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-green-200"
             >
-              <RotateCcw className="w-5 h-5" />
+              <RotateCcw className="w-4 h-4" />
               {loading ? 'Reactivating...' : 'Reactivate Subscription'}
             </button>
           ) : (
             <button
-              onClick={handleCancelSubscription}
+              onClick={handleCancelClick}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold hover:from-red-700 hover:to-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-red-100 text-red-700 font-bold hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-red-200"
             >
-              <X className="w-5 h-5" />
-              {loading ? 'Processing...' : 'Cancel Subscription'}
+              <X className="w-4 h-4" />
+              Cancel Subscription
             </button>
           )}
         </div>
@@ -149,6 +218,14 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
         <PaymentMethodUpdate
           onClose={() => setShowPaymentUpdate(false)}
           onSuccess={handlePaymentUpdateSuccess}
+        />
+      )}
+
+      {showCancelConfirm && (
+        <CancelConfirmModal
+          onConfirm={handleCancelConfirm}
+          onCancel={() => setShowCancelConfirm(false)}
+          loading={loading}
         />
       )}
     </>

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getStripeClient } from '@/lib/stripe/client';
+import Stripe from 'stripe';
+
+// Type alias to avoid conflict with our Subscription interface
+type StripeSubscription = Stripe.Subscription;
 
 export const GET = async (request: NextRequest) => {
   try {
@@ -35,7 +39,7 @@ export const GET = async (request: NextRequest) => {
 
     try {
       // Get the subscription from Stripe to get price information
-      const stripeSubscription = await stripe.subscriptions.retrieve(
+      const stripeSubscription: StripeSubscription = await stripe.subscriptions.retrieve(
         subscription.stripe_subscription_id
       );
 
@@ -68,7 +72,9 @@ export const GET = async (request: NextRequest) => {
 
       const amount = price.unit_amount;
       const currency = price.currency || 'usd';
-      const currentPeriodEnd = stripeSubscription.current_period_end;
+      // Use type assertion to access properties that may not be in the type definition
+      const sub = stripeSubscription as any;
+      const currentPeriodEnd = sub.current_period_end;
 
       // Calculate next period end based on billing interval
       const interval = price.recurring?.interval || 'month';
