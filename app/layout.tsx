@@ -14,6 +14,7 @@ import { ConditionalLayout } from "./components/ConditionalLayout";
 import { Navigation } from "./components/Navigation";
 import { Footer } from "./components/Footer";
 import { LaunchDarklyProvider } from "./components/LaunchDarklyProvider";
+import { Toaster } from "sonner";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -77,6 +78,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${plusJakartaSans.variable} ${inter.variable} ${lato.variable} ${roboto.variable} ${openSans.variable} ${sourceSans.variable} ${ptSerif.variable} ${crimsonText.variable} antialiased`}>
+        <Toaster position="top-right" richColors />
         <LaunchDarklyProvider>
           <ConditionalLayout
             navigation={<Navigation />}

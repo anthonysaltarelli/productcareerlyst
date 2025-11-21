@@ -8,6 +8,7 @@ import { useInterviews, createInterview, updateInterview, deleteInterview } from
 import { useContacts, createContact, updateContact, deleteContact } from '@/lib/hooks/useContacts';
 import { ApplicationStatus, InterviewType, InterviewStatus, ContactRelationship } from '@/lib/types/jobs';
 import { EditJobModal } from '@/app/components/jobs/EditJobModal';
+import { WizaIntegration } from '@/app/components/jobs/WizaIntegration';
 
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
   wishlist: { label: 'Wishlist', color: 'text-gray-700', bgColor: 'bg-gray-50' },
@@ -32,6 +33,7 @@ export default function JobDetailPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'interviews' | 'contacts' | 'research' | 'documents'>('overview');
   const [showAddInterview, setShowAddInterview] = useState(false);
   const [showAddContact, setShowAddContact] = useState(false);
+  const [showWizaIntegration, setShowWizaIntegration] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -614,15 +616,26 @@ export default function JobDetailPage() {
                 <h2 className="text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">Contacts & Networking 👥</h2>
                 <p className="text-gray-700 font-semibold mt-2">Manage your professional connections for this opportunity</p>
               </div>
-              <button
-                onClick={() => setShowAddContact(true)}
-                className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Add Contact
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowWizaIntegration(true)}
+                  className="px-6 py-4 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-purple-500 shadow-[0_6px_0_0_rgba(59,130,246,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(59,130,246,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Find from Wiza
+                </button>
+                <button
+                  onClick={() => setShowAddContact(true)}
+                  className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add Contact
+                </button>
+              </div>
             </div>
 
             <div className="grid gap-4">
@@ -1053,6 +1066,38 @@ export default function JobDetailPage() {
                 {isSubmitting ? 'Adding...' : 'Add Contact'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Wiza Integration Popover */}
+      {showWizaIntegration && application && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="rounded-[2.5rem] bg-white shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 max-w-4xl w-full p-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">Wiza Integration 🔍</h2>
+              <button
+                onClick={() => setShowWizaIntegration(false)}
+                className="text-gray-600 hover:text-gray-900 transition-colors p-2 hover:bg-gray-100 rounded-[1rem]"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <WizaIntegration
+              companyName={application.company?.name || 'Unknown Company'}
+              companyId={application.company_id}
+              companyLinkedinUrl={typeof application.company?.linkedin_url === 'string' 
+                ? application.company.linkedin_url 
+                : undefined}
+              applicationId={application.id}
+              onImportComplete={() => {
+                setShowWizaIntegration(false);
+                refetchContacts();
+              }}
+            />
           </div>
         </div>
       )}
