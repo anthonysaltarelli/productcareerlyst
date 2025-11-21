@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useJobApplication } from '@/lib/hooks/useJobApplications';
@@ -8,7 +8,6 @@ import { useInterviews, createInterview, updateInterview, deleteInterview } from
 import { useContacts, createContact, updateContact, deleteContact } from '@/lib/hooks/useContacts';
 import { ApplicationStatus, InterviewType, InterviewStatus, ContactRelationship } from '@/lib/types/jobs';
 import { EditJobModal } from '@/app/components/jobs/EditJobModal';
-import { WizaIntegration } from '@/app/components/jobs/WizaIntegration';
 import { WizaAutomatedFlow } from '@/app/components/jobs/WizaAutomatedFlow';
 import { WizaRequestHistory } from '@/app/components/jobs/WizaRequestHistory';
 
@@ -35,13 +34,14 @@ export default function JobDetailPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'interviews' | 'contacts' | 'research' | 'documents'>('overview');
   const [showAddInterview, setShowAddInterview] = useState(false);
   const [showAddContact, setShowAddContact] = useState(false);
-  const [showWizaIntegration, setShowWizaIntegration] = useState(false);
   const [showWizaAutomated, setShowWizaAutomated] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isWizaButtonDisabled, setIsWizaButtonDisabled] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [wizaHistoryRefreshTrigger, setWizaHistoryRefreshTrigger] = useState(0);
+  const [wizaRequests, setWizaRequests] = useState<any[]>([]);
+  const [isLoadingWizaRequests, setIsLoadingWizaRequests] = useState(false);
 
   // Interview form state
   const [interviewForm, setInterviewForm] = useState({
@@ -65,6 +65,36 @@ export default function JobDetailPage() {
     relationship: 'team_member' as ContactRelationship,
     notes: '',
   });
+
+  // Fetch Wiza requests to check if user has already imported or has one in progress
+  useEffect(() => {
+    const fetchWizaRequests = async () => {
+      if (!application?.id) return;
+      
+      setIsLoadingWizaRequests(true);
+      try {
+        const response = await fetch(
+          `/api/jobs/wiza/requests?application_id=${encodeURIComponent(application.id)}`
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          setWizaRequests(data.requests || []);
+        }
+      } catch (err) {
+        console.error('Error fetching Wiza requests:', err);
+      } finally {
+        setIsLoadingWizaRequests(false);
+      }
+    };
+
+    fetchWizaRequests();
+  }, [application?.id, wizaHistoryRefreshTrigger]);
+
+  // Check if user has completed or has a request in progress
+  const hasCompletedOrInProgressRequest = wizaRequests.some(
+    (request) => request.status === 'completed' || request.status === 'processing'
+  );
 
   if (loading) {
     return (
@@ -622,32 +652,24 @@ export default function JobDetailPage() {
                 <p className="text-gray-700 font-semibold mt-2">Manage your professional connections for this opportunity</p>
               </div>
               <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    if (isWizaButtonDisabled) return;
-                    setIsWizaButtonDisabled(true);
-                    setShowWizaAutomated(true);
-                    // Re-enable after a short delay to prevent rapid clicks
-                    setTimeout(() => setIsWizaButtonDisabled(false), 2000);
-                  }}
-                  disabled={isWizaButtonDisabled}
-                  className="px-6 py-4 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-purple-500 shadow-[0_6px_0_0_rgba(59,130,246,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(59,130,246,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  Find from Wiza (Automated)
-                </button>
-                <button
-                  onClick={() => setShowWizaIntegration(true)}
-                  className="px-6 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Find from Wiza (Manual)
-                </button>
+                {!hasCompletedOrInProgressRequest && !showWizaAutomated && (
+                  <button
+                    onClick={() => {
+                      if (isWizaButtonDisabled) return;
+                      setIsWizaButtonDisabled(true);
+                      setShowWizaAutomated(true);
+                      // Re-enable after a short delay to prevent rapid clicks
+                      setTimeout(() => setIsWizaButtonDisabled(false), 2000);
+                    }}
+                    disabled={isWizaButtonDisabled || isLoadingWizaRequests}
+                    className="px-6 py-4 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-purple-500 shadow-[0_6px_0_0_rgba(59,130,246,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(59,130,246,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Find from Wiza (Automated)
+                  </button>
+                )}
                 <button
                   onClick={() => setShowAddContact(true)}
                   className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2"
@@ -673,6 +695,7 @@ export default function JobDetailPage() {
                   onImportComplete={() => {
                     refetchContacts();
                     // Trigger history refresh after a short delay to ensure DB is updated
+                    // This will also trigger the useEffect to refresh Wiza requests
                     setTimeout(() => {
                       setWizaHistoryRefreshTrigger(prev => prev + 1);
                     }, 1000);
@@ -1124,38 +1147,6 @@ export default function JobDetailPage() {
                 {isSubmitting ? 'Adding...' : 'Add Contact'}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Wiza Integration Popover */}
-      {showWizaIntegration && application && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="rounded-[2.5rem] bg-white shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 max-w-4xl w-full p-8 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">Wiza Integration 🔍</h2>
-              <button
-                onClick={() => setShowWizaIntegration(false)}
-                className="text-gray-600 hover:text-gray-900 transition-colors p-2 hover:bg-gray-100 rounded-[1rem]"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <WizaIntegration
-              companyName={application.company?.name || 'Unknown Company'}
-              companyId={application.company_id}
-              companyLinkedinUrl={typeof application.company?.linkedin_url === 'string' 
-                ? application.company.linkedin_url 
-                : undefined}
-              applicationId={application.id}
-              onImportComplete={() => {
-                setShowWizaIntegration(false);
-                refetchContacts();
-              }}
-            />
           </div>
         </div>
       )}
