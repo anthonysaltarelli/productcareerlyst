@@ -101,46 +101,52 @@ const PaymentForm = ({ onClose, onSuccess }: PaymentMethodUpdateProps) => {
   const cardElementOptions = {
     style: {
       base: {
-        fontSize: '16px',
-        color: '#424770',
+        fontSize: '18px',
+        color: '#1f2937',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
         '::placeholder': {
-          color: '#aab7c4',
+          color: '#9ca3af',
         },
       },
       invalid: {
-        color: '#9e2146',
+        color: '#dc2626',
       },
     },
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-8">
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 border-2 border-red-200">
-          <p className="text-red-700 font-semibold text-sm">{error}</p>
+        <div className="p-5 rounded-xl bg-red-50 border-2 border-red-200">
+          <p className="text-red-700 font-semibold">{error}</p>
         </div>
       )}
 
-      <div className="p-4 rounded-xl border-2 border-gray-200 bg-white">
-        <label className="block text-sm font-bold text-gray-700 mb-2">
+      <div className="space-y-3">
+        <label className="block text-base font-bold text-gray-900">
           Card Details
         </label>
-        <CardElement options={cardElementOptions} />
+        <div className="p-6 rounded-xl border-2 border-gray-300 bg-white focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-200 transition-all">
+          <CardElement options={cardElementOptions} />
+        </div>
+        <p className="text-sm text-gray-500">
+          Your payment information is secure and encrypted
+        </p>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex gap-4 pt-4">
         <button
           type="button"
           onClick={onClose}
           disabled={loading}
-          className="flex-1 px-6 py-3 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 px-8 py-4 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={loading || !stripe || !clientSecret}
-          className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:from-purple-700 hover:to-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:from-purple-700 hover:to-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base shadow-lg hover:shadow-xl"
         >
           {loading ? 'Processing...' : 'Update Payment Method'}
         </button>
@@ -174,16 +180,23 @@ export const PaymentMethodUpdate = ({ onClose, onSuccess }: PaymentMethodUpdateP
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[2.5rem] shadow-xl border-2 border-gray-200 p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <CreditCard className="w-6 h-6 text-purple-600" />
-            <h2 className="text-2xl font-black text-gray-900">Update Payment Method</h2>
+    <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-[2.5rem] shadow-2xl border-2 border-gray-200 p-10 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100">
+              <CreditCard className="w-7 h-7 text-purple-600" />
+            </div>
+            <div>
+              <h2 className="text-3xl font-black text-gray-900">Update Payment Method</h2>
+              <p className="text-sm text-gray-600 font-semibold mt-1">
+                Add a new payment method to your account
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
+            className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
             aria-label="Close"
             tabIndex={0}
           >
@@ -196,8 +209,8 @@ export const PaymentMethodUpdate = ({ onClose, onSuccess }: PaymentMethodUpdateP
             <PaymentForm onClose={onClose} onSuccess={onSuccess} />
           </Elements>
         ) : (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mx-auto mb-4"></div>
             <p className="text-gray-600 font-semibold">Loading payment form...</p>
           </div>
         )}

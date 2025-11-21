@@ -188,49 +188,31 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
             {formatDate(subscription.current_period_end) || 'N/A'}
           </div>
         </div>
-        {subscription.trial_end && (
+        {upcomingInvoice && !willCancel ? (
+          <div className="p-4 rounded-xl bg-gray-50">
+            <div className="text-sm text-gray-600 font-semibold mb-1">Next Payment</div>
+            <div className="text-lg font-black text-gray-900">
+              {formatAmount(upcomingInvoice.amount_due, upcomingInvoice.currency)} owed on{' '}
+              {formatDate(upcomingInvoice.next_payment_date || upcomingInvoice.period_start || upcomingInvoice.period_end) || 
+               (subscription?.current_period_end ? formatDate(subscription.current_period_end) : 'N/A')}
+            </div>
+          </div>
+        ) : willCancel ? (
+          <div className="p-4 rounded-xl bg-gray-50">
+            <div className="text-sm text-gray-600 font-semibold mb-1">Next Payment</div>
+            <div className="text-lg font-black text-gray-900">
+              No upcoming charges (subscription ending)
+            </div>
+          </div>
+        ) : subscription.trial_end ? (
           <div className="p-4 rounded-xl bg-blue-50">
             <div className="text-sm text-blue-600 font-semibold mb-1">Trial Ends</div>
             <div className="text-lg font-black text-blue-900">
               {formatDate(subscription.trial_end) || 'N/A'}
             </div>
           </div>
-        )}
+        ) : null}
       </div>
-
-      {upcomingInvoice && !willCancel && (
-        <div className={`p-4 rounded-xl border-2 ${
-          upcomingInvoice.amount_due > 0 
-            ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200' 
-            : 'bg-gray-50 border-gray-200'
-        }`}>
-          <div className="flex items-center gap-3 mb-3">
-            <DollarSign className={`w-5 h-5 ${upcomingInvoice.amount_due > 0 ? 'text-purple-600' : 'text-gray-600'}`} />
-            <div className={`text-sm font-semibold ${upcomingInvoice.amount_due > 0 ? 'text-purple-600' : 'text-gray-600'}`}>
-              Next Payment
-            </div>
-          </div>
-          <div className={`text-2xl font-black mb-3 ${upcomingInvoice.amount_due > 0 ? 'text-purple-900' : 'text-gray-700'}`}>
-            {formatAmount(upcomingInvoice.amount_due, upcomingInvoice.currency)} owed on{' '}
-            <span className="text-xl">
-              {formatDate(upcomingInvoice.next_payment_date || upcomingInvoice.period_start || upcomingInvoice.period_end) || 
-               (subscription?.current_period_end ? formatDate(subscription.current_period_end) : 'N/A')}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {willCancel && (
-        <div className="p-4 rounded-xl bg-gray-50 border-2 border-gray-200">
-          <div className="flex items-center gap-3 mb-2">
-            <DollarSign className="w-5 h-5 text-gray-600" />
-            <div className="text-sm text-gray-600 font-semibold">Next Payment</div>
-          </div>
-          <div className="text-lg font-black text-gray-700">
-            No upcoming charges (subscription ending)
-          </div>
-        </div>
-      )}
     </div>
   );
 };
