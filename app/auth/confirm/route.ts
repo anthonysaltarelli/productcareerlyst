@@ -23,10 +23,15 @@ export async function GET(request: NextRequest) {
   if (verificationToken && type) {
     const supabase = await createClient()
 
-    const { data: { user }, error } = await supabase.auth.verifyOtp({
-      type,
-      token_hash: verificationToken,
-    })
+    // Handle both token_hash (PKCE flow) and token (legacy flow)
+    const verifyParams: { type: EmailOtpType; token_hash?: string; token?: string } = { type };
+    if (token_hash) {
+      verifyParams.token_hash = token_hash;
+    } else if (token) {
+      verifyParams.token = token;
+    }
+
+    const { data: { user }, error } = await supabase.auth.verifyOtp(verifyParams)
     if (!error && user?.email) {
       // Check if this is a Bubble user and transfer subscription
       try {
@@ -63,57 +68,97 @@ async function transferBubbleSubscription(userId: string, email: string) {
 
   const emailLower = email.toLowerCase().trim();
 
+  console.log(`[Bubble Transfer] Checking for bubble user with email: ${emailLower}`);
+
   // Check if this email exists in bubble_users
-  const { data: bubbleUser } = await supabaseAdmin
+  const { data: bubbleUser, error: bubbleError } = await supabaseAdmin
     .from('bubble_users')
     .select('*')
     .eq('email', emailLower)
     .maybeSingle();
 
-  if (!bubbleUser || bubbleUser.matched_user_id) {
-    return; // No match or already matched
+  if (bubbleError) {
+    console.error('[Bubble Transfer] Error querying bubble_users:', bubbleError);
+    throw new Error(`Failed to check bubble_users: ${bubbleError.message}`);
   }
+
+  if (!bubbleUser) {
+    console.log(`[Bubble Transfer] No bubble user found for email: ${emailLower}`);
+    return; // No match - not a Bubble user
+  }
+
+  if (bubbleUser.matched_user_id) {
+    console.log(`[Bubble Transfer] Bubble user already matched to: ${bubbleUser.matched_user_id}`);
+    return; // Already matched
+  }
+
+  console.log(`[Bubble Transfer] Found bubble user: ${bubbleUser.id}, stripe_customer_id: ${bubbleUser.stripe_customer_id || 'none'}`);
 
   // Check if they have a Stripe customer ID
   if (!bubbleUser.stripe_customer_id || bubbleUser.stripe_customer_id.trim() === '') {
+    console.log(`[Bubble Transfer] No Stripe customer ID for bubble user: ${bubbleUser.id}`);
     // Mark as matched but no subscription to transfer
-    await supabaseAdmin
+    const { error: updateError } = await supabaseAdmin
       .from('bubble_users')
       .update({
         matched_user_id: userId,
         matched_at: new Date().toISOString(),
       })
       .eq('id', bubbleUser.id);
+    
+    if (updateError) {
+      console.error('[Bubble Transfer] Error updating bubble_users:', updateError);
+      throw new Error(`Failed to update bubble_users: ${updateError.message}`);
+    }
     return;
   }
 
   // Transfer subscription
+  console.log(`[Bubble Transfer] Fetching Stripe subscriptions for customer: ${bubbleUser.stripe_customer_id}`);
   const stripe = getStripeClient();
-  const subscriptions = await stripe.subscriptions.list({
-    customer: bubbleUser.stripe_customer_id,
-    status: 'all',
-    limit: 10,
-  });
+  
+  let subscriptions;
+  try {
+    subscriptions = await stripe.subscriptions.list({
+      customer: bubbleUser.stripe_customer_id,
+      status: 'all',
+      limit: 10,
+    });
+  } catch (stripeError) {
+    console.error('[Bubble Transfer] Error fetching Stripe subscriptions:', stripeError);
+    throw new Error(`Failed to fetch Stripe subscriptions: ${stripeError instanceof Error ? stripeError.message : 'Unknown error'}`);
+  }
 
   if (subscriptions.data.length === 0) {
-    await supabaseAdmin
+    console.log(`[Bubble Transfer] No Stripe subscriptions found for customer: ${bubbleUser.stripe_customer_id}`);
+    const { error: updateError } = await supabaseAdmin
       .from('bubble_users')
       .update({
         matched_user_id: userId,
         matched_at: new Date().toISOString(),
       })
       .eq('id', bubbleUser.id);
+    
+    if (updateError) {
+      console.error('[Bubble Transfer] Error updating bubble_users:', updateError);
+      throw new Error(`Failed to update bubble_users: ${updateError.message}`);
+    }
     return;
   }
+
+  console.log(`[Bubble Transfer] Found ${subscriptions.data.length} subscription(s) for customer`);
 
   const foundSubscription = subscriptions.data.find(
     (sub) => sub.status === 'active' || sub.status === 'trialing' || sub.status === 'past_due'
   ) || subscriptions.data[0];
   if (!foundSubscription) {
+    console.error('[Bubble Transfer] No subscription found after filtering');
     return;
   }
   // Explicitly type as StripeSubscription to avoid conflict with our Subscription interface
   const stripeSubscription: StripeSubscription = foundSubscription;
+  
+  console.log(`[Bubble Transfer] Using subscription: ${stripeSubscription.id}, status: ${stripeSubscription.status}`);
 
   const metadata = stripeSubscription.metadata;
   let plan: 'learn' | 'accelerate' = 'learn';
@@ -216,7 +261,7 @@ async function transferBubbleSubscription(userId: string, email: string) {
   const periodEnd = timestampToISO(periodEndTimestamp, 'current_period_end');
   
   if (!periodStart || !periodEnd) {
-    console.error('Missing required period dates for subscription:', {
+    const errorDetails = {
       subscriptionId: stripeSubscription.id,
       current_period_start: periodStartTimestamp,
       current_period_end: periodEndTimestamp,
@@ -226,8 +271,9 @@ async function transferBubbleSubscription(userId: string, email: string) {
         start: (stripeSubscription.items.data[0] as any).current_period_start,
         end: (stripeSubscription.items.data[0] as any).current_period_end,
       } : null,
-    });
-    return; // Silently fail for auto-transfer
+    };
+    console.error('[Bubble Transfer] Missing required period dates for subscription:', errorDetails);
+    throw new Error(`Missing required period dates for subscription ${stripeSubscription.id}`);
   }
 
   // For flexible billing mode, Stripe uses cancel_at instead of cancel_at_period_end
@@ -255,18 +301,39 @@ async function transferBubbleSubscription(userId: string, email: string) {
     transferred_at: new Date().toISOString(),
   };
 
-  await supabaseAdmin
+  console.log(`[Bubble Transfer] Upserting subscription to database:`, {
+    stripe_subscription_id: stripeSubscription.id,
+    plan,
+    billing_cadence: billingCadence,
+    status,
+  });
+
+  const { error: upsertError } = await supabaseAdmin
     .from('subscriptions')
     .upsert(subscriptionData, {
       onConflict: 'stripe_subscription_id',
     });
 
-  await supabaseAdmin
+  if (upsertError) {
+    console.error('[Bubble Transfer] Error upserting subscription:', upsertError);
+    throw new Error(`Failed to upsert subscription: ${upsertError.message}`);
+  }
+
+  console.log(`[Bubble Transfer] Marking bubble user as matched: ${bubbleUser.id}`);
+
+  const { error: updateError } = await supabaseAdmin
     .from('bubble_users')
     .update({
       matched_user_id: userId,
       matched_at: new Date().toISOString(),
     })
     .eq('id', bubbleUser.id);
+
+  if (updateError) {
+    console.error('[Bubble Transfer] Error updating bubble_users:', updateError);
+    throw new Error(`Failed to update bubble_users: ${updateError.message}`);
+  }
+
+  console.log(`[Bubble Transfer] Successfully transferred subscription for user: ${userId}`);
 }
 

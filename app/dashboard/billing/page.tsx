@@ -7,6 +7,7 @@ import { SuccessHandler } from '@/app/components/billing/SuccessHandler';
 import { AutoSyncSubscription } from '@/app/components/billing/AutoSyncSubscription';
 import { PlanSwitcher } from '@/app/components/billing/PlanSwitcher';
 import { InvoicesList } from '@/app/components/billing/InvoicesList';
+import { BubbleTransferDebugPanel } from '@/app/components/billing/BubbleTransferDebugPanel';
 
 export default async function BillingPage() {
   const supabase = await createClient();
@@ -42,6 +43,7 @@ export default async function BillingPage() {
 
         <AutoSyncSubscription subscription={subscription} />
         <SuccessHandler />
+        <BubbleTransferDebugPanel />
         <div className="mb-6">
           <BillingStatus subscription={subscription} />
         </div>

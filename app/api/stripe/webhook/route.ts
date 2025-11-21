@@ -21,7 +21,11 @@ const supabaseAdmin = createClient(
 
 export const POST = async (request: NextRequest) => {
   const stripe = getStripeClient();
-  const body = await request.text();
+  
+  // Get raw body as Buffer for proper signature verification
+  // This ensures the exact bytes Stripe sent are used for verification
+  const bodyBuffer = await request.arrayBuffer();
+  const body = Buffer.from(bodyBuffer);
   const signature = request.headers.get('stripe-signature');
 
   if (!signature) {
@@ -43,11 +47,35 @@ export const POST = async (request: NextRequest) => {
   let event: Stripe.Event;
 
   try {
+    // Use Buffer for signature verification - this is the recommended approach
+    // The body must be the exact raw bytes Stripe sent, not a parsed/stringified version
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-  } catch (err) {
-    console.error('Webhook signature verification failed:', err);
+  } catch (err: any) {
+    // Enhanced error logging for debugging
+    console.error('Webhook signature verification failed:', {
+      error: err,
+      errorType: err?.type,
+      errorMessage: err?.message,
+      signatureHeader: signature,
+      bodyLength: body.length,
+      bodyPreview: body.toString('utf8').substring(0, 200),
+      webhookSecretExists: !!webhookSecret,
+      webhookSecretLength: webhookSecret?.length,
+    });
+    
+    // If it's a signature verification error, provide more details
+    if (err?.type === 'StripeSignatureVerificationError') {
+      console.error('Signature verification details:', {
+        header: err?.header,
+        payloadPreview: err?.payload?.substring?.(0, 200),
+      });
+    }
+    
     return NextResponse.json(
-      { error: 'Invalid signature' },
+      { 
+        error: 'Invalid signature',
+        details: process.env.NODE_ENV === 'development' ? err?.message : undefined
+      },
       { status: 400 }
     );
   }
