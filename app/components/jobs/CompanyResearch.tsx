@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { ResearchType, CompanyResearch } from '@/lib/types/jobs';
 
 interface CompanyResearchProps {
@@ -546,44 +547,94 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
             </div>
 
             {/* Content */}
-            <div className="prose prose-lg max-w-none text-gray-700 font-medium leading-relaxed mb-8">
+            <div className="text-gray-700 font-medium leading-relaxed mb-8">
               {selectedResearch.perplexity_response.choices?.[0]?.message?.content ? (
-                <div className="whitespace-pre-wrap">
-                  {selectedResearch.perplexity_response.choices[0].message.content.split('\n').map((paragraph: string, index: number) => {
-                    // Simple markdown parsing
-                    let processed = paragraph;
-                    processed = processed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                    processed = processed.replace(/\*(.*?)\*/g, '<em>$1</em>');
-                    
-                    // Replace citation patterns [1], [2], etc. with clickable links to source URLs
+                <ReactMarkdown
+                  components={{
+                    // Headings
+                    h1: ({ children }) => (
+                      <h1 className="text-3xl font-black text-gray-900 mt-8 mb-4 first:mt-0">
+                        {children}
+                      </h1>
+                    ),
+                    h2: ({ children }) => (
+                      <h2 className="text-2xl font-black text-gray-900 mt-6 mb-3 first:mt-0">
+                        {children}
+                      </h2>
+                    ),
+                    h3: ({ children }) => (
+                      <h3 className="text-xl font-black text-gray-900 mt-5 mb-2 first:mt-0">
+                        {children}
+                      </h3>
+                    ),
+                    // Paragraphs - reduced spacing
+                    p: ({ children }) => (
+                      <p className="mb-3 last:mb-0 leading-relaxed">
+                        {children}
+                      </p>
+                    ),
+                    // Lists
+                    ul: ({ children }) => (
+                      <ul className="mb-3 ml-6 list-disc space-y-1 last:mb-0 [&_ul]:ml-6 [&_ul]:mt-1 [&_ol]:ml-6 [&_ol]:mt-1">
+                        {children}
+                      </ul>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="mb-3 ml-6 list-decimal space-y-1 last:mb-0 [&_ul]:ml-6 [&_ul]:mt-1 [&_ol]:ml-6 [&_ol]:mt-1">
+                        {children}
+                      </ol>
+                    ),
+                    li: ({ children }) => (
+                      <li className="leading-relaxed">
+                        {children}
+                      </li>
+                    ),
+                    // Strong and emphasis
+                    strong: ({ children }) => (
+                      <strong className="font-black text-gray-900">
+                        {children}
+                      </strong>
+                    ),
+                    em: ({ children }) => (
+                      <em className="italic">
+                        {children}
+                      </em>
+                    ),
+                    // Links (for citations)
+                    a: ({ href, children }) => {
+                      // Check if it's a citation link (starts with #source-)
+                      if (href?.startsWith('#')) {
+                        return <>{children}</>;
+                      }
+                      return (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-purple-600 hover:text-purple-700 hover:underline font-semibold"
+                        >
+                          {children}
+                        </a>
+                      );
+                    },
+                  }}
+                >
+                  {(() => {
+                    // Pre-process content to replace citations with markdown links
+                    const content = selectedResearch.perplexity_response.choices[0].message.content;
                     const sources = selectedResearch.perplexity_response.search_results || [];
-                    processed = processed.replace(/\[(\d+)\]/g, (match, citationNum) => {
-                      const sourceIndex = parseInt(citationNum, 10) - 1; // Convert to 0-indexed
+                    
+                    // Replace citation patterns [1], [2], etc. with markdown links
+                    return content.replace(/\[(\d+)\]/g, (match, citationNum) => {
+                      const sourceIndex = parseInt(citationNum, 10) - 1;
                       if (sourceIndex >= 0 && sourceIndex < sources.length && sources[sourceIndex]?.url) {
                         const sourceUrl = sources[sourceIndex].url;
-                        return `<a href="${sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-600 hover:text-purple-700 hover:underline font-semibold">${match}</a>`;
+                        return `[${match}](${sourceUrl})`;
                       }
                       return match;
                     });
-                    
-                    // Check if it's a heading
-                    if (paragraph.startsWith('### ')) {
-                      return <h3 key={index} className="text-xl font-black text-gray-900 mt-8 mb-4" dangerouslySetInnerHTML={{ __html: processed.replace('### ', '') }} />;
-                    }
-                    if (paragraph.startsWith('## ')) {
-                      return <h2 key={index} className="text-2xl font-black text-gray-900 mt-8 mb-4" dangerouslySetInnerHTML={{ __html: processed.replace('## ', '') }} />;
-                    }
-                    if (paragraph.startsWith('# ')) {
-                      return <h1 key={index} className="text-3xl font-black text-gray-900 mt-8 mb-4" dangerouslySetInnerHTML={{ __html: processed.replace('# ', '') }} />;
-                    }
-                    
-                    if (paragraph.trim() === '') {
-                      return <br key={index} />;
-                    }
-                    
-                    return <p key={index} className="mb-4" dangerouslySetInnerHTML={{ __html: processed }} />;
-                  })}
-                </div>
+                  })()}
+                </ReactMarkdown>
               ) : (
                 <p>No content available</p>
               )}
