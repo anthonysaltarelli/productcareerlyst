@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { ResearchType, CompanyResearch } from '@/lib/types/jobs';
 
 interface CompanyResearchProps {
@@ -545,6 +546,7 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
             <div className="text-gray-700 font-medium leading-relaxed mb-8">
               {selectedResearch.perplexity_response.choices?.[0]?.message?.content ? (
                 <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
                   components={{
                     // Suppress horizontal rules
                     hr: () => null,
@@ -614,6 +616,39 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
                         </a>
                       );
                     },
+                    // Tables
+                    table: ({ children }) => (
+                      <div className="my-4 overflow-x-auto">
+                        <table className="min-w-full border-collapse border-2 border-gray-300">
+                          {children}
+                        </table>
+                      </div>
+                    ),
+                    thead: ({ children }) => (
+                      <thead className="bg-gray-100">
+                        {children}
+                      </thead>
+                    ),
+                    tbody: ({ children }) => (
+                      <tbody>
+                        {children}
+                      </tbody>
+                    ),
+                    tr: ({ children }) => (
+                      <tr className="border-b border-gray-200 hover:bg-gray-50">
+                        {children}
+                      </tr>
+                    ),
+                    th: ({ children }) => (
+                      <th className="px-4 py-2 text-left font-black text-gray-900 border-2 border-gray-300">
+                        {children}
+                      </th>
+                    ),
+                    td: ({ children }) => (
+                      <td className="px-4 py-2 text-gray-700 border border-gray-200">
+                        {children}
+                      </td>
+                    ),
                   }}
                 >
                   {(() => {
