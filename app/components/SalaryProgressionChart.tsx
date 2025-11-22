@@ -259,7 +259,7 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
           </p>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-[30%_70%] gap-6 lg:gap-8">
           {/* Left column - Simple inputs */}
           <div className="space-y-6">
             {/* PM Stage */}
@@ -286,32 +286,38 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
             
             {/* Current salary */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
+              <label className="block text-base font-bold text-gray-700 mb-2">
                 Current salary
               </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg font-medium">$</span>
+              <div className="relative inline-block">
+                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 text-2xl font-medium z-10">$</span>
                 <input
                   type="number"
-                  value={startSalary}
-                  onChange={(e) => handleInputChange(setStartSalary, e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 text-lg rounded-xl border-2 border-gray-300 focus:border-purple-500 focus:outline-none font-medium"
+                  value={Math.round(startSalary / 1000)}
+                  onChange={(e) => {
+                    const numValue = parseFloat(e.target.value);
+                    if (!isNaN(numValue) && numValue >= 0) {
+                      setStartSalary(numValue * 1000);
+                    }
+                  }}
+                  className="w-40 pl-12 pr-12 py-4 text-2xl rounded-xl border-2 border-gray-300 focus:border-purple-500 focus:outline-none font-medium"
                   min="0"
-                  step="1000"
+                  step="1"
                 />
+                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 text-2xl font-medium z-10 pointer-events-none">K</span>
               </div>
             </div>
             
             {/* Years to calculate */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
+              <label className="block text-base font-bold text-gray-700 mb-2">
                 Years to calculate
               </label>
               <input
                 type="number"
                 value={years}
                 onChange={(e) => handleInputChange(setYears, e.target.value)}
-                className="w-32 px-4 py-3 text-lg rounded-xl border-2 border-purple-300 focus:border-purple-500 focus:outline-none font-medium"
+                className="w-40 px-4 py-4 text-2xl rounded-xl border-2 border-purple-300 focus:border-purple-500 focus:outline-none font-medium"
                 min="1"
                 max="30"
                 step="1"
@@ -320,46 +326,46 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
           </div>
           
           {/* Right column - Big outcome number first */}
-          <div className="space-y-6">
+          <div className="space-y-6 pr-4 lg:pr-8">
             {/* Big headline number */}
             <div className="text-center">
-              <p className="text-lg md:text-xl font-bold text-gray-700 mb-2">
+              <p className="text-xl md:text-2xl font-bold text-gray-700 mb-2">
                 You could earn an extra
               </p>
-              <p className="text-5xl md:text-7xl font-black bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+              <p className="text-6xl md:text-8xl font-black bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
                 +{formatCurrency(difference)}
               </p>
-              <p className="text-base md:text-lg text-gray-600 font-medium">
+              <p className="text-lg md:text-xl text-gray-600 font-medium">
                 over the next {years} years as a PM
               </p>
             </div>
             
             {/* Breakdown */}
             <div className="text-center space-y-1">
-              <p className="text-sm text-gray-600">
+              <p className="text-base md:text-lg text-gray-600">
                 = ~{formatCurrencyFull(avgAnnualDifference)} more per year on average
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-base md:text-lg text-gray-600">
                 = ~{formatCurrencyFull(avgMonthlyDifference)} more per month
               </p>
             </div>
             
             {/* Comparison cards */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 rounded-xl bg-gray-50 border-2 border-gray-200">
-                <p className="text-xs font-bold text-gray-600 mb-1">Without Product Careerlyst</p>
-                <p className="text-xl font-black text-gray-700">
+              <div className="p-5 rounded-xl bg-gray-50 border-2 border-gray-200">
+                <p className="text-sm font-bold text-gray-600 mb-2">Without Product Careerlyst</p>
+                <p className="text-2xl md:text-3xl font-black text-gray-700">
                   {formatCurrency(withoutLifetimeEarnings)}
                 </p>
-                <p className="text-xs text-gray-500">Total earnings</p>
+                <p className="text-sm text-gray-500 mt-1">Total earnings</p>
               </div>
               
-              <div className="p-4 rounded-xl bg-green-50 border-2 border-green-200">
-                <p className="text-xs font-bold text-gray-600 mb-1">With Product Careerlyst</p>
-                <p className="text-xl font-black text-green-600">
+              <div className="p-5 rounded-xl bg-green-50 border-2 border-green-200">
+                <p className="text-sm font-bold text-gray-600 mb-2">With Product Careerlyst</p>
+                <p className="text-2xl md:text-3xl font-black text-green-600">
                   {formatCurrency(withLifetimeEarnings)}
                 </p>
-                <p className="text-xs text-gray-500">Total earnings</p>
+                <p className="text-sm text-gray-500 mt-1">Total earnings</p>
               </div>
             </div>
           </div>
@@ -520,10 +526,10 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
         </div>
         
         {/* CTA Button */}
-        <div className="mt-8">
+        <div className="mt-8 text-center">
           <Link
             href="/auth/sign-up"
-            className="block w-full px-6 py-4 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.6)] text-lg font-black text-white transition-all duration-200 text-center"
+            className="inline-block px-8 py-4 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.6)] text-lg font-black text-white transition-all duration-200"
           >
             Get started for free
           </Link>
