@@ -58,21 +58,21 @@ export default async function BillingPage() {
 
           {/* Benefits Highlight */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-purple-200">
+            <div className="bg-white/80 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-[0_12px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-200">
               <div className="text-4xl mb-3">🚀</div>
               <h3 className="text-xl font-black text-gray-900 mb-2">Unlimited Access</h3>
               <p className="text-gray-700 font-semibold">
                 Get unlimited resume optimizations, job tracking, and company research
               </p>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-pink-200">
+            <div className="bg-white/80 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-[0_12px_0_0_rgba(236,72,153,0.3)] border-2 border-pink-200">
               <div className="text-4xl mb-3">💼</div>
               <h3 className="text-xl font-black text-gray-900 mb-2">Career Growth</h3>
               <p className="text-gray-700 font-semibold">
                 Access exclusive courses, templates, and resources to advance your career
               </p>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-orange-200">
+            <div className="bg-white/80 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-[0_12px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-200">
               <div className="text-4xl mb-3">⚡</div>
               <h3 className="text-xl font-black text-gray-900 mb-2">Save Time</h3>
               <p className="text-gray-700 font-semibold">

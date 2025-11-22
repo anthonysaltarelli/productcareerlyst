@@ -87,7 +87,7 @@ export const PlanComparison = () => {
       {/* Plan Cards at the Top */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         {/* Learn Plan Card */}
-        <div className="bg-white rounded-[2.5rem] shadow-xl border-2 border-gray-200 p-8 flex flex-col">
+        <div className="bg-white rounded-[2.5rem] shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200 p-8 flex flex-col hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(0,0,0,0.1)] transition-all duration-200 cursor-pointer">
           <div className="text-center flex-grow flex flex-col">
             <div>
               <h3 className="text-3xl font-black text-gray-900 mb-2">{learnPlan.name}</h3>
@@ -115,7 +115,7 @@ export const PlanComparison = () => {
             <div className="mt-auto">
               <button
                 onClick={() => handleContinue('learn')}
-                className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black hover:from-purple-700 hover:to-pink-700 transition-colors shadow-lg hover:shadow-xl"
+                className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-[0_8px_0_0_rgba(147,51,234,0.5)] hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.5)]"
               >
                 Continue
               </button>
@@ -124,10 +124,10 @@ export const PlanComparison = () => {
         </div>
 
         {/* Accelerate Plan Card */}
-        <div className="relative bg-white rounded-[2.5rem] shadow-xl border-2 border-purple-500 p-8">
+        <div className="relative bg-white rounded-[2.5rem] shadow-[0_12px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-500 p-8 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(147,51,234,0.3)] transition-all duration-200 cursor-pointer">
           {acceleratePlan.popular && (
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-              <span className="px-6 py-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold shadow-lg">
+              <span className="px-6 py-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold shadow-[0_6px_0_0_rgba(147,51,234,0.4)]">
                 MOST POPULAR
               </span>
             </div>
@@ -163,7 +163,7 @@ export const PlanComparison = () => {
             </div>
             <button
               onClick={() => handleContinue('accelerate')}
-              className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black hover:from-purple-700 hover:to-pink-700 transition-colors shadow-lg hover:shadow-xl"
+              className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-[0_8px_0_0_rgba(147,51,234,0.5)] hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.5)]"
             >
               Continue
             </button>
@@ -172,7 +172,7 @@ export const PlanComparison = () => {
       </div>
 
       {/* Detailed Comparison Table Below */}
-      <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] overflow-hidden p-8">
+      <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] overflow-hidden p-8 shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse table-fixed">
           <colgroup>
@@ -182,13 +182,13 @@ export const PlanComparison = () => {
           </colgroup>
           <thead>
             <tr>
-              <th className="text-left py-4 px-6 font-bold text-base text-gray-900">
+              <th className="text-left py-4 px-6 font-bold text-lg text-gray-900">
                 Features
               </th>
-              <th className="text-center py-4 px-6 font-bold text-base text-gray-900">
+              <th className="text-center py-4 px-6 font-bold text-lg text-gray-900">
                 {learnPlan.name}
               </th>
-              <th className="text-center py-4 px-6 font-bold text-base text-purple-600">
+              <th className="text-center py-4 px-6 font-bold text-lg text-purple-600">
                 {acceleratePlan.name}
               </th>
             </tr>
