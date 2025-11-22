@@ -1,0 +1,167 @@
+# Cursor Rules for Product Careerlyst
+
+## Amplitude Event Tracking Standards
+
+### Event Naming Convention
+- **Format**: `User [Action] [Object]` in Title Case
+- **Examples**: 
+  - ✅ `User Clicked Sign Up Button`
+  - ✅ `User Viewed Homepage`
+  - ✅ `User Expanded Course`
+  - ❌ `clicked signup` (wrong case)
+  - ❌ `Page Viewed` (too generic, missing "User")
+  - ❌ `Sign Up Clicked` (wrong order)
+
+### Required Properties for Click Events
+
+When tracking button/link clicks, ALWAYS include:
+
+1. **Unique Identifier** (REQUIRED):
+   - `buttonId` or `linkId` prop: Unique identifier like `homepage-hero-primary-cta`
+   - Format: `[page]-[section]-[element-type]-[descriptor]`
+   - Example: `courses-page-bottom-cta`, `homepage-features-pm-courses-link`
+
+2. **Location Context** (REQUIRED):
+   - `Button Section` or `Link Section`: Exact section name (e.g., "Hero Section", "Features Section")
+   - `Button Position` or `Link Position`: Exact position (e.g., "Center of Hero Card", "Bottom of page")
+   - `Button Context` or `Link Context`: What's around it (e.g., "Below headline and outcome highlights")
+   - `Page Section`: Above/below fold indicator
+
+3. **Content Context** (REQUIRED):
+   - `Button Text` or `Link Text`: The visible text on the element
+   - `Button Type` or `Link Type`: Type classification (e.g., "Primary CTA", "Feature Card CTA")
+
+4. **Source Tracking** (AUTOMATIC):
+   - Referrer URL/Domain (automatically captured)
+   - UTM parameters (automatically captured)
+   - Click coordinates (automatically captured)
+
+### Using TrackedButton Component
+
+```tsx
+<TrackedButton
+  href="/auth/sign-up"
+  buttonId="homepage-hero-primary-cta"  // REQUIRED: Unique ID
+  eventName="User Clicked Sign Up Button"
+  eventProperties={{
+    'Button Section': 'Hero Section',           // REQUIRED
+    'Button Position': 'Center of Hero Card',   // REQUIRED
+    'Button Text': 'Start now for free →',      // REQUIRED
+    'Button Type': 'Primary CTA',               // REQUIRED
+    'Button Context': 'Below headline...',      // REQUIRED
+    'Page Section': 'Above the fold',           // REQUIRED
+  }}
+>
+  Start now for free →
+</TrackedButton>
+```
+
+### Using TrackedLink Component
+
+```tsx
+<TrackedLink
+  href="/courses"
+  linkId="homepage-features-pm-courses-link"  // REQUIRED: Unique ID
+  eventName="User Clicked Courses Link"
+  eventProperties={{
+    'Link Section': 'Features Section',        // REQUIRED
+    'Link Position': 'PM Courses Feature Card', // REQUIRED
+    'Link Text': 'Browse Courses →',           // REQUIRED
+    'Link Type': 'Feature Card CTA',          // REQUIRED
+    'Feature Card': 'PM Courses',              // Context-specific
+    'Card Position': 'First Feature Card',     // Context-specific
+  }}
+>
+  Browse Courses →
+</TrackedLink>
+```
+
+### Page View Events
+
+For page views, use `PageTracking` component:
+
+```tsx
+<PageTracking pageName="Sign Up" />
+```
+
+This automatically includes:
+- Page Route
+- Page Name
+- Full referrer information
+- UTM parameters
+- Traffic source categorization
+
+### Custom Event Tracking
+
+When using `trackEvent` directly, ALWAYS include:
+
+```tsx
+trackEvent('User [Action] [Object]', {
+  'Page Route': window.location.pathname,
+  'Referrer URL': document.referrer || 'None',
+  'Referrer Domain': referrerDomain || 'None',
+  'UTM Source': urlParams?.get('utm_source') || null,
+  // ... event-specific properties
+});
+```
+
+### Button ID Naming Convention
+
+Format: `[page]-[section]-[element-type]-[descriptor]`
+
+Examples:
+- `homepage-hero-primary-cta`
+- `homepage-final-cta-large-button`
+- `courses-page-bottom-cta`
+- `dashboard-resume-export-button`
+
+### Link ID Naming Convention
+
+Format: `[page]-[section]-[context]-link`
+
+Examples:
+- `homepage-features-pm-courses-link`
+- `homepage-navigation-courses-link`
+- `courses-page-header-signup-link`
+
+### Event Properties Best Practices
+
+1. **Always be specific**: "Hero Section" not "Top"
+2. **Include context**: What's around the element
+3. **Use descriptive names**: "Primary CTA" not "Button 1"
+4. **Include text content**: The actual button/link text
+5. **Specify position**: "Center of Hero Card" not just "Hero"
+6. **Indicate page section**: "Above the fold" vs "Below the fold"
+
+### Common Mistakes to Avoid
+
+❌ **Don't**: Generic event names like "Button Clicked"
+✅ **Do**: Specific names like "User Clicked Sign Up Button"
+
+❌ **Don't**: Missing buttonId/linkId
+✅ **Do**: Always include unique identifier
+
+❌ **Don't**: Vague properties like "Top" or "Button"
+✅ **Do**: Specific like "Hero Section, Center of Card"
+
+❌ **Don't**: Missing referrer/UTM tracking
+✅ **Do**: Always include source information (automatic in components)
+
+❌ **Don't**: Inconsistent naming
+✅ **Do**: Follow Title Case, "User [Action] [Object]" pattern
+
+### When Adding New Tracking
+
+1. **Identify the exact location**: Section, position, context
+2. **Create unique ID**: Follow naming convention
+3. **Use TrackedButton/TrackedLink**: Don't use raw trackEvent for clicks
+4. **Include all required properties**: Section, Position, Text, Type, Context
+5. **Test**: Verify event fires with all properties in Amplitude dashboard
+
+### Reference Files
+
+- `AMPLITUDE_EVENTS_DETAILED.md` - Complete list of all events
+- `app/components/TrackedButton.tsx` - Button component implementation
+- `app/components/TrackedLink.tsx` - Link component implementation
+- `lib/amplitude/client.ts` - Client-side tracking utilities
+

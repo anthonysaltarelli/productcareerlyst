@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { getSiteUrl } from '@/lib/utils/site-url'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { trackEvent } from '@/lib/amplitude/client'
 
 export const SignUpForm = () => {
   const [email, setEmail] = useState('')
@@ -30,9 +31,25 @@ export const SignUpForm = () => {
 
       if (error) throw error
 
+      // Track successful sign up
+      const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/auth/sign-up';
+      trackEvent('User Completed Sign Up', {
+        'Page Route': pageRoute,
+        'Sign Up Method': 'Email',
+      })
+
       router.push('/auth/sign-up-success')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred'
+      setError(errorMessage)
+      
+      // Track sign up error
+      const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/auth/sign-up';
+      trackEvent('User Failed Sign Up', {
+        'Page Route': pageRoute,
+        'Error Message': errorMessage,
+        'Error Type': errorMessage.toLowerCase().includes('email') ? 'Email Error' : 'Unknown Error',
+      })
     } finally {
       setLoading(false)
     }

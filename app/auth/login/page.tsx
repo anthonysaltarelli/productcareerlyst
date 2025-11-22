@@ -1,8 +1,10 @@
 import { LoginForm } from '@/app/components/login-form'
+import { PageTracking } from '@/app/components/PageTracking'
 
 export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 flex items-center justify-center p-4">
+      <PageTracking pageName="Login" />
       <div className="w-full max-w-md">
         <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
           <div className="text-center mb-8">

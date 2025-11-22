@@ -1,8 +1,12 @@
 import SalaryProgressionChart from "@/app/components/SalaryProgressionChart";
+import { HomePageTracking } from "@/app/components/HomePageTracking";
+import { TrackedLink } from "@/app/components/TrackedLink";
+import { TrackedButton } from "@/app/components/TrackedButton";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100">
+      <HomePageTracking />
       <div className="max-w-7xl mx-auto p-8 md:p-12 lg:p-16">
 
         {/* Hero Section */}
@@ -50,12 +54,22 @@ export default function Home() {
                   </div>
                 </div>
 
-                <a
+                <TrackedButton
                   href="/auth/sign-up"
                   className="block w-full px-10 py-6 rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_10px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(147,51,234,0.6)] text-xl font-black text-white transition-all duration-200 text-center mb-4"
+                  eventName="User Clicked Sign Up Button"
+                  buttonId="homepage-hero-primary-cta"
+                  eventProperties={{
+                    'Button Section': 'Hero Section',
+                    'Button Position': 'Center of Hero Card',
+                    'Button Type': 'Primary CTA',
+                    'Button Text': 'Start now for free →',
+                    'Button Context': 'Below headline and outcome highlights',
+                    'Page Section': 'Above the fold',
+                  }}
                 >
                   Start now for free →
-                </a>
+                </TrackedButton>
                 <p className="text-center text-sm text-gray-600 font-medium">
                   Join thousands of PMs who've already leveled up
                 </p>
@@ -248,12 +262,23 @@ export default function Home() {
                       Course navigation with lesson-by-lesson progression
                     </li>
                   </ul>
-                  <a
+                  <TrackedLink
                     href="/courses"
                     className="inline-block px-6 py-3 rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-indigo-300 font-black text-indigo-700 transition-all duration-200"
+                    eventName="User Clicked Courses Link"
+                    linkId="homepage-features-pm-courses-link"
+                    eventProperties={{
+                      'Link Section': 'Features Section',
+                      'Link Position': 'PM Courses Feature Card',
+                      'Link Type': 'Feature Card CTA',
+                      'Link Text': 'Browse Courses →',
+                      'Feature Card': 'PM Courses',
+                      'Card Color': 'Indigo to Purple Gradient',
+                      'Card Position': 'First Feature Card',
+                    }}
                   >
                     Browse Courses →
-                  </a>
+                  </TrackedLink>
                 </div>
               </div>
             </div>
@@ -510,12 +535,23 @@ export default function Home() {
           <p className="text-xl text-gray-300 font-medium mb-8 max-w-3xl mx-auto">
             Every day you wait is another day stuck in the same role, getting passed over, watching others succeed. You have two choices: keep struggling alone, or get the system that actually works.
           </p>
-          <a
+          <TrackedButton
             href="/auth/sign-up"
             className="inline-block px-16 py-8 rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_12px_0_0_rgba(147,51,234,0.7)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(147,51,234,0.7)] text-2xl font-black text-white transition-all duration-200 mb-6"
+            eventName="User Clicked Sign Up Button"
+            buttonId="homepage-final-cta-large-button"
+            eventProperties={{
+              'Button Section': 'Final CTA Section',
+              'Button Position': 'Center of Final CTA Card',
+              'Button Type': 'Final CTA',
+              'Button Text': 'YES, I\'M READY TO LEVEL UP →',
+              'Button Context': 'After all content sections, before footer',
+              'Page Section': 'Below the fold',
+              'CTA Theme': 'Dark slate background with purple gradient button',
+            }}
           >
             YES, I'M READY TO LEVEL UP →
-          </a>
+          </TrackedButton>
           <p className="text-gray-400 font-medium">
             Join thousands of PMs who've already made the decision to stop settling
           </p>

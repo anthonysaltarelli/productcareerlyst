@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { trackEvent } from '@/lib/amplitude/client'
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('')
@@ -25,10 +26,26 @@ export const LoginForm = () => {
 
       if (error) throw error
 
+      // Track successful login
+      const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/auth/login';
+      trackEvent('User Completed Login', {
+        'Page Route': pageRoute,
+        'Login Method': 'Email',
+      })
+
       router.push('/dashboard')
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred'
+      setError(errorMessage)
+      
+      // Track login error
+      const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/auth/login';
+      trackEvent('User Failed Login', {
+        'Page Route': pageRoute,
+        'Error Message': errorMessage,
+        'Error Type': errorMessage.toLowerCase().includes('credentials') ? 'Invalid Credentials' : 'Unknown Error',
+      })
     } finally {
       setLoading(false)
     }

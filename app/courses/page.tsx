@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { SignUpModal } from '@/app/components/SignUpModal'
+import { PageTracking } from '@/app/components/PageTracking'
+import { trackEvent } from '@/lib/amplitude/client'
+import { TrackedLink } from '@/app/components/TrackedLink'
+import { TrackedButton } from '@/app/components/TrackedButton'
 
 interface Lesson {
   id: string
@@ -158,11 +162,38 @@ export default function CoursesPage() {
     } else {
       newExpanded.add(courseId)
       
-      // Fetch lessons if not already loaded
+      // Find category and course
       const category = categories.find(cat => 
         cat.courses.some(c => c.id === courseId)
       )
       const course = category?.courses.find(c => c.id === courseId)
+      
+      // Track course expansion with full context
+      if (course) {
+        const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/courses';
+        const referrer = typeof window !== 'undefined' ? document.referrer : '';
+        const referrerDomain = referrer ? new URL(referrer).hostname : null;
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        
+        trackEvent('User Expanded Course', {
+          'Page Route': pageRoute,
+          'Course ID': courseId,
+          'Course Title': course.title,
+          'Course Category': category?.name || 'Unknown',
+          'Course Slug': course.slug || 'Unknown',
+          'Course Description': course.description || 'Unknown',
+          'Course Lesson Count': course.lesson_count || 0,
+          'Course Length': course.length || 'Unknown',
+          'Category Slug': category?.slug || 'Unknown',
+          'Referrer URL': referrer || 'None',
+          'Referrer Domain': referrerDomain || 'None',
+          'UTM Source': urlParams?.get('utm_source') || null,
+          'UTM Medium': urlParams?.get('utm_medium') || null,
+          'UTM Campaign': urlParams?.get('utm_campaign') || null,
+        })
+      }
+      
+      // Fetch lessons if not already loaded
       
       if (course && !course.lessons) {
         const supabase = createClient()
@@ -194,7 +225,26 @@ export default function CoursesPage() {
     setExpandedCourses(newExpanded)
   }
 
-  const handleLessonClick = (lessonTitle: string) => {
+  const handleLessonClick = (lessonTitle: string, courseTitle?: string, courseId?: string) => {
+    // Track lesson click with full context
+    const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/courses';
+    const referrer = typeof window !== 'undefined' ? document.referrer : '';
+    const referrerDomain = referrer ? new URL(referrer).hostname : null;
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    
+    trackEvent('User Clicked Lesson', {
+      'Page Route': pageRoute,
+      'Lesson Title': lessonTitle,
+      'Course Title': courseTitle || 'Unknown',
+      'Course ID': courseId || 'Unknown',
+      'Click Context': 'Expanded course lessons list',
+      'Referrer URL': referrer || 'None',
+      'Referrer Domain': referrerDomain || 'None',
+      'UTM Source': urlParams?.get('utm_source') || null,
+      'UTM Medium': urlParams?.get('utm_medium') || null,
+      'UTM Campaign': urlParams?.get('utm_campaign') || null,
+    })
+    
     setModalContent({
       title: 'Create a Free Account',
       description: `Sign up to watch "${lessonTitle}" and access all our courses and lessons. It's completely free!`
@@ -215,6 +265,7 @@ export default function CoursesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100">
+      <PageTracking pageName="Courses" />
       <div className="max-w-7xl mx-auto p-8 md:p-12 lg:p-16">
         {/* Page Header */}
         <div className="mb-12">
@@ -261,7 +312,7 @@ export default function CoursesPage() {
                           </div>
 
                           <button
-                            onClick={() => handleCourseClick(course.id)}
+                            onClick={() => handleCourseClick(course.id, course.title, category.name)}
                             className="w-full px-6 py-3 rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-gray-300 font-black text-gray-800 transition-all duration-200"
                             aria-label={isExpanded ? 'Hide lessons' : 'View lessons'}
                           >
@@ -277,7 +328,7 @@ export default function CoursesPage() {
                               {course.lessons.map((lesson) => (
                                 <div
                                   key={lesson.id}
-                                  onClick={() => handleLessonClick(lesson.title)}
+                                  onClick={() => handleLessonClick(lesson.title, course.title, course.id)}
                                   className="p-3 rounded-[1rem] bg-white/80 hover:bg-white border-2 border-gray-200 cursor-pointer transition-all duration-200"
                                 >
                                   <div className="flex items-center justify-between">
@@ -323,12 +374,23 @@ export default function CoursesPage() {
           <p className="text-gray-400 font-medium mb-6">
             Create a free account to access all courses and lessons
           </p>
-          <a
+          <TrackedButton
             href="/auth/sign-up"
             className="inline-block px-12 py-4 rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_10px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(147,51,234,0.6)] text-xl font-black text-white transition-all duration-200"
+            eventName="User Clicked Sign Up Button"
+            buttonId="courses-page-bottom-cta"
+            eventProperties={{
+              'Button Section': 'Courses Landing Page CTA Section',
+              'Button Position': 'Bottom of page after all courses',
+              'Button Type': 'Courses CTA',
+              'Button Text': 'Sign Up for Free →',
+              'Button Context': 'After browsing all courses and categories',
+              'Page Section': 'Bottom of page',
+              'CTA Theme': 'Dark slate background with purple gradient button',
+            }}
           >
             Sign Up for Free →
-          </a>
+          </TrackedButton>
         </div>
       </div>
 

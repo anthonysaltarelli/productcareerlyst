@@ -16,6 +16,11 @@ import { Footer } from "./components/Footer";
 import { LaunchDarklyProvider } from "./components/LaunchDarklyProvider";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next";
+import { initializeAmplitude } from "@/lib/amplitude/server";
+import { AmplitudeProvider } from "./components/AmplitudeProvider";
+
+// Initialize Amplitude on server startup
+initializeAmplitude();
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -81,12 +86,14 @@ export default function RootLayout({
       <body className={`${plusJakartaSans.variable} ${inter.variable} ${lato.variable} ${roboto.variable} ${openSans.variable} ${sourceSans.variable} ${ptSerif.variable} ${crimsonText.variable} antialiased`}>
         <Toaster position="top-right" richColors />
         <LaunchDarklyProvider>
-          <ConditionalLayout
-            navigation={<Navigation />}
-            footer={<Footer />}
-          >
-            {children}
-          </ConditionalLayout>
+          <AmplitudeProvider>
+            <ConditionalLayout
+              navigation={<Navigation />}
+              footer={<Footer />}
+            >
+              {children}
+            </ConditionalLayout>
+          </AmplitudeProvider>
         </LaunchDarklyProvider>
         <Analytics />
       </body>
