@@ -77,14 +77,6 @@ export const MobileMenu = ({ user }: MobileMenuProps) => {
                   Testimonials
                 </a>
                 <a
-                  href="#pricing"
-                  className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
-                  tabIndex={0}
-                  aria-label="Pricing"
-                >
-                  Pricing
-                </a>
-                <a
                   href="/auth/login"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
                   tabIndex={0}

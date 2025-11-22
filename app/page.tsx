@@ -491,67 +491,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Pricing / CTA */}
-        <div id="pricing" className="mb-20">
-          <div className="p-12 rounded-[3rem] bg-gradient-to-br from-violet-200 to-purple-200 shadow-[0_20px_0_0_rgba(124,58,237,0.4)] border-2 border-violet-300 text-center">
-            <div className="inline-block px-6 py-3 rounded-full bg-red-500 text-white text-sm font-black mb-6 animate-pulse">
-              ⚠️ BETA PRICING ENDS IN 48 HOURS
-            </div>
-            <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-4">
-              Get Lifetime Access Today
-            </h2>
-            <p className="text-xl text-gray-700 font-medium mb-8">
-              Invest in yourself once. Reap the benefits forever.
-            </p>
-
-            <div className="max-w-md mx-auto mb-8">
-              <div className="p-8 rounded-[2rem] bg-white shadow-[0_15px_0_0_rgba(124,58,237,0.3)] border-2 border-purple-400">
-                <div className="text-center mb-6">
-                  <p className="text-gray-600 font-medium line-through text-2xl mb-2">$997</p>
-                  <p className="text-6xl font-black text-purple-600 mb-2">$297</p>
-                  <p className="text-lg font-bold text-gray-700">One-time payment. Lifetime access.</p>
-                </div>
-                <div className="space-y-3 text-left mb-6">
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-600 font-black text-xl">✓</span>
-                    <span className="font-medium text-gray-700">All frameworks, templates, and guides</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-600 font-black text-xl">✓</span>
-                    <span className="font-medium text-gray-700">Live coaching and community access</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-600 font-black text-xl">✓</span>
-                    <span className="font-medium text-gray-700">Future updates and new content FREE</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-600 font-black text-xl">✓</span>
-                    <span className="font-medium text-gray-700">30-day money-back guarantee</span>
-                  </div>
-                </div>
-                <a
-                  href="/auth/sign-up"
-                  className="block w-full px-10 py-6 rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_10px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(147,51,234,0.6)] text-2xl font-black text-white transition-all duration-200 text-center"
-                >
-                  CLAIM YOUR SPOT NOW →
-                </a>
-                <p className="text-sm text-gray-600 mt-4 font-medium">
-                  🔒 Secure checkout • 247 spots left at this price
-                </p>
-              </div>
-            </div>
-
-            <div className="max-w-2xl mx-auto p-6 rounded-[2rem] bg-gradient-to-br from-green-200 to-emerald-200 border-2 border-green-300">
-              <p className="text-lg font-bold text-gray-800 mb-2">
-                💰 Think of it this way:
-              </p>
-              <p className="text-gray-700 font-medium">
-                One salary negotiation win pays for this 10x over. One promotion pays for it 100x over. One avoided year of being stuck? Priceless. This is the best $297 you'll ever spend on your career.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* FAQ */}
         <div className="mb-20">
           <div className="text-center mb-12">
@@ -594,15 +533,6 @@ export default function Home() {
               </h3>
               <p className="text-gray-700 font-medium">
                 Free content is scattered, generic, and overwhelming. We've distilled everything into battle-tested frameworks that actually work. Plus you get personalized coaching and a community of PMs who get it. That's worth way more than free blog posts.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
-              <h3 className="text-xl font-bold text-gray-800 mb-2">
-                "When does the beta pricing end?"
-              </h3>
-              <p className="text-gray-700 font-medium">
-                In 48 hours or when we hit 250 members, whichever comes first. After that, price goes to $997. We're at 247 now. Don't miss this.
               </p>
             </div>
           </div>

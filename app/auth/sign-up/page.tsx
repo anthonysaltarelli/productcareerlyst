@@ -13,7 +13,7 @@ export default function SignUpPage() {
               Create Account
             </h1>
             <p className="text-gray-700 font-semibold">
-              Join 12,847 PMs leveling up their careers
+              Join thousands of PMs leveling up their careers
             </p>
           </div>
 

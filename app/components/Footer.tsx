@@ -67,15 +67,6 @@ export const Footer = () => {
                   Testimonials
                 </a>
               </li>
-              <li>
-                <a
-                  href="#pricing"
-                  className="text-gray-300 hover:text-purple-400 font-medium transition-colors duration-200"
-                  tabIndex={0}
-                >
-                  Pricing
-                </a>
-              </li>
             </ul>
           </div>
 
@@ -99,15 +90,6 @@ export const Footer = () => {
                   tabIndex={0}
                 >
                   Terms of Service
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/refund"
-                  className="text-gray-300 hover:text-purple-400 font-medium transition-colors duration-200"
-                  tabIndex={0}
-                >
-                  Refund Policy
                 </a>
               </li>
             </ul>
