@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { UserInfoWithLogout } from '@/app/components/UserInfoWithLogout'
 import { DashboardNavigation } from '@/app/components/DashboardNavigation'
 
 export default async function DashboardLayout({
@@ -34,9 +33,6 @@ export default async function DashboardLayout({
 
         {/* Navigation Links - Scrollable if needed */}
         <DashboardNavigation />
-
-        {/* User Info & Logout */}
-        <UserInfoWithLogout email={user.email} />
       </aside>
 
       {/* Main Content Area - Scrollable */}

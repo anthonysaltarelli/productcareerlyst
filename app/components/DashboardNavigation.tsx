@@ -2,7 +2,7 @@
 
 import { useFlags } from 'launchdarkly-react-client-sdk'
 import Link from 'next/link'
-import { CreditCard } from 'lucide-react'
+import { CreditCard, Settings } from 'lucide-react'
 
 export const DashboardNavigation = () => {
   const { coach, compensation, impactPortfolio, careerTracker } = useFlags()
@@ -22,6 +22,7 @@ export const DashboardNavigation = () => {
       {/* Billing Section */}
       <div className="pt-4 mt-4 border-t border-slate-700">
         <NavLink href="/dashboard/billing" label="Billing & Subscription" icon={<CreditCard className="w-5 h-5" />} />
+        <NavLink href="/dashboard/settings" label="Settings" icon={<Settings className="w-5 h-5" />} />
       </div>
     </nav>
   )
