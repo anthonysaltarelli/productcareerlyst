@@ -22,24 +22,9 @@ interface UpcomingInvoice {
 export const BillingStatus = ({ subscription }: BillingStatusProps) => {
   const [upcomingInvoice, setUpcomingInvoice] = useState<UpcomingInvoice | null>(null);
   const [loadingInvoice, setLoadingInvoice] = useState(true);
+  
   if (!subscription) {
-    return (
-      <div className="bg-white rounded-[2.5rem] shadow-lg border-2 border-gray-200 p-8 mb-6">
-        <div className="text-center">
-          <X className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-black text-gray-900 mb-2">No Active Subscription</h2>
-          <p className="text-gray-600 font-semibold mb-6">
-            You don't have an active subscription. Choose a plan to get started!
-          </p>
-          <a
-            href="/dashboard/billing/plans"
-            className="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:from-purple-700 hover:to-pink-700 transition-colors"
-          >
-            View Plans
-          </a>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const isActive = subscription.status === 'active' || subscription.status === 'trialing';

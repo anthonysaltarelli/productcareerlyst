@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useJobApplication } from '@/lib/hooks/useJobApplications';
 import { useInterviews, createInterview, updateInterview, deleteInterview } from '@/lib/hooks/useInterviews';
 import { useContacts, createContact, updateContact, deleteContact } from '@/lib/hooks/useContacts';
@@ -26,13 +26,39 @@ const statusConfig: Record<ApplicationStatus, { label: string; color: string; bg
 export default function JobDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const jobId = params.id as string;
 
   const { application, loading, error, refetch } = useJobApplication(jobId);
   const { interviews, refetch: refetchInterviews } = useInterviews(jobId);
   const { contacts, refetch: refetchContacts } = useContacts(undefined, jobId);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'interviews' | 'contacts' | 'research'>('overview');
+  // Initialize activeTab from query params, default to 'overview'
+  const tabFromQuery = searchParams.get('tab') as 'overview' | 'interviews' | 'contacts' | 'research' | null;
+  const [activeTab, setActiveTab] = useState<'overview' | 'interviews' | 'contacts' | 'research'>(
+    (tabFromQuery && ['overview', 'interviews', 'contacts', 'research'].includes(tabFromQuery)) 
+      ? tabFromQuery 
+      : 'overview'
+  );
+
+  // Update activeTab when query param changes (e.g., browser back/forward)
+  useEffect(() => {
+    const tabFromQuery = searchParams.get('tab') as 'overview' | 'interviews' | 'contacts' | 'research' | null;
+    if (tabFromQuery && ['overview', 'interviews', 'contacts', 'research'].includes(tabFromQuery)) {
+      setActiveTab(tabFromQuery);
+    } else if (!tabFromQuery) {
+      setActiveTab('overview');
+    }
+  }, [searchParams]);
+
+  // Function to update tab and query param
+  const handleTabChange = (tab: 'overview' | 'interviews' | 'contacts' | 'research') => {
+    setActiveTab(tab);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', tab);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
   const [showAddInterview, setShowAddInterview] = useState(false);
   const [showAddContact, setShowAddContact] = useState(false);
   const [showWizaAutomated, setShowWizaAutomated] = useState(false);
@@ -179,7 +205,7 @@ export default function JobDetailPage() {
 
       await refetchInterviews();
       setShowAddInterview(false);
-      setActiveTab('interviews');
+      handleTabChange('interviews');
       
       // Reset form
       setInterviewForm({
@@ -228,7 +254,7 @@ export default function JobDetailPage() {
 
       await refetchContacts();
       setShowAddContact(false);
-      setActiveTab('contacts');
+      handleTabChange('contacts');
       
       // Reset form
       setContactForm({
@@ -338,7 +364,7 @@ export default function JobDetailPage() {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => handleTabChange(tab.id as any)}
                 className={`px-6 py-3.5 font-black text-sm transition-all rounded-[1.5rem] flex items-center gap-2 border-2 ${
                   activeTab === tab.id
                     ? 'bg-white shadow-[0_4px_0_0_rgba(147,51,234,0.4)] border-purple-400 text-purple-700'
@@ -451,16 +477,16 @@ export default function JobDetailPage() {
                 <h3 className="text-xl font-black text-gray-900 mb-4">Quick Actions ⚡</h3>
                 <div className="space-y-3">
                   <button 
-                    onClick={() => setShowAddInterview(true)}
+                    onClick={() => handleTabChange('interviews')}
                     className="w-full px-5 py-3.5 rounded-[1.5rem] bg-white shadow-[0_4px_0_0_rgba(0,0,0,0.1)] border-2 border-blue-300 text-gray-700 font-black hover:translate-y-1 hover:shadow-[0_2px_0_0_rgba(0,0,0,0.1)] transition-all text-left flex items-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    Schedule Interview
+                    Add Interview
                   </button>
                   <button 
-                    onClick={() => setShowAddContact(true)}
+                    onClick={() => handleTabChange('contacts')}
                     className="w-full px-5 py-3.5 rounded-[1.5rem] bg-white shadow-[0_4px_0_0_rgba(0,0,0,0.1)] border-2 border-blue-300 text-gray-700 font-black hover:translate-y-1 hover:shadow-[0_2px_0_0_rgba(0,0,0,0.1)] transition-all text-left flex items-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -489,7 +515,7 @@ export default function JobDetailPage() {
                     ))}
                   </div>
                   <button 
-                    onClick={() => setActiveTab('contacts')}
+                    onClick={() => handleTabChange('contacts')}
                     className="w-full mt-4 px-4 py-2.5 rounded-[1rem] bg-purple-100 border-2 border-purple-300 text-purple-700 font-black hover:bg-purple-200 transition-colors"
                   >
                     View All Contacts →
