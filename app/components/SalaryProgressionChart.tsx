@@ -181,6 +181,8 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
           withCareerlyst: Math.round(withPoint.salary),
           withoutPromotion: withoutPoint.isPromotion,
           withPromotion: withPoint.isPromotion,
+          withoutLevel: withoutPoint.level,
+          withLevel: withPoint.level,
         });
       }
     }
@@ -432,6 +434,8 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
                     const data = payload[0]?.payload;
                     const withoutPromotion = data?.withoutPromotion;
                     const withPromotion = data?.withPromotion;
+                    const withoutLevel = data?.withoutLevel;
+                    const withLevel = data?.withLevel;
                     
                     return (
                       <div style={{
@@ -448,20 +452,29 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
                           const isPromotion = entry.dataKey === 'withoutCareerlyst' 
                             ? withoutPromotion 
                             : withPromotion;
+                          const level = entry.dataKey === 'withoutCareerlyst'
+                            ? withoutLevel
+                            : withLevel;
                           return (
-                            <div key={index} style={{ marginBottom: '4px' }}>
-                              <span style={{ fontWeight: 'bold', color: entry.color }}>
-                                {entry.name}: {formatCurrencyFull(entry.value)}
-                              </span>
-                              {isPromotion && (
-                                <span style={{ 
-                                  marginLeft: '8px', 
-                                  fontSize: '11px', 
-                                  color: '#9333ea',
-                                  fontWeight: 'bold'
-                                }}>
-                                  🎉 Promotion!
+                            <div key={index} style={{ marginBottom: '8px' }}>
+                              <div>
+                                <span style={{ fontWeight: 'bold', color: entry.color }}>
+                                  {entry.name}: {formatCurrencyFull(entry.value)}
                                 </span>
+                              </div>
+                              {isPromotion && (
+                                <div style={{ marginTop: '4px' }}>
+                                  <span style={{ 
+                                    fontSize: '11px', 
+                                    color: entry.dataKey === 'withoutCareerlyst' ? '#6b7280' : '#9333ea',
+                                    fontWeight: 'bold',
+                                    backgroundColor: entry.dataKey === 'withoutCareerlyst' ? '#f3f4f6' : '#f3e8ff',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px'
+                                  }}>
+                                    {entry.dataKey === 'withoutCareerlyst' ? '' : '🎉 '}Promotion to {level}
+                                  </span>
+                                </div>
                               )}
                             </div>
                           );
