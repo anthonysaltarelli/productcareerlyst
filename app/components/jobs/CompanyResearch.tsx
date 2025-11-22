@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { ResearchType, CompanyResearch } from '@/lib/types/jobs';
 
 interface CompanyResearchProps {
@@ -31,6 +31,26 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
   const [selectedVector, setSelectedVector] = useState<ResearchType | null>(null);
   const [loadingVectors, setLoadingVectors] = useState<Set<ResearchType>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [expandedSources, setExpandedSources] = useState<Set<ResearchType>>(new Set());
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fetch research without setting loading state (for polling)
+  const fetchResearchSilent = async () => {
+    try {
+      const response = await fetch(`/api/jobs/companies/${companyId}/research`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch research');
+      }
+
+      const data = await response.json();
+      setResearch(data.research || {});
+      return data.research || {};
+    } catch (error) {
+      console.error('Error fetching research:', error);
+      return {};
+    }
+  };
 
   const fetchResearch = async () => {
     try {
@@ -74,7 +94,7 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({}), // Explicitly send empty body
+        body: JSON.stringify({}),
       });
 
       console.log('Response status:', response.status);
@@ -95,34 +115,54 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
         console.error('Error message:', errorMessage);
         console.error('Error details:', errorData);
         setError(errorMessage);
+        setGenerating(false);
         throw new Error(errorMessage);
       }
 
       const responseData = await response.json();
       console.log('Success response:', responseData);
 
-      // Start polling for updates
-      const pollInterval = setInterval(async () => {
-        await fetchResearch();
+      // Clear any existing polling interval
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+
+      // Start polling for updates (silent updates, no loading state)
+      pollIntervalRef.current = setInterval(async () => {
+        const updatedResearch = await fetchResearchSilent();
         
-        // Check if all vectors are loaded
-        const currentResearch = await fetch(`/api/jobs/companies/${companyId}/research`).then(r => r.json());
+        // Check if all vectors are loaded (only count valid research)
         const allLoaded = RESEARCH_VECTORS.every((vector) => {
-          return currentResearch.research?.[vector.type] !== undefined;
+          const researchItem = updatedResearch[vector.type];
+          return researchItem !== undefined && researchItem.is_valid;
         });
 
         if (allLoaded) {
-          clearInterval(pollInterval);
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
           setGenerating(false);
-          await fetchResearch(); // Final refresh
+          // Auto-select first vector when all research is complete (only valid research)
+          if (!selectedVector) {
+            const firstVector = RESEARCH_VECTORS.find((v) => {
+              const researchItem = updatedResearch[v.type];
+              return researchItem && researchItem.is_valid;
+            });
+            if (firstVector) {
+              setSelectedVector(firstVector.type);
+            }
+          }
         }
-      }, 5000); // Poll every 5 seconds
+      }, 3000); // Poll every 3 seconds
 
       // Stop polling after 10 minutes
       setTimeout(() => {
-        clearInterval(pollInterval);
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
         setGenerating(false);
-        fetchResearch(); // Final refresh
       }, 10 * 60 * 1000);
     } catch (error) {
       console.error('=== generateAllResearch ERROR ===');
@@ -136,7 +176,18 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
     }
   };
 
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+  }, []);
+
   const generateSingleResearch = async (researchType: ResearchType) => {
+    let pollInterval: NodeJS.Timeout | null = null;
+    
     try {
       setLoadingVectors((prev) => new Set(prev).add(researchType));
       
@@ -154,19 +205,47 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
 
       const data = await response.json();
       
-      // Update research state
+      // Update research state immediately if available
       if (data.research) {
         setResearch((prev) => ({
           ...prev,
           [researchType]: data.research,
         }));
-      }
+        setLoadingVectors((prev) => {
+          const next = new Set(prev);
+          next.delete(researchType);
+          return next;
+        });
+      } else {
+        // If async, poll for updates
+        pollInterval = setInterval(async () => {
+          const updatedResearch = await fetchResearchSilent();
+          if (updatedResearch[researchType]) {
+            if (pollInterval) {
+              clearInterval(pollInterval);
+            }
+            setLoadingVectors((prev) => {
+              const next = new Set(prev);
+              next.delete(researchType);
+              return next;
+            });
+          }
+        }, 2000);
 
-      // Refresh all research to get latest
-      await fetchResearch();
+        // Stop polling after 5 minutes
+        setTimeout(() => {
+          if (pollInterval) {
+            clearInterval(pollInterval);
+          }
+          setLoadingVectors((prev) => {
+            const next = new Set(prev);
+            next.delete(researchType);
+            return next;
+          });
+        }, 5 * 60 * 1000);
+      }
     } catch (error) {
       console.error('Error generating research:', error);
-    } finally {
       setLoadingVectors((prev) => {
         const next = new Set(prev);
         next.delete(researchType);
@@ -175,21 +254,28 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
     }
   };
 
+  // Filter out stale research - treat it as if it doesn't exist
+  const validResearch = useMemo(() => {
+    return Object.fromEntries(
+      Object.entries(research).filter(([_, r]) => r.is_valid)
+    );
+  }, [research]);
+
   useEffect(() => {
     if (companyId) {
       fetchResearch();
     }
   }, [companyId]);
 
-  // Auto-select first available vector
+  // Auto-select first available vector (only valid research)
   useEffect(() => {
-    if (!selectedVector && Object.keys(research).length > 0) {
-      const firstVector = RESEARCH_VECTORS.find((v) => research[v.type]);
+    if (!selectedVector && Object.keys(validResearch).length > 0) {
+      const firstVector = RESEARCH_VECTORS.find((v) => validResearch[v.type]);
       if (firstVector) {
         setSelectedVector(firstVector.type);
       }
     }
-  }, [research, selectedVector]);
+  }, [validResearch, selectedVector]);
 
   const getVectorStatus = (type: ResearchType) => {
     const vectorResearch = research[type];
@@ -198,12 +284,9 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
       return { status: 'loading', label: 'Loading...', color: 'blue' };
     }
     
-    if (!vectorResearch) {
+    // Treat stale research as missing (user will need to regenerate all)
+    if (!vectorResearch || !vectorResearch.is_valid) {
       return { status: 'missing', label: 'Not generated', color: 'gray' };
-    }
-    
-    if (!vectorResearch.is_valid) {
-      return { status: 'stale', label: 'Stale (>7 days)', color: 'yellow' };
     }
     
     return { status: 'ready', label: 'Ready', color: 'green' };
@@ -218,9 +301,16 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
     return `${daysAgo} days ago`;
   };
 
-  const selectedResearch = selectedVector ? research[selectedVector] : null;
+  const selectedResearch = selectedVector && validResearch[selectedVector] 
+    ? validResearch[selectedVector] 
+    : null;
 
-  // Empty state
+  // Calculate progress (only count valid research)
+  const completedCount = RESEARCH_VECTORS.filter((v) => validResearch[v.type]).length;
+  const totalCount = RESEARCH_VECTORS.length;
+  const progressPercentage = (completedCount / totalCount) * 100;
+
+  // Initial loading state
   if (loading) {
     return (
       <div className="p-8 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 text-center">
@@ -235,13 +325,94 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
     );
   }
 
-  if (Object.keys(research).length === 0 && !generating) {
+  // Research generation loading state (show when generating and no valid research yet)
+  if (generating && Object.keys(validResearch).length === 0) {
+    return (
+      <div className="p-12 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl mb-6">
+            <svg className="animate-spin h-10 w-10 text-purple-600" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-black text-gray-900 mb-2">Generating Research</h3>
+          <p className="text-gray-600 font-medium">
+            Researching {companyName} across all {totalCount} research vectors...
+          </p>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-bold text-gray-700">Progress</span>
+            <span className="text-sm font-bold text-purple-600">{completedCount} / {totalCount}</span>
+          </div>
+          <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-purple-600 to-pink-600 transition-all duration-500 ease-out"
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Vector Status List */}
+        <div className="space-y-2 max-h-[400px] overflow-y-auto">
+          {RESEARCH_VECTORS.map((vector) => {
+            const hasResearch = !!validResearch[vector.type];
+            return (
+              <div
+                key={vector.type}
+                className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+                  hasResearch
+                    ? 'bg-green-50 border-green-300'
+                    : 'bg-gray-50 border-gray-200'
+                }`}
+              >
+                <div className="flex-shrink-0">
+                  {hasResearch ? (
+                    <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="animate-spin w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  )}
+                </div>
+                <span className="text-xl">{vector.icon}</span>
+                <span className={`font-bold text-sm flex-1 ${hasResearch ? 'text-green-700' : 'text-gray-700'}`}>
+                  {vector.label}
+                </span>
+                {hasResearch && (
+                  <span className="text-xs text-green-600 font-semibold">Complete</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="text-sm text-gray-500 mt-6 text-center">
+          This may take a few minutes. Research will continue even if you navigate away.
+        </p>
+      </div>
+    );
+  }
+
+  // Empty state (no valid research and not generating)
+  if (Object.keys(validResearch).length === 0 && !generating) {
     return (
       <div className="p-12 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 text-center">
         <div className="text-6xl mb-6">🔍</div>
         <h3 className="text-2xl font-black text-gray-900 mb-4">No Research Available</h3>
         <p className="text-gray-600 font-medium mb-8 max-w-md mx-auto">
-          Generate comprehensive research for {companyName} across all 13 research vectors to get insights on mission, values, competition, and more.
+          Generate comprehensive research for {companyName} across all {totalCount} research vectors to get insights on mission, values, competition, and more.
+          {Object.keys(research).length > 0 && (
+            <span className="block mt-2 text-sm text-gray-500">
+              (Previous research has expired and will be regenerated)
+            </span>
+          )}
         </p>
         
         {error && (
@@ -291,21 +462,40 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-in fade-in duration-500">
       {/* Sidebar */}
       <div className="lg:col-span-1">
         <div className="p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 sticky top-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-black text-gray-900">Research Vectors</h3>
             {generating && (
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-xs font-bold text-blue-600">{completedCount}/{totalCount}</span>
+              </div>
             )}
           </div>
+          {generating && (
+            <div className="mb-4 p-3 bg-blue-50 border-2 border-blue-200 rounded-xl">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-blue-700">Generating...</span>
+                <span className="text-xs font-bold text-blue-600">{Math.round(progressPercentage)}%</span>
+              </div>
+              <div className="w-full h-2 bg-blue-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-blue-600 transition-all duration-500 ease-out"
+                  style={{ width: `${progressPercentage}%` }}
+                />
+              </div>
+            </div>
+          )}
           <nav className="space-y-2 max-h-[600px] overflow-y-auto">
             {RESEARCH_VECTORS.map((vector) => {
               const status = getVectorStatus(vector.type);
               const isSelected = selectedVector === vector.type;
               const isLoading = loadingVectors.has(vector.type);
+              const hasResearch = !!validResearch[vector.type];
+              const isGenerating = generating && !hasResearch;
               
               return (
                 <button
@@ -314,9 +504,11 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
                   className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all ${
                     isSelected
                       ? 'bg-purple-100 border-purple-400 text-purple-700'
-                      : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                      : hasResearch
+                      ? 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                      : 'border-gray-200 bg-gray-50 text-gray-500'
                   } ${isLoading ? 'opacity-50' : ''}`}
-                  disabled={isLoading}
+                  disabled={isLoading || isGenerating}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -329,12 +521,13 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
                     )}
+                    {isGenerating && (
+                      <svg className="animate-spin h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                    )}
                   </div>
-                  {research[vector.type] && (
-                    <div className="text-xs text-gray-500 mt-1">
-                      {formatDate(research[vector.type].generated_at)}
-                    </div>
-                  )}
                 </button>
               );
             })}
@@ -346,25 +539,10 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
       <div className="lg:col-span-3">
         {selectedResearch ? (
           <div className="p-8 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-black text-gray-900 mb-2">
-                  {RESEARCH_VECTORS.find((v) => v.type === selectedVector)?.label}
-                </h2>
-                <p className="text-sm text-gray-500">
-                  Generated {formatDate(selectedResearch.generated_at)}
-                  {!selectedResearch.is_valid && (
-                    <span className="ml-2 text-yellow-600 font-bold">(Stale - Refresh recommended)</span>
-                  )}
-                </p>
-              </div>
-              <button
-                onClick={() => generateSingleResearch(selectedVector!)}
-                disabled={loadingVectors.has(selectedVector!)}
-                className="px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-700 font-bold text-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                {loadingVectors.has(selectedVector!) ? 'Refreshing...' : '↻ Refresh'}
-              </button>
+            <div className="mb-6">
+              <h2 className="text-2xl font-black text-gray-900">
+                {RESEARCH_VECTORS.find((v) => v.type === selectedVector)?.label}
+              </h2>
             </div>
 
             {/* Content */}
@@ -407,31 +585,56 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
                   Sources ({selectedResearch.perplexity_response.search_results.length})
                 </h3>
                 <div className="space-y-3">
-                  {selectedResearch.perplexity_response.search_results.slice(0, 5).map((source: any, index: number) => (
-                    <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-purple-300 transition-colors">
-                      <h4 className="font-bold text-sm text-gray-900 mb-1">{source.title}</h4>
-                      <p className="text-xs text-gray-500 mb-2">
-                        {source.date && `Published: ${source.date}`}
-                        {source.last_updated && ` | Last updated: ${source.last_updated}`}
-                      </p>
-                      {source.snippet && (
-                        <p className="text-sm text-gray-600 mb-2 line-clamp-2">{source.snippet}</p>
-                      )}
-                      <a
-                        href={source.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-purple-600 font-semibold text-sm"
-                      >
-                        View Source →
-                      </a>
-                    </div>
-                  ))}
-                  {selectedResearch.perplexity_response.search_results.length > 5 && (
-                    <p className="text-sm text-gray-500 mt-2">
-                      + {selectedResearch.perplexity_response.search_results.length - 5} more sources
-                    </p>
-                  )}
+                  {(() => {
+                    const isExpanded = expandedSources.has(selectedVector!);
+                    const sourcesToShow = isExpanded 
+                      ? selectedResearch.perplexity_response.search_results 
+                      : selectedResearch.perplexity_response.search_results.slice(0, 5);
+                    const remainingCount = selectedResearch.perplexity_response.search_results.length - 5;
+                    
+                    return (
+                      <>
+                        {sourcesToShow.map((source: any, index: number) => (
+                          <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-purple-300 transition-colors">
+                            <h4 className="font-bold text-sm text-gray-900 mb-1">{source.title}</h4>
+                            <p className="text-xs text-gray-500 mb-2">
+                              {source.date && `Published: ${source.date}`}
+                              {source.last_updated && ` | Last updated: ${source.last_updated}`}
+                            </p>
+                            {source.snippet && (
+                              <p className="text-sm text-gray-600 mb-2 line-clamp-2">{source.snippet}</p>
+                            )}
+                            <a
+                              href={source.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-purple-600 font-semibold text-sm"
+                            >
+                              View Source →
+                            </a>
+                          </div>
+                        ))}
+                        {remainingCount > 0 && (
+                          <button
+                            onClick={() => {
+                              setExpandedSources((prev) => {
+                                const next = new Set(prev);
+                                if (isExpanded) {
+                                  next.delete(selectedVector!);
+                                } else {
+                                  next.add(selectedVector!);
+                                }
+                                return next;
+                              });
+                            }}
+                            className="w-full mt-2 px-4 py-2 text-sm font-bold text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg border-2 border-purple-200 hover:border-purple-300 transition-colors"
+                          >
+                            {isExpanded ? 'Show less' : `Show ${remainingCount} more sources`}
+                          </button>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             )}
