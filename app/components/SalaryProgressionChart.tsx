@@ -326,7 +326,8 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
           </div>
           
           {/* Right column - Big outcome number first */}
-          <div className="space-y-6 pr-4 lg:pr-8">
+          <div className="pr-4 lg:pr-6">
+            <div className="space-y-6 pl-6 py-6 rounded-xl bg-gray-50">
             {/* Big headline number */}
             <div className="text-center">
               <p className="text-xl md:text-2xl font-bold text-gray-700 mb-2">
@@ -351,7 +352,7 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
             </div>
             
             {/* Comparison cards */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 pr-4 lg:pr-6">
               <div className="p-5 rounded-xl bg-gray-50 border-2 border-gray-200">
                 <p className="text-sm font-bold text-gray-600 mb-2">Without Product Careerlyst</p>
                 <p className="text-2xl md:text-3xl font-black text-gray-700">
@@ -367,6 +368,7 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
                 </p>
                 <p className="text-sm text-gray-500 mt-1">Total earnings</p>
               </div>
+            </div>
             </div>
           </div>
         </div>
