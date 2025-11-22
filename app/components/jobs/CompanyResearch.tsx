@@ -657,7 +657,7 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
                     const sources = selectedResearch.perplexity_response.search_results || [];
                     
                     // Replace citation patterns [1], [2], etc. with markdown links
-                    return content.replace(/\[(\d+)\]/g, (match, citationNum) => {
+                    return content.replace(/\[(\d+)\]/g, (match: string, citationNum: string) => {
                       const sourceIndex = parseInt(citationNum, 10) - 1;
                       if (sourceIndex >= 0 && sourceIndex < sources.length && sources[sourceIndex]?.url) {
                         const sourceUrl = sources[sourceIndex].url;
