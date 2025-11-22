@@ -45,6 +45,8 @@ type Props = {
   analysisError?: string | null;
   onAnalyzeResume?: () => Promise<void>;
   usageRemaining?: number;
+  usageLimit?: number;
+  userPlan?: 'learn' | 'accelerate' | null;
   isAnalyzing?: boolean;
 };
 
@@ -81,7 +83,9 @@ export default function ResumeEditor({
   analysisLoading = false,
   analysisError = null,
   onAnalyzeResume,
-  usageRemaining = 5,
+  usageRemaining = 30,
+  usageLimit = 30,
+  userPlan = null,
   isAnalyzing = false,
 }: Props) {
   const [deleteModal, setDeleteModal] = useState<{
@@ -622,6 +626,8 @@ export default function ResumeEditor({
             error={analysisError}
             onReAnalyze={onAnalyzeResume}
             usageRemaining={usageRemaining}
+            usageLimit={usageLimit}
+            userPlan={userPlan}
             isAnalyzing={isAnalyzing}
           />
         );

@@ -9,6 +9,7 @@ import ResumeEditor from "@/app/components/resume/ResumeEditor";
 import UnsavedChangesModal from "@/app/components/resume/UnsavedChangesModal";
 import AddExperienceModal from "@/app/components/resume/AddExperienceModal";
 import AddEducationModal from "@/app/components/resume/AddEducationModal";
+import AcceleratePlanRequiredModal from "@/app/components/resume/AcceleratePlanRequiredModal";
 import { defaultResumeStyles, ResumeStyles, ResumeData } from "@/app/components/resume/mockData";
 import { createResumeDocument, downloadDocx } from "@/lib/utils/exportResume";
 import { useResumeData } from "@/lib/hooks/useResumeData";
@@ -44,10 +45,12 @@ export default function ResumeEditorPage({ params }: Props) {
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [usageInfo, setUsageInfo] = useState<{ count: number; remaining: number; limit: number; resetDate: string }>({
     count: 0,
-    remaining: 5,
-    limit: 5,
+    remaining: 30,
+    limit: 30,
     resetDate: '',
   });
+  const [userPlan, setUserPlan] = useState<'learn' | 'accelerate' | null>(null);
+  const [showAccelerateModal, setShowAccelerateModal] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Unwrap params
@@ -130,7 +133,8 @@ export default function ResumeEditorPage({ params }: Props) {
       getResumeAnalysis(versionId).then((data) => {
         if (data) {
           setAnalysisData(data.analysis || null);
-          setUsageInfo(data.usage || { count: 0, remaining: 5, limit: 5, resetDate: '' });
+          setUsageInfo(data.usage || { count: 0, remaining: 30, limit: 30, resetDate: '' });
+          setUserPlan(data.plan || null);
         }
       });
     }
@@ -139,6 +143,12 @@ export default function ResumeEditorPage({ params }: Props) {
   // Handle analyze resume
   const handleAnalyzeResume = async () => {
     if (!versionId) return;
+
+    // Check if user is on Accelerate plan
+    if (userPlan !== 'accelerate') {
+      setShowAccelerateModal(true);
+      return;
+    }
 
     // Switch to analysis section immediately to show loading state
     setSelectedSection('analysis');
@@ -159,16 +169,22 @@ export default function ResumeEditorPage({ params }: Props) {
           categoryDescriptions: result.categoryDescriptions,
           createdAt: result.createdAt,
         });
+        const newLimit = result.limit || 30;
         setUsageInfo({
           count: result.usageCount || 0,
-          remaining: Math.max(0, 5 - (result.usageCount || 0)),
-          limit: 5,
+          remaining: Math.max(0, newLimit - (result.usageCount || 0)),
+          limit: newLimit,
           resetDate: '',
         });
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to analyze resume';
-      setAnalysisError(message);
+      // Check if it's an Accelerate plan required error
+      if (message.includes('Accelerate') || message.includes('Subscription required')) {
+        setShowAccelerateModal(true);
+      } else {
+        setAnalysisError(message);
+      }
     } finally {
       setIsAnalyzing(false);
       setAnalysisLoading(false);
@@ -1442,6 +1458,8 @@ export default function ResumeEditorPage({ params }: Props) {
               analysisScore={analysisData?.overallScore ?? null}
               usageCount={usageInfo.count}
               usageRemaining={usageInfo.remaining}
+              usageLimit={usageInfo.limit}
+              userPlan={userPlan}
               isAnalyzing={isAnalyzing}
             />
           ) : (
@@ -1504,6 +1522,8 @@ export default function ResumeEditorPage({ params }: Props) {
             analysisError={analysisError}
             onAnalyzeResume={handleAnalyzeResume}
             usageRemaining={usageInfo.remaining}
+            usageLimit={usageInfo.limit}
+            userPlan={userPlan}
             isAnalyzing={isAnalyzing}
           />
         </div>
@@ -1515,6 +1535,12 @@ export default function ResumeEditorPage({ params }: Props) {
         onSaveAndContinue={handleSaveAndContinue}
         onDiscardAndContinue={handleDiscardAndContinue}
         onCancel={handleCancelNavigation}
+      />
+
+      {/* Accelerate Plan Required Modal */}
+      <AcceleratePlanRequiredModal
+        isOpen={showAccelerateModal}
+        onClose={() => setShowAccelerateModal(false)}
       />
 
       {/* Add Experience Modal */}

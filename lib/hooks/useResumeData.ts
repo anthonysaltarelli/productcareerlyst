@@ -735,6 +735,14 @@ export const useResumeData = (versionId?: string) => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Failed to analyze resume' }));
         
+        if (response.status === 403 && errorData.requiresSubscription) {
+          // Don't show toast here - let the UI handle it with modal
+          if (errorData.requiresAccelerate) {
+            throw new Error('Accelerate plan required');
+          }
+          throw new Error('Subscription required');
+        }
+        
         if (response.status === 429) {
           // Rate limited
           toast.error(`Monthly limit reached. Reset on ${errorData.resetDate || 'next month'}`);
@@ -767,7 +775,7 @@ export const useResumeData = (versionId?: string) => {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch analysis';
       // Don't show toast for this - it's a background fetch
-      return { analysis: null, usage: { count: 0, remaining: 5, limit: 5, resetDate: '' } };
+      return { analysis: null, usage: { count: 0, remaining: 30, limit: 30, resetDate: '' }, plan: null };
     }
   }, []);
 

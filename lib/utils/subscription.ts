@@ -38,7 +38,8 @@ export type FeatureType =
   | 'product_portfolio_case_study_ideas'
   | 'jobs_tracked'
   | 'custom_questions_for_interviewers'
-  | 'automated_company_research_searches';
+  | 'automated_company_research_searches'
+  | 'comprehensive_resume_analysis';
 
 /**
  * Get user's active subscription

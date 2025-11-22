@@ -39,6 +39,7 @@ export const PLAN_LIMITS = {
     jobs_tracked: 10,
     custom_questions_for_interviewers: 5,
     automated_company_research_searches: 5,
+    comprehensive_resume_analysis: 0,
     product_portfolio_template: false,
   },
   accelerate: {
@@ -50,6 +51,7 @@ export const PLAN_LIMITS = {
     jobs_tracked: Infinity,
     custom_questions_for_interviewers: Infinity,
     automated_company_research_searches: Infinity,
+    comprehensive_resume_analysis: 30,
     product_portfolio_template: true,
   },
 } as const;

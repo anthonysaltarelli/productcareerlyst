@@ -20,6 +20,8 @@ type Props = {
   analysisScore?: number | null;
   usageCount?: number;
   usageRemaining?: number;
+  usageLimit?: number;
+  userPlan?: 'learn' | 'accelerate' | null;
   isAnalyzing?: boolean;
 };
 
@@ -47,7 +49,9 @@ export default function ResumeVersionSidebar({
   onAnalyzeResume,
   analysisScore,
   usageCount = 0,
-  usageRemaining = 5,
+  usageRemaining = 30,
+  usageLimit = 30,
+  userPlan = null,
   isAnalyzing = false,
 }: Props) {
   const currentVersion = versions.find((v) => v.id === selectedVersion);
@@ -292,9 +296,9 @@ export default function ResumeVersionSidebar({
               )}
             </button>
           )}
-          {usageRemaining !== undefined && (
+          {usageRemaining !== undefined && userPlan === 'accelerate' && (
             <p className="text-xs text-gray-600 mt-2 text-center">
-              {usageRemaining} of 5 analyses remaining this month
+              {usageRemaining} of {usageLimit} analyses remaining this month
             </p>
           )}
         </div>

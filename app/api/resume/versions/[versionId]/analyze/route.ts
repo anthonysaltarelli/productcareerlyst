@@ -54,8 +54,9 @@ export const GET = async (
       .maybeSingle();
 
     // Get usage info from subscription system
-    const { canUseFeature } = await import('@/lib/utils/subscription');
-    const usageCheck = await canUseFeature(user.id, 'resume_bullet_optimizations');
+    const { canUseFeature, getUserPlan } = await import('@/lib/utils/subscription');
+    const usageCheck = await canUseFeature(user.id, 'comprehensive_resume_analysis');
+    const userPlan = await getUserPlan(user.id);
     
     const usageCount = usageCheck.current;
     const limit = usageCheck.limit === Infinity ? null : usageCheck.limit;
@@ -75,6 +76,7 @@ export const GET = async (
           limit: limit,
           resetDate,
         },
+        plan: userPlan,
       });
     }
 
@@ -98,6 +100,7 @@ export const GET = async (
         limit: limit,
         resetDate,
       },
+      plan: userPlan,
     });
   } catch (error) {
     console.error('Unexpected error:', error);
@@ -352,22 +355,38 @@ ${resumeText}
 };
 
 // Check and increment usage limit using subscription system
-const checkAndIncrementUsage = async (supabase: any, userId: string): Promise<{ allowed: boolean; count: number; resetDate: string }> => {
-  const { canUseFeature, incrementFeatureUsage } = await import('@/lib/utils/subscription');
+const checkAndIncrementUsage = async (supabase: any, userId: string): Promise<{ allowed: boolean; count: number; resetDate: string; limit: number | null; requiresSubscription: boolean; requiresAccelerate: boolean }> => {
+  const { canUseFeature, incrementFeatureUsage, getUserPlan } = await import('@/lib/utils/subscription');
   
-  // Check if user can use resume bullet optimizations
-  const usageCheck = await canUseFeature(userId, 'resume_bullet_optimizations');
+  // Check if user is on Accelerate plan
+  const userPlan = await getUserPlan(userId);
+  if (userPlan !== 'accelerate') {
+    return {
+      allowed: false,
+      count: 0,
+      resetDate: '',
+      limit: null,
+      requiresSubscription: true,
+      requiresAccelerate: true,
+    };
+  }
+  
+  // Check if user can use comprehensive resume analysis
+  const usageCheck = await canUseFeature(userId, 'comprehensive_resume_analysis');
   
   if (!usageCheck.allowed) {
     return {
       allowed: false,
       count: usageCheck.current,
       resetDate: usageCheck.resetDate,
+      limit: usageCheck.limit,
+      requiresSubscription: usageCheck.limit === null,
+      requiresAccelerate: false,
     };
   }
 
   // Increment usage
-  const { success, newCount } = await incrementFeatureUsage(userId, 'resume_bullet_optimizations');
+  const { success, newCount } = await incrementFeatureUsage(userId, 'comprehensive_resume_analysis');
   
   if (!success) {
     throw new Error('Failed to increment usage count');
@@ -377,6 +396,9 @@ const checkAndIncrementUsage = async (supabase: any, userId: string): Promise<{ 
     allowed: true,
     count: newCount,
     resetDate: usageCheck.resetDate,
+    limit: usageCheck.limit,
+    requiresSubscription: false,
+    requiresAccelerate: false,
   };
 };
 
@@ -417,11 +439,40 @@ export const POST = async (
     // Check usage limit
     const usageCheck = await checkAndIncrementUsage(supabase, user.id);
     if (!usageCheck.allowed) {
+      // Check if Accelerate plan is required
+      if (usageCheck.requiresAccelerate) {
+        return NextResponse.json(
+          {
+            error: 'Accelerate plan required',
+            message: 'Resume analysis is available exclusively for Accelerate plan subscribers.',
+            requiresSubscription: true,
+            requiresAccelerate: true,
+          },
+          { status: 403 }
+        );
+      }
+      
+      // Distinguish between no subscription and limit reached
+      if (usageCheck.requiresSubscription) {
+        return NextResponse.json(
+          {
+            error: 'Subscription required',
+            message: 'An active subscription is required to use resume analysis.',
+            requiresSubscription: true,
+            requiresAccelerate: false,
+          },
+          { status: 403 }
+        );
+      }
+      
       return NextResponse.json(
         {
           error: 'Monthly analysis limit reached',
           count: usageCheck.count,
+          limit: usageCheck.limit,
           resetDate: usageCheck.resetDate,
+          requiresSubscription: false,
+          requiresAccelerate: false,
         },
         { status: 429 }
       );

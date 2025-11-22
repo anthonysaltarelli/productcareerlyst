@@ -51,6 +51,8 @@ type Props = {
   error?: string | null;
   onReAnalyze?: () => Promise<void>;
   usageRemaining?: number;
+  usageLimit?: number;
+  userPlan?: 'learn' | 'accelerate' | null;
   isAnalyzing?: boolean;
 };
 
@@ -101,7 +103,9 @@ export default function ResumeAnalysisContent({
   isLoading = false,
   error = null,
   onReAnalyze,
-  usageRemaining = 5,
+  usageRemaining = 30,
+  usageLimit = 30,
+  userPlan = null,
   isAnalyzing = false,
 }: Props) {
   const [expandedRecommendations, setExpandedRecommendations] = useState<Set<number>>(new Set());
@@ -232,6 +236,11 @@ export default function ResumeAnalysisContent({
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Resume Analysis</h2>
             {analysis.createdAt && (
               <p className="text-sm text-gray-600">Analyzed on {formatDate(analysis.createdAt)}</p>
+            )}
+            {usageRemaining !== undefined && userPlan === 'accelerate' && (
+              <p className="text-xs text-gray-500 mt-1">
+                {usageRemaining} of {usageLimit} analyses remaining this month
+              </p>
             )}
           </div>
           {onReAnalyze && (
