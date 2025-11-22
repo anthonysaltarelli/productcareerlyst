@@ -47,9 +47,64 @@ interface ConvertKitSubscribeResponse {
 }
 
 /**
+ * Create a ConvertKit subscriber
+ * Uses POST /v4/subscribers to create a new subscriber
+ */
+const createSubscriber = async (
+  email: string,
+  firstName?: string
+): Promise<ConvertKitSubscribeResponse> => {
+  if (!CONVERTKIT_API_KEY) {
+    throw new Error('CONVERTKIT_API_KEY is not configured');
+  }
+
+  const requestBody: Record<string, string> = {
+    email_address: email,
+  };
+
+  if (firstName) {
+    requestBody.first_name = firstName;
+  }
+
+  console.log(`[ConvertKit] Creating subscriber ${email}`);
+
+  const response = await fetch(`${CONVERTKIT_API_BASE}/subscribers`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'X-Kit-Api-Key': CONVERTKIT_API_KEY,
+    },
+    body: JSON.stringify(requestBody),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    let errorDetails = errorText;
+    
+    try {
+      const errorJson = JSON.parse(errorText);
+      errorDetails = JSON.stringify(errorJson, null, 2);
+      console.error(`[ConvertKit] Create subscriber error details:`, {
+        status: response.status,
+        error: errorJson.error,
+        message: errorJson.message,
+      });
+    } catch {
+      console.error(`[ConvertKit] Create subscriber error (raw):`, errorText);
+    }
+    
+    throw new Error(`ConvertKit create subscriber failed: ${response.status} ${errorDetails}`);
+  }
+
+  const result = await response.json();
+  console.log(`[ConvertKit] Successfully created subscriber ${email}`);
+  return result;
+};
+
+/**
  * Add a subscriber to a ConvertKit form
- * Uses POST /v4/subscribers with form_id to create/subscribe in one call
- * This endpoint creates the subscriber if they don't exist and adds them to the form
+ * Uses the correct V4 API endpoint: POST /v4/forms/{form_id}/subscribers
+ * Note: Subscriber must already exist (created via createSubscriber or create subscriber endpoint)
  */
 export const addSubscriberToForm = async (
   formId: number,
@@ -60,19 +115,14 @@ export const addSubscriberToForm = async (
     throw new Error('CONVERTKIT_API_KEY is not configured');
   }
 
-  // V4 API: POST /v4/subscribers with form_id creates subscriber and adds to form
-  const requestBody: Record<string, string | number> = {
+  // V4 API: POST /v4/forms/{form_id}/subscribers with email_address in body
+  const requestBody: Record<string, string> = {
     email_address: email,
-    form_id: formId,
   };
 
-  if (firstName) {
-    requestBody.first_name = firstName;
-  }
+  console.log(`[ConvertKit] Adding ${email} to form ${formId}`);
 
-  console.log(`[ConvertKit] Subscribing ${email} to form ${formId}`);
-
-  const response = await fetch(`${CONVERTKIT_API_BASE}/subscribers`, {
+  const response = await fetch(`${CONVERTKIT_API_BASE}/forms/${formId}/subscribers`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
@@ -105,7 +155,7 @@ export const addSubscriberToForm = async (
   }
 
   const result = await response.json();
-  console.log(`[ConvertKit] Successfully subscribed ${email} to form ${formId}`);
+  console.log(`[ConvertKit] Successfully added ${email} to form ${formId}`);
   return result;
 };
 
@@ -171,8 +221,9 @@ export const addSubscriberToSequence = async (
  * This is the main function to use when a user verifies their email
  * 
  * Flow:
- * 1. Add to form first (creates subscriber if needed)
- * 2. Add to sequence using email address (subscriber must exist from step 1)
+ * 1. Create subscriber first (if they don't exist)
+ * 2. Add to form using email address
+ * 3. Add to sequence using email address
  */
 export const addSubscriberToFormAndSequence = async (
   formId: number,
@@ -188,22 +239,28 @@ export const addSubscriberToFormAndSequence = async (
   let formResult: ConvertKitSubscribeResponse | undefined;
   let sequenceResult: ConvertKitSubscribeResponse | undefined;
 
-  // Step 1: Add to form first (this creates the subscriber if needed)
+  // Step 1: Create subscriber first (required before adding to form/sequence)
+  // If subscriber already exists, the API will return 200/201, so we continue regardless
   try {
-    formResult = await addSubscriberToForm(formId, email, firstName);
+    await createSubscriber(email, firstName);
+  } catch (error) {
+    // If creation fails, subscriber might already exist - continue anyway
+    // The form/sequence endpoints will handle the case if subscriber doesn't exist
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.warn(`[ConvertKit] Create subscriber warning (may already exist, continuing): ${errorMessage}`);
+  }
+
+  // Step 2: Add to form (subscriber now exists)
+  try {
+    formResult = await addSubscriberToForm(formId, email);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     errors.push(`Form subscription failed: ${errorMessage}`);
     console.error('[ConvertKit] Failed to add subscriber to form:', error);
-    // Don't try sequence if form failed - subscriber might not exist
-    return {
-      formResult,
-      sequenceResult,
-      errors: errors.length > 0 ? errors : undefined,
-    };
+    // Continue to sequence even if form fails
   }
 
-  // Step 2: Add to sequence using email address (subscriber now exists from step 1)
+  // Step 3: Add to sequence (subscriber exists from step 1)
   try {
     sequenceResult = await addSubscriberToSequence(sequenceId, email);
   } catch (error) {

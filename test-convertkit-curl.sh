@@ -26,18 +26,41 @@ echo "Form ID: $FORM_ID"
 echo "Sequence ID: $SEQUENCE_ID"
 echo ""
 
-# Test 1: Add subscriber to form using POST /v4/subscribers with form_id
-echo "=== Test 1: Add subscriber to form ==="
+# Test 1a: Create subscriber first (if needed)
+echo "=== Test 1a: Create subscriber (if needed) ==="
 echo "Endpoint: POST /v4/subscribers"
-echo "Body: { email_address: \"$TEST_EMAIL\", form_id: $FORM_ID }"
+echo "Body: { email_address: \"$TEST_EMAIL\" }"
 echo ""
 
-RESPONSE1=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "$BASE_URL/subscribers" \
+RESPONSE1A=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "$BASE_URL/subscribers" \
   -H "Content-Type: application/json; charset=utf-8" \
   -H "X-Kit-Api-Key: $API_KEY" \
   -d "{
-    \"email_address\": \"$TEST_EMAIL\",
-    \"form_id\": $FORM_ID
+    \"email_address\": \"$TEST_EMAIL\"
+  }")
+
+HTTP_STATUS1A=$(echo "$RESPONSE1A" | grep "HTTP_STATUS:" | cut -d: -f2)
+BODY1A=$(echo "$RESPONSE1A" | sed '/HTTP_STATUS:/d')
+
+echo "Response Status: $HTTP_STATUS1A"
+if command -v jq &> /dev/null; then
+  echo "$BODY1A" | jq '.' 2>/dev/null || echo "$BODY1A"
+else
+  echo "$BODY1A"
+fi
+echo ""
+
+# Test 1b: Add subscriber to form using POST /v4/forms/{form_id}/subscribers
+echo "=== Test 1b: Add subscriber to form ==="
+echo "Endpoint: POST /v4/forms/$FORM_ID/subscribers"
+echo "Body: { email_address: \"$TEST_EMAIL\" }"
+echo ""
+
+RESPONSE1=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "$BASE_URL/forms/$FORM_ID/subscribers" \
+  -H "Content-Type: application/json; charset=utf-8" \
+  -H "X-Kit-Api-Key: $API_KEY" \
+  -d "{
+    \"email_address\": \"$TEST_EMAIL\"
   }")
 
 HTTP_STATUS1=$(echo "$RESPONSE1" | grep "HTTP_STATUS:" | cut -d: -f2)
