@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ResearchType, CompanyResearch } from '@/lib/types/jobs';
+import { ResearchType, CompanyResearch as CompanyResearchType } from '@/lib/types/jobs';
 
 interface CompanyResearchProps {
   companyId: string;
@@ -27,7 +27,7 @@ const RESEARCH_VECTORS: Array<{ type: ResearchType; label: string; icon: string 
 ];
 
 export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps) => {
-  const [research, setResearch] = useState<Record<string, CompanyResearch & { is_valid: boolean }>>({});
+  const [research, setResearch] = useState<Record<string, CompanyResearchType & { is_valid: boolean }>>({});
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [selectedVector, setSelectedVector] = useState<ResearchType | null>(null);
