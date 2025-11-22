@@ -198,23 +198,21 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
     ...chartData.map(d => Math.min(d.withoutCareerlyst, d.withCareerlyst))
   );
   
-  // Round up to next nice number
+  // Round up to next sensible number
+  // Examples: $373K -> $400K, $401K -> $450K, $451K -> $500K
   const roundUpToNiceNumber = (value: number): number => {
     if (value === 0) return 0;
-    const valueInMillions = value / 1000000;
-    let niceNumber;
-    if (valueInMillions <= 0.5) niceNumber = 0.5;
-    else if (valueInMillions <= 1) niceNumber = 1;
-    else if (valueInMillions <= 1.5) niceNumber = 1.5;
-    else if (valueInMillions <= 2) niceNumber = 2;
-    else if (valueInMillions <= 2.5) niceNumber = 2.5;
-    else if (valueInMillions <= 3) niceNumber = 3;
-    else if (valueInMillions <= 3.5) niceNumber = 3.5;
-    else if (valueInMillions <= 4) niceNumber = 4;
-    else if (valueInMillions <= 4.5) niceNumber = 4.5;
-    else if (valueInMillions <= 5) niceNumber = 5;
-    else niceNumber = Math.ceil(valueInMillions);
-    return niceNumber * 1000000;
+    const valueInThousands = value / 1000;
+    
+    // Up to $400K, round to $400K
+    if (valueInThousands <= 400) {
+      return 400000;
+    }
+    
+    // Above $400K, round to next $50K increment
+    // $401K -> $450K, $451K -> $500K, $501K -> $550K, etc.
+    const roundedToFifty = Math.ceil(valueInThousands / 50) * 50;
+    return roundedToFifty * 1000;
   };
   
   const maxSalary = roundUpToNiceNumber(rawMaxSalary);
@@ -319,21 +317,6 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
                 step="1"
               />
             </div>
-            
-            {/* Info box about assumptions */}
-            <div className="p-4 rounded-xl bg-purple-50 border-2 border-purple-200">
-              <p className="text-xs font-bold text-purple-800 mb-2">Assumptions:</p>
-              <ul className="text-xs text-purple-700 space-y-1">
-                <li>• Promotion raises: Always 20%</li>
-                <li>• Annual raises: 3% without Careerlyst, 8% with Careerlyst</li>
-                <li>• With Careerlyst: Accelerated promotions (lower bound timeline)</li>
-                <li>• Without Careerlyst: Normal promotions (upper bound timeline)</li>
-                <li>• APM → PM: 1-3 years</li>
-                <li>• PM → Senior PM: 2-5 years</li>
-                <li>• Senior PM → Staff PM: 3-6 years</li>
-                <li>• Staff PM → Principal PM: 4-7 years</li>
-              </ul>
-            </div>
           </div>
           
           {/* Right column - Big outcome number first */}
@@ -379,24 +362,6 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
                 <p className="text-xs text-gray-500">Total earnings</p>
               </div>
             </div>
-            
-            {/* ROI card */}
-            <div className="p-4 rounded-xl bg-purple-50 border-2 border-purple-200 text-center">
-              <p className="text-xs font-bold text-gray-600 mb-1">
-                Membership pays for itself in {monthsToPayoff} month{monthsToPayoff !== 1 ? "s" : ""}
-              </p>
-              <p className="text-sm text-gray-600">
-                Product Careerlyst membership: ${ANNUAL_MEMBERSHIP_COST}/year → That's a {roiMultiplier}x ROI if you reach these outcomes
-              </p>
-            </div>
-            
-            {/* CTA Button */}
-            <Link
-              href="/auth/sign-up"
-              className="block w-full px-6 py-4 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.6)] text-lg font-black text-white transition-all duration-200 text-center"
-            >
-              See how we help you get there →
-            </Link>
           </div>
         </div>
         
@@ -552,6 +517,16 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
               <span className="text-xs font-bold text-gray-700">With Product Careerlyst</span>
             </div>
           </div>
+        </div>
+        
+        {/* CTA Button */}
+        <div className="mt-8">
+          <Link
+            href="/auth/sign-up"
+            className="block w-full px-6 py-4 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.6)] text-lg font-black text-white transition-all duration-200 text-center"
+          >
+            Get started for free
+          </Link>
         </div>
       </div>
     </div>
