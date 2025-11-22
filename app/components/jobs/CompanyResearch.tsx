@@ -653,7 +653,7 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
                 >
                   {(() => {
                     // Pre-process content to replace citations with markdown links
-                    const content = selectedResearch.perplexity_response.choices[0].message.content;
+                    const content = selectedResearch.perplexity_response.choices?.[0]?.message?.content || '';
                     const sources = selectedResearch.perplexity_response.search_results || [];
                     
                     // Replace citation patterns [1], [2], etc. with markdown links
@@ -680,17 +680,17 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
                 </h3>
                 <div className="space-y-3">
                   {(() => {
+                    const fullSources = selectedResearch.perplexity_response.search_results || [];
                     const isExpanded = expandedSources.has(selectedVector!);
                     const sourcesToShow = isExpanded 
-                      ? selectedResearch.perplexity_response.search_results 
-                      : selectedResearch.perplexity_response.search_results.slice(0, 5);
-                    const remainingCount = selectedResearch.perplexity_response.search_results.length - 5;
+                      ? fullSources 
+                      : fullSources.slice(0, 5);
+                    const remainingCount = fullSources.length - 5;
                     
                     return (
                       <>
                         {sourcesToShow.map((source: any, index: number) => {
                           // Get the actual index in the full sources array
-                          const fullSources = selectedResearch.perplexity_response.search_results;
                           const actualSourceIndex = fullSources.findIndex((s: any) => s === source);
                           
                           return (
