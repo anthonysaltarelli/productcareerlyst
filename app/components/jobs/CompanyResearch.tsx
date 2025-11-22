@@ -555,6 +555,17 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
                     processed = processed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                     processed = processed.replace(/\*(.*?)\*/g, '<em>$1</em>');
                     
+                    // Replace citation patterns [1], [2], etc. with clickable links to source URLs
+                    const sources = selectedResearch.perplexity_response.search_results || [];
+                    processed = processed.replace(/\[(\d+)\]/g, (match, citationNum) => {
+                      const sourceIndex = parseInt(citationNum, 10) - 1; // Convert to 0-indexed
+                      if (sourceIndex >= 0 && sourceIndex < sources.length && sources[sourceIndex]?.url) {
+                        const sourceUrl = sources[sourceIndex].url;
+                        return `<a href="${sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-600 hover:text-purple-700 hover:underline font-semibold">${match}</a>`;
+                      }
+                      return match;
+                    });
+                    
                     // Check if it's a heading
                     if (paragraph.startsWith('### ')) {
                       return <h3 key={index} className="text-xl font-black text-gray-900 mt-8 mb-4" dangerouslySetInnerHTML={{ __html: processed.replace('### ', '') }} />;
@@ -594,8 +605,16 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
                     
                     return (
                       <>
-                        {sourcesToShow.map((source: any, index: number) => (
-                          <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-purple-300 transition-colors">
+                        {sourcesToShow.map((source: any, index: number) => {
+                          // Get the actual index in the full sources array
+                          const fullSources = selectedResearch.perplexity_response.search_results;
+                          const actualSourceIndex = fullSources.findIndex((s: any) => s === source);
+                          
+                          return (
+                          <div 
+                            key={actualSourceIndex >= 0 ? actualSourceIndex : index} 
+                            className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-purple-300 transition-colors"
+                          >
                             <h4 className="font-bold text-sm text-gray-900 mb-1">{source.title}</h4>
                             <p className="text-xs text-gray-500 mb-2">
                               {source.date && `Published: ${source.date}`}
@@ -613,7 +632,8 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
                               View Source →
                             </a>
                           </div>
-                        ))}
+                          );
+                        })}
                         {remainingCount > 0 && (
                           <button
                             onClick={() => {
