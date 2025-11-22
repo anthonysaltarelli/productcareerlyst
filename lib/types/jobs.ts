@@ -104,12 +104,35 @@ export interface Company {
   updated_at: string;
 }
 
+export type ResearchType = 
+  | 'mission'
+  | 'values'
+  | 'origin_story'
+  | 'product'
+  | 'user_types'
+  | 'competition'
+  | 'risks'
+  | 'recent_launches'
+  | 'strategy'
+  | 'funding'
+  | 'partnerships'
+  | 'customer_feedback'
+  | 'business_model';
+
 export interface CompanyResearch {
   id: string;
   company_id: string;
+  research_type: ResearchType;
   perplexity_response: {
     content?: string;
     sources?: string[];
+    search_results?: Array<{
+      title: string;
+      url: string;
+      date?: string;
+      snippet?: string;
+    }>;
+    citations?: string[];
     [key: string]: any; // Allow for other Perplexity response fields
   };
   generated_at: string;

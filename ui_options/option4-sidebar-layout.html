@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 4: Sidebar Layout</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    function showVector(vectorId) {
+      document.querySelectorAll('.vector-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+      document.querySelectorAll('.vector-link').forEach(link => {
+        link.classList.remove('bg-purple-100', 'border-purple-400', 'text-purple-700');
+        link.classList.add('hover:bg-gray-50');
+      });
+      
+      document.getElementById(vectorId).classList.remove('hidden');
+      const activeLink = document.querySelector(`[onclick="showVector('${vectorId}')"]`);
+      activeLink.classList.add('bg-purple-100', 'border-purple-400', 'text-purple-700');
+      activeLink.classList.remove('hover:bg-gray-50');
+    }
+  </script>
+</head>
+<body class="bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 min-h-screen p-8 md:p-12">
+  <div class="max-w-7xl mx-auto">
+    <!-- Back Button -->
+    <a href="#" class="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-purple-600 font-bold mb-6 transition-colors">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      Back to Jobs
+    </a>
+
+    <!-- Header -->
+    <div class="p-10 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 mb-8">
+      <div class="flex items-center gap-3 mb-3">
+        <h1 class="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">
+          Company Research: Airbnb
+        </h1>
+      </div>
+      <div class="flex items-center gap-4 text-gray-700 font-semibold text-lg">
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          Airbnb
+        </span>
+        <span class="text-gray-400">•</span>
+        <span class="text-sm">Last updated: 2 days ago</span>
+      </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <!-- Sidebar -->
+      <div class="lg:col-span-1">
+        <div class="p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 sticky top-8">
+          <h3 class="text-lg font-black text-gray-900 mb-4">Research Vectors</h3>
+          <nav class="space-y-2">
+            <button onclick="showVector('mission')" class="vector-link w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 bg-purple-100 border-purple-400 text-purple-700 font-semibold transition-all">
+              🎯 Mission
+            </button>
+            <button onclick="showVector('values')" class="vector-link w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+              💎 Values
+            </button>
+            <button onclick="showVector('origin')" class="vector-link w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+              📖 Origin Story
+            </button>
+            <button onclick="showVector('product')" class="vector-link w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+              📦 Product
+            </button>
+            <button onclick="showVector('users')" class="vector-link w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+              👥 User Types
+            </button>
+            <button onclick="showVector('competition')" class="vector-link w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+              🏆 Competition
+            </button>
+            <button onclick="showVector('risks')" class="vector-link w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+              ⚠️ Risks
+            </button>
+            <button onclick="showVector('launches')" class="vector-link w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+              🚀 Recent Launches
+            </button>
+            <button onclick="showVector('strategy')" class="vector-link w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+              🎯 Strategy
+            </button>
+            <button onclick="showVector('funding')" class="vector-link w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+              💰 Funding
+            </button>
+            <button onclick="showVector('partnerships')" class="vector-link w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+              🤝 Partnerships
+            </button>
+            <button onclick="showVector('feedback')" class="vector-link w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+              💬 Customer Feedback
+            </button>
+            <button onclick="showVector('business-model')" class="vector-link w-full text-left px-4 py-3 rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+              📊 Business Model
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="lg:col-span-3">
+        <!-- Mission Content -->
+        <div id="mission" class="vector-content p-8 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300">
+          <h2 class="text-2xl font-black text-gray-900 mb-6">Mission</h2>
+          <div class="prose prose-lg max-w-none text-gray-700 font-medium leading-relaxed">
+            <p class="text-lg mb-4">
+              Airbnb's mission statement is: <strong>"To create a world where anyone can belong anywhere."</strong> This concise yet powerful statement encapsulates the company's overarching purpose and ambition, serving as the guiding principle for all its strategies, products, and community initiatives.
+            </p>
+
+            <h3 class="text-xl font-black text-gray-900 mt-8 mb-4">Purpose and Vision</h3>
+            <p class="mb-4">
+              Airbnb's mission is not just about providing accommodations; it is about fostering a sense of belonging and connection for people around the globe. The company aims to break down barriers—geographic, cultural, and economic—by enabling travelers and hosts to connect in meaningful ways.
+            </p>
+
+            <h3 class="text-xl font-black text-gray-900 mt-8 mb-4">Impact on Customers and Community</h3>
+            <ul class="list-disc list-inside space-y-2 mb-4">
+              <li><strong>Enhancing Lives:</strong> The company strives to positively impact the experiences of its users by offering personalized, authentic, and memorable travel experiences.</li>
+              <li><strong>Building a Trusted Community:</strong> Airbnb emphasizes the importance of trust and safety, creating a reliable environment where guests and hosts can interact with confidence.</li>
+              <li><strong>Empowering Hosts:</strong> By providing hosts with tools, resources, and support, Airbnb enables individuals to share their homes and earn income.</li>
+              <li><strong>Fostering Inclusivity:</strong> The mission statement underscores Airbnb's commitment to inclusivity, aiming to make travel accessible and welcoming for everyone.</li>
+            </ul>
+          </div>
+
+          <!-- Sources Sidebar -->
+          <div class="mt-8 pt-8 border-t-2 border-gray-200">
+            <h3 class="text-xl font-black text-gray-900 mb-4">Sources (12)</h3>
+            <div class="space-y-3">
+              <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 class="font-bold text-sm text-gray-900 mb-1">Airbnb Mission Statement | Core Values</h4>
+                <p class="text-xs text-gray-500 mb-2">Mar 13, 2025</p>
+                <a href="#" class="text-blue-600 hover:text-purple-600 font-semibold text-xs">View →</a>
+              </div>
+              <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 class="font-bold text-sm text-gray-900 mb-1">Mission Statement, Vision, & Core Values</h4>
+                <p class="text-xs text-gray-500 mb-2">Nov 17, 2025</p>
+                <a href="#" class="text-blue-600 hover:text-purple-600 font-semibold text-xs">View →</a>
+              </div>
+              <p class="text-xs text-gray-500 mt-2">+ 10 more sources</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Other vectors (hidden by default) -->
+        <div id="values" class="vector-content hidden p-8 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300">
+          <h2 class="text-2xl font-black text-gray-900 mb-6">Values</h2>
+          <p class="text-gray-700 font-medium">Content for Values research would appear here...</p>
+        </div>
+        <div id="origin" class="vector-content hidden p-8 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300">
+          <h2 class="text-2xl font-black text-gray-900 mb-6">Origin Story</h2>
+          <p class="text-gray-700 font-medium">Content for Origin Story research would appear here...</p>
+        </div>
+        <!-- Add more vector content divs as needed -->
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

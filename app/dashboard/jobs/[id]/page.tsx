@@ -10,6 +10,7 @@ import { ApplicationStatus, InterviewType, InterviewStatus, ContactRelationship 
 import { EditJobModal } from '@/app/components/jobs/EditJobModal';
 import { WizaAutomatedFlow } from '@/app/components/jobs/WizaAutomatedFlow';
 import { WizaRequestHistory } from '@/app/components/jobs/WizaRequestHistory';
+import { CompanyResearch } from '@/app/components/jobs/CompanyResearch';
 
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
   wishlist: { label: 'Wishlist', color: 'text-gray-700', bgColor: 'bg-gray-50' },
@@ -850,14 +851,11 @@ export default function JobDetailPage() {
         )}
 
         {/* Research Tab */}
-        {activeTab === 'research' && (
-          <div className="p-16 rounded-[2.5rem] bg-gradient-to-br from-gray-100 to-gray-200 shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 text-center">
-            <svg className="w-20 h-20 mx-auto text-gray-500 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <h3 className="text-2xl font-black text-gray-900 mb-3">Research Coming Soon</h3>
-            <p className="text-gray-700 font-semibold mb-6">Company research and preparation materials will be available here</p>
-          </div>
+        {activeTab === 'research' && application?.company_id && (
+          <CompanyResearch
+            companyId={application.company_id}
+            companyName={application.company?.name || 'Unknown Company'}
+          />
         )}
       </div>
 
