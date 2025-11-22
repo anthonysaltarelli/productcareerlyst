@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio Editor - Product Careerlyst</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .component-item {
+      transition: all 0.2s;
+    }
+    .component-item:hover {
+      transform: translateY(-2px);
+    }
+    .rich-text-editor {
+      min-height: 150px;
+      border: 2px solid #e5e7eb;
+      border-radius: 1rem;
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <!-- Editor Header -->
+  <header class="bg-white border-b-2 border-gray-200 sticky top-0 z-50">
+    <div class="max-w-full mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <h1 class="text-xl font-black bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          Portfolio Editor
+        </h1>
+        <span class="text-sm text-gray-500 font-semibold">anthonysaltarelli</span>
+        <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">
+          Unsaved changes
+        </span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="px-4 py-2 rounded-xl border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+          Preview
+        </button>
+        <button class="px-4 py-2 rounded-xl border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+          Discard Changes
+        </button>
+        <button class="px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold transition-all">
+          Save Draft
+        </button>
+        <button class="px-6 py-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-black transition-all shadow-lg">
+          Publish
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex h-[calc(100vh-64px)]">
+    <!-- Sidebar -->
+    <aside class="w-72 bg-white border-r-2 border-gray-200 overflow-y-auto">
+      <!-- Pages Section -->
+      <div class="p-4 border-b-2 border-gray-200">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-black text-gray-900 uppercase">Pages</h2>
+          <button class="px-3 py-1 text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold rounded-lg transition-all">
+            + Add
+          </button>
+        </div>
+        <nav class="space-y-1">
+          <button class="w-full text-left px-3 py-2 rounded-lg bg-purple-100 border-2 border-purple-400 text-purple-700 font-semibold transition-all">
+            🏠 Home
+          </button>
+          <button class="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+            📄 Case Study: Checkout Flow
+          </button>
+          <button class="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+            💼 Work Experience
+          </button>
+          <button class="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-700 font-semibold transition-all">
+            📧 Contact
+          </button>
+        </nav>
+      </div>
+
+      <!-- Style Panel (Collapsible) -->
+      <div class="p-4 border-b-2 border-gray-200">
+        <button onclick="toggleStylePanel()" class="w-full flex items-center justify-between mb-3">
+          <h2 class="text-sm font-black text-gray-900 uppercase">Style</h2>
+          <svg id="style-arrow" class="w-4 h-4 text-gray-500 transform transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div id="style-panel" class="space-y-4">
+          <!-- Fonts -->
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-2">Heading Font</label>
+            <select class="w-full px-3 py-2 rounded-lg border-2 border-gray-300 text-sm font-semibold">
+              <option>Inter</option>
+              <option>Roboto</option>
+              <option>Playfair Display</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-2">Body Font</label>
+            <select class="w-full px-3 py-2 rounded-lg border-2 border-gray-300 text-sm font-semibold">
+              <option>Inter</option>
+              <option>Roboto</option>
+              <option>Open Sans</option>
+            </select>
+          </div>
+
+          <!-- Colors -->
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-2">Primary Color</label>
+            <div class="flex items-center gap-2">
+              <input type="color" value="#9333ea" class="w-12 h-10 rounded-lg border-2 border-gray-300">
+              <input type="text" value="#9333ea" class="flex-1 px-3 py-2 rounded-lg border-2 border-gray-300 text-sm font-semibold">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-2">Color Palette</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button class="px-3 py-2 rounded-lg border-2 border-purple-400 bg-purple-100 text-purple-700 text-xs font-bold">
+                Modern
+              </button>
+              <button class="px-3 py-2 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-semibold">
+                Classic
+              </button>
+              <button class="px-3 py-2 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-semibold">
+                Bold
+              </button>
+              <button class="px-3 py-2 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-semibold">
+                Minimal
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Components Library -->
+      <div class="p-4">
+        <h2 class="text-sm font-black text-gray-900 uppercase mb-3">Add Component</h2>
+        <div class="space-y-2">
+          <button class="w-full text-left px-3 py-2 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold transition-all text-sm">
+            📝 Problem Statement
+          </button>
+          <button class="w-full text-left px-3 py-2 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold transition-all text-sm">
+            💡 Solution Approach
+          </button>
+          <button class="w-full text-left px-3 py-2 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold transition-all text-sm">
+            🔄 Process/Methodology
+          </button>
+          <button class="w-full text-left px-3 py-2 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold transition-all text-sm">
+            📊 Results/Metrics
+          </button>
+          <button class="w-full text-left px-3 py-2 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold transition-all text-sm">
+            🎓 Key Learnings
+          </button>
+          <button class="w-full text-left px-3 py-2 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold transition-all text-sm">
+            🖼️ Image Gallery
+          </button>
+          <button class="w-full text-left px-3 py-2 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold transition-all text-sm">
+            🎥 Video/Embed
+          </button>
+          <button class="w-full text-left px-3 py-2 rounded-lg border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold transition-all text-sm">
+            💬 Quote/Testimonial
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Editor Area -->
+    <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
+      <div class="max-w-4xl mx-auto">
+        <!-- Page Header -->
+        <div class="mb-6">
+          <div class="flex items-center gap-3 mb-2">
+            <h2 class="text-2xl font-black text-gray-900">Case Study: Checkout Flow</h2>
+            <button class="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg">
+              Edit Page Settings
+            </button>
+          </div>
+          <p class="text-sm text-gray-600 font-semibold">URL: productcareerlyst.com/p/anthonysaltarelli/case-study/checkout-flow</p>
+        </div>
+
+        <!-- Component List -->
+        <div class="space-y-4">
+          <!-- Cover Photo Component -->
+          <div class="component-item p-6 rounded-2xl bg-white border-2 border-gray-300 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <span class="text-2xl">🖼️</span>
+                <h3 class="font-black text-gray-900">Cover Photo</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg">
+                  Edit
+                </button>
+                <button class="px-3 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg">
+                  Delete
+                </button>
+              </div>
+            </div>
+            <div class="h-64 bg-gradient-to-br from-purple-200 to-pink-200 rounded-xl flex items-center justify-center">
+              <p class="text-gray-500 font-semibold">Cover Photo Preview</p>
+            </div>
+          </div>
+
+          <!-- Problem Statement Component -->
+          <div class="component-item p-6 rounded-2xl bg-white border-2 border-purple-300 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <span class="text-2xl">📝</span>
+                <h3 class="font-black text-gray-900">Problem Statement</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg">
+                  Edit
+                </button>
+                <button class="px-3 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg">
+                  Delete
+                </button>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <input type="text" placeholder="Section Title" value="The Problem" class="w-full px-4 py-2 rounded-lg border-2 border-gray-300 font-bold text-lg">
+              <div class="rich-text-editor">
+                <p class="text-gray-700 font-medium">
+                  Our checkout process had a 68% abandonment rate, with users dropping off primarily at the payment information step. User research revealed that the form was too long, lacked clear progress indicators, and didn't save information between sessions.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Solution Approach Component -->
+          <div class="component-item p-6 rounded-2xl bg-white border-2 border-gray-300 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <span class="text-2xl">💡</span>
+                <h3 class="font-black text-gray-900">Solution Approach</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg">
+                  Edit
+                </button>
+                <button class="px-3 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg">
+                  Delete
+                </button>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <input type="text" placeholder="Section Title" value="Our Solution" class="w-full px-4 py-2 rounded-lg border-2 border-gray-300 font-bold text-lg">
+              <div class="rich-text-editor">
+                <p class="text-gray-700 font-medium">
+                  We redesigned the checkout flow with a multi-step approach, implemented auto-save functionality, and added progress indicators. We also integrated one-click payment options and simplified the form fields to only essential information.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Process/Methodology Component -->
+          <div class="component-item p-6 rounded-2xl bg-white border-2 border-gray-300 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <span class="text-2xl">🔄</span>
+                <h3 class="font-black text-gray-900">Process/Methodology</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg">
+                  Edit
+                </button>
+                <button class="px-3 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg">
+                  Delete
+                </button>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <input type="text" placeholder="Section Title" value="My Process" class="w-full px-4 py-2 rounded-lg border-2 border-gray-300 font-bold text-lg">
+              <div class="rich-text-editor">
+                <p class="text-gray-700 font-medium mb-4">
+                  <strong>1. Research Phase:</strong> Conducted user interviews and analyzed analytics data to identify pain points.<br><br>
+                  <strong>2. Design Phase:</strong> Created wireframes and prototypes for the new multi-step flow.<br><br>
+                  <strong>3. Testing Phase:</strong> Ran A/B tests with 10,000 users to validate the new design.<br><br>
+                  <strong>4. Implementation:</strong> Worked with engineering to build and launch the new checkout experience.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Results/Metrics Component -->
+          <div class="component-item p-6 rounded-2xl bg-white border-2 border-gray-300 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <span class="text-2xl">📊</span>
+                <h3 class="font-black text-gray-900">Results/Metrics</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg">
+                  Edit
+                </button>
+                <button class="px-3 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg">
+                  Delete
+                </button>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <input type="text" placeholder="Section Title" value="Impact & Results" class="w-full px-4 py-2 rounded-lg border-2 border-gray-300 font-bold text-lg">
+              <div class="grid grid-cols-3 gap-4">
+                <div class="p-4 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl border-2 border-green-300">
+                  <div class="text-3xl font-black text-green-700 mb-1">42%</div>
+                  <div class="text-sm font-bold text-gray-700">Reduction in abandonment</div>
+                </div>
+                <div class="p-4 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl border-2 border-blue-300">
+                  <div class="text-3xl font-black text-blue-700 mb-1">2.3x</div>
+                  <div class="text-sm font-bold text-gray-700">Faster checkout time</div>
+                </div>
+                <div class="p-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl border-2 border-purple-300">
+                  <div class="text-3xl font-black text-purple-700 mb-1">$2.1M</div>
+                  <div class="text-sm font-bold text-gray-700">Additional revenue</div>
+                </div>
+              </div>
+              <div class="rich-text-editor">
+                <p class="text-gray-700 font-medium">
+                  The new checkout flow resulted in a 42% reduction in abandonment rate and increased conversion by 28%. Users completed checkout 2.3x faster on average, leading to $2.1M in additional revenue in the first quarter.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Component Button -->
+          <button class="w-full p-6 rounded-2xl border-2 border-dashed border-gray-300 hover:border-purple-400 hover:bg-purple-50 text-gray-500 hover:text-purple-700 font-bold transition-all">
+            + Add Component
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function toggleStylePanel() {
+      const panel = document.getElementById('style-panel');
+      const arrow = document.getElementById('style-arrow');
+      panel.classList.toggle('hidden');
+      arrow.classList.toggle('rotate-180');
+    }
+  </script>
+</body>
+</html>
