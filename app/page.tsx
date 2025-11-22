@@ -1,3 +1,5 @@
+import SalaryProgressionChart from "@/app/components/SalaryProgressionChart";
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100">
@@ -131,24 +133,28 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-slate-700 to-slate-900 shadow-[0_15px_0_0_rgba(15,23,42,0.4)] border-2 border-slate-800 text-center">
-            <p className="text-2xl md:text-3xl font-black text-white mb-4">
-              Here's What This Costs You:
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-              <div>
-                <p className="text-5xl font-black text-red-400 mb-2">$100K+</p>
-                <p className="text-white font-medium">Lost compensation from not getting promoted or switching jobs</p>
-              </div>
-              <div>
-                <p className="text-5xl font-black text-red-400 mb-2">3+ Years</p>
-                <p className="text-white font-medium">Average time PMs waste stuck at the same level</p>
-              </div>
-              <div>
-                <p className="text-5xl font-black text-red-400 mb-2">∞</p>
-                <p className="text-white font-medium">Opportunity cost of missing your dream role</p>
+          <div className="space-y-8">
+            <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-slate-700 to-slate-900 shadow-[0_15px_0_0_rgba(15,23,42,0.4)] border-2 border-slate-800 text-center">
+              <p className="text-2xl md:text-3xl font-black text-white mb-4">
+                Here's What This Costs You:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                <div>
+                  <p className="text-5xl font-black text-red-400 mb-2">$100K+</p>
+                  <p className="text-white font-medium">Lost compensation from not getting promoted or switching jobs</p>
+                </div>
+                <div>
+                  <p className="text-5xl font-black text-red-400 mb-2">3+ Years</p>
+                  <p className="text-white font-medium">Average time PMs waste stuck at the same level</p>
+                </div>
+                <div>
+                  <p className="text-5xl font-black text-red-400 mb-2">∞</p>
+                  <p className="text-white font-medium">Opportunity cost of missing your dream role</p>
+                </div>
               </div>
             </div>
+            
+            <SalaryProgressionChart />
           </div>
         </div>
 
