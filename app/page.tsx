@@ -229,12 +229,12 @@ export default function Home() {
                 <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-indigo-400 to-purple-400 shadow-[0_6px_0_0_rgba(99,102,241,0.4)] border-2 border-indigo-500 flex items-center justify-center flex-shrink-0">
                   <span className="text-3xl">📚</span>
                 </div>
-                <div>
+                <div className="flex-1">
                   <h3 className="text-2xl font-bold text-gray-800 mb-3">PM Courses</h3>
                   <p className="text-gray-700 font-medium mb-3">
                     Structured learning paths with 120+ video lessons across 7 comprehensive courses. Master product management skills from resume building to portfolio creation.
                   </p>
-                  <ul className="space-y-2 text-gray-700 font-medium">
+                  <ul className="space-y-2 text-gray-700 font-medium mb-4">
                     <li className="flex items-center gap-2">
                       <span className="text-indigo-600 font-black">✓</span>
                       7 courses organized by category (Interview Mastery, Career Advancement, PM Fundamentals)
@@ -248,6 +248,12 @@ export default function Home() {
                       Course navigation with lesson-by-lesson progression
                     </li>
                   </ul>
+                  <a
+                    href="/courses"
+                    className="inline-block px-6 py-3 rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-indigo-300 font-black text-indigo-700 transition-all duration-200"
+                  >
+                    Browse Courses →
+                  </a>
                 </div>
               </div>
             </div>
