@@ -1,6 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { getUserPlan } from '@/lib/utils/subscription';
 import { NextRequest, NextResponse } from 'next/server';
+import { Resend } from 'resend';
+import { PortfolioTemplateRequestNotification } from '@/app/components/emails/PortfolioTemplateRequestNotification';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // POST /api/portfolio/template-request - Create a portfolio template request
 export const POST = async (request: NextRequest) => {
@@ -20,7 +24,12 @@ export const POST = async (request: NextRequest) => {
     const userPlan = await getUserPlan(user.id);
     if (userPlan !== 'accelerate') {
       return NextResponse.json(
-        { error: 'This feature requires an Accelerate subscription' },
+        {
+          error: 'Accelerate plan required',
+          message: 'Product portfolio template requests are available exclusively for Accelerate plan subscribers.',
+          requiresSubscription: true,
+          requiresAccelerate: true,
+        },
         { status: 403 }
       );
     }
@@ -64,6 +73,33 @@ export const POST = async (request: NextRequest) => {
         { error: 'Failed to create template request' },
         { status: 500 }
       );
+    }
+
+    // Send email notification to team
+    if (user.email && newRequest) {
+      try {
+        const fromEmail = process.env.RESEND_FROM_EMAIL || 'Product Careerlyst <onboarding@resend.dev>';
+        
+        const { data: emailData, error: emailError } = await resend.emails.send({
+          from: fromEmail,
+          to: ['team@productcareerlyst.com'],
+          subject: 'New Product Portfolio Template Request',
+          react: PortfolioTemplateRequestNotification({
+            userEmail: user.email,
+            requestDate: newRequest.created_at,
+          }),
+        });
+
+        if (emailError) {
+          console.error('Error sending email notification:', emailError);
+          // Don't fail the request if email fails, just log it
+        } else {
+          console.log('Email notification sent successfully:', emailData);
+        }
+      } catch (emailErr) {
+        console.error('Unexpected error sending email:', emailErr);
+        // Don't fail the request if email fails
+      }
     }
 
     return NextResponse.json(

@@ -1,16 +1,7 @@
 import Link from "next/link";
-import { createClient } from '@/lib/supabase/server';
-import { getUserPlan } from '@/lib/utils/subscription';
 import { PortfolioTemplateRequest } from '@/app/components/portfolio/PortfolioTemplateRequest';
 
-export default async function ProductPortfolioPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  // Check if user has Accelerate subscription
-  const userPlan = user ? await getUserPlan(user.id) : null;
-  const hasAccelerateAccess = userPlan === 'accelerate';
-
+export default function ProductPortfolioPage() {
   return (
     <div className="p-8 md:p-12">
       {/* Page Header */}
@@ -75,12 +66,10 @@ export default async function ProductPortfolioPage() {
         </Link>
       </div>
 
-      {/* Portfolio Template Request Section - Only for Accelerate users */}
-      {hasAccelerateAccess && (
-        <div className="mb-8">
-          <PortfolioTemplateRequest />
-        </div>
-      )}
+      {/* Portfolio Template Request Section - Shown to all users, gated with upgrade modal */}
+      <div className="mb-8">
+        <PortfolioTemplateRequest />
+      </div>
     </div>
   );
 }
