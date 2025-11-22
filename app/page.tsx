@@ -178,9 +178,6 @@ export default function Home() {
               <p className="text-gray-700 font-medium mb-4">
                 Walk into any PM interview with complete confidence. You know exactly what they'll ask and exactly how to answer. You're not hoping to pass—you're choosing which offer to accept.
               </p>
-              <p className="text-green-700 font-bold italic">
-                "I went from 0 offers to 4 offers in 6 weeks. Including one at Google." - Sarah M.
-              </p>
             </div>
 
             <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_12px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300">
@@ -190,9 +187,6 @@ export default function Home() {
               </h3>
               <p className="text-gray-700 font-medium mb-4">
                 Stop waiting for someone to notice you. You have a clear roadmap to Senior PM, Principal PM, and beyond. You're building a promotion case so strong they can't say no.
-              </p>
-              <p className="text-green-700 font-bold italic">
-                "Promoted to Senior PM in 14 months. My manager said my growth was 'unprecedented.'" - James K.
               </p>
             </div>
 
@@ -204,9 +198,6 @@ export default function Home() {
               <p className="text-gray-700 font-medium mb-4">
                 You're strategic, not reactive. Stakeholders respect you. Your roadmap is clear. Your team is aligned. You're shipping features that users actually love and execs actually notice.
               </p>
-              <p className="text-green-700 font-bold italic">
-                "Went from firefighting to strategic planning. My CEO now asks for MY input." - Michelle R.
-              </p>
             </div>
 
             <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_12px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300">
@@ -217,36 +208,6 @@ export default function Home() {
               <p className="text-gray-700 font-medium mb-4">
                 No more imposter syndrome. You KNOW you're a great PM because you have the frameworks, the results, and the recognition. You belong here, and everyone knows it.
               </p>
-              <p className="text-green-700 font-bold italic">
-                "I finally feel like I know what I'm doing. The confidence is everything." - David L.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Section */}
-        <div className="mb-20">
-          <div className="p-12 rounded-[3rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_20px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300">
-            <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-8 text-center">
-              The Product Careerlyst Difference
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div className="text-center">
-                <p className="text-6xl font-black text-indigo-600 mb-2">94%</p>
-                <p className="text-lg font-bold text-gray-800">Get an offer within 90 days</p>
-              </div>
-              <div className="text-center">
-                <p className="text-6xl font-black text-indigo-600 mb-2">$68K</p>
-                <p className="text-lg font-bold text-gray-800">Average salary increase</p>
-              </div>
-              <div className="text-center">
-                <p className="text-6xl font-black text-indigo-600 mb-2">18mo</p>
-                <p className="text-lg font-bold text-gray-800">Average time to promotion</p>
-              </div>
-              <div className="text-center">
-                <p className="text-6xl font-black text-indigo-600 mb-2">1000s</p>
-                <p className="text-lg font-bold text-gray-800">PMs transformed</p>
-              </div>
             </div>
           </div>
         </div>
@@ -263,56 +224,112 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 gap-6">
-            <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_12px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300">
+            <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_12px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300">
               <div className="flex items-start gap-6">
-                <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-blue-400 to-cyan-400 shadow-[0_6px_0_0_rgba(37,99,235,0.4)] border-2 border-blue-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-3xl">🤖</span>
+                <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-indigo-400 to-purple-400 shadow-[0_6px_0_0_rgba(99,102,241,0.4)] border-2 border-indigo-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">📚</span>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-3">AI Interview Coach</h3>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-3">PM Courses</h3>
                   <p className="text-gray-700 font-medium mb-3">
-                    Practice with an AI that interviews you like Google, Meta, and Amazon actually do. Get instant feedback on your answers, not generic advice.
+                    Structured learning paths with 120+ video lessons across 7 comprehensive courses. Master product management skills from resume building to portfolio creation.
                   </p>
                   <ul className="space-y-2 text-gray-700 font-medium">
                     <li className="flex items-center gap-2">
-                      <span className="text-blue-600 font-black">✓</span>
-                      Real-time mock interviews for product design, metrics, and strategy
+                      <span className="text-indigo-600 font-black">✓</span>
+                      7 courses organized by category (Interview Mastery, Career Advancement, PM Fundamentals)
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-blue-600 font-black">✓</span>
-                      Performance tracking across 8 competency areas
+                      <span className="text-indigo-600 font-black">✓</span>
+                      Embedded Loom video lessons with progress tracking
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-blue-600 font-black">✓</span>
-                      Personalized weak spot drills based on your interview data
+                      <span className="text-indigo-600 font-black">✓</span>
+                      Course navigation with lesson-by-lesson progression
                     </li>
                   </ul>
                 </div>
               </div>
             </div>
 
-            <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_12px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
+            <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-pink-200 to-rose-200 shadow-[0_12px_0_0_rgba(236,72,153,0.3)] border-2 border-pink-300">
               <div className="flex items-start gap-6">
-                <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-purple-400 to-pink-400 shadow-[0_6px_0_0_rgba(147,51,234,0.4)] border-2 border-purple-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-3xl">📊</span>
+                <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-pink-400 to-rose-400 shadow-[0_6px_0_0_rgba(236,72,153,0.4)] border-2 border-pink-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">⚡</span>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-3">Career Progression Tracker</h3>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-3">PM Templates & Resources</h3>
                   <p className="text-gray-700 font-medium mb-3">
-                    See exactly what skills you're missing for Senior PM, Principal PM, or Director level—and get a personalized roadmap to close every gap.
+                    Access 50+ essential PM templates and resources. PRDs, roadmaps, OKRs, and frameworks that help you ship faster and think more strategically.
                   </p>
                   <ul className="space-y-2 text-gray-700 font-medium">
                     <li className="flex items-center gap-2">
-                      <span className="text-purple-600 font-black">✓</span>
-                      Skills gap analysis comparing you vs target level
+                      <span className="text-pink-600 font-black">✓</span>
+                      50+ templates across 4 categories
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-purple-600 font-black">✓</span>
-                      Promotion readiness score with specific action items
+                      <span className="text-pink-600 font-black">✓</span>
+                      Smart templates that adapt to your product context
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-purple-600 font-black">✓</span>
-                      Milestone tracking for strategic projects and visibility
+                      <span className="text-pink-600 font-black">✓</span>
+                      Prioritization frameworks (RICE, value vs effort, ICE)
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-teal-200 to-cyan-200 shadow-[0_12px_0_0_rgba(20,184,166,0.3)] border-2 border-teal-300">
+              <div className="flex items-start gap-6">
+                <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-teal-400 to-cyan-400 shadow-[0_6px_0_0_rgba(20,184,166,0.4)] border-2 border-teal-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">💼</span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-3">Job Center</h3>
+                  <p className="text-gray-700 font-medium mb-3">
+                    Track applications, research companies, and manage your entire job search in one place. Kanban boards, interview scheduling, and automated company research.
+                  </p>
+                  <ul className="space-y-2 text-gray-700 font-medium">
+                    <li className="flex items-center gap-2">
+                      <span className="text-teal-600 font-black">✓</span>
+                      Track applications with Kanban board and list views
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-teal-600 font-black">✓</span>
+                      Schedule interviews and manage contacts at companies
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-teal-600 font-black">✓</span>
+                      Automated company research with AI-powered insights
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_12px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300">
+              <div className="flex items-start gap-6">
+                <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-blue-400 to-cyan-400 shadow-[0_6px_0_0_rgba(37,99,235,0.4)] border-2 border-blue-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">📄</span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-3">Resume Editor</h3>
+                  <p className="text-gray-700 font-medium mb-3">
+                    Build, optimize, and analyze your resume with AI-powered insights. Create multiple versions, customize for specific jobs, and export to PDF.
+                  </p>
+                  <ul className="space-y-2 text-gray-700 font-medium">
+                    <li className="flex items-center gap-2">
+                      <span className="text-blue-600 font-black">✓</span>
+                      Multiple resume versions with full editing capabilities
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-blue-600 font-black">✓</span>
+                      AI-powered bullet optimization and resume analysis
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-blue-600 font-black">✓</span>
+                      Customizable styles and PDF export functionality
                     </li>
                   </ul>
                 </div>
@@ -322,81 +339,25 @@ export default function Home() {
             <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_12px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300">
               <div className="flex items-start gap-6">
                 <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-green-400 to-emerald-400 shadow-[0_6px_0_0_rgba(22,163,74,0.4)] border-2 border-green-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-3xl">🏆</span>
+                  <span className="text-3xl">🎨</span>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-3">Impact Portfolio Builder</h3>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-3">Portfolio Hub</h3>
                   <p className="text-gray-700 font-medium mb-3">
-                    Auto-document your wins, metrics, and launches. When promotion time comes, your case is already built—complete with data that proves impact.
+                    Build standout product portfolio case studies. Learn the framework, generate AI-powered case study ideas, and showcase your PM skills.
                   </p>
                   <ul className="space-y-2 text-gray-700 font-medium">
                     <li className="flex items-center gap-2">
                       <span className="text-green-600 font-black">✓</span>
-                      Achievement logging with before/after metrics
+                      Complete course on building product portfolios
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="text-green-600 font-black">✓</span>
-                      One-click promotion packet generator
+                      AI case study idea generator with specific problems and hypotheses
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="text-green-600 font-black">✓</span>
-                      Calendar integration to capture wins as they happen
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-orange-200 to-yellow-200 shadow-[0_12px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-300">
-              <div className="flex items-start gap-6">
-                <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-orange-400 to-yellow-400 shadow-[0_6px_0_0_rgba(234,88,12,0.4)] border-2 border-orange-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-3xl">💰</span>
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-3">Compensation Intelligence Engine</h3>
-                  <p className="text-gray-700 font-medium mb-3">
-                    Real compensation data from 10,000+ PM offers. Know your worth, practice your negotiation, and get the offer you actually deserve.
-                  </p>
-                  <ul className="space-y-2 text-gray-700 font-medium">
-                    <li className="flex items-center gap-2">
-                      <span className="text-orange-600 font-black">✓</span>
-                      Salary benchmarking by level, company, and location
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-orange-600 font-black">✓</span>
-                      AI negotiation simulator with counter-offer scripts
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-orange-600 font-black">✓</span>
-                      Total comp calculator (equity, bonus, sign-on breakdown)
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_12px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300">
-              <div className="flex items-start gap-6">
-                <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-indigo-400 to-purple-400 shadow-[0_6px_0_0_rgba(99,102,241,0.4)] border-2 border-indigo-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-3xl">⚡</span>
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-3">AI PM Assistant</h3>
-                  <p className="text-gray-700 font-medium mb-3">
-                    PRDs, roadmaps, OKRs, stakeholder updates—generate first drafts in seconds. Frameworks that actually help you ship faster and think more strategically.
-                  </p>
-                  <ul className="space-y-2 text-gray-700 font-medium">
-                    <li className="flex items-center gap-2">
-                      <span className="text-indigo-600 font-black">✓</span>
-                      Smart templates that adapt to your product context
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-indigo-600 font-black">✓</span>
-                      Metrics framework generator for any feature launch
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-indigo-600 font-black">✓</span>
-                      Prioritization assistant (RICE, value vs effort, ICE)
+                      Discover, Define, Develop, and Deliver framework
                     </li>
                   </ul>
                 </div>
@@ -526,19 +487,10 @@ export default function Home() {
 
             <div className="p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
               <h3 className="text-xl font-bold text-gray-800 mb-2">
-                "What if it doesn't work for me?"
-              </h3>
-              <p className="text-gray-700 font-medium">
-                30-day money-back guarantee, no questions asked. If you put in the work and don't see results, we'll refund every penny. You literally can't lose.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
-              <h3 className="text-xl font-bold text-gray-800 mb-2">
                 "How is this different from free content online?"
               </h3>
               <p className="text-gray-700 font-medium">
-                Free content is scattered, generic, and overwhelming. We've distilled everything into battle-tested frameworks that actually work. Plus you get personalized coaching and a community of PMs who get it. That's worth way more than free blog posts.
+                Free content is scattered, generic, and overwhelming. We've distilled everything into battle-tested frameworks that actually work. Plus you get powerful AI-enabled tools trained by PMs who get it. That's worth way more than free blog posts.
               </p>
             </div>
           </div>
