@@ -61,7 +61,7 @@ async function testConvertKitAPI() {
   }
 }
 
-async function testFormSubscription() {
+async function testFormSubscriptionWithEmail(email: string, formId: number) {
   console.log('\n=== Testing Form Subscription ===\n');
   
   if (!CONVERTKIT_API_KEY) {
@@ -69,21 +69,19 @@ async function testFormSubscription() {
     return false;
   }
 
-  const formId = 7348426;
-  const testEmail = `test-${Date.now()}@example.com`;
-
-  console.log(`Testing subscription to form ${formId} with email: ${testEmail}`);
+  console.log(`Testing subscription to form ${formId} with email: ${email}`);
 
   try {
-    // V4 API: POST /v4/forms/{form_id}/subscribers with email_address in body
-    const response = await fetch(`${CONVERTKIT_API_BASE}/forms/${formId}/subscribers`, {
+    // V4 API: POST /v4/subscribers with form_id creates subscriber and adds to form
+    const response = await fetch(`${CONVERTKIT_API_BASE}/subscribers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
         'X-Kit-Api-Key': CONVERTKIT_API_KEY,
       },
       body: JSON.stringify({
-        email_address: testEmail,
+        email_address: email,
+        form_id: formId,
       }),
     });
 
@@ -92,7 +90,7 @@ async function testFormSubscription() {
       console.log('✅ Form subscription successful!');
       console.log(`   Subscriber ID: ${data.subscriber?.id || 'N/A'}`);
       console.log(`   Email: ${data.subscriber?.email_address || 'N/A'}`);
-      return data.subscriber?.id || null;
+      return true;
     } else {
       const errorText = await response.text();
       console.error(`❌ Form subscription failed: ${response.status}`);
@@ -106,15 +104,15 @@ async function testFormSubscription() {
       } catch {
         // Not JSON, already logged
       }
-      return null;
+      return false;
     }
   } catch (error) {
     console.error('❌ Network error:', error instanceof Error ? error.message : 'Unknown error');
-    return null;
+    return false;
   }
 }
 
-async function testSequenceSubscription(subscriberId: number) {
+async function testSequenceSubscription(email: string) {
   console.log('\n=== Testing Sequence Subscription ===\n');
   
   if (!CONVERTKIT_API_KEY) {
@@ -122,24 +120,26 @@ async function testSequenceSubscription(subscriberId: number) {
     return false;
   }
 
-  if (!subscriberId) {
-    console.error('❌ Subscriber ID is required for sequence subscription');
+  if (!email) {
+    console.error('❌ Email is required for sequence subscription');
     return false;
   }
 
   const sequenceId = 2100454;
 
-  console.log(`Testing subscription to sequence ${sequenceId} with subscriber ID: ${subscriberId}`);
+  console.log(`Testing subscription to sequence ${sequenceId} with email: ${email}`);
 
   try {
-    // V4 API: POST /v4/sequences/{sequence_id}/subscribers/{id}
-    const response = await fetch(`${CONVERTKIT_API_BASE}/sequences/${sequenceId}/subscribers/${subscriberId}`, {
+    // V4 API: POST /v4/sequences/{sequence_id}/subscribers with email_address in body
+    const response = await fetch(`${CONVERTKIT_API_BASE}/sequences/${sequenceId}/subscribers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
         'X-Kit-Api-Key': CONVERTKIT_API_KEY,
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        email_address: email,
+      }),
     });
 
     if (response.ok) {
@@ -182,12 +182,18 @@ async function runTests() {
     process.exit(1);
   }
 
-  // Test form subscription first (returns subscriber ID)
-  const subscriberId = await testFormSubscription();
+  // Test form subscription first (creates subscriber)
+  const testEmail = `test-${Date.now()}@example.com`;
+  const formId = 7348426;
   
-  // Test sequence subscription using the subscriber ID from form subscription
-  if (subscriberId) {
-    await testSequenceSubscription(subscriberId);
+  console.log(`\nTesting with email: ${testEmail}`);
+  
+  // First add to form to create subscriber
+  const formSuccess = await testFormSubscriptionWithEmail(testEmail, formId);
+  
+  // Test sequence subscription using the email (subscriber now exists from form subscription)
+  if (formSuccess) {
+    await testSequenceSubscription(testEmail);
   } else {
     console.log('\n⚠️  Skipping sequence subscription test - form subscription failed');
   }
