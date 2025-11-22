@@ -369,7 +369,7 @@ export default function GenerateIdeasPage() {
             className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-sm"
           >
             <Plus className="w-4 h-4" />
-            New Request
+            Discover Ideas
           </button>
         </div>
 
@@ -457,8 +457,8 @@ export default function GenerateIdeasPage() {
         {/* Content Area - Scrollable */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto w-full px-8 py-8 pb-24">
-            {/* New Request - Show centered input */}
-            {!selectedRequestId && (
+            {/* Discover Ideas - Show centered input (only when not viewing favorites) */}
+            {!selectedRequestId && !showFavorites && (
               <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <div className="w-full max-w-2xl">
                   <div className="mb-6 text-center">
@@ -510,8 +510,36 @@ export default function GenerateIdeasPage() {
               </div>
             )}
 
+            {/* Empty State for Favorites */}
+            {showFavorites && favorites.length === 0 && (
+              <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                <div className="w-full max-w-2xl text-center">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-yellow-400 to-yellow-500 shadow-lg flex items-center justify-center mb-6 mx-auto">
+                    <Star className="w-10 h-10 text-white fill-white" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-gray-800 mb-3">
+                    No Favorited Ideas Yet
+                  </h2>
+                  <p className="text-lg text-gray-600 mb-8">
+                    Start by generating some case study ideas, then click the star icon on any idea you want to save to your favorites.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowFavorites(false);
+                      setSelectedRequestId(null);
+                      inputRef.current?.focus();
+                    }}
+                    className="px-6 py-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-sm mx-auto"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Discover Ideas
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Display ideas */}
-            {(selectedRequest || showFavorites) && (
+            {(selectedRequest || (showFavorites && favorites.length > 0)) && (
               <div className="mb-8">
                 {/* Request Header */}
                 {selectedRequest && !showFavorites && (
@@ -533,7 +561,7 @@ export default function GenerateIdeasPage() {
                   </div>
                 )}
 
-                {showFavorites && (
+                {showFavorites && favorites.length > 0 && (
                   <div className="mb-4">
                     <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
                       <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
@@ -541,17 +569,6 @@ export default function GenerateIdeasPage() {
                     </h2>
                     <p className="text-sm text-gray-600">
                       {favorites.length} {favorites.length === 1 ? 'idea' : 'ideas'} saved
-                    </p>
-                  </div>
-                )}
-
-                {/* Empty State for Favorites */}
-                {showFavorites && favorites.length === 0 && (
-                  <div className="text-center py-12">
-                    <Star className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">No favorited ideas yet</h3>
-                    <p className="text-sm text-gray-500">
-                      Click the star icon on any idea to save it to your favorites
                     </p>
                   </div>
                 )}
