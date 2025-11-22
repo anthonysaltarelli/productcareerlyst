@@ -312,7 +312,7 @@ export default function CoursesPage() {
                           </div>
 
                           <button
-                            onClick={() => handleCourseClick(course.id, course.title, category.name)}
+                            onClick={() => handleCourseClick(course.id)}
                             className="w-full px-6 py-3 rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-gray-300 font-black text-gray-800 transition-all duration-200"
                             aria-label={isExpanded ? 'Hide lessons' : 'View lessons'}
                           >
