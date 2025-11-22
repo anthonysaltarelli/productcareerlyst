@@ -395,7 +395,7 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
         </div>
 
         <p className="text-sm text-gray-500 mt-6 text-center">
-          This may take a few minutes. Research will continue even if you navigate away.
+          This may take a few minutes.
         </p>
       </div>
     );
@@ -409,11 +409,6 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
         <h3 className="text-2xl font-black text-gray-900 mb-4">No Research Available</h3>
         <p className="text-gray-600 font-medium mb-8 max-w-md mx-auto">
           Generate comprehensive research for {companyName} across all {totalCount} research vectors to get insights on mission, values, competition, and more.
-          {Object.keys(research).length > 0 && (
-            <span className="block mt-2 text-sm text-gray-500">
-              (Previous research has expired and will be regenerated)
-            </span>
-          )}
         </p>
         
         {error && (
@@ -455,7 +450,7 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
         </button>
         {generating && (
           <p className="text-sm text-gray-500 mt-4">
-            This may take a few minutes. Research will continue even if you navigate away.
+            This may take a few minutes.
           </p>
         )}
       </div>
