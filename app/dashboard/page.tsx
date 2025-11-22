@@ -1,11 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { getDashboardStats } from '@/lib/utils/dashboard-stats'
+import { getUserSubscription } from '@/lib/utils/subscription'
 import { DashboardWelcome } from '@/app/components/DashboardWelcome'
 import { DashboardStats } from '@/app/components/DashboardStats'
 import { OnboardingMilestones } from '@/app/components/OnboardingMilestones'
 import { FeatureDiscovery } from '@/app/components/FeatureDiscovery'
 import { SubscriptionPromotion } from '@/app/components/SubscriptionPromotion'
 import { DashboardNextSteps } from '@/app/components/DashboardNextSteps'
+import { AutoSyncSubscription } from '@/app/components/billing/AutoSyncSubscription'
 
 export default async function DashboardHome() {
   const supabase = await createClient()
@@ -28,8 +30,13 @@ export default async function DashboardHome() {
   // Fetch dashboard stats
   const stats = await getDashboardStats(user.id)
 
+  // Get subscription for auto-sync component
+  const subscription = await getUserSubscription(user.id)
+
   return (
     <div className="p-8 md:p-12">
+      {/* Auto-sync subscription status in background (throttled) */}
+      <AutoSyncSubscription subscription={subscription} minSyncIntervalMinutes={5} />
       {/* Welcome Section */}
       <DashboardWelcome
         firstName={profile?.first_name || null}

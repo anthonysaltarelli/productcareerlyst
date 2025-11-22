@@ -15,17 +15,17 @@ export const Footer = () => {
             </p>
             <div className="flex gap-4">
               <a
-                href="https://twitter.com"
+                href="https://www.youtube.com/@ProductManagerAnthony"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-[0.75rem] bg-slate-700 hover:bg-purple-500 flex items-center justify-center transition-all duration-200 border-2 border-slate-600 hover:border-purple-400"
-                aria-label="Twitter"
+                aria-label="YouTube"
                 tabIndex={0}
               >
-                <span className="text-white font-bold">𝕏</span>
+                <span className="text-white font-bold">▶</span>
               </a>
               <a
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/company/productcareerlyst/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-[0.75rem] bg-slate-700 hover:bg-purple-500 flex items-center justify-center transition-all duration-200 border-2 border-slate-600 hover:border-purple-400"
@@ -35,7 +35,7 @@ export const Footer = () => {
                 <span className="text-white font-bold">in</span>
               </a>
               <a
-                href="mailto:hello@productcareerlyst.com"
+                href="mailto:team@productcareerlyst.com"
                 className="w-10 h-10 rounded-[0.75rem] bg-slate-700 hover:bg-purple-500 flex items-center justify-center transition-all duration-200 border-2 border-slate-600 hover:border-purple-400"
                 aria-label="Email"
                 tabIndex={0}

@@ -4,19 +4,16 @@ export default function Home() {
       <div className="max-w-7xl mx-auto p-8 md:p-12 lg:p-16">
 
         {/* Hero Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20">
-          <div className="p-12 rounded-[3rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
-            <div className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-bold mb-6">
-              🔥 LIMITED BETA ACCESS
-            </div>
-            <h2 className="text-5xl md:text-7xl font-bold bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-6 leading-tight">
+        <div className="flex justify-center mb-20">
+          <div className="w-full max-w-2xl p-12 rounded-[3rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
+            <h2 className="text-5xl md:text-7xl font-bold bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-6 leading-tight text-center">
               Level Up
               <br />
               Your PM
               <br />
               Career
             </h2>
-            <p className="text-xl text-gray-700 font-semibold mb-8">
+            <p className="text-xl text-gray-700 font-semibold mb-8 text-center">
               Stop feeling stuck. Start crushing it.
             </p>
             <a
@@ -26,22 +23,8 @@ export default function Home() {
               GET INSTANT ACCESS →
             </a>
             <p className="text-center text-sm text-gray-600 mt-4 font-medium">
-              Join 12,847 PMs who've already leveled up
+              Join thousands of PMs who've already leveled up
             </p>
-          </div>
-
-          <div className="p-10 rounded-[3rem] bg-gradient-to-br from-orange-200 to-yellow-200 shadow-[0_20px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-300 flex items-center">
-            <div className="space-y-6">
-              <p className="text-xl text-gray-800 leading-relaxed font-bold">
-                The harsh truth: Being "good enough" doesn't cut it anymore.
-              </p>
-              <p className="text-lg text-gray-800 leading-relaxed font-medium">
-                While you're stuck in the same role, other PMs are landing $200K+ offers, getting promoted every 18 months, and building products that actually matter.
-              </p>
-              <p className="text-lg text-gray-800 leading-relaxed font-medium">
-                The difference? They have a system. You're about to get one too.
-              </p>
-            </div>
           </div>
         </div>
 
@@ -221,7 +204,7 @@ export default function Home() {
                 <p className="text-lg font-bold text-gray-800">Average time to promotion</p>
               </div>
               <div className="text-center">
-                <p className="text-6xl font-black text-indigo-600 mb-2">12.8K</p>
+                <p className="text-6xl font-black text-indigo-600 mb-2">1000s</p>
                 <p className="text-lg font-bold text-gray-800">PMs transformed</p>
               </div>
             </div>
@@ -393,7 +376,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="p-8 rounded-[2rem] bg-white shadow-[0_10px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
               <div className="flex gap-1 mb-4">
                 {[...Array(5)].map((_, i) => (
@@ -401,10 +384,10 @@ export default function Home() {
                 ))}
               </div>
               <p className="text-gray-700 font-medium mb-4 italic">
-                "I was stuck at the same level for 4 years. Within 3 months of joining, I had the frameworks to finally break through. Got promoted to Senior PM with a $55K raise. This literally changed my life."
+                "Super helpful along the way. Finding a product role is hard in this market but product careerlyst made it super easy to keep track and helped me find an in that eventually got me my offer. highly recommend the videos included too which were great for case study prepping."
               </p>
-              <p className="font-bold text-gray-800">— Alex Chen</p>
-              <p className="text-sm text-gray-600">Senior PM at Stripe</p>
+              <p className="font-bold text-gray-800">— Shreenath Bhanderi</p>
+              <p className="text-sm text-gray-600">January 19, 2025</p>
             </div>
 
             <div className="p-8 rounded-[2rem] bg-white shadow-[0_10px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
@@ -414,10 +397,10 @@ export default function Home() {
                 ))}
               </div>
               <p className="text-gray-700 font-medium mb-4 italic">
-                "After 47 rejections, I was ready to give up on PM. The interview prep here is INSANE. I went from zero offers to 4 offers in 6 weeks. Accepted a role at Google. Worth every penny and more."
+                "Product Careerlyst has been an absolute game-changer in my product management journey. As someone transitioning into product management, I was looking for a comprehensive resource that went beyond theoretical concepts, and this platform delivered exactly that. What sets Product Careerlyst apart is Anthony's thoughtful approach to product education. You can tell it's built by a seasoned PM who understands exactly what aspiring product managers need."
               </p>
-              <p className="font-bold text-gray-800">— Priya Sharma</p>
-              <p className="text-sm text-gray-600">PM at Google</p>
+              <p className="font-bold text-gray-800">— Sharad</p>
+              <p className="text-sm text-gray-600">January 22, 2025</p>
             </div>
 
             <div className="p-8 rounded-[2rem] bg-white shadow-[0_10px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
@@ -427,10 +410,49 @@ export default function Home() {
                 ))}
               </div>
               <p className="text-gray-700 font-medium mb-4 italic">
-                "Best investment in my career, period. The frameworks alone saved me 10+ hours a week. The community is incredible. I'm shipping better products and my team actually respects me now. Game changer."
+                "Product Careerlyst is a game-changer. If you're really looking for something that'll boost your chance to find your next product gig, this is it. The dashboard is super user-friendly and streamlines your job search, and the resources are well-organized. Some of the content are stuff that you see on a daily basis in product/tech companies, so it really gave me an edge during interviews. I found a job in Product Ops thanks to PC - so definitely recommend if you're on the fence!"
               </p>
-              <p className="font-bold text-gray-800">— Marcus Johnson</p>
-              <p className="text-sm text-gray-600">PM at Airbnb</p>
+              <p className="font-bold text-gray-800">— Peter</p>
+              <p className="text-sm text-gray-600">January 29, 2025</p>
+            </div>
+
+            <div className="p-8 rounded-[2rem] bg-white shadow-[0_10px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
+              <div className="flex gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className="text-yellow-400 text-xl">★</span>
+                ))}
+              </div>
+              <p className="text-gray-700 font-medium mb-4 italic">
+                "I'm currently taking Anthony's course and really enjoying it! The material is engaging, and I've learned a lot about how to search for jobs effectively. Anthony explains the content in a clear and easy-to-understand way. I'm looking forward to revisiting the videos as I continue my job search. I recommend this course to anyone looking to improve their job-hunting skills!"
+              </p>
+              <p className="font-bold text-gray-800">— Solomon S.</p>
+              <p className="text-sm text-gray-600">February 20, 2025</p>
+            </div>
+
+            <div className="p-8 rounded-[2rem] bg-white shadow-[0_10px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
+              <div className="flex gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className="text-yellow-400 text-xl">★</span>
+                ))}
+              </div>
+              <p className="text-gray-700 font-medium mb-4 italic">
+                "Finally an AI enabled tool for Product Managers to find a job in this tough market. I started with the base plan and expanded out to to premium model. The features related to resume optimization and portfolio creation have been very useful. When I first transitioned to PM it was very hard to find information that encompasses all the hats a PM wears. The resources from this tool has helped me become a better product manager and have greatly helped me as I got through interview processes."
+              </p>
+              <p className="font-bold text-gray-800">— Ken Patel</p>
+              <p className="text-sm text-gray-600">February 21, 2025</p>
+            </div>
+
+            <div className="p-8 rounded-[2rem] bg-white shadow-[0_10px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
+              <div className="flex gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className="text-yellow-400 text-xl">★</span>
+                ))}
+              </div>
+              <p className="text-gray-700 font-medium mb-4 italic">
+                "Anthony is a product wizard. Whenever I have questions about my career I go to his content. I've spent so much time searching for resources to help - YouTube, blogs, etc - nothing compares to Anthony's expertise. Thank you Anthony, my career wouldn't be same without you!"
+              </p>
+              <p className="font-bold text-gray-800">— Alex</p>
+              <p className="text-sm text-gray-600">January 22, 2025</p>
             </div>
           </div>
         </div>
@@ -567,7 +589,7 @@ export default function Home() {
             YES, I'M READY TO LEVEL UP →
           </a>
           <p className="text-gray-400 font-medium">
-            Join 12,847 PMs who've already made the decision to stop settling
+            Join thousands of PMs who've already made the decision to stop settling
           </p>
         </div>
       </div>
