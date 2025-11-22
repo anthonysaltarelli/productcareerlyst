@@ -262,10 +262,9 @@ export default function GenerateIdeasPage() {
           ...prev,
           [ideaId]: { rating, feedback: feedback || undefined },
         }));
-        if (rating === 'up') {
-          setShowFeedbackInput(prev => ({ ...prev, [ideaId]: false }));
-          setFeedbackInputs(prev => ({ ...prev, [ideaId]: '' }));
-        }
+        // Hide feedback input after successful submission
+        setShowFeedbackInput(prev => ({ ...prev, [ideaId]: false }));
+        setFeedbackInputs(prev => ({ ...prev, [ideaId]: '' }));
         toast.success(rating === 'up' ? 'Thanks for the feedback!' : 'Feedback submitted');
       } else {
         const error = await response.json();
@@ -808,7 +807,7 @@ export default function GenerateIdeasPage() {
                             </div>
 
                             {/* Feedback Input for Thumbs Down */}
-                            {(showFeedbackInput[idea.id] || (currentRating?.rating === 'down' && currentRating.feedback)) && (
+                            {showFeedbackInput[idea.id] && (
                               <div className="mt-3">
                                 <textarea
                                   value={feedbackInputs[idea.id] ?? currentRating?.feedback ?? ''}
@@ -832,29 +831,18 @@ export default function GenerateIdeasPage() {
                                   >
                                     {currentRating?.rating === 'down' && currentRating.feedback ? 'Update Feedback' : 'Submit Feedback'}
                                   </button>
-                                  {currentRating?.rating === 'down' && (
-                                    <button
-                                      onClick={() => {
-                                        setShowFeedbackInput(prev => ({ ...prev, [idea.id]: false }));
-                                        handleRemoveRating(idea.id);
-                                      }}
-                                      className="px-4 py-1.5 text-sm bg-slate-200 text-gray-700 rounded-lg hover:bg-slate-300 transition-colors"
-                                      type="button"
-                                    >
-                                      Remove Rating
-                                    </button>
-                                  )}
-                                  {!currentRating && (
-                                    <button
-                                      onClick={() => {
-                                        setShowFeedbackInput(prev => ({ ...prev, [idea.id]: false }));
-                                      }}
-                                      className="px-4 py-1.5 text-sm bg-slate-200 text-gray-700 rounded-lg hover:bg-slate-300 transition-colors"
-                                      type="button"
-                                    >
-                                      Cancel
-                                    </button>
-                                  )}
+                                  <button
+                                    onClick={() => {
+                                      setShowFeedbackInput(prev => ({ ...prev, [idea.id]: false }));
+                                      if (!currentRating) {
+                                        setFeedbackInputs(prev => ({ ...prev, [idea.id]: '' }));
+                                      }
+                                    }}
+                                    className="px-4 py-1.5 text-sm bg-slate-200 text-gray-700 rounded-lg hover:bg-slate-300 transition-colors"
+                                    type="button"
+                                  >
+                                    Cancel
+                                  </button>
                                 </div>
                               </div>
                             )}
