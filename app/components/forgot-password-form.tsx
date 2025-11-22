@@ -1,6 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
+import { getSiteUrl } from '@/lib/utils/site-url'
 import { useState } from 'react'
 
 export const ForgotPasswordForm = () => {
@@ -17,8 +18,9 @@ export const ForgotPasswordForm = () => {
 
     try {
       const supabase = createClient()
+      const siteUrl = getSiteUrl()
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/update-password`,
+        redirectTo: `${siteUrl}/auth/update-password`,
       })
 
       if (error) throw error

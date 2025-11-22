@@ -2,6 +2,29 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Environment Variables
+
+Create a `.env.local` file in the root directory with:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-project-url.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_SITE_URL=http://localhost:3000  # For local development
+```
+
+For production, set `NEXT_PUBLIC_SITE_URL` to your production domain (e.g., `https://productcareerlyst.com`).
+
+**Important:** Also configure the Site URL in your Supabase Dashboard:
+1. Go to **Authentication** → **URL Configuration**
+2. Set **Site URL** to your production URL (e.g., `https://productcareerlyst.com`)
+3. Add redirect URLs:
+   - `http://localhost:3000/auth/confirm` (for local dev)
+   - `https://productcareerlyst.com/auth/confirm` (for production)
+   - `http://localhost:3000/auth/update-password` (for local dev)
+   - `https://productcareerlyst.com/auth/update-password` (for production)
+
+### Running the Development Server
+
 First, run the development server:
 
 ```bash

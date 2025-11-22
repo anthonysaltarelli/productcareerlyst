@@ -1,6 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
+import { getSiteUrl } from '@/lib/utils/site-url'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -18,11 +19,12 @@ export const SignUpForm = () => {
 
     try {
       const supabase = createClient()
+      const siteUrl = getSiteUrl()
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/confirm`,
+          emailRedirectTo: `${siteUrl}/auth/confirm`,
         },
       })
 
