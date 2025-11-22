@@ -75,8 +75,8 @@ async function testFormSubscription() {
   console.log(`Testing subscription to form ${formId} with email: ${testEmail}`);
 
   try {
-    // V4 API uses /subscribers endpoint with email_address and form_id
-    const response = await fetch(`${CONVERTKIT_API_BASE}/subscribers`, {
+    // V4 API: POST /v4/forms/{form_id}/subscribers with email_address in body
+    const response = await fetch(`${CONVERTKIT_API_BASE}/forms/${formId}/subscribers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
@@ -84,15 +84,15 @@ async function testFormSubscription() {
       },
       body: JSON.stringify({
         email_address: testEmail,
-        form_id: formId,
       }),
     });
 
     if (response.ok) {
       const data = await response.json();
       console.log('✅ Form subscription successful!');
-      console.log(`   Subscription ID: ${data.subscription?.id || 'N/A'}`);
-      return true;
+      console.log(`   Subscriber ID: ${data.subscriber?.id || 'N/A'}`);
+      console.log(`   Email: ${data.subscriber?.email_address || 'N/A'}`);
+      return data.subscriber?.id || null;
     } else {
       const errorText = await response.text();
       console.error(`❌ Form subscription failed: ${response.status}`);
@@ -106,15 +106,15 @@ async function testFormSubscription() {
       } catch {
         // Not JSON, already logged
       }
-      return false;
+      return null;
     }
   } catch (error) {
     console.error('❌ Network error:', error instanceof Error ? error.message : 'Unknown error');
-    return false;
+    return null;
   }
 }
 
-async function testSequenceSubscription() {
+async function testSequenceSubscription(subscriberId: number) {
   console.log('\n=== Testing Sequence Subscription ===\n');
   
   if (!CONVERTKIT_API_KEY) {
@@ -122,29 +122,31 @@ async function testSequenceSubscription() {
     return false;
   }
 
-  const sequenceId = 2100454;
-  const testEmail = `test-${Date.now()}@example.com`;
+  if (!subscriberId) {
+    console.error('❌ Subscriber ID is required for sequence subscription');
+    return false;
+  }
 
-  console.log(`Testing subscription to sequence ${sequenceId} with email: ${testEmail}`);
+  const sequenceId = 2100454;
+
+  console.log(`Testing subscription to sequence ${sequenceId} with subscriber ID: ${subscriberId}`);
 
   try {
-    // V4 API uses /subscribers endpoint with email_address and sequence_id
-    const response = await fetch(`${CONVERTKIT_API_BASE}/subscribers`, {
+    // V4 API: POST /v4/sequences/{sequence_id}/subscribers/{id}
+    const response = await fetch(`${CONVERTKIT_API_BASE}/sequences/${sequenceId}/subscribers/${subscriberId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
         'X-Kit-Api-Key': CONVERTKIT_API_KEY,
       },
-      body: JSON.stringify({
-        email_address: testEmail,
-        sequence_id: sequenceId,
-      }),
+      body: JSON.stringify({}),
     });
 
     if (response.ok) {
       const data = await response.json();
       console.log('✅ Sequence subscription successful!');
-      console.log(`   Subscription ID: ${data.subscription?.id || 'N/A'}`);
+      console.log(`   Subscriber ID: ${data.subscriber?.id || 'N/A'}`);
+      console.log(`   Email: ${data.subscriber?.email_address || 'N/A'}`);
       return true;
     } else {
       const errorText = await response.text();
@@ -180,8 +182,15 @@ async function runTests() {
     process.exit(1);
   }
 
-  await testFormSubscription();
-  await testSequenceSubscription();
+  // Test form subscription first (returns subscriber ID)
+  const subscriberId = await testFormSubscription();
+  
+  // Test sequence subscription using the subscriber ID from form subscription
+  if (subscriberId) {
+    await testSequenceSubscription(subscriberId);
+  } else {
+    console.log('\n⚠️  Skipping sequence subscription test - form subscription failed');
+  }
   
   console.log('\n=== Test Complete ===');
 }
