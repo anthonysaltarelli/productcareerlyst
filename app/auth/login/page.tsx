@@ -19,7 +19,14 @@ export default function LoginPage() {
 
           <div className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100 border-2 border-blue-300 shadow-md">
             <p className="text-sm text-gray-800 leading-relaxed">
-              <span className="font-semibold">Signed up before November 22, 2025?</span> We launched a new platform! Create a new account with the same email address. Questions? Reach out to{' '}
+              <span className="font-semibold">Signed up before November 22, 2025?</span> We launched a new platform!{' '}
+              <a 
+                href="/auth/sign-up" 
+                className="text-blue-600 hover:text-blue-800 font-semibold underline"
+              >
+                Create a new account
+              </a>
+              {' '}with the same email address. Questions? Reach out to{' '}
               <a 
                 href="mailto:team@productcareerlyst.com" 
                 className="text-blue-600 hover:text-blue-800 font-semibold underline"

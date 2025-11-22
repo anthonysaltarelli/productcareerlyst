@@ -34,11 +34,33 @@ export const LoginForm = () => {
     }
   }
 
+  const isAccountNotFound = error?.toLowerCase().includes('invalid login credentials') || 
+                           error?.toLowerCase().includes('user not found') ||
+                           error?.toLowerCase().includes('email not found')
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
         <div className="p-4 rounded-[1rem] bg-gradient-to-br from-red-200 to-orange-200 border-2 border-red-300">
-          <p className="text-red-700 font-semibold">{error}</p>
+          <p className="text-red-700 font-semibold mb-2">{error}</p>
+          {isAccountNotFound && (
+            <p className="text-sm text-gray-800 leading-relaxed">
+              <span className="font-semibold">Signed up before November 22, 2025?</span> We launched a new platform!{' '}
+              <a 
+                href="/auth/sign-up" 
+                className="text-blue-600 hover:text-blue-800 font-semibold underline"
+              >
+                Create a new account
+              </a>
+              {' '}with the same email address. Questions? Reach out to{' '}
+              <a 
+                href="mailto:team@productcareerlyst.com" 
+                className="text-blue-600 hover:text-blue-800 font-semibold underline"
+              >
+                team@productcareerlyst.com
+              </a>
+            </p>
+          )}
         </div>
       )}
 
