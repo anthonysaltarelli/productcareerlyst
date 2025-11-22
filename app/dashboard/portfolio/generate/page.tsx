@@ -62,12 +62,17 @@ export default function GenerateIdeasPage() {
     }
   }, [requests]);
 
-  // Scroll to bottom when new ideas are generated
+  // Scroll to bottom when new ideas are generated (only when isGenerating changes from true to false)
+  const prevIsGenerating = useRef(false);
   useEffect(() => {
-    if (selectedRequestId && contentEndRef.current) {
-      contentEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (prevIsGenerating.current && !isGenerating && selectedRequestId && contentEndRef.current) {
+      // Only scroll when generation just finished
+      setTimeout(() => {
+        contentEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     }
-  }, [selectedRequestId, requests]);
+    prevIsGenerating.current = isGenerating;
+  }, [isGenerating, selectedRequestId]);
 
   const fetchRequests = async () => {
     setIsLoadingRequests(true);
