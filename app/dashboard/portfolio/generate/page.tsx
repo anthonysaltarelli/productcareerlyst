@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Loader2, Sparkles, Plus, MessageSquare, Trash2, Calendar, MapPin, DollarSign, Users, Briefcase, Heart, AlertCircle, Target } from "lucide-react";
+import { Loader2, Sparkles, Plus, MessageSquare, Trash2, Calendar, MapPin, DollarSign, Users, Briefcase, Heart, AlertCircle, Target, ThumbsUp, ThumbsDown, Star } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -21,6 +21,11 @@ type PortfolioIdea = {
     personas?: string;
     job_type?: string;
   };
+  rating?: {
+    rating: 'up' | 'down';
+    feedback?: string;
+  } | null;
+  is_favorited?: boolean;
 };
 
 type PortfolioRequest = {
@@ -36,13 +41,26 @@ export default function GenerateIdeasPage() {
   const [requests, setRequests] = useState<PortfolioRequest[]>([]);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [isLoadingRequests, setIsLoadingRequests] = useState(true);
+  const [favorites, setFavorites] = useState<PortfolioIdea[]>([]);
+  const [showFavorites, setShowFavorites] = useState(false);
+  const [ratings, setRatings] = useState<Record<string, { rating: 'up' | 'down'; feedback?: string }>>({});
+  const [feedbackInputs, setFeedbackInputs] = useState<Record<string, string>>({});
+  const [showFeedbackInput, setShowFeedbackInput] = useState<Record<string, boolean>>({});
   const inputRef = useRef<HTMLInputElement>(null);
   const contentEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch previous requests on mount
   useEffect(() => {
     fetchRequests();
+    fetchFavorites();
   }, []);
+
+  // Fetch ratings for ideas when requests are loaded
+  useEffect(() => {
+    if (requests.length > 0) {
+      fetchRatings();
+    }
+  }, [requests]);
 
   // Scroll to bottom when new ideas are generated
   useEffect(() => {
@@ -59,7 +77,7 @@ export default function GenerateIdeasPage() {
         const data = await response.json();
         setRequests(data.requests || []);
         // Select the most recent request if available
-        if (data.requests && data.requests.length > 0) {
+        if (data.requests && data.requests.length > 0 && !showFavorites) {
           setSelectedRequestId(data.requests[0].id);
         }
       }
@@ -67,6 +85,86 @@ export default function GenerateIdeasPage() {
       console.error("Error fetching requests:", error);
     } finally {
       setIsLoadingRequests(false);
+    }
+  };
+
+  const fetchFavorites = async () => {
+    try {
+      const response = await fetch("/api/portfolio/favorites");
+      if (response.ok) {
+        const data = await response.json();
+        setFavorites(data.ideas || []);
+        
+        // Also fetch ratings for favorited ideas
+        const favoriteIdeaIds = (data.ideas || []).map((idea: PortfolioIdea) => idea.id);
+        if (favoriteIdeaIds.length > 0) {
+          const ratingPromises = favoriteIdeaIds.map(async (ideaId: string) => {
+            try {
+              const ratingResponse = await fetch(`/api/portfolio/ideas/${ideaId}/rate`);
+              if (ratingResponse.ok) {
+                const ratingData = await ratingResponse.json();
+                return { ideaId, rating: ratingData.rating };
+              }
+            } catch (error) {
+              console.error(`Error fetching rating for favorite idea ${ideaId}:`, error);
+            }
+            return null;
+          });
+
+          const ratingResults = await Promise.all(ratingPromises);
+          const newRatings = { ...ratings };
+          
+          ratingResults.forEach(result => {
+            if (result && result.rating) {
+              newRatings[result.ideaId] = {
+                rating: result.rating.rating,
+                feedback: result.rating.feedback || undefined,
+              };
+            }
+          });
+
+          setRatings(newRatings);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching favorites:", error);
+    }
+  };
+
+  const fetchRatings = async () => {
+    try {
+      const allIdeaIds = requests.flatMap(req => req.ideas.map(idea => idea.id));
+      if (allIdeaIds.length === 0) return;
+
+      // Fetch ratings for all ideas
+      const ratingPromises = allIdeaIds.map(async (ideaId) => {
+        try {
+          const response = await fetch(`/api/portfolio/ideas/${ideaId}/rate`);
+          if (response.ok) {
+            const data = await response.json();
+            return { ideaId, rating: data.rating };
+          }
+        } catch (error) {
+          console.error(`Error fetching rating for idea ${ideaId}:`, error);
+        }
+        return null;
+      });
+
+      const results = await Promise.all(ratingPromises);
+      const ratingsMap: Record<string, { rating: 'up' | 'down'; feedback?: string }> = {};
+      
+      results.forEach(result => {
+        if (result && result.rating) {
+          ratingsMap[result.ideaId] = {
+            rating: result.rating.rating,
+            feedback: result.rating.feedback || undefined,
+          };
+        }
+      });
+
+      setRatings(ratingsMap);
+    } catch (error) {
+      console.error("Error fetching ratings:", error);
     }
   };
 
@@ -115,6 +213,9 @@ export default function GenerateIdeasPage() {
         setInputText("");
       }
       
+      // Refresh ratings after generating new ideas
+      await fetchRatings();
+      
       toast.success(previousIdeas ? "More ideas generated successfully!" : "Case study ideas generated successfully!");
     } catch (error) {
       console.error("Error generating ideas:", error);
@@ -143,8 +244,95 @@ export default function GenerateIdeasPage() {
     }
   };
 
+  const handleRateIdea = async (ideaId: string, rating: 'up' | 'down', feedback?: string) => {
+    try {
+      const response = await fetch(`/api/portfolio/ideas/${ideaId}/rate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating, feedback }),
+      });
+
+      if (response.ok) {
+        setRatings(prev => ({
+          ...prev,
+          [ideaId]: { rating, feedback: feedback || undefined },
+        }));
+        if (rating === 'up') {
+          setShowFeedbackInput(prev => ({ ...prev, [ideaId]: false }));
+          setFeedbackInputs(prev => ({ ...prev, [ideaId]: '' }));
+        }
+        toast.success(rating === 'up' ? 'Thanks for the feedback!' : 'Feedback submitted');
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to submit rating');
+      }
+    } catch (error) {
+      console.error('Error rating idea:', error);
+      toast.error('Failed to submit rating');
+    }
+  };
+
+  const handleRemoveRating = async (ideaId: string) => {
+    try {
+      const response = await fetch(`/api/portfolio/ideas/${ideaId}/rate`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setRatings(prev => {
+          const newRatings = { ...prev };
+          delete newRatings[ideaId];
+          return newRatings;
+        });
+        setShowFeedbackInput(prev => ({ ...prev, [ideaId]: false }));
+        setFeedbackInputs(prev => ({ ...prev, [ideaId]: '' }));
+      }
+    } catch (error) {
+      console.error('Error removing rating:', error);
+    }
+  };
+
+  const handleToggleFavorite = async (ideaId: string, isFavorited: boolean) => {
+    try {
+      const response = await fetch(`/api/portfolio/ideas/${ideaId}/favorite`, {
+        method: isFavorited ? 'DELETE' : 'POST',
+      });
+
+      if (response.ok) {
+        // Update local state for requests
+        setRequests(prev => prev.map(req => ({
+          ...req,
+          ideas: req.ideas.map(idea => 
+            idea.id === ideaId ? { ...idea, is_favorited: !isFavorited } : idea
+          ),
+        })));
+
+        // Update favorites list
+        if (isFavorited) {
+          setFavorites(prev => prev.filter(idea => idea.id !== ideaId));
+        } else {
+          // Add to favorites - we'll refresh the full list
+          await fetchFavorites();
+        }
+
+        // If we're viewing favorites and removing, refresh the list
+        if (showFavorites && isFavorited) {
+          await fetchFavorites();
+        }
+
+        toast.success(isFavorited ? 'Removed from favorites' : 'Added to favorites');
+      } else {
+        toast.error('Failed to update favorite');
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      toast.error('Failed to update favorite');
+    }
+  };
+
   const selectedRequest = requests.find(r => r.id === selectedRequestId);
   const allIdeas = requests.flatMap(r => r.ideas);
+  const displayedIdeas = showFavorites ? favorites : (selectedRequest?.ideas || []);
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -180,6 +368,29 @@ export default function GenerateIdeasPage() {
           </button>
         </div>
 
+        {/* Favorites Section */}
+        <div className="px-4 py-2 border-b border-slate-200">
+          <button
+            onClick={() => {
+              setShowFavorites(true);
+              setSelectedRequestId(null);
+            }}
+            className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 ${
+              showFavorites
+                ? "bg-purple-100 text-purple-900 border border-purple-200"
+                : "text-gray-700 hover:bg-slate-100"
+            }`}
+          >
+            <Star className={`w-4 h-4 ${showFavorites ? 'fill-current' : ''}`} />
+            <span className="text-sm font-medium">Favorites</span>
+            {favorites.length > 0 && (
+              <span className="ml-auto text-xs bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full">
+                {favorites.length}
+              </span>
+            )}
+          </button>
+        </div>
+
         {/* Requests List */}
         <div className="flex-1 overflow-y-auto p-2">
           {isLoadingRequests ? (
@@ -196,9 +407,12 @@ export default function GenerateIdeasPage() {
               {requests.map((request) => (
                 <div
                   key={request.id}
-                  onClick={() => setSelectedRequestId(request.id)}
+                  onClick={() => {
+                    setSelectedRequestId(request.id);
+                    setShowFavorites(false);
+                  }}
                   className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 group cursor-pointer ${
-                    selectedRequestId === request.id
+                    selectedRequestId === request.id && !showFavorites
                       ? "bg-purple-100 text-purple-900 border border-purple-200"
                       : "text-gray-700 hover:bg-slate-100 hover:text-gray-900"
                   }`}
@@ -291,39 +505,84 @@ export default function GenerateIdeasPage() {
               </div>
             )}
 
-            {/* Display selected request's ideas */}
-            {selectedRequest && (
+            {/* Display ideas */}
+            {(selectedRequest || showFavorites) && (
               <div className="mb-8">
                 {/* Request Header */}
-                <div className="mb-4">
-                  <div className="inline-block px-4 py-2 rounded-lg bg-gradient-to-br from-purple-100 to-pink-100 border border-purple-200 mb-2">
-                    <p className="text-sm font-semibold text-gray-700">
-                      "{selectedRequest.input_text}"
+                {selectedRequest && !showFavorites && (
+                  <div className="mb-4">
+                    <div className="inline-block px-4 py-2 rounded-lg bg-gradient-to-br from-purple-100 to-pink-100 border border-purple-200 mb-2">
+                      <p className="text-sm font-semibold text-gray-700">
+                        "{selectedRequest.input_text}"
+                      </p>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {new Date(selectedRequest.created_at).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit'
+                      })}
                     </p>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    {new Date(selectedRequest.created_at).toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                </div>
+                )}
+
+                {showFavorites && (
+                  <div className="mb-4">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                      <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
+                      Favorited Ideas
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      {favorites.length} {favorites.length === 1 ? 'idea' : 'ideas'} saved
+                    </p>
+                  </div>
+                )}
+
+                {/* Empty State for Favorites */}
+                {showFavorites && favorites.length === 0 && (
+                  <div className="text-center py-12">
+                    <Star className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">No favorited ideas yet</h3>
+                    <p className="text-sm text-gray-500">
+                      Click the star icon on any idea to save it to your favorites
+                    </p>
+                  </div>
+                )}
 
                 {/* Ideas Stacked Vertically */}
-                <div className="space-y-6">
-                  {selectedRequest.ideas
-                    .sort((a, b) => a.idea_number - b.idea_number)
-                    .map((idea) => (
+                {(!showFavorites || favorites.length > 0) && (
+                  <div className="space-y-6">
+                    {displayedIdeas
+                      .sort((a, b) => (a.idea_number || 0) - (b.idea_number || 0))
+                      .map((idea) => {
+                      const currentRating = ratings[idea.id];
+                      const isFavorited = idea.is_favorited || favorites.some(f => f.id === idea.id);
+                      return (
                       <div
                         key={idea.id}
-                        className="p-6 rounded-xl bg-white shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200"
+                        className="p-6 rounded-xl bg-white shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200 relative"
                       >
-                        <div className="mb-4">
+                        {/* Favorite Button - Top Right */}
+                        <button
+                          onClick={() => handleToggleFavorite(idea.id, isFavorited)}
+                          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                          type="button"
+                          aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                        >
+                          <Star 
+                            className={`w-5 h-5 ${
+                              isFavorited 
+                                ? 'text-yellow-500 fill-yellow-500' 
+                                : 'text-gray-400 hover:text-yellow-500'
+                            } transition-colors`} 
+                          />
+                        </button>
+
+                        <div className="mb-4 pr-8">
                           <span className="inline-block px-3 py-1 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm font-semibold mb-3">
-                            Idea {idea.idea_number}
+                            Idea {idea.idea_number || 'N/A'}
                           </span>
                           <h3 className="text-2xl font-bold text-gray-800 mb-2">
                             {idea.company_name}
@@ -480,24 +739,126 @@ export default function GenerateIdeasPage() {
                               </div>
                             </div>
                           )}
+
+                          {/* Rating Section */}
+                          <div className="mt-4 pt-4 border-t border-slate-200">
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-medium text-gray-700">Rate this idea:</span>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    if (currentRating?.rating === 'up') {
+                                      handleRemoveRating(idea.id);
+                                    } else {
+                                      handleRateIdea(idea.id, 'up');
+                                    }
+                                  }}
+                                  className={`p-2 rounded-lg transition-colors ${
+                                    currentRating?.rating === 'up'
+                                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                      : 'bg-slate-100 text-gray-600 hover:bg-slate-200'
+                                  }`}
+                                  type="button"
+                                  aria-label="Thumbs up"
+                                >
+                                  <ThumbsUp className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (currentRating?.rating === 'down') {
+                                      handleRemoveRating(idea.id);
+                                      setShowFeedbackInput(prev => ({ ...prev, [idea.id]: false }));
+                                    } else {
+                                      setShowFeedbackInput(prev => ({ ...prev, [idea.id]: true }));
+                                    }
+                                  }}
+                                  className={`p-2 rounded-lg transition-colors ${
+                                    currentRating?.rating === 'down'
+                                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                      : 'bg-slate-100 text-gray-600 hover:bg-slate-200'
+                                  }`}
+                                  type="button"
+                                  aria-label="Thumbs down"
+                                >
+                                  <ThumbsDown className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Feedback Input for Thumbs Down */}
+                            {(showFeedbackInput[idea.id] || (currentRating?.rating === 'down' && currentRating.feedback)) && (
+                              <div className="mt-3">
+                                <textarea
+                                  value={feedbackInputs[idea.id] ?? currentRating?.feedback ?? ''}
+                                  onChange={(e) => setFeedbackInputs(prev => ({ ...prev, [idea.id]: e.target.value }))}
+                                  placeholder="Please share your feedback..."
+                                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 resize-none"
+                                  rows={3}
+                                />
+                                <div className="flex items-center gap-2 mt-2">
+                                  <button
+                                    onClick={() => {
+                                      const feedback = feedbackInputs[idea.id] ?? currentRating?.feedback ?? '';
+                                      if (feedback.trim()) {
+                                        handleRateIdea(idea.id, 'down', feedback.trim());
+                                      } else {
+                                        toast.error('Please provide feedback');
+                                      }
+                                    }}
+                                    className="px-4 py-1.5 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                                    type="button"
+                                  >
+                                    {currentRating?.rating === 'down' && currentRating.feedback ? 'Update Feedback' : 'Submit Feedback'}
+                                  </button>
+                                  {currentRating?.rating === 'down' && (
+                                    <button
+                                      onClick={() => {
+                                        setShowFeedbackInput(prev => ({ ...prev, [idea.id]: false }));
+                                        handleRemoveRating(idea.id);
+                                      }}
+                                      className="px-4 py-1.5 text-sm bg-slate-200 text-gray-700 rounded-lg hover:bg-slate-300 transition-colors"
+                                      type="button"
+                                    >
+                                      Remove Rating
+                                    </button>
+                                  )}
+                                  {!currentRating && (
+                                    <button
+                                      onClick={() => {
+                                        setShowFeedbackInput(prev => ({ ...prev, [idea.id]: false }));
+                                      }}
+                                      className="px-4 py-1.5 text-sm bg-slate-200 text-gray-700 rounded-lg hover:bg-slate-300 transition-colors"
+                                      type="button"
+                                    >
+                                      Cancel
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    ))}
-                </div>
+                    );
+                    })}
+                  </div>
+                )}
 
-                {/* Generate More Button */}
-                <div className="mt-6 flex justify-center">
-                  <button
-                    onClick={() => {
-                      handleGenerateIdeas(selectedRequest.ideas, selectedRequest.input_text, selectedRequest.id);
-                    }}
-                    disabled={isGenerating}
-                    className="px-6 py-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    Generate More Ideas
-                  </button>
-                </div>
+                {/* Generate More Button - Only show for selected request */}
+                {selectedRequest && !showFavorites && (
+                  <div className="mt-6 flex justify-center">
+                    <button
+                      onClick={() => {
+                        handleGenerateIdeas(selectedRequest.ideas, selectedRequest.input_text, selectedRequest.id);
+                      }}
+                      disabled={isGenerating}
+                      className="px-6 py-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Generate More Ideas
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

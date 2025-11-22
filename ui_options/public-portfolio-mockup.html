@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anthony Saltarelli - Product Manager Portfolio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media (max-width: 768px) {
+      .mobile-stack {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body class="bg-white">
+  <!-- Navigation -->
+  <nav class="bg-white border-b-2 border-gray-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-4">
+      <div class="flex items-center justify-between">
+        <a href="#" class="text-xl font-black bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          Anthony Saltarelli
+        </a>
+        <div class="hidden md:flex items-center gap-6">
+          <a href="#home" class="text-gray-700 hover:text-purple-600 font-semibold transition-colors">Home</a>
+          <a href="#case-studies" class="text-gray-700 hover:text-purple-600 font-semibold transition-colors">Case Studies</a>
+          <a href="#work" class="text-gray-700 hover:text-purple-600 font-semibold transition-colors">Work</a>
+          <a href="#contact" class="text-gray-700 hover:text-purple-600 font-semibold transition-colors">Contact</a>
+        </div>
+        <button class="md:hidden px-3 py-2 text-gray-700">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Home/Landing Section -->
+  <section id="home" class="py-12 md:py-20 px-4 md:px-8">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+        <!-- Profile Image -->
+        <div class="flex-shrink-0">
+          <div class="w-48 h-48 md:w-64 md:h-64 rounded-full bg-gradient-to-br from-purple-200 to-pink-200 border-4 border-white shadow-xl flex items-center justify-center">
+            <span class="text-6xl md:text-8xl">👤</span>
+          </div>
+        </div>
+        
+        <!-- Bio Content -->
+        <div class="flex-1 text-center md:text-left">
+          <h1 class="text-4xl md:text-6xl font-black text-gray-900 mb-4">
+            Anthony Saltarelli
+          </h1>
+          <p class="text-xl md:text-2xl text-gray-600 font-semibold mb-6">
+            Senior Product Manager
+          </p>
+          <p class="text-lg text-gray-700 font-medium mb-8 max-w-2xl mx-auto md:mx-0">
+            I build products that users love and businesses need. With 8+ years of experience in product management, I've shipped features that have generated millions in revenue and improved the lives of thousands of users.
+          </p>
+          
+          <!-- Social Links -->
+          <div class="flex items-center justify-center md:justify-start gap-4 mb-8">
+            <a href="#" class="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all shadow-lg">
+              LinkedIn
+            </a>
+            <a href="#" class="px-6 py-3 rounded-xl border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-bold transition-all">
+              Twitter
+            </a>
+            <a href="#" class="px-6 py-3 rounded-xl border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-bold transition-all">
+              GitHub
+            </a>
+          </div>
+
+          <!-- Quick Links -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto md:mx-0">
+            <a href="#case-studies" class="p-4 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-300 hover:shadow-lg transition-all">
+              <div class="font-black text-gray-900 mb-1">View Case Studies</div>
+              <div class="text-sm text-gray-600 font-semibold">See my product work →</div>
+            </a>
+            <a href="#work" class="p-4 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 border-2 border-blue-300 hover:shadow-lg transition-all">
+              <div class="font-black text-gray-900 mb-1">Work Experience</div>
+              <div class="text-sm text-gray-600 font-semibold">My career journey →</div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Case Studies -->
+  <section id="case-studies" class="py-12 md:py-20 px-4 md:px-8 bg-gradient-to-br from-gray-50 to-gray-100">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl md:text-4xl font-black text-gray-900 mb-8 text-center">Case Studies</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Case Study Card 1 -->
+        <a href="#case-study-1" class="group">
+          <div class="bg-white rounded-2xl border-2 border-gray-300 overflow-hidden hover:shadow-xl transition-all">
+            <div class="h-48 bg-gradient-to-br from-purple-200 to-pink-200"></div>
+            <div class="p-6">
+              <h3 class="text-2xl font-black text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">
+                Improving Checkout Flow
+              </h3>
+              <p class="text-gray-600 font-medium mb-4">
+                Reduced checkout abandonment by 42% and increased conversion by 28% through a redesigned multi-step checkout experience.
+              </p>
+              <div class="flex items-center gap-2 text-purple-600 font-bold">
+                Read Case Study →
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <!-- Case Study Card 2 -->
+        <a href="#case-study-2" class="group">
+          <div class="bg-white rounded-2xl border-2 border-gray-300 overflow-hidden hover:shadow-xl transition-all">
+            <div class="h-48 bg-gradient-to-br from-blue-200 to-cyan-200"></div>
+            <div class="p-6">
+              <h3 class="text-2xl font-black text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                Mobile App Redesign
+              </h3>
+              <p class="text-gray-600 font-medium mb-4">
+                Led a complete redesign of the mobile app, resulting in 3x increase in daily active users and 50% improvement in user satisfaction.
+              </p>
+              <div class="flex items-center gap-2 text-blue-600 font-bold">
+                Read Case Study →
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Case Study Detail Page Example -->
+  <section id="case-study-1" class="py-12 md:py-20 px-4 md:px-8">
+    <div class="max-w-4xl mx-auto">
+      <!-- Cover Photo -->
+      <div class="h-64 md:h-96 bg-gradient-to-br from-purple-200 to-pink-200 rounded-2xl mb-8 flex items-center justify-center">
+        <span class="text-6xl">🖼️</span>
+      </div>
+
+      <!-- Case Study Header -->
+      <div class="mb-8">
+        <h1 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+          Improving Checkout Flow
+        </h1>
+        <p class="text-xl text-gray-600 font-semibold mb-4">
+          Reduced checkout abandonment by 42% and increased conversion by 28%
+        </p>
+        <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 font-semibold">
+          <span>E-commerce Platform</span>
+          <span>•</span>
+          <span>2023</span>
+          <span>•</span>
+          <span>Product Manager</span>
+        </div>
+      </div>
+
+      <!-- Problem Statement Component -->
+      <div class="mb-12">
+        <h2 class="text-3xl font-black text-gray-900 mb-4">The Problem</h2>
+        <div class="prose prose-lg max-w-none">
+          <p class="text-lg text-gray-700 font-medium leading-relaxed">
+            Our checkout process had a <strong>68% abandonment rate</strong>, with users dropping off primarily at the payment information step. User research revealed that the form was too long, lacked clear progress indicators, and didn't save information between sessions.
+          </p>
+        </div>
+      </div>
+
+      <!-- Solution Approach Component -->
+      <div class="mb-12">
+        <h2 class="text-3xl font-black text-gray-900 mb-4">Our Solution</h2>
+        <div class="prose prose-lg max-w-none">
+          <p class="text-lg text-gray-700 font-medium leading-relaxed mb-4">
+            We redesigned the checkout flow with a multi-step approach, implemented auto-save functionality, and added progress indicators. We also integrated one-click payment options and simplified the form fields to only essential information.
+          </p>
+          <div class="bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-xl p-6 mt-6">
+            <h3 class="font-black text-gray-900 mb-3">Key Features:</h3>
+            <ul class="space-y-2 text-gray-700 font-medium">
+              <li>• Multi-step checkout with progress indicator</li>
+              <li>• Auto-save functionality for returning users</li>
+              <li>• One-click payment options (Apple Pay, Google Pay)</li>
+              <li>• Simplified form fields (only essential information)</li>
+              <li>• Mobile-optimized design</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Process/Methodology Component -->
+      <div class="mb-12">
+        <h2 class="text-3xl font-black text-gray-900 mb-4">My Process</h2>
+        <div class="space-y-6">
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-purple-100 border-2 border-purple-300 flex items-center justify-center font-black text-purple-700">
+              1
+            </div>
+            <div>
+              <h3 class="font-black text-gray-900 mb-2">Research Phase</h3>
+              <p class="text-gray-700 font-medium">Conducted user interviews and analyzed analytics data to identify pain points. Found that 68% of users abandoned at payment step.</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-purple-100 border-2 border-purple-300 flex items-center justify-center font-black text-purple-700">
+              2
+            </div>
+            <div>
+              <h3 class="font-black text-gray-900 mb-2">Design Phase</h3>
+              <p class="text-gray-700 font-medium">Created wireframes and prototypes for the new multi-step flow. Tested with 50 users in usability sessions.</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-purple-100 border-2 border-purple-300 flex items-center justify-center font-black text-purple-700">
+              3
+            </div>
+            <div>
+              <h3 class="font-black text-gray-900 mb-2">Testing Phase</h3>
+              <p class="text-gray-700 font-medium">Ran A/B tests with 10,000 users to validate the new design. New flow showed 42% reduction in abandonment.</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-purple-100 border-2 border-purple-300 flex items-center justify-center font-black text-purple-700">
+              4
+            </div>
+            <div>
+              <h3 class="font-black text-gray-900 mb-2">Implementation</h3>
+              <p class="text-gray-700 font-medium">Worked with engineering to build and launch the new checkout experience. Monitored metrics and iterated based on user feedback.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results/Metrics Component -->
+      <div class="mb-12">
+        <h2 class="text-3xl font-black text-gray-900 mb-6">Impact & Results</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="p-6 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl border-2 border-green-300 text-center">
+            <div class="text-4xl font-black text-green-700 mb-2">42%</div>
+            <div class="text-sm font-bold text-gray-700">Reduction in abandonment</div>
+          </div>
+          <div class="p-6 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl border-2 border-blue-300 text-center">
+            <div class="text-4xl font-black text-blue-700 mb-2">2.3x</div>
+            <div class="text-sm font-bold text-gray-700">Faster checkout time</div>
+          </div>
+          <div class="p-6 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl border-2 border-purple-300 text-center">
+            <div class="text-4xl font-black text-purple-700 mb-2">$2.1M</div>
+            <div class="text-sm font-bold text-gray-700">Additional revenue</div>
+          </div>
+        </div>
+        <div class="prose prose-lg max-w-none">
+          <p class="text-lg text-gray-700 font-medium leading-relaxed">
+            The new checkout flow resulted in a <strong>42% reduction in abandonment rate</strong> and <strong>increased conversion by 28%</strong>. Users completed checkout 2.3x faster on average, leading to <strong>$2.1M in additional revenue</strong> in the first quarter after launch.
+          </p>
+        </div>
+      </div>
+
+      <!-- Key Learnings Component -->
+      <div class="mb-12">
+        <h2 class="text-3xl font-black text-gray-900 mb-4">Key Learnings</h2>
+        <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl p-6">
+          <ul class="space-y-3 text-gray-700 font-medium">
+            <li class="flex items-start gap-3">
+              <span class="text-yellow-600 font-black">•</span>
+              <span>Progress indicators are crucial for multi-step forms - users need to know how much is left</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-yellow-600 font-black">•</span>
+              <span>Auto-save functionality significantly reduces friction for returning users</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-yellow-600 font-black">•</span>
+              <span>One-click payment options can dramatically improve conversion rates</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="text-yellow-600 font-black">•</span>
+              <span>Simplifying form fields to only essential information reduces cognitive load</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Image Gallery Component -->
+      <div class="mb-12">
+        <h2 class="text-3xl font-black text-gray-900 mb-4">Design Process</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="h-64 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center">
+            <span class="text-gray-500 font-semibold">Wireframe</span>
+          </div>
+          <div class="h-64 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center">
+            <span class="text-gray-500 font-semibold">Prototype</span>
+          </div>
+          <div class="h-64 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center">
+            <span class="text-gray-500 font-semibold">Final Design</span>
+          </div>
+          <div class="h-64 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center">
+            <span class="text-gray-500 font-semibold">Mobile View</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Work Experience Section -->
+  <section id="work" class="py-12 md:py-20 px-4 md:px-8 bg-gradient-to-br from-gray-50 to-gray-100">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl md:text-4xl font-black text-gray-900 mb-12 text-center">Work Experience</h2>
+      <div class="space-y-8">
+        <!-- Work Experience Item -->
+        <div class="bg-white rounded-2xl border-2 border-gray-300 p-6 md:p-8">
+          <div class="flex flex-col md:flex-row gap-6">
+            <!-- Company Logo -->
+            <div class="flex-shrink-0">
+              <div class="w-24 h-24 md:w-32 md:h-32 rounded-xl bg-gradient-to-br from-blue-200 to-cyan-200 border-2 border-blue-300 flex items-center justify-center">
+                <span class="text-4xl">🏢</span>
+              </div>
+            </div>
+            
+            <!-- Experience Details -->
+            <div class="flex-1">
+              <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                <div>
+                  <h3 class="text-2xl font-black text-gray-900 mb-1">Senior Product Manager</h3>
+                  <p class="text-xl text-gray-600 font-semibold">TechCorp Inc.</p>
+                </div>
+                <div class="text-gray-500 font-semibold mt-2 md:mt-0">Jan 2021 - Present</div>
+              </div>
+              <p class="text-gray-700 font-medium mb-4">
+                Leading product strategy and execution for the e-commerce platform, managing a team of 5 engineers and 2 designers. Shipped features that generated $5M+ in revenue.
+              </p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-sm font-bold">Product Strategy</span>
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-bold">User Research</span>
+                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm font-bold">Data Analysis</span>
+              </div>
+              <a href="#case-study-1" class="text-purple-600 hover:text-purple-700 font-bold">
+                View Related Case Study →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Another Work Experience Item -->
+        <div class="bg-white rounded-2xl border-2 border-gray-300 p-6 md:p-8">
+          <div class="flex flex-col md:flex-row gap-6">
+            <div class="flex-shrink-0">
+              <div class="w-24 h-24 md:w-32 md:h-32 rounded-xl bg-gradient-to-br from-green-200 to-emerald-200 border-2 border-green-300 flex items-center justify-center">
+                <span class="text-4xl">🏢</span>
+              </div>
+            </div>
+            <div class="flex-1">
+              <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                <div>
+                  <h3 class="text-2xl font-black text-gray-900 mb-1">Product Manager</h3>
+                  <p class="text-xl text-gray-600 font-semibold">StartupXYZ</p>
+                </div>
+                <div class="text-gray-500 font-semibold mt-2 md:mt-0">Mar 2019 - Dec 2020</div>
+              </div>
+              <p class="text-gray-700 font-medium mb-4">
+                Built and launched the core product from 0 to 1, growing user base from 0 to 50K in first year. Worked directly with founders on product strategy and roadmap.
+              </p>
+              <div class="flex flex-wrap gap-2">
+                <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-sm font-bold">0 to 1 Product</span>
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-bold">Growth</span>
+                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm font-bold">User Acquisition</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="py-12 md:py-20 px-4 md:px-8">
+    <div class="max-w-2xl mx-auto">
+      <h2 class="text-3xl md:text-4xl font-black text-gray-900 mb-8 text-center">Get In Touch</h2>
+      <div class="bg-white rounded-2xl border-2 border-gray-300 p-6 md:p-8">
+        <form class="space-y-6">
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">Name</label>
+            <input type="text" class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-purple-500 focus:outline-none font-medium" placeholder="Your name">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">Email</label>
+            <input type="email" class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-purple-500 focus:outline-none font-medium" placeholder="your@email.com">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">Message</label>
+            <textarea rows="6" class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-purple-500 focus:outline-none font-medium resize-none" placeholder="Your message..."></textarea>
+          </div>
+          <button type="submit" class="w-full px-6 py-4 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-black transition-all shadow-lg">
+            Send Message
+          </button>
+        </form>
+        <div class="mt-8 pt-8 border-t-2 border-gray-200 text-center">
+          <p class="text-gray-600 font-semibold mb-4">Or reach me directly:</p>
+          <div class="flex items-center justify-center gap-4">
+            <a href="#" class="text-blue-600 hover:text-blue-700 font-bold">LinkedIn</a>
+            <span class="text-gray-400">•</span>
+            <a href="#" class="text-gray-700 hover:text-purple-600 font-bold">anthony@example.com</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-8 px-4 md:px-8">
+    <div class="max-w-6xl mx-auto text-center">
+      <p class="text-gray-400 font-semibold">© 2024 Anthony Saltarelli. Built with Product Careerlyst.</p>
+    </div>
+  </footer>
+</body>
+</html>

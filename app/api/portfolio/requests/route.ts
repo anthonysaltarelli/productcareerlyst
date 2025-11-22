@@ -29,7 +29,8 @@ export const GET = async (request: NextRequest) => {
           company_name,
           problem_description,
           hypothesis,
-          user_segment
+          user_segment,
+          portfolio_idea_favorites!left(id)
         )
       `)
       .eq('user_id', user.id)
@@ -42,6 +43,20 @@ export const GET = async (request: NextRequest) => {
         { status: 500 }
       );
     }
+
+    // Get all idea IDs to fetch favorites and ratings
+    const allIdeaIds = (requests || []).flatMap((request: any) => 
+      (request.portfolio_ideas || []).map((idea: any) => idea.id)
+    );
+
+    // Fetch favorites for all ideas
+    const { data: favorites } = await supabase
+      .from('portfolio_idea_favorites')
+      .select('idea_id')
+      .eq('user_id', user.id)
+      .in('idea_id', allIdeaIds);
+
+    const favoritedIdeaIds = new Set((favorites || []).map((f: any) => f.idea_id));
 
     // Transform the data to match the expected format
     const formattedRequests = (requests || []).map((request: any) => ({
@@ -56,6 +71,7 @@ export const GET = async (request: NextRequest) => {
         problem_description: idea.problem_description,
         hypothesis: idea.hypothesis,
         user_segment: idea.user_segment,
+        is_favorited: favoritedIdeaIds.has(idea.id),
       })),
     }));
 
