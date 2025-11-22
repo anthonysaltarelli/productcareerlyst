@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { MobileMenu } from './MobileMenu'
+import { NavLink } from './NavLink'
 
 export const Navigation = async () => {
   const supabase = await createClient()
@@ -46,22 +47,22 @@ export const Navigation = async () => {
                 >
                   Courses
                 </a>
-                <a
+                <NavLink
                   href="#features"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"
                   tabIndex={0}
-                  aria-label="Features"
+                  ariaLabel="Features"
                 >
                   Features
-                </a>
-                <a
+                </NavLink>
+                <NavLink
                   href="#testimonials"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"
                   tabIndex={0}
-                  aria-label="Testimonials"
+                  ariaLabel="Testimonials"
                 >
                   Testimonials
-                </a>
+                </NavLink>
                 <a
                   href="/auth/login"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"

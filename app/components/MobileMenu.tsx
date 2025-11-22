@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { User } from '@supabase/supabase-js'
+import { NavLink } from './NavLink'
 
 interface MobileMenuProps {
   user: User | null
@@ -68,22 +69,24 @@ export const MobileMenu = ({ user }: MobileMenuProps) => {
                 >
                   Courses
                 </a>
-                <a
+                <NavLink
                   href="#features"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
                   tabIndex={0}
-                  aria-label="Features"
+                  ariaLabel="Features"
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Features
-                </a>
-                <a
+                </NavLink>
+                <NavLink
                   href="#testimonials"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
                   tabIndex={0}
-                  aria-label="Testimonials"
+                  ariaLabel="Testimonials"
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Testimonials
-                </a>
+                </NavLink>
                 <a
                   href="/auth/login"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
