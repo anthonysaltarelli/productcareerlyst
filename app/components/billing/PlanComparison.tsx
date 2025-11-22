@@ -188,7 +188,7 @@ export const PlanComparison = () => {
               <th className="text-center py-4 px-6 font-bold text-base text-gray-900">
                 {learnPlan.name}
               </th>
-              <th className="text-center py-4 px-6 font-bold text-base text-gray-900">
+              <th className="text-center py-4 px-6 font-bold text-base text-purple-600">
                 {acceleratePlan.name}
               </th>
             </tr>
@@ -199,13 +199,13 @@ export const PlanComparison = () => {
               const learnValue = getFeatureValue(learnPlan, feature.key);
 
               return (
-                <tr key={feature.key}>
+                <tr key={feature.key} className="border-b border-gray-100">
                   <td className="py-3 px-6 font-bold text-sm text-gray-900">
                     {feature.label}
                   </td>
                   <td className="py-3 px-6 text-center">
                     {learnValue === 'included' && (
-                      <span className="text-gray-900 font-bold">✓</span>
+                      <span className="text-green-600 font-bold">✓</span>
                     )}
                     {learnValue === 'not-included' && (
                       <div className="flex justify-center items-center">
@@ -215,10 +215,10 @@ export const PlanComparison = () => {
                   </td>
                   <td className="py-3 px-6 text-center">
                     {accelerateValue === 'included' && (
-                      <span className="text-gray-900 font-bold">✓</span>
+                      <span className="text-green-600 font-bold">✓</span>
                     )}
                     {accelerateValue === 'unlimited' && (
-                      <span className="text-sm font-bold text-gray-900">Unlimited</span>
+                      <span className="text-sm font-bold text-purple-600">Unlimited</span>
                     )}
                     {accelerateValue === 'not-included' && (
                       <div className="flex justify-center items-center">
