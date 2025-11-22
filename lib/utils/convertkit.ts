@@ -4,14 +4,29 @@
  * Handles communication with ConvertKit API for subscriber management
  */
 
-const CONVERTKIT_API_BASE = 'https://api.convertkit.com/v3';
-const CONVERTKIT_API_KEY = process.env.CONVERTKIT_API_KEY;
+const CONVERTKIT_API_BASE = 'https://api.kit.com/v4';
+const CONVERTKIT_API_KEY = process.env.CONVERTKIT_API_KEY?.trim();
 
 if (!CONVERTKIT_API_KEY) {
   console.warn('CONVERTKIT_API_KEY is not set in environment variables');
+} else {
+  // Log masked API key for debugging (first 4 and last 4 chars)
+  const maskedKey = CONVERTKIT_API_KEY.length > 8 
+    ? `${CONVERTKIT_API_KEY.substring(0, 4)}...${CONVERTKIT_API_KEY.substring(CONVERTKIT_API_KEY.length - 4)}`
+    : '***';
+  console.log(`[ConvertKit] V4 API Key loaded: ${maskedKey} (length: ${CONVERTKIT_API_KEY.length})`);
 }
 
 interface ConvertKitSubscribeResponse {
+  subscriber?: {
+    id: number;
+    first_name: string | null;
+    email_address: string;
+    state: string;
+    created_at: string;
+    fields: Record<string, unknown>;
+  };
+  // V3 compatibility
   subscription?: {
     id: number;
     state: string;
@@ -43,24 +58,53 @@ export const addSubscriberToForm = async (
     throw new Error('CONVERTKIT_API_KEY is not configured');
   }
 
-  const response = await fetch(`${CONVERTKIT_API_BASE}/forms/${formId}/subscribe`, {
+  // V4 API uses /subscribers endpoint with email_address and form_id
+  const requestBody: Record<string, string | number> = {
+    email_address: email,
+    form_id: formId,
+  };
+
+  if (firstName) {
+    requestBody.first_name = firstName;
+  }
+
+  console.log(`[ConvertKit] Subscribing ${email} to form ${formId}`);
+
+  const response = await fetch(`${CONVERTKIT_API_BASE}/subscribers`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
+      'X-Kit-Api-Key': CONVERTKIT_API_KEY,
     },
-    body: JSON.stringify({
-      api_key: CONVERTKIT_API_KEY,
-      email,
-      first_name: firstName || undefined,
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`ConvertKit form subscription failed: ${response.status} ${errorText}`);
+    let errorDetails = errorText;
+    
+    // Try to parse as JSON for better error messages
+    try {
+      const errorJson = JSON.parse(errorText);
+      errorDetails = JSON.stringify(errorJson, null, 2);
+      console.error(`[ConvertKit] Form subscription error details:`, {
+        status: response.status,
+        error: errorJson.error,
+        message: errorJson.message,
+        apiKeyLength: CONVERTKIT_API_KEY.length,
+        apiKeyPrefix: CONVERTKIT_API_KEY.substring(0, 4),
+      });
+    } catch {
+      // Not JSON, use raw text
+      console.error(`[ConvertKit] Form subscription error (raw):`, errorText);
+    }
+    
+    throw new Error(`ConvertKit form subscription failed: ${response.status} ${errorDetails}`);
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log(`[ConvertKit] Successfully subscribed ${email} to form ${formId}`);
+  return result;
 };
 
 /**
@@ -75,24 +119,53 @@ export const addSubscriberToSequence = async (
     throw new Error('CONVERTKIT_API_KEY is not configured');
   }
 
-  const response = await fetch(`${CONVERTKIT_API_BASE}/sequences/${sequenceId}/subscribe`, {
+  // V4 API uses /subscribers endpoint with email_address and sequence_id
+  const requestBody: Record<string, string | number> = {
+    email_address: email,
+    sequence_id: sequenceId,
+  };
+
+  if (firstName) {
+    requestBody.first_name = firstName;
+  }
+
+  console.log(`[ConvertKit] Subscribing ${email} to sequence ${sequenceId}`);
+
+  const response = await fetch(`${CONVERTKIT_API_BASE}/subscribers`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
+      'X-Kit-Api-Key': CONVERTKIT_API_KEY,
     },
-    body: JSON.stringify({
-      api_key: CONVERTKIT_API_KEY,
-      email,
-      first_name: firstName || undefined,
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`ConvertKit sequence subscription failed: ${response.status} ${errorText}`);
+    let errorDetails = errorText;
+    
+    // Try to parse as JSON for better error messages
+    try {
+      const errorJson = JSON.parse(errorText);
+      errorDetails = JSON.stringify(errorJson, null, 2);
+      console.error(`[ConvertKit] Sequence subscription error details:`, {
+        status: response.status,
+        error: errorJson.error,
+        message: errorJson.message,
+        apiKeyLength: CONVERTKIT_API_KEY.length,
+        apiKeyPrefix: CONVERTKIT_API_KEY.substring(0, 4),
+      });
+    } catch {
+      // Not JSON, use raw text
+      console.error(`[ConvertKit] Sequence subscription error (raw):`, errorText);
+    }
+    
+    throw new Error(`ConvertKit sequence subscription failed: ${response.status} ${errorDetails}`);
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log(`[ConvertKit] Successfully subscribed ${email} to sequence ${sequenceId}`);
+  return result;
 };
 
 /**

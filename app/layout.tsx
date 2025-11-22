@@ -15,6 +15,7 @@ import { Navigation } from "./components/Navigation";
 import { Footer } from "./components/Footer";
 import { LaunchDarklyProvider } from "./components/LaunchDarklyProvider";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/next";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -87,6 +88,7 @@ export default function RootLayout({
             {children}
           </ConditionalLayout>
         </LaunchDarklyProvider>
+        <Analytics />
       </body>
     </html>
   );
