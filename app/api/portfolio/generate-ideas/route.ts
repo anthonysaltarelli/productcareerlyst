@@ -51,8 +51,12 @@ const PORTFOLIO_IDEAS_SCHEMA = {
 };
 
 // Prompt for generating portfolio case study ideas
-const createPortfolioIdeasPrompt = (inputText: string) => {
-  return `You are an assistant helping a Product Management candidate create case studies to put on their Product Portfolio. Your goal is to create a list of 3 Case Study ideas. You will receive an input of either an industry, company/product name, or a combination of those. You should take those inputs and then create 3 Case Study ideas based on them. The case studies should be focused on solving a specific problem that exists for a real company/product. The company/product should be well known within that industry and not obscure. You should do research to find current problems. The problems you choose should be very specific - this will make it easier to build the case studies. The problems you choose should not have already been solved.
+const createPortfolioIdeasPrompt = (inputText: string, previousIdeas?: Array<{ company_name: string; problem_description: string }>) => {
+  const previousIdeasSection = previousIdeas && previousIdeas.length > 0
+    ? `\n\nIMPORTANT - PREVIOUS IDEAS TO AVOID:\nThe user has already generated the following case study ideas for "${inputText}". You MUST generate 3 NEW ideas that are DISTINCT from these. Do not repeat similar companies or problems.\n\n${previousIdeas.map((idea, idx) => `${idx + 1}. ${idea.company_name}: ${idea.problem_description}`).join('\n')}\n\nMake sure your new ideas are completely different - different companies, different problems, different angles.`
+    : '';
+
+  return `You are an assistant helping a Product Management candidate create case studies to put on their Product Portfolio. Your goal is to create a list of 3 Case Study ideas. You will receive an input of either an industry, company/product name, or a combination of those. You should take those inputs and then create 3 Case Study ideas based on them. The case studies should be focused on solving a specific problem that exists for a real company/product. The company/product should be well known within that industry and not obscure. You should do research to find current problems. The problems you choose should be very specific - this will make it easier to build the case studies. The problems you choose should not have already been solved.${previousIdeasSection}
 
 BACKGROUND CONTEXT ON CASE STUDIES
 
@@ -171,11 +175,19 @@ export const POST = async (request: NextRequest) => {
     }
 
     const body = await request.json();
-    const { inputText } = body;
+    const { inputText, previousIdeas } = body;
 
     if (!inputText || typeof inputText !== 'string' || inputText.trim().length === 0) {
       return NextResponse.json(
         { error: 'Input text is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate previousIdeas if provided
+    if (previousIdeas && !Array.isArray(previousIdeas)) {
+      return NextResponse.json(
+        { error: 'previousIdeas must be an array' },
         { status: 400 }
       );
     }
@@ -189,8 +201,11 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
-    // Create prompt with context
-    const prompt = createPortfolioIdeasPrompt(inputText.trim());
+    // Create prompt with context, including previous ideas if provided
+    const prompt = createPortfolioIdeasPrompt(
+      inputText.trim(),
+      previousIdeas as Array<{ company_name: string; problem_description: string }> | undefined
+    );
 
     // Step 1: Call OpenAI Responses API with structured output
     const requestPayload = {
