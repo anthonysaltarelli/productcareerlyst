@@ -9,3 +9,4 @@ ADD COLUMN IF NOT EXISTS first_template_accessed_at TIMESTAMP WITH TIME ZONE;
 -- Add comment
 COMMENT ON COLUMN profiles.first_template_accessed_at IS 'Timestamp when user first accessed templates/resources page';
 
+

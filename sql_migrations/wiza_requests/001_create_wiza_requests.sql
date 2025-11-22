@@ -65,3 +65,4 @@ COMMENT ON COLUMN wiza_requests.status IS 'Request status: pending, processing, 
 COMMENT ON COLUMN wiza_requests.wiza_status IS 'Raw status from Wiza API';
 COMMENT ON COLUMN wiza_requests.wiza_response IS 'Full JSON response from Wiza API for debugging';
 
+
