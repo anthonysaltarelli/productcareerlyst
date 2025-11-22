@@ -1,6 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import { DashboardHomeContent } from '@/app/components/DashboardHomeContent'
+import { getDashboardStats } from '@/lib/utils/dashboard-stats'
+import { DashboardWelcome } from '@/app/components/DashboardWelcome'
 import { DashboardStats } from '@/app/components/DashboardStats'
+import { OnboardingMilestones } from '@/app/components/OnboardingMilestones'
+import { FeatureDiscovery } from '@/app/components/FeatureDiscovery'
+import { SubscriptionPromotion } from '@/app/components/SubscriptionPromotion'
 import { DashboardNextSteps } from '@/app/components/DashboardNextSteps'
 
 export default async function DashboardHome() {
@@ -10,33 +14,73 @@ export default async function DashboardHome() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  if (!user) {
+    return null
+  }
+
+  // Fetch user profile for first name
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  // Fetch dashboard stats
+  const stats = await getDashboardStats(user.id)
+
   return (
     <div className="p-8 md:p-12">
-      {/* Welcome Hero */}
-      <div className="mb-8">
-        <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
-          <div className="inline-block px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 text-white text-sm font-bold mb-4">
-            ✅ YOU'RE IN!
-          </div>
-          <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-4 leading-tight">
-            Welcome Back,
-            <br />
-            Future Senior PM 🚀
-          </h1>
-          <p className="text-xl text-gray-700 font-semibold">
-            Ready to level up? Let's crush it today.
-          </p>
-        </div>
-      </div>
+      {/* Welcome Section */}
+      <DashboardWelcome
+        firstName={profile?.first_name || null}
+        subscription={stats?.subscription || { plan: null, status: null, isActive: false }}
+      />
 
       {/* Quick Stats */}
-      <DashboardStats />
+      <DashboardStats
+        stats={stats ? {
+          lessonsCompleted: stats.lessonsCompleted,
+          coursesCompleted: stats.coursesCompleted,
+          highestResumeScore: stats.highestResumeScore,
+          totalJobApplications: stats.totalJobApplications,
+        } : null}
+      />
 
-      {/* Feature Cards Grid */}
-      <DashboardHomeContent />
+      {/* Onboarding Milestones */}
+      {stats && (
+        <OnboardingMilestones milestones={stats.milestones} />
+      )}
+
+      {/* Feature Discovery */}
+      <FeatureDiscovery
+        stats={stats ? {
+          lessonsCompleted: stats.lessonsCompleted,
+          coursesCompleted: stats.coursesCompleted,
+          highestResumeScore: stats.highestResumeScore,
+          totalJobApplications: stats.totalJobApplications,
+          resumeVersionsCount: stats.resumeVersionsCount,
+          contactsCount: stats.contactsCount,
+          companiesResearchedCount: stats.companiesResearchedCount,
+        } : null}
+      />
 
       {/* Next Steps */}
-      <DashboardNextSteps />
+      {stats && (
+        <DashboardNextSteps
+          milestones={stats.milestones}
+          stats={{
+            lessonsCompleted: stats.lessonsCompleted,
+            coursesCompleted: stats.coursesCompleted,
+            highestResumeScore: stats.highestResumeScore,
+            totalJobApplications: stats.totalJobApplications,
+          }}
+        />
+      )}
+
+      {/* Subscription Promotion (only shows if not subscribed) */}
+      {stats && (
+        <SubscriptionPromotion subscription={stats.subscription} />
+      )}
     </div>
   )
 }

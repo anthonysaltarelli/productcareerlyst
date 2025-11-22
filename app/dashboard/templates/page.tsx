@@ -1,6 +1,23 @@
 'use client';
 
+import { useEffect } from 'react';
+
 export default function TemplatesPage() {
+  // Track template access on page load
+  useEffect(() => {
+    const trackAccess = async () => {
+      try {
+        await fetch('/api/dashboard/track-template-access', {
+          method: 'POST',
+        });
+      } catch (error) {
+        // Silently fail - don't interrupt user experience
+        console.error('Failed to track template access:', error);
+      }
+    };
+
+    trackAccess();
+  }, []);
   const resources = [
     {
       title: 'Resume Guide',

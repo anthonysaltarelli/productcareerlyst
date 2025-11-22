@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { MoreVertical } from "lucide-react";
+import Link from "next/link";
 import type { ResumeVersion } from "@/lib/hooks/useResumeData";
 import CreateFromMasterModal from "./CreateFromMasterModal";
 import CloneToMasterModal from "./CloneToMasterModal";
@@ -356,12 +357,20 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
             versions by cloning a master and tailoring it for each application.
           </p>
           <div className="flex gap-4">
-            <button className="px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200">
+            <Link 
+              href="/dashboard/courses/resume-linkedin"
+              className="px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200"
+            >
               📺 Watch Tutorial
-            </button>
-            <button className="px-6 py-3 rounded-[1.5rem] bg-white/10 border-2 border-slate-600 hover:bg-white/20 font-bold text-white transition-all duration-200">
+            </Link>
+            <a 
+              href="https://docs.google.com/document/d/1TgMhFSh1PLJ4q8rSskt7iQi4GzaNzDgUA5Gt7HH0o5c/edit"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-6 py-3 rounded-[1.5rem] bg-white/10 border-2 border-slate-600 hover:bg-white/20 font-bold text-white transition-all duration-200"
+            >
               📚 View Documentation
-            </button>
+            </a>
           </div>
         </div>
       </div>
