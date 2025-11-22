@@ -459,7 +459,7 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-in fade-in duration-500">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-fade-in-scale">
       {/* Sidebar */}
       <div className="lg:col-span-1">
         <div className="p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 sticky top-8">
