@@ -551,6 +551,8 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
               {selectedResearch.perplexity_response.choices?.[0]?.message?.content ? (
                 <ReactMarkdown
                   components={{
+                    // Suppress horizontal rules
+                    hr: () => null,
                     // Headings
                     h1: ({ children }) => (
                       <h1 className="text-3xl font-black text-gray-900 mt-8 mb-4 first:mt-0">
