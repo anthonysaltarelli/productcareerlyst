@@ -70,7 +70,7 @@ export default function GenerateIdeasPage() {
     }
   };
 
-  const handleGenerateIdeas = async (previousIdeas?: PortfolioIdea[], inputTextOverride?: string) => {
+  const handleGenerateIdeas = async (previousIdeas?: PortfolioIdea[], inputTextOverride?: string, existingRequestId?: string) => {
     const textToUse = inputTextOverride || inputText;
     if (!textToUse.trim()) {
       toast.error("Please enter an industry or company name");
@@ -89,7 +89,8 @@ export default function GenerateIdeasPage() {
           previousIdeas: previousIdeas?.map(idea => ({
             company_name: idea.company_name,
             problem_description: idea.problem_description,
-          }))
+          })),
+          requestId: existingRequestId,
         }),
       });
 
@@ -100,10 +101,19 @@ export default function GenerateIdeasPage() {
 
       const data = await response.json();
       
-      // Add new request to the list and select it
-      setRequests(prev => [data.request, ...prev]);
-      setSelectedRequestId(data.request.id);
-      setInputText("");
+      if (existingRequestId) {
+        // Update existing request in place
+        setRequests(prev => prev.map(req => 
+          req.id === existingRequestId ? data.request : req
+        ));
+        // Keep the same request selected
+        setSelectedRequestId(existingRequestId);
+      } else {
+        // Add new request to the list and select it
+        setRequests(prev => [data.request, ...prev]);
+        setSelectedRequestId(data.request.id);
+        setInputText("");
+      }
       
       toast.success(previousIdeas ? "More ideas generated successfully!" : "Case study ideas generated successfully!");
     } catch (error) {
@@ -396,7 +406,7 @@ export default function GenerateIdeasPage() {
                 <div className="mt-6 flex justify-center">
                   <button
                     onClick={() => {
-                      handleGenerateIdeas(selectedRequest.ideas, selectedRequest.input_text);
+                      handleGenerateIdeas(selectedRequest.ideas, selectedRequest.input_text, selectedRequest.id);
                     }}
                     disabled={isGenerating}
                     className="px-6 py-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"

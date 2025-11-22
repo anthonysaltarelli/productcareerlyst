@@ -175,7 +175,7 @@ export const POST = async (request: NextRequest) => {
     }
 
     const body = await request.json();
-    const { inputText, previousIdeas } = body;
+    const { inputText, previousIdeas, requestId } = body;
 
     if (!inputText || typeof inputText !== 'string' || inputText.trim().length === 0) {
       return NextResponse.json(
@@ -190,6 +190,25 @@ export const POST = async (request: NextRequest) => {
         { error: 'previousIdeas must be an array' },
         { status: 400 }
       );
+    }
+
+    // If requestId is provided, validate it belongs to the user
+    let existingRequest = null;
+    if (requestId) {
+      const { data: requestData, error: requestError } = await supabase
+        .from('portfolio_idea_requests')
+        .select('id, input_text, user_id, created_at')
+        .eq('id', requestId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (requestError || !requestData) {
+        return NextResponse.json(
+          { error: 'Invalid or unauthorized request ID' },
+          { status: 400 }
+        );
+      }
+      existingRequest = requestData;
     }
 
     // Check for OpenAI API key
@@ -368,28 +387,48 @@ export const POST = async (request: NextRequest) => {
     }
 
     // Step 4: Save to database
-    // Create the request record
-    const { data: requestRecord, error: requestError } = await supabase
-      .from('portfolio_idea_requests')
-      .insert({
-        user_id: user.id,
-        input_text: inputText.trim(),
-      })
-      .select()
-      .single();
+    // Use existing request or create a new one
+    let requestRecord;
+    if (existingRequest) {
+      // Use existing request
+      requestRecord = existingRequest;
+    } else {
+      // Create new request record
+      const { data: newRequestRecord, error: requestError } = await supabase
+        .from('portfolio_idea_requests')
+        .insert({
+          user_id: user.id,
+          input_text: inputText.trim(),
+        })
+        .select()
+        .single();
 
-    if (requestError || !requestRecord) {
-      console.error('Error creating request record:', requestError);
-      return NextResponse.json(
-        { error: 'Failed to save request to database' },
-        { status: 500 }
-      );
+      if (requestError || !newRequestRecord) {
+        console.error('Error creating request record:', requestError);
+        return NextResponse.json(
+          { error: 'Failed to save request to database' },
+          { status: 500 }
+        );
+      }
+      requestRecord = newRequestRecord;
     }
 
-    // Create the idea records
+    // Get the highest idea_number for this request to calculate next numbers
+    const { data: existingIdeas } = await supabase
+      .from('portfolio_ideas')
+      .select('idea_number')
+      .eq('request_id', requestRecord.id)
+      .order('idea_number', { ascending: false })
+      .limit(1);
+
+    const nextIdeaNumber = existingIdeas && existingIdeas.length > 0
+      ? existingIdeas[0].idea_number + 1
+      : 1;
+
+    // Create the idea records with sequential numbering
     const ideasToInsert = extractedData.ideas.map((idea: any, index: number) => ({
       request_id: requestRecord.id,
-      idea_number: index + 1,
+      idea_number: nextIdeaNumber + index,
       company_name: idea.company_name,
       problem_description: idea.problem_description,
       hypothesis: idea.hypothesis,
@@ -419,12 +458,19 @@ export const POST = async (request: NextRequest) => {
       });
     }
 
+    // Fetch all ideas for this request to return complete list
+    const { data: allIdeas } = await supabase
+      .from('portfolio_ideas')
+      .select('id, idea_number, company_name, problem_description, hypothesis, user_segment')
+      .eq('request_id', requestRecord.id)
+      .order('idea_number', { ascending: true });
+
     return NextResponse.json({
       request: {
         id: requestRecord.id,
         input_text: requestRecord.input_text,
         created_at: requestRecord.created_at,
-        ideas: ideaRecords.map((idea) => ({
+        ideas: (allIdeas || []).map((idea) => ({
           id: idea.id,
           idea_number: idea.idea_number,
           company_name: idea.company_name,
