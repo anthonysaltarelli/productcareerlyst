@@ -35,7 +35,7 @@ export const UpdatePasswordForm = () => {
 
       if (error) throw error
 
-      router.push('/protected')
+      router.push('/dashboard')
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')

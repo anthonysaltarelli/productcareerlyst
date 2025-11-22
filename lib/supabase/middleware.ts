@@ -42,12 +42,11 @@ export const updateSession = async (request: NextRequest) => {
     return NextResponse.redirect(url)
   }
 
-  // Protect /dashboard and /protected routes
+  // Protect /dashboard routes
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/auth') &&
-    (request.nextUrl.pathname.startsWith('/protected') ||
-      request.nextUrl.pathname.startsWith('/dashboard'))
+    request.nextUrl.pathname.startsWith('/dashboard')
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()

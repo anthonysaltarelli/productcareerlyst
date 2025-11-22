@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   const token = searchParams.get('token')
   const type = searchParams.get('type') as EmailOtpType | null
   const _next = searchParams.get('next')
-  const next = _next?.startsWith('/') ? _next : '/protected'
+  const next = _next?.startsWith('/') ? _next : '/dashboard'
 
   // Handle both token_hash (PKCE flow) and token (legacy flow)
   const verificationToken = token_hash || token
