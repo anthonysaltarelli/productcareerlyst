@@ -52,8 +52,19 @@ const PORTFOLIO_IDEAS_SCHEMA = {
 
 // Prompt for generating portfolio case study ideas
 const createPortfolioIdeasPrompt = (inputText: string, previousIdeas?: Array<{ company_name: string; problem_description: string }>) => {
+  // Check if all previous ideas are for the same company
+  const allSameCompany = previousIdeas && previousIdeas.length > 0
+    ? previousIdeas.every(idea => idea.company_name.toLowerCase() === previousIdeas[0].company_name.toLowerCase())
+    : false;
+  
+  const targetCompany = allSameCompany && previousIdeas && previousIdeas.length > 0
+    ? previousIdeas[0].company_name
+    : null;
+
   const previousIdeasSection = previousIdeas && previousIdeas.length > 0
-    ? `\n\n⚠️ CRITICAL - PREVIOUS IDEAS TO AVOID:\nThe user has already generated the following case study ideas for "${inputText}". You MUST generate 3 COMPLETELY NEW ideas that are DISTINCT and DIFFERENT from these. \n\nPREVIOUS IDEAS (DO NOT REPEAT):\n${previousIdeas.map((idea, idx) => `${idx + 1}. ${idea.company_name}: ${idea.problem_description}`).join('\n')}\n\nREQUIREMENTS FOR NEW IDEAS:\n- Must be for DIFFERENT companies/products than those listed above\n- Must address DIFFERENT problems than those listed above\n- Must have DIFFERENT angles or approaches\n- Do NOT create variations or similar versions of the previous ideas\n- Each new idea should be unique and distinct\n\nIf you cannot generate 3 completely different ideas, you must still provide 3 ideas that are as different as possible from the previous ones.`
+    ? `\n\n⚠️ CRITICAL - GENERATING MORE IDEAS FOR THE SAME REQUEST:\nThe user has already generated the following case study ideas for "${inputText}". You MUST generate 3 COMPLETELY NEW ideas that are DISTINCT and DIFFERENT from these.\n\nPREVIOUS IDEAS (DO NOT REPEAT THESE PROBLEMS):\n${previousIdeas.map((idea, idx) => `${idx + 1}. ${idea.company_name}: ${idea.problem_description}`).join('\n')}\n\n${targetCompany
+      ? `🎯 CRITICAL COMPANY FOCUS - YOU MUST STAY WITH THE SAME COMPANY:\nAll previous ideas are for "${targetCompany}". The original input was "${inputText}". All new ideas MUST be for "${targetCompany}" - do NOT switch to different companies.\n\nREQUIREMENTS FOR NEW IDEAS:\n- MUST be for "${targetCompany}" (the same company as all previous ideas)\n- MUST address COMPLETELY DIFFERENT problems than those listed above\n- MUST have DIFFERENT angles, user segments, or approaches\n- Do NOT switch to different companies - stay focused on "${targetCompany}"\n- Each new idea should be a unique, unsolved problem for "${targetCompany}" that hasn't been addressed in the previous ideas\n\nFocus on finding different unsolved problems, pain points, or opportunities specifically for "${targetCompany}" that are distinct from the problems already listed.`
+      : `REQUIREMENTS FOR NEW IDEAS:\n- Must address COMPLETELY DIFFERENT problems than those listed above\n- Must have DIFFERENT angles, user segments, or approaches\n- Do NOT create variations or similar versions of the previous ideas\n- Each new idea should be unique and distinct`}`
     : '';
 
   return `You are an assistant helping a Product Management candidate create case studies to put on their Product Portfolio. Your goal is to create a list of 3 Case Study ideas. You will receive an input of either an industry, company/product name, or a combination of those. You should take those inputs and then create 3 Case Study ideas based on them. The case studies should be focused on solving a specific problem that exists for a real company/product. The company/product should be well known within that industry and not obscure. You should do research to find current problems. The problems you choose should be very specific - this will make it easier to build the case studies. The problems you choose should not have already been solved.${previousIdeasSection}
