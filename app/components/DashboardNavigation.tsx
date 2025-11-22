@@ -13,6 +13,7 @@ export const DashboardNavigation = () => {
       <NavLink href="/dashboard/courses" label="Courses" />
       <NavLink href="/dashboard/jobs" label="Job Applications" />
       <NavLink href="/dashboard/resume" label="Resume Builder" />
+      <NavLink href="/dashboard/portfolio" label="Product Portfolio" />
       {coach && <NavLink href="/dashboard/interview" label="Interview Coach" />}
       {careerTracker && <NavLink href="/dashboard/career" label="Career Tracker" />}
       {impactPortfolio && <NavLink href="/dashboard/portfolio" label="Impact Portfolio" />}
