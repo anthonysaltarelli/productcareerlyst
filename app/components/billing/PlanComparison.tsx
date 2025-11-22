@@ -172,8 +172,9 @@ export const PlanComparison = () => {
       </div>
 
       {/* Detailed Comparison Table Below */}
-      <div className="max-w-4xl mx-auto overflow-x-auto">
-        <table className="w-full border-collapse table-fixed">
+      <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] overflow-hidden p-8">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse table-fixed">
           <colgroup>
             <col style={{ width: '40%' }} />
             <col style={{ width: '30%' }} />
@@ -230,6 +231,7 @@ export const PlanComparison = () => {
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
