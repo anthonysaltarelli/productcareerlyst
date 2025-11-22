@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStripeClient } from '@/lib/stripe/client';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { tagSubscriber } from '@/lib/utils/convertkit';
 
 // Disable body parsing for webhook to get raw body
 export const runtime = 'nodejs';
@@ -346,6 +347,26 @@ async function syncSubscriptionToDatabase(
   if (error) {
     console.error('Error syncing subscription to database:', error);
     throw error;
+  }
+
+  // Tag subscriber in ConvertKit if they have an active/trialing paid plan subscription
+  // Only tag for 'learn' or 'accelerate' plans when status is 'active' or 'trialing'
+  if ((status === 'active' || status === 'trialing') && (plan === 'learn' || plan === 'accelerate')) {
+    try {
+      // Get user email from auth.users
+      const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+      
+      if (!userError && userData?.user?.email) {
+        const PRODUCT_CAREERLYST_SUBSCRIBER_TAG_ID = 5458897;
+        await tagSubscriber(PRODUCT_CAREERLYST_SUBSCRIBER_TAG_ID, userData.user.email);
+        console.log(`[ConvertKit] Tagged ${userData.user.email} as ProductCareerlystSubscriber`);
+      } else {
+        console.warn(`[ConvertKit] Could not get user email for userId ${userId} to tag subscriber`);
+      }
+    } catch (tagError) {
+      // Don't fail the webhook if tagging fails - log and continue
+      console.error('[ConvertKit] Error tagging subscriber:', tagError);
+    }
   }
 }
 

@@ -217,6 +217,63 @@ export const addSubscriberToSequence = async (
 };
 
 /**
+ * Tag a subscriber in ConvertKit
+ * Uses the correct V4 API endpoint: POST /v4/tags/{tag_id}/subscribers
+ * Note: Subscriber must already exist
+ */
+export const tagSubscriber = async (
+  tagId: number,
+  email: string
+): Promise<ConvertKitSubscribeResponse> => {
+  if (!CONVERTKIT_API_KEY) {
+    throw new Error('CONVERTKIT_API_KEY is not configured');
+  }
+
+  // V4 API: POST /v4/tags/{tag_id}/subscribers with email_address in body
+  const requestBody: Record<string, string> = {
+    email_address: email,
+  };
+
+  console.log(`[ConvertKit] Tagging ${email} with tag ${tagId}`);
+
+  const response = await fetch(`${CONVERTKIT_API_BASE}/tags/${tagId}/subscribers`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'X-Kit-Api-Key': CONVERTKIT_API_KEY,
+    },
+    body: JSON.stringify(requestBody),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    let errorDetails = errorText;
+    
+    // Try to parse as JSON for better error messages
+    try {
+      const errorJson = JSON.parse(errorText);
+      errorDetails = JSON.stringify(errorJson, null, 2);
+      console.error(`[ConvertKit] Tag subscription error details:`, {
+        status: response.status,
+        error: errorJson.error,
+        message: errorJson.message,
+        apiKeyLength: CONVERTKIT_API_KEY.length,
+        apiKeyPrefix: CONVERTKIT_API_KEY.substring(0, 4),
+      });
+    } catch {
+      // Not JSON, use raw text
+      console.error(`[ConvertKit] Tag subscription error (raw):`, errorText);
+    }
+    
+    throw new Error(`ConvertKit tag subscription failed: ${response.status} ${errorDetails}`);
+  }
+
+  const result = await response.json();
+  console.log(`[ConvertKit] Successfully tagged ${email} with tag ${tagId}`);
+  return result;
+};
+
+/**
  * Add a subscriber to both a form and sequence
  * This is the main function to use when a user verifies their email
  * 
