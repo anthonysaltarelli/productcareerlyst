@@ -4,27 +4,61 @@ export default function Home() {
       <div className="max-w-7xl mx-auto p-8 md:p-12 lg:p-16">
 
         {/* Hero Section */}
-        <div className="flex justify-center mb-20">
-          <div className="w-full max-w-2xl p-12 rounded-[3rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
-            <h2 className="text-5xl md:text-7xl font-bold bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-6 leading-tight text-center">
-              Level Up
-              <br />
-              Your PM
-              <br />
-              Career
-            </h2>
-            <p className="text-xl text-gray-700 font-semibold mb-8 text-center">
-              Stop feeling stuck. Start crushing it.
-            </p>
-            <a
-              href="/auth/sign-up"
-              className="block w-full px-10 py-6 rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_10px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(147,51,234,0.6)] text-xl font-black text-white transition-all duration-200 text-center"
-            >
-              GET INSTANT ACCESS →
-            </a>
-            <p className="text-center text-sm text-gray-600 mt-4 font-medium">
-              Join thousands of PMs who've already leveled up
-            </p>
+        <div className="flex justify-center mb-20 relative">
+          {/* Floating decorative elements */}
+          <div className="absolute -top-8 -left-8 w-24 h-24 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 opacity-20 blur-2xl animate-pulse"></div>
+          <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-gradient-to-br from-pink-400 to-orange-400 opacity-20 blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          
+          <div className="w-full max-w-4xl relative z-10">
+            <div className="p-12 rounded-[3rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 relative overflow-hidden">
+              <div className="relative z-10">
+                {/* Floating badges */}
+                <div className="flex justify-center gap-4 mb-6 flex-wrap">
+                  <div className="px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border-2 border-purple-300 shadow-lg">
+                    <span className="text-sm font-bold text-purple-700">
+                      ✨ AI-Powered
+                    </span>
+                  </div>
+                </div>
+
+                <h2 className="text-5xl md:text-7xl font-bold bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-6 leading-tight text-center">
+                  Level Up Your Product Management Career
+                </h2>
+                <p className="text-xl text-gray-700 font-semibold mb-8 text-center">
+                  Stop feeling stuck. Start crushing it.
+                </p>
+
+                {/* Outcome highlights */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                  <div className="text-center p-4 rounded-[1.5rem] bg-white/60 backdrop-blur-sm border-2 border-purple-200">
+                    <div className="text-3xl mb-2">🎯</div>
+                    <p className="text-xs font-bold text-gray-700">Land Your Dream Job</p>
+                  </div>
+                  <div className="text-center p-4 rounded-[1.5rem] bg-white/60 backdrop-blur-sm border-2 border-pink-200">
+                    <div className="text-3xl mb-2">🚀</div>
+                    <p className="text-xs font-bold text-gray-700">Get Promoted Faster</p>
+                  </div>
+                  <div className="text-center p-4 rounded-[1.5rem] bg-white/60 backdrop-blur-sm border-2 border-purple-200">
+                    <div className="text-3xl mb-2">💡</div>
+                    <p className="text-xs font-bold text-gray-700">Build Impactful Products</p>
+                  </div>
+                  <div className="text-center p-4 rounded-[1.5rem] bg-white/60 backdrop-blur-sm border-2 border-pink-200">
+                    <div className="text-3xl mb-2">💰</div>
+                    <p className="text-xs font-bold text-gray-700">Increase Your Salary</p>
+                  </div>
+                </div>
+
+                <a
+                  href="/auth/sign-up"
+                  className="block w-full px-10 py-6 rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_10px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(147,51,234,0.6)] text-xl font-black text-white transition-all duration-200 text-center mb-4"
+                >
+                  Start now for free →
+                </a>
+                <p className="text-center text-sm text-gray-600 font-medium">
+                  Join thousands of PMs who've already leveled up
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
