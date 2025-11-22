@@ -172,68 +172,64 @@ export const PlanComparison = () => {
       </div>
 
       {/* Detailed Comparison Table Below */}
-      <div className="bg-white rounded-[2.5rem] shadow-xl border-2 border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b-2 border-gray-300">
-                <th className="text-left p-6 font-black text-xl text-gray-900">Features</th>
-                <th className="text-center p-6 font-black text-xl text-gray-900">{learnPlan.name}</th>
-                <th className="text-center p-6 font-black text-xl text-gray-900 border-l-2 border-r-2 border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50">
-                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    {acceleratePlan.name}
-                  </span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {featureList.map((feature, index) => {
-                const accelerateValue = getFeatureValue(acceleratePlan, feature.key);
-                const learnValue = getFeatureValue(learnPlan, feature.key);
+      <div className="max-w-4xl mx-auto overflow-x-auto">
+        <table className="w-full border-collapse table-fixed">
+          <colgroup>
+            <col style={{ width: '40%' }} />
+            <col style={{ width: '30%' }} />
+            <col style={{ width: '30%' }} />
+          </colgroup>
+          <thead>
+            <tr>
+              <th className="text-left py-4 px-6 font-bold text-base text-gray-900">
+                Features
+              </th>
+              <th className="text-center py-4 px-6 font-bold text-base text-gray-900">
+                {learnPlan.name}
+              </th>
+              <th className="text-center py-4 px-6 font-bold text-base text-gray-900">
+                {acceleratePlan.name}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {featureList.map((feature) => {
+              const accelerateValue = getFeatureValue(acceleratePlan, feature.key);
+              const learnValue = getFeatureValue(learnPlan, feature.key);
 
-                return (
-                  <tr
-                    key={feature.key}
-                    className={`border-b border-gray-200 hover:bg-purple-50/20 transition-colors ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
-                    }`}
-                  >
-                    <td className="p-6">
-                      <span className="text-base font-bold text-gray-900">{feature.label}</span>
-                    </td>
-                    <td className="p-6 text-center border-r-2 border-gray-300">
-                      {learnValue === 'included' && (
-                        <div className="flex justify-center">
-                          <Check className="w-6 h-6 text-green-600" />
-                        </div>
-                      )}
-                      {learnValue === 'not-included' && (
-                        <div className="flex justify-center">
-                          <X className="w-6 h-6 text-gray-300" />
-                        </div>
-                      )}
-                    </td>
-                    <td className="p-6 text-center border-l-2 border-r-2 border-purple-500 bg-gradient-to-br from-purple-50/50 to-pink-50/50">
-                      {accelerateValue === 'included' && (
-                        <div className="flex justify-center">
-                          <Check className="w-6 h-6 text-green-600" />
-                        </div>
-                      )}
-                      {accelerateValue === 'unlimited' && (
-                        <span className="text-base font-black text-purple-600">Unlimited</span>
-                      )}
-                      {accelerateValue === 'not-included' && (
-                        <div className="flex justify-center">
-                          <X className="w-6 h-6 text-gray-300" />
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+              return (
+                <tr key={feature.key}>
+                  <td className="py-3 px-6 font-bold text-sm text-gray-900">
+                    {feature.label}
+                  </td>
+                  <td className="py-3 px-6 text-center">
+                    {learnValue === 'included' && (
+                      <span className="text-gray-900 font-bold">✓</span>
+                    )}
+                    {learnValue === 'not-included' && (
+                      <div className="flex justify-center items-center">
+                        <X className="w-5 h-5 text-gray-400" strokeWidth={2.5} />
+                      </div>
+                    )}
+                  </td>
+                  <td className="py-3 px-6 text-center">
+                    {accelerateValue === 'included' && (
+                      <span className="text-gray-900 font-bold">✓</span>
+                    )}
+                    {accelerateValue === 'unlimited' && (
+                      <span className="text-sm font-bold text-gray-900">Unlimited</span>
+                    )}
+                    {accelerateValue === 'not-included' && (
+                      <div className="flex justify-center items-center">
+                        <X className="w-5 h-5 text-gray-400" strokeWidth={2.5} />
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
