@@ -83,19 +83,55 @@ export const PlanComparison = () => {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Plan Headers */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Empty header for features column */}
-        <div></div>
-        
-        {/* Accelerate Plan Header */}
-        <div className="relative p-6 rounded-[2.5rem] bg-white shadow-lg border-2 border-purple-500 ring-4 ring-purple-200">
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-            <span className="px-6 py-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold">
-              MOST POPULAR
-            </span>
+    <div className="space-y-12">
+      {/* Plan Cards at the Top */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        {/* Learn Plan Card */}
+        <div className="bg-white rounded-[2.5rem] shadow-xl border-2 border-gray-200 p-8 flex flex-col">
+          <div className="text-center flex-grow flex flex-col">
+            <div>
+              <h3 className="text-3xl font-black text-gray-900 mb-2">{learnPlan.name}</h3>
+              <p className="text-gray-600 font-semibold mb-4">{learnPlan.description}</p>
+              <div className="text-4xl font-black text-purple-600 mb-2">
+                ${learnMonthlyPriceFromYearly.toFixed(0)}/mo
+              </div>
+              <div className="text-sm text-gray-600 font-semibold mb-6">
+                Save 40% annually
+              </div>
+              <div className="text-left mb-6 space-y-2">
+                <div className="mb-3">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Kickstart your PM career with...</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <span className="text-sm font-semibold text-gray-700">PM Course Lessons</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <span className="text-sm font-semibold text-gray-700">PM Resources</span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-auto">
+              <button
+                onClick={() => handleContinue('learn')}
+                className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black hover:from-purple-700 hover:to-pink-700 transition-colors shadow-lg hover:shadow-xl"
+              >
+                Continue
+              </button>
+            </div>
           </div>
+        </div>
+
+        {/* Accelerate Plan Card */}
+        <div className="relative bg-white rounded-[2.5rem] shadow-xl border-2 border-purple-500 p-8">
+          {acceleratePlan.popular && (
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+              <span className="px-6 py-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold shadow-lg">
+                MOST POPULAR
+              </span>
+            </div>
+          )}
           <div className="text-center">
             <h3 className="text-3xl font-black text-gray-900 mb-2">{acceleratePlan.name}</h3>
             <p className="text-gray-600 font-semibold mb-4">{acceleratePlan.description}</p>
@@ -105,6 +141,26 @@ export const PlanComparison = () => {
             <div className="text-sm text-gray-600 font-semibold mb-6">
               Save 40% annually
             </div>
+            <div className="text-left mb-6 space-y-2">
+              <div className="mb-3">
+                <p className="text-sm font-semibold text-gray-700 mb-2">Everything in Learn plus...</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-sm font-semibold text-gray-700">Unlimited Customized Resumes</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-sm font-semibold text-gray-700">Unlimited Networking Contacts Discovered</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                <span className="text-sm font-semibold text-gray-700">Custom Product Portfolio</span>
+              </div>
+              <div className="mt-2">
+                <p className="text-sm font-semibold text-gray-500 italic">+ more</p>
+              </div>
+            </div>
             <button
               onClick={() => handleContinue('accelerate')}
               className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black hover:from-purple-700 hover:to-pink-700 transition-colors shadow-lg hover:shadow-xl"
@@ -113,67 +169,70 @@ export const PlanComparison = () => {
             </button>
           </div>
         </div>
-
-        {/* Learn Plan Header */}
-        <div className="relative p-6 rounded-[2.5rem] bg-white shadow-lg border-2 border-gray-200">
-          <div className="text-center">
-            <h3 className="text-3xl font-black text-gray-900 mb-2">{learnPlan.name}</h3>
-            <p className="text-gray-600 font-semibold mb-4">{learnPlan.description}</p>
-            <div className="text-4xl font-black text-purple-600 mb-2">
-              ${learnMonthlyPriceFromYearly.toFixed(0)}/mo
-            </div>
-            <div className="text-sm text-gray-600 font-semibold mb-6">
-              Save 42% annually
-            </div>
-            <button
-              onClick={() => handleContinue('learn')}
-              className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black hover:from-purple-700 hover:to-pink-700 transition-colors shadow-lg hover:shadow-xl"
-            >
-              Continue
-            </button>
-          </div>
-        </div>
       </div>
 
-      {/* Feature Comparison Table */}
-      <div className="bg-white rounded-[2.5rem] shadow-lg border-2 border-gray-200 overflow-hidden">
-        <div className="divide-y-2 divide-gray-200">
-          {featureList.map((feature) => {
-            const accelerateValue = getFeatureValue(acceleratePlan, feature.key);
-            const learnValue = getFeatureValue(learnPlan, feature.key);
+      {/* Detailed Comparison Table Below */}
+      <div className="bg-white rounded-[2.5rem] shadow-xl border-2 border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b-2 border-gray-300">
+                <th className="text-left p-6 font-black text-xl text-gray-900">Features</th>
+                <th className="text-center p-6 font-black text-xl text-gray-900">{learnPlan.name}</th>
+                <th className="text-center p-6 font-black text-xl text-gray-900 border-l-2 border-r-2 border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50">
+                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    {acceleratePlan.name}
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {featureList.map((feature, index) => {
+                const accelerateValue = getFeatureValue(acceleratePlan, feature.key);
+                const learnValue = getFeatureValue(learnPlan, feature.key);
 
-            return (
-              <div key={feature.key} className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 hover:bg-gray-50 transition-colors">
-                {/* Feature Name - Left */}
-                <div className="flex items-center">
-                  <span className="text-lg font-bold text-gray-900">{feature.label}</span>
-                </div>
-
-                {/* Accelerate Plan Value */}
-                <div className="flex items-center justify-center">
-                  {accelerateValue === 'included' && (
-                    <Check className="w-6 h-6 text-green-600" />
-                  )}
-                  {accelerateValue === 'unlimited' && (
-                    <span className="text-lg font-black text-purple-600">Unlimited</span>
-                  )}
-                  {accelerateValue === 'not-included' && (
-                    <X className="w-6 h-6 text-gray-400" />
-                  )}
-                </div>
-
-                {/* Learn Plan Value */}
-                <div className="flex items-center justify-center">
-                  {learnValue === 'included' && (
-                    <Check className="w-6 h-6 text-green-600" />
-                  )}
-                  {learnValue === 'not-included' && (
-                    <X className="w-6 h-6 text-gray-400" />
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                return (
+                  <tr
+                    key={feature.key}
+                    className={`border-b border-gray-200 hover:bg-purple-50/20 transition-colors ${
+                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
+                    }`}
+                  >
+                    <td className="p-6">
+                      <span className="text-base font-bold text-gray-900">{feature.label}</span>
+                    </td>
+                    <td className="p-6 text-center border-r-2 border-gray-300">
+                      {learnValue === 'included' && (
+                        <div className="flex justify-center">
+                          <Check className="w-6 h-6 text-green-600" />
+                        </div>
+                      )}
+                      {learnValue === 'not-included' && (
+                        <div className="flex justify-center">
+                          <X className="w-6 h-6 text-gray-300" />
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-6 text-center border-l-2 border-r-2 border-purple-500 bg-gradient-to-br from-purple-50/50 to-pink-50/50">
+                      {accelerateValue === 'included' && (
+                        <div className="flex justify-center">
+                          <Check className="w-6 h-6 text-green-600" />
+                        </div>
+                      )}
+                      {accelerateValue === 'unlimited' && (
+                        <span className="text-base font-black text-purple-600">Unlimited</span>
+                      )}
+                      {accelerateValue === 'not-included' && (
+                        <div className="flex justify-center">
+                          <X className="w-6 h-6 text-gray-300" />
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
