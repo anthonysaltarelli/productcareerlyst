@@ -70,8 +70,9 @@ export default function GenerateIdeasPage() {
     }
   };
 
-  const handleGenerateIdeas = async (previousIdeas?: PortfolioIdea[]) => {
-    if (!inputText.trim()) {
+  const handleGenerateIdeas = async (previousIdeas?: PortfolioIdea[], inputTextOverride?: string) => {
+    const textToUse = inputTextOverride || inputText;
+    if (!textToUse.trim()) {
       toast.error("Please enter an industry or company name");
       return;
     }
@@ -84,7 +85,7 @@ export default function GenerateIdeasPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ 
-          inputText: inputText.trim(),
+          inputText: textToUse.trim(),
           previousIdeas: previousIdeas?.map(idea => ({
             company_name: idea.company_name,
             problem_description: idea.problem_description,
@@ -395,8 +396,7 @@ export default function GenerateIdeasPage() {
                 <div className="mt-6 flex justify-center">
                   <button
                     onClick={() => {
-                      setInputText(selectedRequest.input_text);
-                      handleGenerateIdeas(selectedRequest.ideas);
+                      handleGenerateIdeas(selectedRequest.ideas, selectedRequest.input_text);
                     }}
                     disabled={isGenerating}
                     className="px-6 py-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
