@@ -8,6 +8,7 @@ interface SalaryDataPoint {
   year: number;
   salary: number;
   level: string;
+  isPromotion: boolean;
 }
 
 type PMStage = "Aspiring" | "Associate PM" | "Product Manager" | "Senior PM" | "Staff PM" | "Director+";
@@ -75,7 +76,8 @@ const calculateSalaryProgression = (
       data.push({ 
         year, 
         salary: currentSalary, 
-        level: CAREER_LEVELS[currentLevelIndex][0] 
+        level: CAREER_LEVELS[currentLevelIndex][0],
+        isPromotion: false
       });
       continue;
     }
@@ -84,8 +86,10 @@ const calculateSalaryProgression = (
     // We promote when we've been at the current level long enough
     // Round down to promote at the first integer year that reaches the threshold
     const promotionThreshold = Math.max(1, Math.floor(nextPromotionYear));
+    let isPromotion = false;
     if (yearsAtCurrentLevel >= promotionThreshold && currentLevelIndex < CAREER_LEVELS.length - 1) {
       // Promotion! Always 20%
+      isPromotion = true;
       currentSalary = currentSalary * (1 + PROMOTION_RAISE_PERCENT / 100);
       currentLevelIndex++;
       yearsAtCurrentLevel = 0;
@@ -99,7 +103,8 @@ const calculateSalaryProgression = (
     data.push({ 
       year, 
       salary: currentSalary, 
-      level: CAREER_LEVELS[currentLevelIndex][0] 
+      level: CAREER_LEVELS[currentLevelIndex][0],
+      isPromotion
     });
   }
   
@@ -174,6 +179,8 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
           year: withoutPoint.year,
           withoutCareerlyst: Math.round(withoutPoint.salary),
           withCareerlyst: Math.round(withPoint.salary),
+          withoutPromotion: withoutPoint.isPromotion,
+          withPromotion: withPoint.isPromotion,
         });
       }
     }
@@ -419,24 +426,71 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
                   tick={{ fill: '#6b21a8', fontWeight: 'bold' }}
                 />
                 <Tooltip 
-                  formatter={(value: number) => formatCurrencyFull(value)}
-                  labelFormatter={(label) => `Year ${label}`}
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
-                    border: '2px solid #9333ea',
-                    borderRadius: '12px',
-                    padding: '12px',
-                    boxShadow: '0 4px 6px rgba(147, 51, 234, 0.2)'
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload || !payload.length) return null;
+                    
+                    const data = payload[0]?.payload;
+                    const withoutPromotion = data?.withoutPromotion;
+                    const withPromotion = data?.withPromotion;
+                    
+                    return (
+                      <div style={{
+                        backgroundColor: 'white',
+                        border: '2px solid #9333ea',
+                        borderRadius: '12px',
+                        padding: '12px',
+                        boxShadow: '0 4px 6px rgba(147, 51, 234, 0.2)'
+                      }}>
+                        <p style={{ color: '#6b21a8', fontWeight: 'bold', marginBottom: '8px' }}>
+                          Year {label}
+                        </p>
+                        {payload.map((entry: any, index: number) => {
+                          const isPromotion = entry.dataKey === 'withoutCareerlyst' 
+                            ? withoutPromotion 
+                            : withPromotion;
+                          return (
+                            <div key={index} style={{ marginBottom: '4px' }}>
+                              <span style={{ fontWeight: 'bold', color: entry.color }}>
+                                {entry.name}: {formatCurrencyFull(entry.value)}
+                              </span>
+                              {isPromotion && (
+                                <span style={{ 
+                                  marginLeft: '8px', 
+                                  fontSize: '11px', 
+                                  color: '#9333ea',
+                                  fontWeight: 'bold'
+                                }}>
+                                  🎉 Promotion!
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
                   }}
-                  labelStyle={{ color: '#6b21a8', fontWeight: 'bold', marginBottom: '4px' }}
-                  itemStyle={{ fontWeight: 'bold' }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="withoutCareerlyst" 
                   stroke="#9ca3af" 
                   strokeWidth={3}
-                  dot={false}
+                  dot={(props: any) => {
+                    const { cx, cy, payload } = props;
+                    if (payload?.withoutPromotion) {
+                      return (
+                        <circle
+                          cx={cx}
+                          cy={cy}
+                          r={6}
+                          fill="#6b7280"
+                          stroke="#ffffff"
+                          strokeWidth={2}
+                        />
+                      );
+                    }
+                    return null;
+                  }}
                   name="Without Product Careerlyst"
                   strokeDasharray="5 5"
                   opacity={0.7}
@@ -452,7 +506,22 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
                   dataKey="withCareerlyst" 
                   stroke="#a855f7" 
                   strokeWidth={3.5}
-                  dot={false}
+                  dot={(props: any) => {
+                    const { cx, cy, payload } = props;
+                    if (payload?.withPromotion) {
+                      return (
+                        <circle
+                          cx={cx}
+                          cy={cy}
+                          r={7}
+                          fill="#9333ea"
+                          stroke="#ffffff"
+                          strokeWidth={2}
+                        />
+                      );
+                    }
+                    return null;
+                  }}
                   name="With Product Careerlyst"
                 />
               </LineChart>
