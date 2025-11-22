@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getUserPlan } from '@/lib/utils/subscription';
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { render } from '@react-email/render';
 import { PortfolioTemplateRequestNotification } from '@/app/components/emails/PortfolioTemplateRequestNotification';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -80,14 +81,19 @@ export const POST = async (request: NextRequest) => {
       try {
         const fromEmail = process.env.RESEND_FROM_EMAIL || 'Product Careerlyst <onboarding@resend.dev>';
         
+        // Render the React email component to HTML
+        const emailHtml = await render(
+          PortfolioTemplateRequestNotification({
+            userEmail: user.email,
+            requestDate: newRequest.created_at,
+          })
+        );
+        
         const { data: emailData, error: emailError } = await resend.emails.send({
           from: fromEmail,
           to: ['team@productcareerlyst.com'],
           subject: 'New Product Portfolio Template Request',
-          react: PortfolioTemplateRequestNotification({
-            userEmail: user.email,
-            requestDate: newRequest.created_at,
-          }),
+          html: emailHtml,
         });
 
         if (emailError) {

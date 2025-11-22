@@ -11,6 +11,7 @@
     "test:perplexity": "tsx scripts/test-perplexity-api.ts"
   },
   "dependencies": {
+    "@react-email/render": "^1.4.0",
     "@stripe/react-stripe-js": "^5.4.0",
     "@stripe/stripe-js": "^8.5.2",
     "@supabase/ssr": "^0.7.0",
