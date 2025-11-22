@@ -255,7 +255,7 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
   }, [startSalary, withoutAnnualRaise, withoutPromotionInterval, withoutPromotionRaise, withAnnualRaise, withPromotionInterval, withPromotionRaise, years]);
   
   // Calculate rounded Y-axis domain for nice labels
-  // Use "With Careerlyst" as the reference for max (the green line)
+  // Use "With Product Careerlyst" as the reference for max (the purple line)
   const rawMaxSalary = Math.max(
     ...chartData.map(d => d.withCareerlyst)
   );
@@ -263,7 +263,7 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
     ...chartData.map(d => Math.min(d.withoutCareerlyst, d.withCareerlyst))
   );
   
-  // Round max to next nice number above the "With Careerlyst" max (no padding needed)
+  // Round max to next nice number above the "With Product Careerlyst" max (no padding needed)
   const maxSalary = roundUpToNiceNumber(rawMaxSalary);
   const minSalary = Math.max(0, Math.floor(rawMinSalary * 0.9 / 100000) * 100000); // Round down to nearest 100K, but not below 0
   
@@ -311,7 +311,7 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
             Career Earnings Calculator
           </h3>
           <p className="text-base md:text-lg text-gray-600 font-medium">
-            See how much more you could earn by upgrading to a top-tier PM with Product Careerlyst
+            See how much more you could earn by becoming a top 1% PM with Product Careerlyst
           </p>
         </div>
         
@@ -573,55 +573,68 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
         </div>
         
         {/* Chart - below everything, smaller */}
-        <div className="mt-8 pt-8 border-t-2 border-gray-200">
-          <div className="w-full h-[300px] mb-4">
+        <div className="mt-8 pt-8 border-t-2 border-purple-200">
+          <div className="w-full h-[300px] mb-4 p-4 rounded-[1.5rem] bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="2 2" stroke="#e5e7eb" />
+              <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#d8b4fe" opacity={0.3} />
                 <XAxis 
                   dataKey="year" 
-                  stroke="#6b7280"
-                  style={{ fontSize: '12px', fontWeight: 'bold' }}
-                  label={{ value: 'Years in Career', position: 'insideBottom', offset: -5, style: { fontSize: '12px', fontWeight: 'bold', fill: '#374151' } }}
+                  stroke="#9333ea"
+                  style={{ fontSize: '12px', fontWeight: 'bold', fill: '#6b21a8' }}
+                  label={{ value: 'Years in Career', position: 'insideBottom', offset: -5, style: { fontSize: '12px', fontWeight: 'bold', fill: '#6b21a8' } }}
                   tickFormatter={(value) => Math.round(value).toString()}
                   type="number"
                   scale="linear"
                   domain={[0, years]}
+                  tick={{ fill: '#6b21a8', fontWeight: 'bold' }}
                 />
                 <YAxis 
-                  stroke="#6b7280"
-                  style={{ fontSize: '12px', fontWeight: 'bold' }}
-                  label={{ value: 'Annual Salary', angle: -90, position: 'insideLeft', style: { fontSize: '12px', fontWeight: 'bold', fill: '#374151' } }}
+                  stroke="#9333ea"
+                  style={{ fontSize: '12px', fontWeight: 'bold', fill: '#6b21a8' }}
+                  label={{ value: 'Annual Salary', angle: -90, position: 'insideLeft', style: { fontSize: '12px', fontWeight: 'bold', fill: '#6b21a8' } }}
                   tickFormatter={(value) => formatCurrency(value)}
                   domain={[minSalary, maxSalary]}
                   type="number"
                   scale="linear"
+                  tick={{ fill: '#6b21a8', fontWeight: 'bold' }}
                 />
                 <Tooltip 
                   formatter={(value: number) => formatCurrencyFull(value)}
                   labelFormatter={(label) => `Year ${label}`}
                   contentStyle={{ 
                     backgroundColor: 'white', 
-                    border: '2px solid #e5e7eb',
-                    borderRadius: '8px',
-                    padding: '8px'
+                    border: '2px solid #9333ea',
+                    borderRadius: '12px',
+                    padding: '12px',
+                    boxShadow: '0 4px 6px rgba(147, 51, 234, 0.2)'
                   }}
+                  labelStyle={{ color: '#6b21a8', fontWeight: 'bold', marginBottom: '4px' }}
+                  itemStyle={{ fontWeight: 'bold' }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="withoutCareerlyst" 
                   stroke="#9ca3af" 
-                  strokeWidth={2.5}
+                  strokeWidth={3}
                   dot={false}
-                  name="Without Careerlyst"
+                  name="Without Product Careerlyst"
+                  strokeDasharray="5 5"
+                  opacity={0.7}
                 />
+                <defs>
+                  <linearGradient id="gradientWithCareerlyst" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#9333ea" />
+                    <stop offset="100%" stopColor="#ec4899" />
+                  </linearGradient>
+                </defs>
                 <Line 
                   type="monotone" 
                   dataKey="withCareerlyst" 
-                  stroke="#22c55e" 
-                  strokeWidth={2.5}
+                  stroke="#a855f7" 
+                  strokeWidth={3.5}
                   dot={false}
-                  name="With Careerlyst"
+                  name="With Product Careerlyst"
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -629,13 +642,13 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
           
           {/* Legend */}
           <div className="flex justify-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-0.5 bg-gray-400"></div>
-              <span className="text-xs font-bold text-gray-700">Without Careerlyst</span>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/60 backdrop-blur-sm border-2 border-gray-300">
+              <div className="w-6 h-1 bg-gray-400" style={{ borderTop: '2px dashed #9ca3af' }}></div>
+              <span className="text-xs font-bold text-gray-700">Without Product Careerlyst</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-0.5 bg-green-500"></div>
-              <span className="text-xs font-bold text-gray-700">With Careerlyst</span>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/60 backdrop-blur-sm border-2 border-purple-300">
+              <div className="w-6 h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+              <span className="text-xs font-bold text-gray-700">With Product Careerlyst</span>
             </div>
           </div>
         </div>
