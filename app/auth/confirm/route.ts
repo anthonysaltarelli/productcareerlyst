@@ -5,6 +5,7 @@ import { type NextRequest } from 'next/server'
 import { getStripeClient } from '@/lib/stripe/client'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import Stripe from 'stripe'
+import { addSubscriberToFormAndSequence } from '@/lib/utils/convertkit'
 
 // Type alias to avoid conflict with our Subscription interface
 type StripeSubscription = Stripe.Subscription;
@@ -59,6 +60,23 @@ export async function GET(request: NextRequest) {
       } catch (transferError) {
         // Don't block user if transfer fails - they can do it manually
         console.error('Error transferring Bubble subscription:', transferError);
+      }
+
+      // Add user to ConvertKit form and sequence (only on signup confirmation, not password recovery)
+      if (type === 'email') {
+        try {
+          const firstName = user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || undefined;
+          await addSubscriberToFormAndSequence(
+            7348426, // Form ID
+            2100454, // Sequence ID
+            user.email,
+            firstName
+          );
+          console.log(`[ConvertKit] Successfully added ${user.email} to form 7348426 and sequence 2100454`);
+        } catch (convertkitError) {
+          // Don't block user if ConvertKit fails - log error but continue
+          console.error('[ConvertKit] Error adding subscriber to ConvertKit:', convertkitError);
+        }
       }
       
       // redirect user to specified redirect URL or protected page
