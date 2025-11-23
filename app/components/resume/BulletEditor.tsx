@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Bullet } from "./mockData";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import { trackEvent } from "@/lib/amplitude/client";
+import { getUserPlanClient } from "@/lib/utils/resume-tracking";
 
 type Props = {
   bullet: Bullet;
@@ -17,6 +19,10 @@ type Props = {
   onContentChange?: (newContent: string) => void;
   onOptimize?: (bulletId: string) => Promise<string[]>;
   onDelete?: (bulletId: string) => Promise<void>;
+  resumeVersionId?: string;
+  experienceId?: string;
+  companyName?: string;
+  roleTitle?: string;
 };
 
 export default function BulletEditor({ 
@@ -32,6 +38,10 @@ export default function BulletEditor({
   onContentChange,
   onOptimize,
   onDelete,
+  resumeVersionId,
+  experienceId,
+  companyName,
+  roleTitle,
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState(bullet.content);
@@ -78,10 +88,27 @@ export default function BulletEditor({
     }
   };
 
-  const handleUseVersion = (version: string) => {
+  const handleUseVersion = async (version: string) => {
     setContent(version);
     setIsEditing(true);
     setOptimizedVersions(null);
+    
+    // Track user selected optimized version
+    if (resumeVersionId && bullet.id) {
+      const userPlan = await getUserPlanClient();
+      trackEvent('User Optimized Bullet', {
+        'Resume Version ID': resumeVersionId,
+        'Experience ID': experienceId || null,
+        'Bullet ID': bullet.id,
+        'Company Name': companyName || null,
+        'Role Title': roleTitle || null,
+        'Original Content Length': bullet.content.length,
+        'Optimization Success': true,
+        'Optimized Versions Count': optimizedVersions?.length || 0,
+        'User Selected Version': true,
+        'User Plan': userPlan,
+      });
+    }
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {

@@ -10,6 +10,8 @@ import ResumeEditorHeader from "./ResumeEditorHeader";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import BulletEditor from "./BulletEditor";
 import ResumeAnalysisContent from "./ResumeAnalysisContent";
+import { trackEvent } from "@/lib/amplitude/client";
+import { getUserPlanClient } from "@/lib/utils/resume-tracking";
 
 type Props = {
   selectedVersion: string;
@@ -111,7 +113,9 @@ export default function ResumeEditor({
   const [draggedGroupId, setDraggedGroupId] = useState<string | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
-  const handleContactChange = (field: keyof ResumeData['contactInfo'], value: string) => {
+  const handleContactChange = async (field: keyof ResumeData['contactInfo'], value: string) => {
+    const previousValue = resumeData.contactInfo[field];
+    
     onResumeDataChange({
       ...resumeData,
       contactInfo: {
@@ -119,13 +123,45 @@ export default function ResumeEditor({
         [field]: value,
       },
     });
+
+    // Track contact info update (debounced or on blur would be better, but this works)
+    if (previousValue !== value) {
+      setTimeout(async () => {
+        const userPlan = await getUserPlanClient();
+        const hasAllRequiredFields = !!(resumeData.contactInfo.name && resumeData.contactInfo.email);
+        
+        trackEvent('User Updated Contact Info', {
+          'Resume Version ID': selectedVersion,
+          'Fields Updated': [field],
+          'Has All Required Fields': hasAllRequiredFields,
+          'User Plan': userPlan,
+        });
+      }, 1000); // Debounce by 1 second
+    }
   };
 
-  const handleSummaryChange = (value: string) => {
+  const handleSummaryChange = async (value: string) => {
+    const previousLength = resumeData.summary.length;
+    
     onResumeDataChange({
       ...resumeData,
       summary: value,
     });
+
+    // Track summary update (debounced)
+    if (previousLength !== value.length) {
+      setTimeout(async () => {
+        const userPlan = await getUserPlanClient();
+        
+        trackEvent('User Updated Summary', {
+          'Resume Version ID': selectedVersion,
+          'Previous Summary Length': previousLength,
+          'New Summary Length': value.length,
+          'Has Summary': value.trim().length > 0,
+          'User Plan': userPlan,
+        });
+      }, 1000); // Debounce by 1 second
+    }
   };
 
   const handleExperienceChange = (index: number) => (updatedExperience: Experience) => {
@@ -159,7 +195,10 @@ export default function ResumeEditor({
     });
   };
 
-  const handleSkillsChange = (category: keyof ResumeData['skills'], skills: string[]) => {
+  const handleSkillsChange = async (category: keyof ResumeData['skills'], skills: string[]) => {
+    const previousSkills = resumeData.skills[category];
+    const deletedSkill = previousSkills.find(s => !skills.includes(s));
+    
     onResumeDataChange({
       ...resumeData,
       skills: {
@@ -167,6 +206,18 @@ export default function ResumeEditor({
         [category]: skills,
       },
     });
+
+    // Track skill deletion if a skill was removed
+    if (deletedSkill) {
+      const userPlan = await getUserPlanClient();
+      trackEvent('User Deleted Skill', {
+        'Resume Version ID': selectedVersion,
+        'Skill Category': category,
+        'Skill Name': deletedSkill,
+        'Total Skills In Category': skills.length,
+        'User Plan': userPlan,
+      });
+    }
   };
 
   const handleDeleteClick = (type: 'experience' | 'education', id: string, title: string, ids?: string[]) => {
@@ -308,6 +359,28 @@ export default function ResumeEditor({
       return;
     }
     
+    // Track drag start
+    if (selectedVersion) {
+      const experience = experienceId 
+        ? resumeData.experiences.find(e => e.id === experienceId)
+        : groupId
+        ? resumeData.experiences.find(e => e.roleGroupId === groupId)
+        : null;
+      
+      if (experience) {
+        getUserPlanClient().then(userPlan => {
+          trackEvent('User Started Dragging Experience', {
+            'Resume Version ID': selectedVersion,
+            'Experience ID': experienceId || groupId || 'unknown',
+            'Is Grouped Experience': !!groupId,
+            'Company Name': experience.company,
+            'Current Position': index,
+            'User Plan': userPlan,
+          });
+        });
+      }
+    }
+    
     setDraggedExperienceId(experienceId);
     setDraggedGroupId(groupId);
     setDraggedIndex(index);
@@ -323,6 +396,10 @@ export default function ResumeEditor({
     e.dataTransfer.dropEffect = "move";
     
     if (draggedIndex === null || draggedIndex === targetIndex) return;
+    
+    const previousPosition = draggedIndex;
+    const dragStartTime = (e.currentTarget as any).__dragStartTime || Date.now();
+    (e.currentTarget as any).__dragStartTime = dragStartTime;
     
     const items = getExperienceItems();
     const newItems = [...items];
@@ -340,6 +417,23 @@ export default function ResumeEditor({
       }
     });
     
+    // Track reorder when position actually changes
+    if (selectedVersion && previousPosition !== targetIndex) {
+      const experience = draggedItem.experience || (draggedItem.experiences && draggedItem.experiences[0]);
+      if (experience) {
+        getUserPlanClient().then(userPlan => {
+          trackEvent('User Reordered Experience', {
+            'Resume Version ID': selectedVersion,
+            'Experience ID': draggedItem.id,
+            'Previous Position': previousPosition,
+            'New Position': targetIndex,
+            'Is Grouped Experience': !!draggedItem.groupId,
+            'User Plan': userPlan,
+          });
+        });
+      }
+    }
+    
     // Update resume data with new order
     onResumeDataChange({
       ...resumeData,
@@ -352,6 +446,31 @@ export default function ResumeEditor({
   // Handle drop for experience reordering
   const handleExperienceDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    
+    // Track drop completion
+    if (selectedVersion && draggedIndex !== null) {
+      const dragStartTime = (e.currentTarget as any).__dragStartTime || Date.now();
+      const dragDuration = Date.now() - dragStartTime;
+      
+      const items = getExperienceItems();
+      const draggedItem = items[draggedIndex];
+      const experience = draggedItem.experience || (draggedItem.experiences && draggedItem.experiences[0]);
+      
+      if (experience) {
+        getUserPlanClient().then(userPlan => {
+          trackEvent('User Dropped Experience', {
+            'Resume Version ID': selectedVersion,
+            'Experience ID': draggedItem.id,
+            'Is Grouped Experience': !!draggedItem.groupId,
+            'Company Name': experience.company,
+            'Previous Position': draggedIndex,
+            'New Position': draggedIndex, // Position already updated in dragOver
+            'Drag Duration': dragDuration,
+            'User Plan': userPlan,
+          });
+        });
+      }
+    }
   };
 
   // Handle drag end for experience reordering
@@ -525,6 +644,7 @@ export default function ResumeEditor({
                       onOptimizeBulletText={onOptimizeBulletText}
                       onDeleteBullet={onDeleteBullet}
                       isFirst={isFirstGroup}
+                      resumeVersionId={selectedVersion}
                     />
                   </div>
                 );
@@ -551,6 +671,7 @@ export default function ResumeEditor({
                       onEdit={() => onEditExperience?.(experience.id)}
                       onDelete={() => handleDeleteClick('experience', experience.id, `${experience.title} at ${experience.company}`)}
                       onAddBullet={onAddBullet ? (content) => onAddBullet(experience.id, content) : undefined}
+                      resumeVersionId={selectedVersion}
                     />
                   </div>
                 );

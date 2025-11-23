@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { X, CreditCard } from 'lucide-react';
+import { TrackedButton } from '@/app/components/TrackedButton';
+import { trackEvent } from '@/lib/amplitude/client';
+import { Subscription } from '@/lib/utils/subscription';
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
@@ -12,9 +15,10 @@ const stripePromise = loadStripe(
 interface PaymentMethodUpdateProps {
   onClose: () => void;
   onSuccess: () => void;
+  subscription?: Subscription | null;
 }
 
-const PaymentForm = ({ onClose, onSuccess }: PaymentMethodUpdateProps) => {
+const PaymentForm = ({ onClose, onSuccess, subscription }: PaymentMethodUpdateProps) => {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
@@ -57,6 +61,16 @@ const PaymentForm = ({ onClose, onSuccess }: PaymentMethodUpdateProps) => {
       return;
     }
 
+    // Track form submission
+    trackEvent('User Clicked Update Payment Method Button', {
+      'Button Section': 'Payment Method Update Modal',
+      'Button Position': 'Bottom right of modal',
+      'Button Text': 'Update Payment Method',
+      'Form Validation Status': 'valid',
+      'Payment Method Type': 'card',
+      'Current Plan': subscription?.plan || null,
+    });
+
     setLoading(true);
     setError(null);
 
@@ -69,6 +83,11 @@ const PaymentForm = ({ onClose, onSuccess }: PaymentMethodUpdateProps) => {
       });
 
       if (confirmError) {
+        trackEvent('Payment Method Update Error', {
+          'Error Type': 'setup_intent_failed',
+          'Error Message': confirmError.message,
+          'Current Plan': subscription?.plan || null,
+        });
         throw new Error(confirmError.message);
       }
 
@@ -86,13 +105,35 @@ const PaymentForm = ({ onClose, onSuccess }: PaymentMethodUpdateProps) => {
 
         if (!updateResponse.ok) {
           const data = await updateResponse.json();
+          trackEvent('Payment Method Update Error', {
+            'Error Type': 'payment_method_update_failed',
+            'Error Message': data.error || 'Failed to update payment method',
+            'Current Plan': subscription?.plan || null,
+          });
           throw new Error(data.error || 'Failed to update payment method');
         }
+
+        // Track success
+        const paymentMethodId = typeof setupIntent.payment_method === 'string' 
+          ? setupIntent.payment_method 
+          : setupIntent.payment_method.id;
+
+        trackEvent('Payment Method Updated Successfully', {
+          'Payment Method ID': paymentMethodId,
+          'Setup Intent Status': setupIntent.status,
+          'Current Plan': subscription?.plan || null,
+          'Subscription Status': subscription?.status || null,
+        });
 
         onSuccess();
         onClose();
       }
     } catch (err) {
+      trackEvent('Payment Method Update Error', {
+        'Error Type': 'stripe_error',
+        'Error Message': err instanceof Error ? err.message : 'An error occurred',
+        'Current Plan': subscription?.plan || null,
+      });
       setError(err instanceof Error ? err.message : 'An error occurred');
       setLoading(false);
     }
@@ -155,8 +196,22 @@ const PaymentForm = ({ onClose, onSuccess }: PaymentMethodUpdateProps) => {
   );
 };
 
-export const PaymentMethodUpdate = ({ onClose, onSuccess }: PaymentMethodUpdateProps) => {
+export const PaymentMethodUpdate = ({ onClose, onSuccess, subscription }: PaymentMethodUpdateProps) => {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const modalTracked = useRef(false);
+
+  // Track modal view
+  useEffect(() => {
+    if (modalTracked.current) return;
+    modalTracked.current = true;
+
+    trackEvent('User Viewed Payment Method Update Modal', {
+      'Modal Type': 'payment_method_update',
+      'Current Plan': subscription?.plan || null,
+      'Subscription Status': subscription?.status || null,
+      'Has Past Due': subscription?.status === 'past_due',
+    });
+  }, [subscription]);
 
   useEffect(() => {
     const createSetupIntent = async () => {
@@ -206,7 +261,7 @@ export const PaymentMethodUpdate = ({ onClose, onSuccess }: PaymentMethodUpdateP
 
         {clientSecret ? (
           <Elements stripe={stripePromise} options={{ clientSecret }}>
-            <PaymentForm onClose={onClose} onSuccess={onSuccess} />
+            <PaymentForm onClose={onClose} onSuccess={onSuccess} subscription={subscription} />
           </Elements>
         ) : (
           <div className="text-center py-12">

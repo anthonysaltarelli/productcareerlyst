@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { trackEvent } from '@/lib/amplitude/client';
 import PortfolioTemplateRequestModal from '@/app/components/portfolio/PortfolioTemplateRequestModal';
 
 type RequestStatus = 'pending' | 'fulfilled' | 'cancelled' | null;
@@ -20,6 +21,11 @@ export const PortfolioTemplateRequest = () => {
   const [success, setSuccess] = useState(false);
   const [userPlan, setUserPlan] = useState<'learn' | 'accelerate' | null>(null);
   const [showAccelerateModal, setShowAccelerateModal] = useState(false);
+  const [userState, setUserState] = useState<{
+    totalPortfolioRequests: number;
+    totalFavoritedIdeas: number;
+    hasCompletedPortfolioCourse: boolean;
+  } | null>(null);
 
   useEffect(() => {
     const fetchRequest = async () => {
@@ -49,11 +55,74 @@ export const PortfolioTemplateRequest = () => {
       }
     };
 
+    const fetchUserState = async () => {
+      try {
+        const response = await fetch('/api/portfolio/user-state');
+        if (response.ok) {
+          const data = await response.json();
+          setUserState({
+            totalPortfolioRequests: data.state.totalPortfolioRequests,
+            totalFavoritedIdeas: data.state.totalFavoritedIdeas,
+            hasCompletedPortfolioCourse: data.state.hasCompletedPortfolioCourse,
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching user state:', err);
+      }
+    };
+
     fetchRequest();
     fetchUserPlan();
+    fetchUserState();
   }, []);
 
   const handleSubmit = async () => {
+    // Track click event
+    setTimeout(() => {
+      try {
+        const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+        const referrer = typeof window !== 'undefined' ? document.referrer : '';
+        let referrerDomain: string | null = null;
+        if (referrer) {
+          try {
+            referrerDomain = new URL(referrer).hostname;
+          } catch {
+            referrerDomain = null;
+          }
+        }
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        
+        trackEvent('User Clicked Request Template Button', {
+          'Button ID': 'portfolio-template-request-submit-button',
+          'Button Section': 'Template Request Section',
+          'Button Position': 'Center of Template Request Card',
+          'Button Text': 'Request Template →',
+          'Button Type': 'Premium Feature CTA',
+          'Button Context': 'Below "Request Product Portfolio Template" description',
+          'Page Section': 'Below the fold',
+          'User Plan': userPlan,
+          'Has Active Subscription': userPlan !== null,
+          'Has Pending Request': hasPendingRequest,
+          'Template Request Status': request?.status || null,
+          'Will Show Upgrade Modal': userPlan !== 'accelerate',
+          'Total Portfolio Requests': userState?.totalPortfolioRequests || 0,
+          'Total Favorited Ideas': userState?.totalFavoritedIdeas || 0,
+          'Has Completed Portfolio Course': userState?.hasCompletedPortfolioCourse || false,
+          'Page Route': pageRoute,
+          'Referrer URL': referrer || 'None',
+          'Referrer Domain': referrerDomain || 'None',
+          'UTM Source': urlParams?.get('utm_source') || null,
+          'UTM Medium': urlParams?.get('utm_medium') || null,
+          'UTM Campaign': urlParams?.get('utm_campaign') || null,
+        });
+      } catch (error) {
+        // Silently fail
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ Tracking error (non-blocking):', error);
+        }
+      }
+    }, 0);
+
     // Check if user is on Accelerate plan
     if (userPlan !== 'accelerate') {
       setShowAccelerateModal(true);
@@ -86,9 +155,94 @@ export const PortfolioTemplateRequest = () => {
 
       setSuccess(true);
       setRequest(data.request);
+
+      // Track successful submission
+      setTimeout(() => {
+        try {
+          const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+          const referrer = typeof window !== 'undefined' ? document.referrer : '';
+          let referrerDomain: string | null = null;
+          if (referrer) {
+            try {
+              referrerDomain = new URL(referrer).hostname;
+            } catch {
+              referrerDomain = null;
+            }
+          }
+          const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+          
+          trackEvent('User Submitted Template Request Successfully', {
+            'Request ID': data.request?.id || null,
+            'User Plan': 'accelerate',
+            'Has Active Subscription': true,
+            'Total Portfolio Requests': userState?.totalPortfolioRequests || 0,
+            'Total Favorited Ideas': userState?.totalFavoritedIdeas || 0,
+            'Has Completed Portfolio Course': userState?.hasCompletedPortfolioCourse || false,
+            'Days Since Sign Up': null, // Would need to fetch separately
+            'Page Route': pageRoute,
+            'Referrer URL': referrer || 'None',
+            'Referrer Domain': referrerDomain || 'None',
+            'UTM Source': urlParams?.get('utm_source') || null,
+            'UTM Medium': urlParams?.get('utm_medium') || null,
+            'UTM Campaign': urlParams?.get('utm_campaign') || null,
+          });
+        } catch (error) {
+          // Silently fail
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('⚠️ Tracking error (non-blocking):', error);
+          }
+        }
+      }, 0);
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
       console.error('Error submitting request:', err);
+
+      // Track error
+      setTimeout(() => {
+        try {
+          const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+          const referrer = typeof window !== 'undefined' ? document.referrer : '';
+          let referrerDomain: string | null = null;
+          if (referrer) {
+            try {
+              referrerDomain = new URL(referrer).hostname;
+            } catch {
+              referrerDomain = null;
+            }
+          }
+          const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+          
+          const errorData = err instanceof Error ? err.message : 'Unknown error';
+          let errorType = 'server_error';
+          if (errorData.includes('Accelerate') || errorData.includes('plan')) {
+            errorType = 'plan_required';
+          } else if (errorData.includes('pending')) {
+            errorType = 'already_pending';
+          } else if (errorData.includes('Unauthorized')) {
+            errorType = 'unauthorized';
+          }
+          
+          trackEvent('Template Request Error', {
+            'Error Message': errorData.substring(0, 100), // Sanitized
+            'Error Type': errorType,
+            'User Plan': userPlan,
+            'Has Active Subscription': userPlan !== null,
+            'Has Pending Request': hasPendingRequest,
+            'Total Portfolio Requests': userState?.totalPortfolioRequests || 0,
+            'Page Route': pageRoute,
+            'Referrer URL': referrer || 'None',
+            'Referrer Domain': referrerDomain || 'None',
+            'UTM Source': urlParams?.get('utm_source') || null,
+            'UTM Medium': urlParams?.get('utm_medium') || null,
+            'UTM Campaign': urlParams?.get('utm_campaign') || null,
+          });
+        } catch (error) {
+          // Silently fail
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('⚠️ Tracking error (non-blocking):', error);
+          }
+        }
+      }, 0);
     } finally {
       setSubmitting(false);
     }
@@ -165,6 +319,9 @@ export const PortfolioTemplateRequest = () => {
         isOpen={showAccelerateModal}
         onClose={() => setShowAccelerateModal(false)}
         hasSubscription={userPlan !== null}
+        userPlan={userPlan}
+        totalPortfolioRequests={userState?.totalPortfolioRequests || 0}
+        totalFavoritedIdeas={userState?.totalFavoritedIdeas || 0}
       />
     </>
   );

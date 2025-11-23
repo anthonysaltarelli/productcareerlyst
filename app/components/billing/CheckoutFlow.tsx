@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import { Check, ArrowLeft } from 'lucide-react';
+import { TrackedButton } from '@/app/components/TrackedButton';
+import { trackEvent } from '@/lib/amplitude/client';
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
@@ -46,6 +48,16 @@ export const CheckoutFlow = ({ plan, billingCadence }: CheckoutFlowProps) => {
         : price / 12;
 
   const handleCheckout = async () => {
+    trackEvent('User Clicked Continue to Payment Button', {
+      'Button Section': 'Checkout Summary Section',
+      'Button Position': 'Bottom of checkout card',
+      'Button Text': 'Continue to Payment',
+      'Plan Selected': plan,
+      'Billing Cadence': billingCadence,
+      'Price': price,
+      'Is Yearly Accelerate': emphasizeYearly,
+    });
+
     setLoading(true);
     setError(null);
 
@@ -63,6 +75,12 @@ export const CheckoutFlow = ({ plan, billingCadence }: CheckoutFlowProps) => {
 
       if (!response.ok) {
         const data = await response.json();
+        trackEvent('Checkout Error', {
+          'Error Type': 'checkout_session_failed',
+          'Error Message': data.error || 'Failed to create checkout session',
+          'Plan Selected': plan,
+          'Billing Cadence': billingCadence,
+        });
         throw new Error(data.error || 'Failed to create checkout session');
       }
 
@@ -73,6 +91,12 @@ export const CheckoutFlow = ({ plan, billingCadence }: CheckoutFlowProps) => {
       } else {
         const stripe = await stripePromise;
         if (!stripe) {
+          trackEvent('Checkout Error', {
+            'Error Type': 'stripe_error',
+            'Error Message': 'Stripe failed to load',
+            'Plan Selected': plan,
+            'Billing Cadence': billingCadence,
+          });
           throw new Error('Stripe failed to load');
         }
 
@@ -81,6 +105,12 @@ export const CheckoutFlow = ({ plan, billingCadence }: CheckoutFlowProps) => {
         });
 
         if (stripeError) {
+          trackEvent('Checkout Error', {
+            'Error Type': 'stripe_error',
+            'Error Message': stripeError.message || 'Stripe checkout error',
+            'Plan Selected': plan,
+            'Billing Cadence': billingCadence,
+          });
           throw stripeError;
         }
       }
@@ -94,13 +124,22 @@ export const CheckoutFlow = ({ plan, billingCadence }: CheckoutFlowProps) => {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <button
+      <TrackedButton
         onClick={() => router.push('/dashboard/billing/plans')}
+        buttonId="checkout-page-back-plans-button"
+        eventName="User Clicked Back to Plans Button"
+        eventProperties={{
+          'Button Section': 'Page Header',
+          'Button Position': 'Top left of page',
+          'Button Text': 'Back to Plans',
+          'Plan Selected': plan,
+          'Billing Cadence': billingCadence,
+        }}
         className="flex items-center gap-2 text-gray-700 font-semibold mb-6 hover:text-purple-600 transition-colors"
       >
         <ArrowLeft className="w-5 h-5" />
         Back to Plans
-      </button>
+      </TrackedButton>
 
       <div className="bg-white rounded-[2.5rem] shadow-lg border-2 border-gray-200 p-8 md:p-12">
         {emphasizeYearly && (
@@ -201,13 +240,24 @@ export const CheckoutFlow = ({ plan, billingCadence }: CheckoutFlowProps) => {
           </div>
         )}
 
-        <button
+        <TrackedButton
           onClick={handleCheckout}
+          buttonId="checkout-page-continue-payment-button"
+          eventName="User Clicked Continue to Payment Button"
+          eventProperties={{
+            'Button Section': 'Checkout Summary Section',
+            'Button Position': 'Bottom of checkout card',
+            'Button Text': 'Continue to Payment',
+            'Plan Selected': plan,
+            'Billing Cadence': billingCadence,
+            'Price': price,
+            'Is Yearly Accelerate': emphasizeYearly,
+          }}
           disabled={loading}
           className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black text-lg hover:from-purple-700 hover:to-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Processing...' : 'Continue to Payment'}
-        </button>
+        </TrackedButton>
 
         <p className="text-center text-sm text-gray-500 mt-4">
           Secure payment powered by Stripe. Cancel anytime.

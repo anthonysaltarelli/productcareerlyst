@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, AlertCircle } from 'lucide-react';
+import { TrackedButton } from '@/app/components/TrackedButton';
+import { trackEvent } from '@/lib/amplitude/client';
 
 export const BubbleTransferForm = () => {
   const router = useRouter();
@@ -14,6 +16,17 @@ export const BubbleTransferForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Track form submission
+    trackEvent('User Submitted Bubble Transfer Form', {
+      'Button Section': 'Bubble Transfer Form Section',
+      'Button Position': 'Bottom of form',
+      'Button Text': 'Submit Transfer Request',
+      'Email Provided': !!email,
+      'Stripe Customer ID Provided': !!stripeCustomerId,
+      'Form Validation Status': 'valid',
+    });
+
     setLoading(true);
     setError(null);
 
@@ -31,8 +44,34 @@ export const BubbleTransferForm = () => {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Transfer failed');
+        const errorMessage = data.error || 'Transfer failed';
+        
+        // Determine error type
+        let errorType = 'transfer_failed';
+        if (errorMessage.toLowerCase().includes('not found') || errorMessage.toLowerCase().includes('account')) {
+          errorType = 'account_not_found';
+        } else if (errorMessage.toLowerCase().includes('subscription')) {
+          errorType = 'subscription_not_found';
+        } else if (errorMessage.toLowerCase().includes('validation') || errorMessage.toLowerCase().includes('invalid')) {
+          errorType = 'validation_error';
+        }
+        
+        trackEvent('Bubble Transfer Error', {
+          'Error Type': errorType,
+          'Error Message': errorMessage,
+          'Email Provided': !!email,
+          'Stripe Customer ID Provided': !!stripeCustomerId,
+        });
+        
+        throw new Error(errorMessage);
       }
+
+      // Track success
+      trackEvent('Bubble Transfer Success', {
+        'Email Provided': !!email,
+        'Stripe Customer ID Provided': !!stripeCustomerId,
+        'Transfer Initiated': true,
+      });
 
       setSuccess(true);
       setTimeout(() => {
@@ -119,13 +158,27 @@ export const BubbleTransferForm = () => {
           </div>
         )}
 
-        <button
-          type="submit"
+        <TrackedButton
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            handleSubmit(e as any);
+          }}
+          buttonId="bubble-transfer-form-submit-button"
+          eventName="User Submitted Bubble Transfer Form"
+          eventProperties={{
+            'Button Section': 'Bubble Transfer Form Section',
+            'Button Position': 'Bottom of form',
+            'Button Text': 'Submit Transfer Request',
+            'Email Provided': !!email,
+            'Stripe Customer ID Provided': !!stripeCustomerId,
+            'Form Validation Status': 'valid',
+          }}
           disabled={loading}
           className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black text-lg hover:from-purple-700 hover:to-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Processing...' : 'Submit Transfer Request'}
-        </button>
+        </TrackedButton>
       </form>
 
       <div className="mt-6 p-4 rounded-xl bg-gray-50">

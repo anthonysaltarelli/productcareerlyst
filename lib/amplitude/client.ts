@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import { getDeviceId } from '@/lib/utils/device-id';
 import { trackEventBrowser, identifyUserBrowser, isBrowserSdkInitialized } from '@/lib/amplitude/browser';
+import { getUserContext, getCourseUserContext, getLessonUserContext, type UserContext } from '@/lib/amplitude/user-context';
 
 /**
  * Client-side Amplitude tracking utility
@@ -220,5 +221,168 @@ export const useUserEmail = () => {
   }, []);
 
   return { email, loading };
+};
+
+/**
+ * Track an event with user context automatically included
+ * Fetches user context and merges it with event properties
+ * NON-BLOCKING: Fires events asynchronously without waiting for context
+ * SINGLE-SEND: Sends event exactly once with merged context (or without if context fetch fails)
+ */
+export const trackEventWithContext = async (
+  eventType: string,
+  eventProperties?: Record<string, any>
+) => {
+  // Try to fetch user context with a short timeout
+  // If we can't get it quickly, send event without context
+  setTimeout(async () => {
+    try {
+      const contextPromise = getUserContext();
+      const timeoutPromise = new Promise<UserContext>((resolve) => {
+        setTimeout(() => resolve({
+          'User Subscription Plan': 'none',
+          'User Subscription Status': 'none',
+          'User Has Active Subscription': false,
+          'User Subscription Billing Cadence': 'none',
+          'Days Since Subscription Started': null,
+          'Days Until Subscription Renewal': null,
+          'Is Trial User': false,
+          'User Onboarding Complete': false,
+          'Days Since Sign Up': null,
+          'User First Course Started': false,
+          'User First Lesson Completed': false,
+          'User Total Courses Started': 0,
+          'User Total Lessons Completed': 0,
+          'User Total Lessons Started': 0,
+          'User Authentication Status': 'anonymous',
+        }), 100); // 100ms timeout
+      });
+      
+      const userContext = await Promise.race([contextPromise, timeoutPromise]);
+      const mergedProperties = {
+        ...eventProperties,
+        ...userContext,
+      };
+      trackEvent(eventType, mergedProperties);
+    } catch (error) {
+      // If context fetch fails, send event without context
+      trackEvent(eventType, eventProperties);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ Error fetching user context for tracking (non-blocking):', error);
+      }
+    }
+  }, 0);
+};
+
+/**
+ * Track an event with course-specific user context
+ * Includes course progress information
+ * SINGLE-SEND: Sends event exactly once with merged context (or without if context fetch fails)
+ */
+export const trackEventWithCourseContext = async (
+  eventType: string,
+  courseId: string,
+  eventProperties?: Record<string, any>
+) => {
+  // Try to fetch course context with a short timeout
+  // If we can't get it quickly, send event without context
+  setTimeout(async () => {
+    try {
+      const contextPromise = getCourseUserContext(courseId);
+      const timeoutPromise = new Promise<Awaited<ReturnType<typeof getCourseUserContext>>>((resolve) => {
+        setTimeout(() => resolve({
+          'User Subscription Plan': 'none',
+          'User Subscription Status': 'none',
+          'User Has Active Subscription': false,
+          'User Subscription Billing Cadence': 'none',
+          'Days Since Subscription Started': null,
+          'Days Until Subscription Renewal': null,
+          'Is Trial User': false,
+          'User Onboarding Complete': false,
+          'Days Since Sign Up': null,
+          'User First Course Started': false,
+          'User First Lesson Completed': false,
+          'User Total Courses Started': 0,
+          'User Total Lessons Completed': 0,
+          'User Total Lessons Started': 0,
+          'User Authentication Status': 'anonymous',
+          'User Course Progress Percentage': 0,
+          'User Completed Lessons in Course': 0,
+          'User Started Lessons in Course': 0,
+        }), 100); // 100ms timeout
+      });
+      
+      const courseContext = await Promise.race([contextPromise, timeoutPromise]);
+      const mergedProperties = {
+        ...eventProperties,
+        ...courseContext,
+      };
+      trackEvent(eventType, mergedProperties);
+    } catch (error) {
+      // If context fetch fails, send event without context
+      trackEvent(eventType, eventProperties);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ Error fetching course context for tracking (non-blocking):', error);
+      }
+    }
+  }, 0);
+};
+
+/**
+ * Track an event with lesson-specific user context
+ * Includes lesson and course progress information
+ * SINGLE-SEND: Sends event exactly once with merged context (or without if context fetch fails)
+ */
+export const trackEventWithLessonContext = async (
+  eventType: string,
+  lessonId: string,
+  courseId: string,
+  eventProperties?: Record<string, any>
+) => {
+  // Try to fetch lesson context with a short timeout
+  // If we can't get it quickly, send event without context
+  setTimeout(async () => {
+    try {
+      const contextPromise = getLessonUserContext(lessonId, courseId);
+      const timeoutPromise = new Promise<Awaited<ReturnType<typeof getLessonUserContext>>>((resolve) => {
+        setTimeout(() => resolve({
+          'User Subscription Plan': 'none',
+          'User Subscription Status': 'none',
+          'User Has Active Subscription': false,
+          'User Subscription Billing Cadence': 'none',
+          'Days Since Subscription Started': null,
+          'Days Until Subscription Renewal': null,
+          'Is Trial User': false,
+          'User Onboarding Complete': false,
+          'Days Since Sign Up': null,
+          'User First Course Started': false,
+          'User First Lesson Completed': false,
+          'User Total Courses Started': 0,
+          'User Total Lessons Completed': 0,
+          'User Total Lessons Started': 0,
+          'User Authentication Status': 'anonymous',
+          'User Has Completed Lesson': false,
+          'User Has Started Lesson': false,
+          'User Watch Duration Seconds': 0,
+          'User Course Progress Percentage': 0,
+          'User Completed Lessons in Course': 0,
+          'User Started Lessons in Course': 0,
+        }), 100); // 100ms timeout
+      });
+      
+      const lessonContext = await Promise.race([contextPromise, timeoutPromise]);
+      const mergedProperties = {
+        ...eventProperties,
+        ...lessonContext,
+      };
+      trackEvent(eventType, mergedProperties);
+    } catch (error) {
+      // If context fetch fails, send event without context
+      trackEvent(eventType, eventProperties);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ Error fetching lesson context for tracking (non-blocking):', error);
+      }
+    }
+  }, 0);
 };
 

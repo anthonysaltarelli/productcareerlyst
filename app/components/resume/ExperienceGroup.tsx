@@ -22,6 +22,7 @@ type Props = {
   onOptimizeBulletText?: (bulletContent: string, company?: string, role?: string) => Promise<string[]>;
   onDeleteBullet?: (bulletId: string) => Promise<void>;
   isFirst?: boolean;
+  resumeVersionId?: string;
 };
 
 export default function ExperienceGroup({
@@ -42,6 +43,7 @@ export default function ExperienceGroup({
   onOptimizeBulletText,
   onDeleteBullet,
   isFirst = false,
+  resumeVersionId,
 }: Props) {
   const [isExpanded, setIsExpanded] = useState(isFirst);
   const [addingBulletForExperienceId, setAddingBulletForExperienceId] = useState<string | null>(null);
@@ -527,6 +529,10 @@ export default function ExperienceGroup({
                               index={bulletIndex}
                               isSelected={selectedBulletId === bullet.id}
                               onSelect={() => onBulletSelect(bullet.id)}
+                              resumeVersionId={resumeVersionId}
+                              experienceId={experience.id}
+                              companyName={company}
+                              roleTitle={experience.title}
                               onDragStart={handleDragStart(bullet.id, experience.id, bulletIndex)}
                               onDragOver={handleDragOver(bullet.id, experience.id, bulletIndex)}
                               onDrop={handleDrop}
@@ -657,6 +663,11 @@ export default function ExperienceGroup({
                       exp.bullets && exp.bullets.some(b => b.id === bullet.id)
                     );
                     
+                    // Skip if experience not found (shouldn't happen, but TypeScript safety)
+                    if (!experience) {
+                      return null;
+                    }
+                    
                     return (
                       <BulletEditor
                         key={bullet.id}
@@ -664,6 +675,10 @@ export default function ExperienceGroup({
                         index={bulletIndex}
                         isSelected={selectedBulletId === bullet.id}
                         onSelect={() => onBulletSelect(bullet.id)}
+                        resumeVersionId={resumeVersionId}
+                        experienceId={experience.id}
+                        companyName={company}
+                        roleTitle={experience.title}
                         onDragStart={handleDragStartPerExperience(bullet.id, bulletIndex)}
                         onDragOver={handleDragOverPerExperience(bullet.id, bulletIndex)}
                         onDrop={handleDrop}

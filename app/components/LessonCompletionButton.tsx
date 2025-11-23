@@ -2,15 +2,22 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { trackEventWithLessonContext } from '@/lib/amplitude/client';
 
 interface LessonCompletionButtonProps {
   lessonId: string;
+  courseId: string;
+  lessonTitle: string;
+  courseTitle: string;
   initialCompleted: boolean;
   onToggle?: (completed: boolean) => void;
 }
 
 const LessonCompletionButton = ({ 
-  lessonId, 
+  lessonId,
+  courseId,
+  lessonTitle,
+  courseTitle,
   initialCompleted,
   onToggle 
 }: LessonCompletionButtonProps) => {
@@ -20,6 +27,31 @@ const LessonCompletionButton = ({
   const handleToggleComplete = async () => {
     setIsLoading(true);
     const newCompletedState = !isCompleted;
+    const currentStatus = isCompleted ? 'completed' : 'incomplete';
+    const newStatus = newCompletedState ? 'completed' : 'incomplete';
+    const action = newCompletedState ? 'mark_complete' : 'mark_incomplete';
+
+    // Track button click immediately (non-blocking)
+    setTimeout(() => {
+      try {
+        trackEventWithLessonContext('User Clicked Mark Lesson Complete Button', lessonId, courseId, {
+          'Button ID': 'lesson-page-mark-complete-button',
+          'Lesson ID': lessonId,
+          'Lesson Title': lessonTitle,
+          'Course ID': courseId,
+          'Current Completion Status': currentStatus,
+          'New Completion Status': newStatus,
+          'Action': action,
+          'Is First Completion': !initialCompleted && newCompletedState,
+          'Button Section': 'Lesson Navigation Bar',
+          'Button Position': 'Center of Navigation Bar',
+        });
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ Tracking error (non-blocking):', error);
+        }
+      }
+    }, 0);
 
     try {
       const response = await fetch(`/api/lessons/${lessonId}/progress`, {
@@ -38,8 +70,41 @@ const LessonCompletionButton = ({
       
       if (newCompletedState) {
         toast.success('Lesson marked as complete! 🎉');
+        
+        // Track completion event
+        setTimeout(() => {
+          try {
+            trackEventWithLessonContext('User Marked Lesson Complete', lessonId, courseId, {
+              'Lesson ID': lessonId,
+              'Lesson Title': lessonTitle,
+              'Course ID': courseId,
+              'Course Title': courseTitle,
+              'Is First Completion': !initialCompleted,
+              'Completion Method': 'manual_mark',
+            });
+          } catch (error) {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('⚠️ Tracking error (non-blocking):', error);
+            }
+          }
+        }, 0);
       } else {
         toast.info('Lesson marked as incomplete');
+        
+        // Track incomplete event
+        setTimeout(() => {
+          try {
+            trackEventWithLessonContext('User Marked Lesson Incomplete', lessonId, courseId, {
+              'Lesson ID': lessonId,
+              'Lesson Title': lessonTitle,
+              'Course ID': courseId,
+            });
+          } catch (error) {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('⚠️ Tracking error (non-blocking):', error);
+            }
+          }
+        }, 0);
       }
 
       if (onToggle) {

@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import { CoursesPageTracking } from '@/app/components/CoursesPageTracking';
+import { TrackedLink } from '@/app/components/TrackedLink';
 
 interface Course {
   id: string;
@@ -124,9 +126,15 @@ const categoryEmojis: Record<string, string> = {
 
 export default async function CoursesPage() {
   const categories = await getCoursesWithCategories();
+  const totalCategories = categories.length;
+  const totalCourses = categories.reduce((sum, cat) => sum + cat.courses.length, 0);
 
   return (
     <div className="p-8 md:p-12">
+      <CoursesPageTracking 
+        totalCategories={totalCategories}
+        totalCourses={totalCourses}
+      />
       {/* Page Header */}
       <div className="mb-8">
         <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_15px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300">
@@ -159,6 +167,9 @@ export default async function CoursesPage() {
                       key={course.id}
                       course={course}
                       colorScheme={colorScheme}
+                      categoryName={category.name}
+                      categoryIndex={categoryIndex}
+                      courseIndex={courseIndex}
                     />
                   );
                 })}
@@ -225,7 +236,10 @@ export default async function CoursesPage() {
 
 const CourseCard = ({
   course,
-  colorScheme
+  colorScheme,
+  categoryName,
+  categoryIndex,
+  courseIndex
 }: {
   course: Course;
   colorScheme: {
@@ -233,26 +247,44 @@ const CourseCard = ({
     border: string;
     shadow: string;
   };
+  categoryName: string;
+  categoryIndex: number;
+  courseIndex: number;
 }) => {
   return (
-    <Link href={`/dashboard/courses/${course.slug}`}>
-      <div
-        className={`p-6 rounded-[2rem] bg-gradient-to-br ${colorScheme.gradient} ${colorScheme.shadow} border-2 ${colorScheme.border} hover:translate-y-1 transition-all duration-200 cursor-pointer h-full`}
-      >
-        <h3 className="text-xl font-bold text-gray-800 mb-2">{course.title}</h3>
-        <p className="text-gray-700 font-medium text-sm mb-4 line-clamp-2">
-          {course.description}
-        </p>
+    <TrackedLink
+      href={`/dashboard/courses/${course.slug}`}
+      linkId={`dashboard-courses-course-card-${course.slug}`}
+      eventName="User Clicked Course Card"
+      eventProperties={{
+        'Course ID': course.id,
+        'Course Title': course.title,
+        'Course Slug': course.slug,
+        'Course Category': categoryName,
+        'Course Lesson Count': course.lesson_count,
+        'Course Length': course.length,
+        'Course Position in Category': courseIndex + 1,
+        'Category Position': categoryIndex + 1,
+        'Link Section': 'Dashboard Courses Page',
+        'Link Position': `Course Card ${courseIndex + 1} in ${categoryName}`,
+        'Link Type': 'Course Card',
+        'Link Text': 'Start Course →',
+      }}
+      className={`p-6 rounded-[2rem] bg-gradient-to-br ${colorScheme.gradient} ${colorScheme.shadow} border-2 ${colorScheme.border} hover:translate-y-1 transition-all duration-200 cursor-pointer h-full block`}
+    >
+      <h3 className="text-xl font-bold text-gray-800 mb-2">{course.title}</h3>
+      <p className="text-gray-700 font-medium text-sm mb-4 line-clamp-2">
+        {course.description}
+      </p>
 
       <div className="flex items-center gap-4 text-sm font-bold text-gray-600 mb-4">
-          <span>⏱️ {course.length}</span>
-          <span>📝 {course.lesson_count} lessons</span>
-        </div>
+        <span>⏱️ {course.length}</span>
+        <span>📝 {course.lesson_count} lessons</span>
+      </div>
 
-        <button className="w-full px-6 py-3 rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-gray-300 font-black text-gray-800 transition-all duration-200">
-          Start Course →
-        </button>
-    </div>
-    </Link>
+      <div className="w-full px-6 py-3 rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-gray-300 font-black text-gray-800 transition-all duration-200 text-center">
+        Start Course →
+      </div>
+    </TrackedLink>
   );
 };

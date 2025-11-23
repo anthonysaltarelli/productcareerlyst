@@ -8,6 +8,7 @@ import { AutoSyncSubscription } from '@/app/components/billing/AutoSyncSubscript
 import { PlanSwitcher } from '@/app/components/billing/PlanSwitcher';
 import { InvoicesList } from '@/app/components/billing/InvoicesList';
 import { PlanComparison } from '@/app/components/billing/PlanComparison';
+import { BillingPageTracking } from '@/app/components/billing/BillingPageTracking';
 import { Sparkles, Rocket, Zap } from 'lucide-react';
 
 export default async function BillingPage() {
@@ -35,6 +36,7 @@ export default async function BillingPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-12 px-4">
         <div className="max-w-6xl mx-auto">
+          <BillingPageTracking subscription={subscription} accountCreatedAt={user.created_at} />
           <AutoSyncSubscription subscription={subscription} />
           <SuccessHandler />
           
@@ -92,6 +94,7 @@ export default async function BillingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-8 px-4">
       <div className="max-w-4xl mx-auto">
+        <BillingPageTracking subscription={subscription} accountCreatedAt={user.created_at} />
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-2">
             Billing & Subscription

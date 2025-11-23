@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import ResumeVersionSidebar from "@/app/components/resume/ResumeVersionSidebar";
@@ -14,10 +14,188 @@ import { defaultResumeStyles, ResumeStyles, ResumeData } from "@/app/components/
 import { createResumeDocument, downloadDocx } from "@/lib/utils/exportResume";
 import { useResumeData } from "@/lib/hooks/useResumeData";
 import { mapCompleteDBResumeToUI, mapDBStylesToUI, mapUIContactToDB, mapUIStylesToDB, mapDBExperienceToUI } from "@/lib/utils/resumeDataMapper";
+import { trackEvent } from "@/lib/amplitude/client";
+import { getBaseUserContext, getResumeContext, calculateResumeCompleteness, daysSince } from "@/lib/utils/resume-tracking";
 
 // Deep equality check for resume data
 const deepEqual = (obj1: any, obj2: any): boolean => {
   return JSON.stringify(obj1) === JSON.stringify(obj2);
+};
+
+// Calculate change summary for tracking
+const calculateChangeSummary = (
+  originalData: ResumeData,
+  currentData: ResumeData,
+  originalStyles: ResumeStyles,
+  currentStyles: ResumeStyles
+): {
+  sectionsChanged: string[];
+  changeSummary: {
+    'Contact Info Changed': boolean;
+    'Summary Changed': boolean;
+    'Experiences Added': number;
+    'Experiences Updated': number;
+    'Experiences Deleted': number;
+    'Education Added': number;
+    'Education Updated': number;
+    'Education Deleted': number;
+    'Skills Added': number;
+    'Skills Removed': number;
+    'Bullets Added': number;
+    'Bullets Updated': number;
+    'Bullets Deleted': number;
+    'Styles Changed': boolean;
+  };
+} => {
+  const sectionsChanged: string[] = [];
+  const changeSummary = {
+    'Contact Info Changed': false,
+    'Summary Changed': false,
+    'Experiences Added': 0,
+    'Experiences Updated': 0,
+    'Experiences Deleted': 0,
+    'Education Added': 0,
+    'Education Updated': 0,
+    'Education Deleted': 0,
+    'Skills Added': 0,
+    'Skills Removed': 0,
+    'Bullets Added': 0,
+    'Bullets Updated': 0,
+    'Bullets Deleted': 0,
+    'Styles Changed': false,
+  };
+
+  // Check contact info
+  if (!deepEqual(originalData.contactInfo, currentData.contactInfo)) {
+    changeSummary['Contact Info Changed'] = true;
+    sectionsChanged.push('contact');
+  }
+
+  // Check summary
+  if (originalData.summary !== currentData.summary) {
+    changeSummary['Summary Changed'] = true;
+    sectionsChanged.push('summary');
+  }
+
+  // Check experiences
+  const originalExpIds = new Set(originalData.experiences.map(e => e.id));
+  const currentExpIds = new Set(currentData.experiences.map(e => e.id));
+  
+  changeSummary['Experiences Added'] = currentData.experiences.filter(e => !originalExpIds.has(e.id)).length;
+  changeSummary['Experiences Deleted'] = originalData.experiences.filter(e => !currentExpIds.has(e.id)).length;
+  
+  // Count updated experiences
+  currentData.experiences.forEach(currentExp => {
+    if (originalExpIds.has(currentExp.id)) {
+      const originalExp = originalData.experiences.find(e => e.id === currentExp.id);
+      if (originalExp && (
+        currentExp.title !== originalExp.title ||
+        currentExp.company !== originalExp.company ||
+        currentExp.location !== originalExp.location ||
+        currentExp.startDate !== originalExp.startDate ||
+        currentExp.endDate !== originalExp.endDate
+      )) {
+        changeSummary['Experiences Updated']++;
+      }
+    }
+  });
+
+  if (changeSummary['Experiences Added'] > 0 || changeSummary['Experiences Updated'] > 0 || changeSummary['Experiences Deleted'] > 0) {
+    sectionsChanged.push('experience');
+  }
+
+  // Check bullets
+  const originalBulletIds = new Set(
+    originalData.experiences.flatMap(exp => exp.bullets.map(b => b.id))
+  );
+  const currentBulletIds = new Set(
+    currentData.experiences.flatMap(exp => exp.bullets.map(b => b.id))
+  );
+
+  changeSummary['Bullets Added'] = currentData.experiences.reduce(
+    (sum, exp) => sum + exp.bullets.filter(b => !originalBulletIds.has(b.id)).length,
+    0
+  );
+  changeSummary['Bullets Deleted'] = originalData.experiences.reduce(
+    (sum, exp) => sum + exp.bullets.filter(b => !currentBulletIds.has(b.id)).length,
+    0
+  );
+
+  // Count updated bullets
+  currentData.experiences.forEach(currentExp => {
+    currentExp.bullets.forEach(currentBullet => {
+      if (originalBulletIds.has(currentBullet.id)) {
+        const originalExp = originalData.experiences.find(e => 
+          e.bullets.some(b => b.id === currentBullet.id)
+        );
+        if (originalExp) {
+          const originalBullet = originalExp.bullets.find(b => b.id === currentBullet.id);
+          if (originalBullet && (
+            originalBullet.content !== currentBullet.content ||
+            originalBullet.isSelected !== currentBullet.isSelected
+          )) {
+            changeSummary['Bullets Updated']++;
+          }
+        }
+      }
+    });
+  });
+
+  // Check education
+  const originalEduIds = new Set(originalData.education.map(e => e.id));
+  const currentEduIds = new Set(currentData.education.map(e => e.id));
+
+  changeSummary['Education Added'] = currentData.education.filter(e => !originalEduIds.has(e.id)).length;
+  changeSummary['Education Deleted'] = originalData.education.filter(e => !currentEduIds.has(e.id)).length;
+
+  // Count updated education
+  currentData.education.forEach(currentEdu => {
+    if (originalEduIds.has(currentEdu.id)) {
+      const originalEdu = originalData.education.find(e => e.id === currentEdu.id);
+      if (originalEdu && (
+        currentEdu.school !== originalEdu.school ||
+        currentEdu.degree !== originalEdu.degree ||
+        currentEdu.field !== originalEdu.field ||
+        currentEdu.location !== originalEdu.location ||
+        currentEdu.startDate !== originalEdu.startDate ||
+        currentEdu.endDate !== originalEdu.endDate ||
+        currentEdu.gpa !== originalEdu.gpa
+      )) {
+        changeSummary['Education Updated']++;
+      }
+    }
+  });
+
+  if (changeSummary['Education Added'] > 0 || changeSummary['Education Updated'] > 0 || changeSummary['Education Deleted'] > 0) {
+    sectionsChanged.push('education');
+  }
+
+  // Check skills
+  const allOriginalSkills = [
+    ...originalData.skills.technical,
+    ...originalData.skills.product,
+    ...originalData.skills.soft,
+  ];
+  const allCurrentSkills = [
+    ...currentData.skills.technical,
+    ...currentData.skills.product,
+    ...currentData.skills.soft,
+  ];
+
+  changeSummary['Skills Added'] = allCurrentSkills.filter(s => !allOriginalSkills.includes(s)).length;
+  changeSummary['Skills Removed'] = allOriginalSkills.filter(s => !allCurrentSkills.includes(s)).length;
+
+  if (changeSummary['Skills Added'] > 0 || changeSummary['Skills Removed'] > 0) {
+    sectionsChanged.push('skills');
+  }
+
+  // Check styles
+  if (!deepEqual(originalStyles, currentStyles)) {
+    changeSummary['Styles Changed'] = true;
+    sectionsChanged.push('styles');
+  }
+
+  return { sectionsChanged, changeSummary };
 };
 
 type Props = {
@@ -52,6 +230,8 @@ export default function ResumeEditorPage({ params }: Props) {
   const [userPlan, setUserPlan] = useState<'learn' | 'accelerate' | null>(null);
   const [showAccelerateModal, setShowAccelerateModal] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const pageViewTracked = useRef(false);
+  const viewModeStartTime = useRef<number>(Date.now());
 
   // Unwrap params
   useEffect(() => {
@@ -114,6 +294,13 @@ export default function ResumeEditorPage({ params }: Props) {
   const [currentResumeData, setCurrentResumeData] = useState<ResumeData>(initialResumeData);
   const [originalResumeStyles, setOriginalResumeStyles] = useState<ResumeStyles>(defaultResumeStyles);
 
+  // Compute if there are unsaved changes (data OR styles)
+  const hasUnsavedChanges = useMemo(() => {
+    const dataChanged = !deepEqual(originalResumeData, currentResumeData);
+    const stylesChanged = !deepEqual(originalResumeStyles, resumeStyles);
+    return dataChanged || stylesChanged;
+  }, [originalResumeData, currentResumeData, originalResumeStyles, resumeStyles]);
+
   // Load resume data when versionId is available
   useEffect(() => {
     if (versionId) {
@@ -140,13 +327,86 @@ export default function ResumeEditorPage({ params }: Props) {
     }
   }, [versionId, fetchResumeData, getResumeAnalysis]);
 
+  // Track page view
+  useEffect(() => {
+    if (isLoading || !versionId || !currentResume || pageViewTracked.current) return;
+
+    const trackPageView = async () => {
+      const userContext = await getBaseUserContext();
+      const resumeContext = getResumeContext(currentResume?.version || null, currentResumeData);
+      const completeness = calculateResumeCompleteness(currentResumeData);
+
+      trackEvent('User Viewed Resume Editor', {
+        'Page Route': `/dashboard/resume/${versionId}`,
+        'Resume Version ID': versionId,
+        'Resume Name': currentResume?.version.name || '',
+        'Is Master Resume': currentResume?.version.is_master || false,
+        'Resume Age': resumeContext.resumeAge,
+        'Last Modified': currentResume?.version.updated_at || '',
+        'View Mode': viewMode,
+        'Selected Section': selectedSection,
+        'User Plan': userContext.userPlan,
+        'Has Unsaved Changes': hasUnsavedChanges,
+        'Resume Completeness': {
+          'Has Contact Info': completeness.hasContactInfo,
+          'Has Summary': completeness.hasSummary,
+          'Experience Count': completeness.experienceCount,
+          'Education Count': completeness.educationCount,
+          'Technical Skills Count': completeness.technicalSkillsCount,
+          'Product Skills Count': completeness.productSkillsCount,
+          'Soft Skills Count': completeness.softSkillsCount,
+          'Total Bullets Count': completeness.totalBulletsCount,
+          'Selected Bullets Count': completeness.selectedBulletsCount,
+        },
+        'Analysis Score': analysisData?.overallScore ?? null,
+        'Analysis Usage Remaining': usageInfo.remaining,
+        'Analysis Usage Limit': usageInfo.limit,
+        'Is First Time Editor': false, // TODO: Track this properly
+      });
+
+      pageViewTracked.current = true;
+      viewModeStartTime.current = Date.now();
+    };
+
+    trackPageView();
+  }, [isLoading, versionId, currentResume, currentResumeData, viewMode, selectedSection, hasUnsavedChanges, analysisData, usageInfo]);
+
   // Handle analyze resume
   const handleAnalyzeResume = async () => {
     if (!versionId) return;
 
+    const analysisStartTime = Date.now();
+    const completeness = calculateResumeCompleteness(currentResumeData);
+    const hasPreviousAnalysis = !!analysisData;
+    const previousScore = analysisData?.overallScore ?? null;
+
+    // Track start analysis event
+    const userContext = await getBaseUserContext();
+    trackEvent('User Started Resume Analysis', {
+      'Resume Version ID': versionId,
+      'User Plan': userContext.userPlan,
+      'Usage Remaining': usageInfo.remaining,
+      'Usage Limit': usageInfo.limit,
+      'Has Previous Analysis': hasPreviousAnalysis,
+      'Previous Analysis Score': previousScore,
+      'Resume Completeness': completeness,
+      'Total Experiences': completeness.experienceCount,
+      'Total Education': completeness.educationCount,
+      'Total Bullets': completeness.totalBulletsCount,
+      'Total Selected Bullets': completeness.selectedBulletsCount,
+    });
+
     // Check if user is on Accelerate plan
     if (userPlan !== 'accelerate') {
       setShowAccelerateModal(true);
+      
+      // Track modal shown
+      trackEvent('User Saw Accelerate Plan Required Modal', {
+        'Resume Version ID': versionId,
+        'Trigger': 'analyze_resume',
+        'User Plan': userContext.userPlan,
+        'Usage Remaining': usageInfo.remaining,
+      });
       return;
     }
 
@@ -159,6 +419,8 @@ export default function ResumeEditorPage({ params }: Props) {
     try {
       const result = await analyzeResume(versionId);
       if (result) {
+        const analysisDuration = Date.now() - analysisStartTime;
+        
         setAnalysisData({
           overallScore: result.overallScore,
           categoryScores: result.categoryScores,
@@ -170,15 +432,46 @@ export default function ResumeEditorPage({ params }: Props) {
           createdAt: result.createdAt,
         });
         const newLimit = result.limit || 30;
-        setUsageInfo({
+        const newUsageInfo = {
           count: result.usageCount || 0,
           remaining: Math.max(0, newLimit - (result.usageCount || 0)),
           limit: newLimit,
           resetDate: '',
+        };
+        setUsageInfo(newUsageInfo);
+        
+        // Track analysis complete
+        trackEvent('User Resume Analysis Complete', {
+          'Resume Version ID': versionId,
+          'Analysis Success': true,
+          'Overall Score': result.overallScore,
+          'Category Scores': result.categoryScores,
+          'ATS Compatibility Score': result.atsCompatibility?.score || null,
+          'Recommendations Count': result.recommendations?.length || 0,
+          'Usage Remaining': newUsageInfo.remaining,
+          'Usage Limit': newUsageInfo.limit,
+          'User Plan': userContext.userPlan,
+          'Analysis Duration': analysisDuration,
         });
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to analyze resume';
+      
+      // Track analysis error
+      const errorType = message.includes('Accelerate') || message.includes('Subscription required')
+        ? 'subscription_required'
+        : message.includes('limit')
+        ? 'limit_reached'
+        : 'api_error';
+      
+      trackEvent('User Resume Analysis Error', {
+        'Resume Version ID': versionId,
+        'Error Type': errorType,
+        'Error Message': message,
+        'User Plan': userContext.userPlan,
+        'Usage Remaining': usageInfo.remaining,
+      });
+      
       // Check if it's an Accelerate plan required error
       if (message.includes('Accelerate') || message.includes('Subscription required')) {
         setShowAccelerateModal(true);
@@ -198,13 +491,6 @@ export default function ResumeEditorPage({ params }: Props) {
     target?: string;
   } | null>(null);
 
-  // Compute if there are unsaved changes (data OR styles)
-  const hasUnsavedChanges = useMemo(() => {
-    const dataChanged = !deepEqual(originalResumeData, currentResumeData);
-    const stylesChanged = !deepEqual(originalResumeStyles, resumeStyles);
-    return dataChanged || stylesChanged;
-  }, [originalResumeData, currentResumeData, originalResumeStyles, resumeStyles]);
-
   // Save handler
   const handleSave = async () => {
     if (!versionId) {
@@ -212,7 +498,17 @@ export default function ResumeEditorPage({ params }: Props) {
       return;
     }
 
+    const saveStartTime = Date.now();
     setIsSaving(true);
+    
+    // Calculate change summary before saving
+    const { sectionsChanged, changeSummary } = calculateChangeSummary(
+      originalResumeData,
+      currentResumeData,
+      originalResumeStyles,
+      resumeStyles
+    );
+
     try {
       console.log('Starting save...', { versionId, currentResumeData, originalResumeData });
 
@@ -513,6 +809,24 @@ export default function ResumeEditorPage({ params }: Props) {
       setOriginalResumeData(JSON.parse(JSON.stringify(currentResumeData)));
       setOriginalResumeStyles(JSON.parse(JSON.stringify(resumeStyles)));
 
+      // Track save event
+      const userContext = await getBaseUserContext();
+      const saveDuration = Date.now() - saveStartTime;
+      
+      // Get total save count (we'll need to track this separately or fetch from DB)
+      // For now, we'll use a simple counter
+      trackEvent('User Saved Resume', {
+        'Resume Version ID': versionId,
+        'Selected Section': selectedSection,
+        'View Mode': viewMode,
+        'Sections Changed': sectionsChanged,
+        'Change Summary': changeSummary,
+        'Save Duration': saveDuration,
+        'User Plan': userContext.userPlan,
+        'Total Save Count': 1, // TODO: Track this properly
+        'Time Since Last Save': null, // TODO: Track this properly
+      });
+
       console.log('Save completed successfully');
       toast.success('Resume saved successfully!');
     } catch (error) {
@@ -524,7 +838,26 @@ export default function ResumeEditorPage({ params }: Props) {
   };
 
   // Discard handler
-  const handleDiscard = () => {
+  const handleDiscard = async () => {
+    // Track discard event before discarding
+    const { sectionsChanged, changeSummary } = calculateChangeSummary(
+      originalResumeData,
+      currentResumeData,
+      originalResumeStyles,
+      resumeStyles
+    );
+    
+    const userContext = await getBaseUserContext();
+    
+    trackEvent('User Discarded Resume Changes', {
+      'Resume Version ID': versionId,
+      'Selected Section': selectedSection,
+      'View Mode': viewMode,
+      'Sections Changed': sectionsChanged,
+      'Change Summary': changeSummary,
+      'User Plan': userContext.userPlan,
+    });
+
     setCurrentResumeData(originalResumeData);
     setResumeStyles(originalResumeStyles);
     toast.info('Changes discarded');
@@ -532,6 +865,15 @@ export default function ResumeEditorPage({ params }: Props) {
 
   // Add Experience handler - opens modal
   const handleAddExperience = async () => {
+    // Track modal open
+    const userContext = await getBaseUserContext();
+    trackEvent('User Opened Add Experience Modal', {
+      'Resume Version ID': versionId,
+      'Selected Section': selectedSection,
+      'Total Experience Count': currentResumeData.experiences.length,
+      'User Plan': userContext.userPlan,
+    });
+    
     setShowAddExperienceModal(true);
   };
 
@@ -698,6 +1040,22 @@ export default function ResumeEditorPage({ params }: Props) {
         // Update originalResumeData to reflect the saved state, so subsequent edits are tracked (deep copy)
         setOriginalResumeData(JSON.parse(JSON.stringify(finalResumeData)));
         toast.success('Experience added successfully');
+        
+        // Track add experience event
+        const userContext = await getBaseUserContext();
+        trackEvent('User Added Experience', {
+          'Resume Version ID': versionId,
+          'Experience ID': createdExperiences[0]?.id || 'unknown',
+          'Company Name': formData.company,
+          'Location': formData.location,
+          'Role Count': formData.roles.length,
+          'Role Titles': formData.roles.map(r => r.title),
+          'Bullet Mode': formData.bulletMode,
+          'Is Grouped Experience': formData.roles.length > 1,
+          'Total Experience Count': currentResumeData.experiences.length + formData.roles.length,
+          'User Plan': userContext.userPlan,
+          'Experience Position': currentResumeData.experiences.length,
+        });
       }
 
       // For edit mode, refetch since it's complex with multiple operations
@@ -707,6 +1065,32 @@ export default function ResumeEditorPage({ params }: Props) {
           const uiData = mapCompleteDBResumeToUI(refreshedData);
           setCurrentResumeData(uiData);
           setOriginalResumeData(uiData);
+          
+          // Track edit experience event
+          const userContext = await getBaseUserContext();
+          const updatedExperience = uiData.experiences.find(exp => exp.id === editingExperience.id);
+          const originalExperience = originalResumeData.experiences.find(exp => exp.id === editingExperience.id);
+          const fieldsChanged: string[] = [];
+          if (originalExperience) {
+            if (formData.company !== originalExperience.company) fieldsChanged.push('company');
+            if (formData.location !== originalExperience.location) fieldsChanged.push('location');
+            if (formData.roles.length !== (originalExperience.roleGroupId ? originalResumeData.experiences.filter(e => e.roleGroupId === originalExperience.roleGroupId).length : 1)) {
+              fieldsChanged.push('roles');
+            }
+          }
+          
+          trackEvent('User Edited Experience', {
+            'Resume Version ID': versionId,
+            'Experience ID': editingExperience.id,
+            'Company Name': formData.company,
+            'Location': formData.location,
+            'Role Count': formData.roles.length,
+            'Role Titles': formData.roles.map(r => r.title),
+            'Bullet Mode': formData.bulletMode,
+            'Is Grouped Experience': !!(originalExperience?.roleGroupId),
+            'Fields Changed': fieldsChanged,
+            'User Plan': userContext.userPlan,
+          });
         }
       }
       setShowAddExperienceModal(false);
@@ -771,6 +1155,15 @@ export default function ResumeEditorPage({ params }: Props) {
 
   // Add Education handler - opens modal
   const handleAddEducation = async () => {
+    // Track modal open
+    const userContext = await getBaseUserContext();
+    trackEvent('User Opened Add Education Modal', {
+      'Resume Version ID': versionId,
+      'Selected Section': selectedSection,
+      'Total Education Count': currentResumeData.education.length,
+      'User Plan': userContext.userPlan,
+    });
+    
     setShowAddEducationModal(true);
   };
 
@@ -800,6 +1193,29 @@ export default function ResumeEditorPage({ params }: Props) {
           gpa: formData.gpa,
         });
         toast.success('Education updated successfully');
+        
+        // Track edit education event
+        const userContext = await getBaseUserContext();
+        const education = currentResumeData.education.find(e => e.id === editingEducation.id);
+        const fieldsChanged: string[] = [];
+        if (education) {
+          if (formData.school !== education.school) fieldsChanged.push('school');
+          if (formData.degree !== education.degree) fieldsChanged.push('degree');
+          if (formData.field !== education.field) fieldsChanged.push('field');
+          if (formData.location !== education.location) fieldsChanged.push('location');
+          if (formData.gpa !== education.gpa) fieldsChanged.push('gpa');
+        }
+        
+        trackEvent('User Edited Education', {
+          'Resume Version ID': versionId,
+          'Education ID': editingEducation.id,
+          'School Name': formData.school,
+          'Degree': formData.degree,
+          'Field': formData.field,
+          'Has GPA': !!formData.gpa,
+          'Fields Changed': fieldsChanged,
+          'User Plan': userContext.userPlan,
+        });
       } else {
         // Add mode - create new education
         await createEducation(versionId, {
@@ -813,6 +1229,27 @@ export default function ResumeEditorPage({ params }: Props) {
           display_order: currentResumeData.education.length,
         });
         toast.success('Education added successfully');
+        
+        // Track add education event
+        const userContext = await getBaseUserContext();
+        // Fetch data to get the new education ID
+        const refreshedDataForTracking = await fetchResumeData(versionId);
+        const newEducation = refreshedDataForTracking ? mapCompleteDBResumeToUI(refreshedDataForTracking).education.find(e => 
+          e.school === formData.school && e.degree === formData.degree
+        ) : null;
+        
+        trackEvent('User Added Education', {
+          'Resume Version ID': versionId,
+          'Education ID': newEducation?.id || 'unknown',
+          'School Name': formData.school,
+          'Degree': formData.degree,
+          'Field': formData.field,
+          'Has GPA': !!formData.gpa,
+          'Achievement Count': 0,
+          'Total Education Count': currentResumeData.education.length + 1,
+          'User Plan': userContext.userPlan,
+          'Education Position': currentResumeData.education.length,
+        });
       }
 
       // Immediately refresh the resume data
@@ -875,6 +1312,16 @@ export default function ResumeEditorPage({ params }: Props) {
       // Save to database
       await updateSkillsForCategory(versionId, category, updatedSkills);
 
+      // Track add skill event
+      const userContext = await getBaseUserContext();
+      trackEvent('User Added Skill', {
+        'Resume Version ID': versionId,
+        'Skill Category': category,
+        'Skill Name': skillName.trim(),
+        'Total Skills In Category': updatedSkills.length,
+        'User Plan': userContext.userPlan,
+      });
+
       // Update originalResumeData to reflect the saved state, so subsequent edits are tracked (deep copy)
       setOriginalResumeData(JSON.parse(JSON.stringify(updatedResumeData)));
       toast.success('Skill added successfully');
@@ -888,20 +1335,121 @@ export default function ResumeEditorPage({ params }: Props) {
 
   // Optimize bullet handler
   const handleOptimizeBullet = async (bulletId: string): Promise<string[]> => {
-    return await optimizeBullet(bulletId);
+    const experience = currentResumeData.experiences.find(exp => 
+      exp.bullets.some(b => b.id === bulletId)
+    );
+    const bullet = experience?.bullets.find(b => b.id === bulletId);
+    
+    if (!experience || !bullet) {
+      return [];
+    }
+
+    const originalContentLength = bullet.content.length;
+    
+    try {
+      const optimizedVersions = await optimizeBullet(bulletId);
+      
+      // Track optimization success
+      const userContext = await getBaseUserContext();
+      trackEvent('User Optimized Bullet', {
+        'Resume Version ID': versionId,
+        'Experience ID': experience.id,
+        'Bullet ID': bulletId,
+        'Company Name': experience.company,
+        'Role Title': experience.title,
+        'Original Content Length': originalContentLength,
+        'Optimization Success': optimizedVersions.length > 0,
+        'Optimized Versions Count': optimizedVersions.length,
+        'User Selected Version': false, // Will be tracked separately when user selects
+        'User Plan': userContext.userPlan,
+      });
+      
+      return optimizedVersions;
+    } catch (error) {
+      // Track optimization error
+      const userContext = await getBaseUserContext();
+      trackEvent('User Optimized Bullet', {
+        'Resume Version ID': versionId,
+        'Experience ID': experience.id,
+        'Bullet ID': bulletId,
+        'Company Name': experience.company,
+        'Role Title': experience.title,
+        'Original Content Length': originalContentLength,
+        'Optimization Success': false,
+        'Optimized Versions Count': 0,
+        'User Plan': userContext.userPlan,
+      });
+      
+      throw error;
+    }
   };
 
   // Optimize bullet text handler (for new bullets)
   const handleOptimizeBulletText = async (bulletContent: string, company?: string, role?: string): Promise<string[]> => {
-    return await optimizeBulletText(bulletContent, company, role);
+    const originalContentLength = bulletContent.length;
+    
+    try {
+      const optimizedVersions = await optimizeBulletText(bulletContent, company, role);
+      
+      // Track optimization success
+      const userContext = await getBaseUserContext();
+      trackEvent('User Optimized New Bullet Text', {
+        'Resume Version ID': versionId,
+        'Experience ID': null,
+        'Company Name': company || null,
+        'Role Title': role || null,
+        'Original Content Length': originalContentLength,
+        'Optimization Success': optimizedVersions.length > 0,
+        'Optimized Versions Count': optimizedVersions.length,
+        'User Selected Version': false,
+        'User Plan': userContext.userPlan,
+      });
+      
+      return optimizedVersions;
+    } catch (error) {
+      // Track optimization error
+      const userContext = await getBaseUserContext();
+      trackEvent('User Optimized New Bullet Text', {
+        'Resume Version ID': versionId,
+        'Experience ID': null,
+        'Company Name': company || null,
+        'Role Title': role || null,
+        'Original Content Length': originalContentLength,
+        'Optimization Success': false,
+        'Optimized Versions Count': 0,
+        'User Plan': userContext.userPlan,
+      });
+      
+      throw error;
+    }
   };
 
   // Delete bullet handler
   const handleDeleteBullet = async (bulletId: string) => {
     if (!versionId) return;
 
+    // Find bullet before deletion
+    const experience = currentResumeData.experiences.find(exp => 
+      exp.bullets.some(b => b.id === bulletId)
+    );
+    const bullet = experience?.bullets.find(b => b.id === bulletId);
+
     try {
       await deleteBullet(bulletId);
+      
+      // Track delete event
+      if (experience && bullet) {
+        const userContext = await getBaseUserContext();
+        trackEvent('User Deleted Bullet', {
+          'Resume Version ID': versionId,
+          'Experience ID': experience.id,
+          'Bullet ID': bulletId,
+          'Company Name': experience.company,
+          'Role Title': experience.title,
+          'Total Bullets In Experience': experience.bullets.length - 1,
+          'User Plan': userContext.userPlan,
+        });
+      }
       
       // Refresh resume data to get latest from DB
       const refreshedData = await fetchResumeData(versionId);
@@ -961,6 +1509,21 @@ export default function ResumeEditorPage({ params }: Props) {
         display_order: displayOrder,
       });
 
+      // Track add bullet event
+      const userContext = await getBaseUserContext();
+      trackEvent('User Added Bullet', {
+        'Resume Version ID': versionId,
+        'Experience ID': experienceId,
+        'Bullet ID': createdBullet.id,
+        'Company Name': experience.company,
+        'Role Title': experience.title,
+        'Bullet Content Length': content.length,
+        'Bullet Position': displayOrder,
+        'Total Bullets In Experience': experience.bullets.length + 1,
+        'Is Selected': true,
+        'User Plan': userContext.userPlan,
+      });
+
       // Update with real bullet data
       const finalExperiences = updatedExperiences.map(exp => {
         if (exp.id === experienceId) {
@@ -1004,6 +1567,9 @@ export default function ResumeEditorPage({ params }: Props) {
   const handleDeleteExperience = async (experienceId: string) => {
     if (!versionId) return;
 
+    const experience = currentResumeData.experiences.find(exp => exp.id === experienceId);
+    if (!experience) return;
+
     // Optimistically remove from UI
     const updatedExperiences = currentResumeData.experiences.filter(
       exp => exp.id !== experienceId
@@ -1017,6 +1583,24 @@ export default function ResumeEditorPage({ params }: Props) {
 
     try {
       await deleteExperience(experienceId);
+      
+      // Track delete event
+      const userContext = await getBaseUserContext();
+      const bulletCount = experience.bullets.length;
+      const roleCount = experience.roleGroupId 
+        ? currentResumeData.experiences.filter(e => e.roleGroupId === experience.roleGroupId).length
+        : 1;
+      
+      trackEvent('User Deleted Experience', {
+        'Resume Version ID': versionId,
+        'Experience ID': experienceId,
+        'Company Name': experience.company,
+        'Role Count': roleCount,
+        'Bullet Count': bulletCount,
+        'Total Experience Count': updatedExperiences.length,
+        'User Plan': userContext.userPlan,
+      });
+      
       // Update originalResumeData to reflect the saved state (deep copy)
       setOriginalResumeData(JSON.parse(JSON.stringify(updatedResumeData)));
       toast.success('Experience deleted successfully');
@@ -1032,8 +1616,24 @@ export default function ResumeEditorPage({ params }: Props) {
   const handleDeleteEducation = async (educationId: string) => {
     if (!versionId) return;
 
+    const education = currentResumeData.education.find(e => e.id === educationId);
+    if (!education) return;
+
     try {
       await deleteEducation(educationId);
+
+      // Track delete event
+      const userContext = await getBaseUserContext();
+      const achievementCount = education.achievements.length;
+      
+      trackEvent('User Deleted Education', {
+        'Resume Version ID': versionId,
+        'Education ID': educationId,
+        'School Name': education.school,
+        'Achievement Count': achievementCount,
+        'Total Education Count': currentResumeData.education.length - 1,
+        'User Plan': userContext.userPlan,
+      });
 
       // Immediately refresh the resume data
       const refreshedData = await fetchResumeData(versionId);
@@ -1093,6 +1693,17 @@ export default function ResumeEditorPage({ params }: Props) {
         )
       );
 
+      // Track group event
+      const userContext = await getBaseUserContext();
+      trackEvent('User Grouped Experiences', {
+        'Resume Version ID': versionId,
+        'Group ID': groupId,
+        'Experience IDs': allExpsToGroup.map(e => e.id),
+        'Company Name': experience.company,
+        'Total Roles In Group': allExpsToGroup.length,
+        'User Plan': userContext.userPlan,
+      });
+
       // Update originalResumeData to reflect the saved state, so subsequent edits are tracked (deep copy)
       setOriginalResumeData(JSON.parse(JSON.stringify(updatedResumeData)));
       toast.success('Experiences grouped successfully');
@@ -1107,6 +1718,11 @@ export default function ResumeEditorPage({ params }: Props) {
   // Ungroup Experience handler - removes experience from group
   const handleUngroupExperience = async (experienceId: string) => {
     if (!versionId) return;
+
+    const experience = currentResumeData.experiences.find(exp => exp.id === experienceId);
+    if (!experience) return;
+
+    const previousGroupId = experience.roleGroupId;
 
     // Optimistically update UI
     const updatedExperiences = currentResumeData.experiences.map(exp => {
@@ -1125,6 +1741,17 @@ export default function ResumeEditorPage({ params }: Props) {
 
     try {
       await updateExperience(experienceId, { role_group_id: null });
+      
+      // Track ungroup event
+      const userContext = await getBaseUserContext();
+      trackEvent('User Ungrouped Experience', {
+        'Resume Version ID': versionId,
+        'Experience ID': experienceId,
+        'Previous Group ID': previousGroupId || null,
+        'Company Name': experience.company,
+        'User Plan': userContext.userPlan,
+      });
+      
       // Update originalResumeData to reflect the saved state, so subsequent edits are tracked (deep copy)
       setOriginalResumeData(JSON.parse(JSON.stringify(updatedResumeData)));
       toast.success('Experience ungrouped successfully');
@@ -1148,6 +1775,7 @@ export default function ResumeEditorPage({ params }: Props) {
     if (groupExperiences.length === 0) return;
 
     const firstExp = groupExperiences[0];
+    const previousBulletMode = firstExp.bulletMode || 'per_role';
 
     // Optimistically update UI - update all experiences in group with the bullet mode
     const updatedExperiences = currentResumeData.experiences.map(exp => {
@@ -1167,6 +1795,19 @@ export default function ResumeEditorPage({ params }: Props) {
     try {
       // Update the first experience (which stores the bullet_mode)
       await updateExperience(firstExp.id, { bullet_mode: bulletMode });
+      
+      // Track bullet mode change
+      const userContext = await getBaseUserContext();
+      trackEvent('User Changed Bullet Mode', {
+        'Resume Version ID': versionId,
+        'Group ID': groupId,
+        'Previous Bullet Mode': previousBulletMode,
+        'New Bullet Mode': bulletMode,
+        'Company Name': firstExp.company,
+        'Total Roles In Group': groupExperiences.length,
+        'User Plan': userContext.userPlan,
+      });
+      
       // Update originalResumeData to reflect the saved state, so subsequent edits are tracked (deep copy)
       setOriginalResumeData(JSON.parse(JSON.stringify(updatedResumeData)));
       toast.success('Bullet mode updated successfully');
@@ -1230,6 +1871,18 @@ export default function ResumeEditorPage({ params }: Props) {
         role_group_id: groupId,
       });
 
+      // Track add role event
+      const userContext = await getBaseUserContext();
+      trackEvent('User Added Role to Experience Group', {
+        'Resume Version ID': versionId,
+        'Group ID': groupId,
+        'New Experience ID': createdExperience.id,
+        'Role Title': roleData.title,
+        'Company Name': firstExp.company,
+        'Total Roles In Group': groupExperiences.length + 1,
+        'User Plan': userContext.userPlan,
+      });
+
       // Replace temp ID with real experience
       const finalExperiences = updatedExperiences.map(exp => {
         if (exp.id === newRole.id) {
@@ -1260,8 +1913,22 @@ export default function ResumeEditorPage({ params }: Props) {
 
   // Update Version Name handler
   const handleUpdateVersionName = async (versionId: string, newName: string) => {
+    const currentVersion = versions.find(v => v.id === versionId);
+    const oldName = currentVersion?.name || 'Unknown';
+    
     try {
       await updateVersion(versionId, { name: newName });
+      
+      // Track rename event
+      const userContext = await getBaseUserContext();
+      trackEvent('User Renamed Resume', {
+        'Resume Version ID': versionId,
+        'Old Resume Name': oldName,
+        'New Resume Name': newName,
+        'Is Master Resume': currentVersion?.is_master || false,
+        'User Plan': userContext.userPlan,
+      });
+      
       toast.success('Resume name updated successfully');
     } catch (error) {
       console.error('Error updating resume name:', error);
@@ -1271,30 +1938,87 @@ export default function ResumeEditorPage({ params }: Props) {
   };
 
   // Navigation handlers with blocking
-  const handleSectionChange = (newSection: string) => {
+  const handleSectionChange = async (newSection: string) => {
     if (hasUnsavedChanges) {
       setPendingNavigation({ type: 'section', target: newSection });
       setShowUnsavedModal(true);
     } else {
+      // Track section change
+      const userContext = await getBaseUserContext();
+      const sectionItemCount = newSection === 'experience' 
+        ? currentResumeData.experiences.length 
+        : newSection === 'education' 
+        ? currentResumeData.education.length 
+        : undefined;
+
+      trackEvent('User Changed Resume Section', {
+        'Resume Version ID': versionId,
+        'Previous Section': selectedSection,
+        'New Section': newSection,
+        'View Mode': viewMode,
+        'Has Unsaved Changes': false,
+        'Section Item Count': sectionItemCount,
+        'User Plan': userContext.userPlan,
+      });
+
+      // Track viewing analysis section
+      if (newSection === 'analysis' && analysisData) {
+        trackEvent('User Viewed Analysis Section', {
+          'Resume Version ID': versionId,
+          'Overall Score': analysisData.overallScore,
+          'Category Scores': analysisData.categoryScores,
+          'User Plan': userContext.userPlan,
+          'Usage Remaining': usageInfo.remaining,
+        });
+      }
+
       setSelectedSection(newSection);
     }
   };
 
-  const handleVersionChange = (newVersionId: string) => {
+  const handleVersionChange = async (newVersionId: string) => {
     if (hasUnsavedChanges) {
       setPendingNavigation({ type: 'version', target: newVersionId });
       setShowUnsavedModal(true);
     } else {
+      // Track version switch
+      const userContext = await getBaseUserContext();
+      const newVersion = versions.find(v => v.id === newVersionId);
+
+      trackEvent('User Switched Resume Version', {
+        'Previous Resume ID': versionId,
+        'Previous Resume Name': currentResume?.version.name || 'Unknown',
+        'New Resume ID': newVersionId,
+        'New Resume Name': newVersion?.name || 'Unknown',
+        'Has Unsaved Changes': false,
+        'User Plan': userContext.userPlan,
+      });
+
       router.push(`/dashboard/resume/${newVersionId}`);
     }
   };
 
-  const handleViewModeChange = (newMode: "edit" | "preview") => {
+  const handleViewModeChange = async (newMode: "edit" | "preview") => {
     if (hasUnsavedChanges) {
       setPendingNavigation({ type: 'viewMode', target: newMode });
       setShowUnsavedModal(true);
     } else {
+      // Track view mode change
+      const userContext = await getBaseUserContext();
+      const timeInPreviousMode = (Date.now() - viewModeStartTime.current) / 1000;
+
+      trackEvent('User Changed View Mode', {
+        'Resume Version ID': versionId,
+        'Previous View Mode': viewMode,
+        'New View Mode': newMode,
+        'Selected Section': selectedSection,
+        'Has Unsaved Changes': false,
+        'User Plan': userContext.userPlan,
+        'Time In Previous Mode': timeInPreviousMode,
+      });
+
       setViewMode(newMode);
+      viewModeStartTime.current = Date.now();
     }
   };
 
@@ -1309,7 +2033,27 @@ export default function ResumeEditorPage({ params }: Props) {
 
   // Modal handlers
   const handleSaveAndContinue = async () => {
+    const { sectionsChanged } = calculateChangeSummary(
+      originalResumeData,
+      currentResumeData,
+      originalResumeStyles,
+      resumeStyles
+    );
+    
     await handleSave();
+    
+    // Track save and continue
+    if (pendingNavigation) {
+      const userContext = await getBaseUserContext();
+      trackEvent('User Saved and Continued Navigation', {
+        'Resume Version ID': versionId,
+        'Navigation Type': pendingNavigation.type,
+        'Navigation Target': pendingNavigation.target || null,
+        'Sections Changed': sectionsChanged,
+        'User Plan': userContext.userPlan,
+      });
+    }
+    
     completePendingNavigation();
   };
 
@@ -1356,7 +2100,12 @@ export default function ResumeEditorPage({ params }: Props) {
 
   // Handler to trigger professional PDF export
   const handleExportPDF = async () => {
+    const exportStartTime = Date.now();
     setIsExportingPDF(true);
+    
+    const completeness = calculateResumeCompleteness(currentResumeData);
+    const userContext = await getBaseUserContext();
+    
     try {
       // Prepare resume data for API
       const resumeData = {
@@ -1379,6 +2128,21 @@ export default function ResumeEditorPage({ params }: Props) {
 
       // Get the PDF blob
       const blob = await response.blob();
+      const exportDuration = Date.now() - exportStartTime;
+
+      // Track export success
+      trackEvent('User Exported Resume PDF', {
+        'Resume Version ID': versionId,
+        'Resume Name': currentResume?.version.name || 'Unknown',
+        'Export Success': true,
+        'Export Duration': exportDuration,
+        'File Size': blob.size,
+        'Selected Section': selectedSection,
+        'View Mode': viewMode,
+        'Resume Completeness': completeness,
+        'User Plan': userContext.userPlan,
+        'Total Exports': 1, // TODO: Track this properly
+      });
 
       // Create download link with improved filename
       const url = URL.createObjectURL(blob);
@@ -1393,6 +2157,20 @@ export default function ResumeEditorPage({ params }: Props) {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error) {
+      const exportDuration = Date.now() - exportStartTime;
+      
+      // Track export error
+      trackEvent('User Exported Resume PDF', {
+        'Resume Version ID': versionId,
+        'Resume Name': currentResume?.version.name || 'Unknown',
+        'Export Success': false,
+        'Export Duration': exportDuration,
+        'Selected Section': selectedSection,
+        'View Mode': viewMode,
+        'Resume Completeness': completeness,
+        'User Plan': userContext.userPlan,
+      });
+      
       console.error('Error exporting PDF:', error);
       alert('Failed to export resume as PDF. Please try again.');
     } finally {
@@ -1402,7 +2180,12 @@ export default function ResumeEditorPage({ params }: Props) {
 
   // Handler to export resume as DOCX
   const handleExportDocx = async () => {
+    const exportStartTime = Date.now();
     setIsExportingDocx(true);
+    
+    const completeness = calculateResumeCompleteness(currentResumeData);
+    const userContext = await getBaseUserContext();
+    
     try {
       // Transform the resume data to match exportResume.ts types
       const transformedData = {
@@ -1417,7 +2200,36 @@ export default function ResumeEditorPage({ params }: Props) {
       const resumeName = currentResumeData.contactInfo.name || 'Resume';
       const filename = `${resumeName} - ${formatMonthYear()}.docx`;
       await downloadDocx(document, filename);
+      
+      const exportDuration = Date.now() - exportStartTime;
+      
+      // Track export success (we can't get file size for DOCX easily, so we'll estimate or omit)
+      trackEvent('User Exported Resume DOCX', {
+        'Resume Version ID': versionId,
+        'Resume Name': currentResume?.version.name || 'Unknown',
+        'Export Success': true,
+        'Export Duration': exportDuration,
+        'Selected Section': selectedSection,
+        'View Mode': viewMode,
+        'Resume Completeness': completeness,
+        'User Plan': userContext.userPlan,
+        'Total Exports': 1, // TODO: Track this properly
+      });
     } catch (error) {
+      const exportDuration = Date.now() - exportStartTime;
+      
+      // Track export error
+      trackEvent('User Exported Resume DOCX', {
+        'Resume Version ID': versionId,
+        'Resume Name': currentResume?.version.name || 'Unknown',
+        'Export Success': false,
+        'Export Duration': exportDuration,
+        'Selected Section': selectedSection,
+        'View Mode': viewMode,
+        'Resume Completeness': completeness,
+        'User Plan': userContext.userPlan,
+      });
+      
       console.error("Error exporting DOCX:", error);
       alert("Failed to export resume as DOCX. Please try again.");
     } finally {
@@ -1532,22 +2344,91 @@ export default function ResumeEditorPage({ params }: Props) {
       {/* Unsaved Changes Modal */}
       <UnsavedChangesModal
         isOpen={showUnsavedModal}
-        onSaveAndContinue={handleSaveAndContinue}
-        onDiscardAndContinue={handleDiscardAndContinue}
-        onCancel={handleCancelNavigation}
+        onSaveAndContinue={async () => {
+          if (pendingNavigation) {
+            const userContext = await getBaseUserContext();
+            const { sectionsChanged } = calculateChangeSummary(
+              originalResumeData,
+              currentResumeData,
+              originalResumeStyles,
+              resumeStyles
+            );
+            
+            trackEvent('User Saw Unsaved Changes Modal', {
+              'Resume Version ID': versionId,
+              'Navigation Type': pendingNavigation.type,
+              'Navigation Target': pendingNavigation.target || null,
+              'Sections Changed': sectionsChanged,
+              'User Plan': userContext.userPlan,
+            });
+          }
+          await handleSaveAndContinue();
+        }}
+        onDiscardAndContinue={async () => {
+          if (pendingNavigation) {
+            const userContext = await getBaseUserContext();
+            const { sectionsChanged } = calculateChangeSummary(
+              originalResumeData,
+              currentResumeData,
+              originalResumeStyles,
+              resumeStyles
+            );
+            
+            trackEvent('User Handled Unsaved Changes Modal', {
+              'Resume Version ID': versionId,
+              'Action': 'discard_and_continue',
+              'Navigation Type': pendingNavigation.type,
+              'Navigation Target': pendingNavigation.target || null,
+              'User Plan': userContext.userPlan,
+            });
+          }
+          handleDiscard();
+          completePendingNavigation();
+        }}
+        onCancel={() => {
+          if (pendingNavigation) {
+            getBaseUserContext().then(userContext => {
+              trackEvent('User Handled Unsaved Changes Modal', {
+                'Resume Version ID': versionId,
+                'Action': 'cancel',
+                'Navigation Type': pendingNavigation.type,
+                'Navigation Target': pendingNavigation.target || null,
+                'User Plan': userContext.userPlan,
+              });
+            });
+          }
+          handleCancelNavigation();
+        }}
       />
 
       {/* Accelerate Plan Required Modal */}
       <AcceleratePlanRequiredModal
         isOpen={showAccelerateModal}
-        onClose={() => setShowAccelerateModal(false)}
+        onClose={() => {
+          const userContext = getBaseUserContext();
+          userContext.then(ctx => {
+            trackEvent('User Saw Accelerate Plan Required Modal', {
+              'Resume Version ID': versionId,
+              'Trigger': 'analyze_resume',
+              'User Plan': ctx.userPlan,
+              'Usage Remaining': usageInfo.remaining,
+            });
+          });
+          setShowAccelerateModal(false);
+        }}
       />
 
       {/* Add Experience Modal */}
       <AddExperienceModal
         isOpen={showAddExperienceModal}
         onConfirm={handleConfirmAddExperience}
-        onCancel={() => {
+        onCancel={async () => {
+          const userContext = await getBaseUserContext();
+          trackEvent('User Closed Add Experience Modal', {
+            'Resume Version ID': versionId,
+            'Modal Action': 'cancelled',
+            'User Plan': userContext.userPlan,
+          });
           setShowAddExperienceModal(false);
           setEditingExperience(null);
         }}
@@ -1560,7 +2441,13 @@ export default function ResumeEditorPage({ params }: Props) {
       <AddEducationModal
         isOpen={showAddEducationModal}
         onConfirm={handleConfirmAddEducation}
-        onCancel={() => {
+        onCancel={async () => {
+          const userContext = await getBaseUserContext();
+          trackEvent('User Closed Add Education Modal', {
+            'Resume Version ID': versionId,
+            'Modal Action': 'cancelled',
+            'User Plan': userContext.userPlan,
+          });
           setShowAddEducationModal(false);
           setEditingEducation(null);
         }}

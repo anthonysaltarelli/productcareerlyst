@@ -3,17 +3,24 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Rocket } from "lucide-react";
+import { trackEvent } from '@/lib/amplitude/client';
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
   hasSubscription?: boolean;
+  userPlan?: 'learn' | 'accelerate' | null;
+  totalPortfolioRequests?: number;
+  totalFavoritedIdeas?: number;
 };
 
 export default function PortfolioTemplateRequestModal({
   isOpen,
   onClose,
   hasSubscription = false,
+  userPlan = null,
+  totalPortfolioRequests = 0,
+  totalFavoritedIdeas = 0,
 }: Props) {
   const router = useRouter();
 
@@ -38,6 +45,49 @@ export default function PortfolioTemplateRequestModal({
   }, [isOpen, onClose]);
 
   const handleViewPlans = () => {
+    // Track click event
+    setTimeout(() => {
+      try {
+        const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+        const referrer = typeof window !== 'undefined' ? document.referrer : '';
+        let referrerDomain: string | null = null;
+        if (referrer) {
+          try {
+            referrerDomain = new URL(referrer).hostname;
+          } catch {
+            referrerDomain = null;
+          }
+        }
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        const linkDestination = hasSubscription ? '/dashboard/billing' : '/dashboard/billing/plans';
+        
+        trackEvent('User Clicked Template Request Upgrade Modal View Plans', {
+          'Button ID': 'portfolio-template-upgrade-modal-view-plans-button',
+          'Button Section': 'Upgrade Modal',
+          'Button Position': 'Primary CTA in modal',
+          'Button Text': hasSubscription ? 'Manage Subscription' : 'View Plans',
+          'Button Type': 'Primary Modal CTA',
+          'Button Context': 'In Accelerate Plan Required modal',
+          'Has Subscription': hasSubscription,
+          'User Plan': userPlan,
+          'Link Destination': linkDestination,
+          'Total Portfolio Requests': totalPortfolioRequests,
+          'Total Favorited Ideas': totalFavoritedIdeas,
+          'Page Route': pageRoute,
+          'Referrer URL': referrer || 'None',
+          'Referrer Domain': referrerDomain || 'None',
+          'UTM Source': urlParams?.get('utm_source') || null,
+          'UTM Medium': urlParams?.get('utm_medium') || null,
+          'UTM Campaign': urlParams?.get('utm_campaign') || null,
+        });
+      } catch (error) {
+        // Silently fail
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ Tracking error (non-blocking):', error);
+        }
+      }
+    }, 0);
+
     // If user has a subscription, go to billing management page
     // Otherwise, go to plan selection page
     if (hasSubscription) {
@@ -45,6 +95,51 @@ export default function PortfolioTemplateRequestModal({
     } else {
       router.push("/dashboard/billing/plans");
     }
+    onClose();
+  };
+
+  const handleCancel = () => {
+    // Track cancel event
+    setTimeout(() => {
+      try {
+        const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+        const referrer = typeof window !== 'undefined' ? document.referrer : '';
+        let referrerDomain: string | null = null;
+        if (referrer) {
+          try {
+            referrerDomain = new URL(referrer).hostname;
+          } catch {
+            referrerDomain = null;
+          }
+        }
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        
+        trackEvent('User Clicked Template Request Upgrade Modal Cancel', {
+          'Button ID': 'portfolio-template-upgrade-modal-cancel-button',
+          'Button Section': 'Upgrade Modal',
+          'Button Position': 'Secondary button in modal',
+          'Button Text': 'Cancel',
+          'Button Type': 'Secondary Modal Button',
+          'Button Context': 'In Accelerate Plan Required modal',
+          'Has Subscription': hasSubscription,
+          'User Plan': userPlan,
+          'Total Portfolio Requests': totalPortfolioRequests,
+          'Total Favorited Ideas': totalFavoritedIdeas,
+          'Page Route': pageRoute,
+          'Referrer URL': referrer || 'None',
+          'Referrer Domain': referrerDomain || 'None',
+          'UTM Source': urlParams?.get('utm_source') || null,
+          'UTM Medium': urlParams?.get('utm_medium') || null,
+          'UTM Campaign': urlParams?.get('utm_campaign') || null,
+        });
+      } catch (error) {
+        // Silently fail
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ Tracking error (non-blocking):', error);
+        }
+      }
+    }, 0);
+
     onClose();
   };
 
@@ -82,7 +177,7 @@ export default function PortfolioTemplateRequestModal({
             {hasSubscription ? 'Manage Subscription' : 'View Plans'}
           </button>
           <button
-            onClick={onClose}
+            onClick={handleCancel}
             className="w-full px-5 py-3 text-sm font-bold rounded-xl transition-all border-2 text-gray-700 border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300"
           >
             Cancel

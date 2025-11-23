@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FileText, ExternalLink, Download } from 'lucide-react';
+import { TrackedLink } from '@/app/components/TrackedLink';
 
 interface Invoice {
   id: string;
@@ -164,26 +165,48 @@ export const InvoicesList = ({ subscription }: InvoicesListProps) => {
 
             <div className="flex gap-3 mt-4">
               {invoice.hosted_invoice_url && (
-                <a
+                <TrackedLink
                   href={invoice.hosted_invoice_url}
+                  linkId={`billing-page-invoice-${invoice.id.slice(-8)}-view-link`}
+                  eventName="User Clicked View Invoice Link"
+                  eventProperties={{
+                    'Button Section': 'Invoices List Section',
+                    'Button Position': 'Invoice Card Actions',
+                    'Link Text': 'View Invoice',
+                    'Invoice ID': invoice.id,
+                    'Invoice Number': invoice.number || null,
+                    'Invoice Amount': invoice.amount_paid || invoice.amount_due,
+                    'Invoice Status': invoice.status,
+                    'Invoice Date': invoice.created,
+                  }}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
                   View Invoice
-                </a>
+                </TrackedLink>
               )}
               {invoice.invoice_pdf && (
-                <a
+                <TrackedLink
                   href={invoice.invoice_pdf}
+                  linkId={`billing-page-invoice-${invoice.id.slice(-8)}-download-link`}
+                  eventName="User Clicked Download Invoice PDF Link"
+                  eventProperties={{
+                    'Button Section': 'Invoices List Section',
+                    'Button Position': 'Invoice Card Actions',
+                    'Link Text': 'Download PDF',
+                    'Invoice ID': invoice.id,
+                    'Invoice Number': invoice.number || null,
+                    'Invoice Status': invoice.status,
+                  }}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   Download PDF
-                </a>
+                </TrackedLink>
               )}
             </div>
           </div>

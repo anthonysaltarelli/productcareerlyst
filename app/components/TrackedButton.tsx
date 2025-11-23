@@ -8,8 +8,12 @@ interface TrackedButtonProps {
   eventName: string;
   eventProperties?: Record<string, any>;
   href?: string;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   buttonId?: string; // Unique identifier for this specific button instance
+  type?: 'button' | 'submit' | 'reset'; // Button type for form submission
+  disabled?: boolean; // Disabled state
+  tabIndex?: number; // Tab index for accessibility
+  ariaLabel?: string; // Aria label for accessibility
 }
 
 /**
@@ -24,11 +28,15 @@ export const TrackedButton = ({
   href,
   onClick,
   buttonId,
+  type = 'button',
+  disabled,
+  tabIndex,
+  ariaLabel,
 }: TrackedButtonProps) => {
   const handleClick = (e: React.MouseEvent) => {
     // Call onClick immediately - don't wait for tracking
     if (onClick) {
-      onClick();
+      onClick(e);
     }
     
     // Fire tracking in the background - don't block the click handler
@@ -106,9 +114,12 @@ export const TrackedButton = ({
 
   return (
     <button
-      type="button"
+      type={type}
       className={className}
       onClick={handleClick}
+      disabled={disabled}
+      tabIndex={tabIndex}
+      aria-label={ariaLabel}
     >
       {children}
     </button>

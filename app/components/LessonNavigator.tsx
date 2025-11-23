@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { TrackedLink } from '@/app/components/TrackedLink';
 
 interface Lesson {
   id: string;
@@ -18,6 +19,7 @@ interface LessonNavigatorProps {
   lessons: Lesson[];
   currentLessonId: string;
   courseSlug: string;
+  courseId: string;
   initialProgress: ProgressMap;
 }
 
@@ -25,6 +27,7 @@ const LessonNavigator = ({
   lessons, 
   currentLessonId, 
   courseSlug,
+  courseId,
   initialProgress
 }: LessonNavigatorProps) => {
   const [progressMap, setProgressMap] = useState<ProgressMap>(initialProgress);
@@ -50,14 +53,30 @@ const LessonNavigator = ({
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Course Content</h2>
       <div className="space-y-1 max-h-[calc(100vh-12rem)] overflow-y-auto">
-        {lessons.map((lesson) => {
+        {lessons.map((lesson, index) => {
           const isCompleted = progressMap[lesson.id] || false;
           const isCurrentLesson = lesson.id === currentLessonId;
 
           return (
-            <Link
+            <TrackedLink
               key={lesson.id}
               href={`/dashboard/courses/${courseSlug}/lessons/${lesson.id}`}
+              linkId={`lesson-navigator-lesson-link-${lesson.id}`}
+              eventName="User Clicked Lesson in Sidebar Navigator"
+              eventProperties={{
+                'Current Lesson ID': currentLessonId,
+                'Clicked Lesson ID': lesson.id,
+                'Clicked Lesson Title': lesson.title,
+                'Clicked Lesson Position': lesson.prioritization,
+                'Course ID': courseId,
+                'Course Slug': courseSlug,
+                'Current Lesson Completed': progressMap[currentLessonId] || false,
+                'Clicked Lesson Completed': isCompleted,
+                'Clicked Lesson Requires Subscription': lesson.requires_subscription,
+                'Navigation Type': 'sidebar_navigator',
+                'Link Section': 'Course Content Sidebar',
+                'Link Position': index + 1,
+              }}
               className={`
                 block p-3 rounded-lg transition-colors relative
                 ${isCurrentLesson
@@ -97,7 +116,7 @@ const LessonNavigator = ({
                   </div>
                 </div>
               </div>
-            </Link>
+            </TrackedLink>
           );
         })}
       </div>

@@ -4,6 +4,8 @@ import Link from 'next/link';
 import LessonPlayer from '@/app/components/LessonPlayer';
 import LessonNavigator from '@/app/components/LessonNavigator';
 import LessonContentWrapper from '@/app/components/LessonContentWrapper';
+import { LessonPageTracking } from '@/app/components/LessonPageTracking';
+import { TrackedLink } from '@/app/components/TrackedLink';
 
 interface Lesson {
   id: string;
@@ -19,6 +21,12 @@ interface Course {
   title: string;
   slug: string;
   description: string;
+  category_id?: string | null;
+  categories?: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
   lessons: Lesson[];
 }
 
@@ -44,7 +52,13 @@ const getLessonDataOptimized = async (lessonId: string) => {
           id,
           title,
           slug,
-          description
+          description,
+          category_id,
+          categories (
+            id,
+            name,
+            slug
+          )
         )
       `)
       .eq('id', lessonId)
@@ -146,21 +160,72 @@ export default async function LessonPage({
   const previousLesson = currentIndex > 0 ? course.lessons[currentIndex - 1] : null;
   const nextLesson = currentIndex < course.lessons.length - 1 ? course.lessons[currentIndex + 1] : null;
 
+  // Get category information
+  const category = Array.isArray(course.categories) ? course.categories[0] : course.categories;
+
+  // Calculate lesson position number (extract numeric part from prioritization like "1.1" -> 1)
+  const lessonPositionNumber = parseInt(lesson.prioritization.split('.')[0]) || currentIndex + 1;
+
   return (
     <div className="max-w-7xl mx-auto p-6">
+      <LessonPageTracking
+        lessonId={lesson.id}
+        lessonTitle={lesson.title}
+        lessonPosition={lesson.prioritization}
+        lessonPositionNumber={lessonPositionNumber}
+        lessonRequiresSubscription={lesson.requires_subscription}
+        courseId={course.id}
+        courseTitle={course.title}
+        courseSlug={slug}
+        courseCategory={category?.name || 'Unknown'}
+        totalLessonsInCourse={course.lessons.length}
+        previousLessonId={previousLesson?.id || null}
+        previousLessonTitle={previousLesson?.title || null}
+        nextLessonId={nextLesson?.id || null}
+        nextLessonTitle={nextLesson?.title || null}
+        isFirstLesson={currentIndex === 0}
+        isLastLesson={currentIndex === course.lessons.length - 1}
+        videoUrl={lesson.video_url}
+      />
       {/* Breadcrumb */}
       <nav className="mb-6">
         <ol className="flex items-center gap-2 text-sm text-gray-600">
           <li>
-            <Link href="/dashboard/courses" className="hover:text-indigo-600">
+            <TrackedLink
+              href="/dashboard/courses"
+              linkId="lesson-page-breadcrumb-courses"
+              eventName="User Clicked Courses Breadcrumb"
+              eventProperties={{
+                'Current Lesson ID': lesson.id,
+                'Current Course ID': course.id,
+                'Current Lesson Completed': isCurrentLessonCompleted,
+                'Link Section': 'Breadcrumb Navigation',
+                'Link Position': 'First breadcrumb item',
+              }}
+              className="hover:text-indigo-600"
+            >
               Courses
-            </Link>
+            </TrackedLink>
           </li>
           <li>/</li>
           <li>
-            <Link href={`/dashboard/courses/${slug}`} className="hover:text-indigo-600">
+            <TrackedLink
+              href={`/dashboard/courses/${slug}`}
+              linkId={`lesson-page-breadcrumb-course-${slug}`}
+              eventName="User Clicked Course Breadcrumb"
+              eventProperties={{
+                'Current Lesson ID': lesson.id,
+                'Course ID': course.id,
+                'Course Title': course.title,
+                'Course Slug': slug,
+                'Current Lesson Completed': isCurrentLessonCompleted,
+                'Link Section': 'Breadcrumb Navigation',
+                'Link Position': 'Second breadcrumb item',
+              }}
+              className="hover:text-indigo-600"
+            >
               {course.title}
-            </Link>
+            </TrackedLink>
           </li>
           <li>/</li>
           <li className="text-gray-900 font-medium">{lesson.title}</li>
@@ -172,7 +237,13 @@ export default async function LessonPage({
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             {/* Video Player */}
-            <LessonPlayer videoUrl={lesson.video_url} lessonId={lesson.id} />
+            <LessonPlayer 
+              videoUrl={lesson.video_url} 
+              lessonId={lesson.id}
+              courseId={course.id}
+              lessonTitle={lesson.title}
+              courseTitle={course.title}
+            />
 
             {/* Lesson Info */}
             <div className="p-6">
@@ -194,15 +265,28 @@ export default async function LessonPage({
               <div className="flex items-center gap-4 pt-6 border-t border-gray-200">
                 <div className="flex-1 flex justify-start">
                   {previousLesson && (
-                    <Link
+                    <TrackedLink
                       href={`/dashboard/courses/${slug}/lessons/${previousLesson.id}`}
+                      linkId="lesson-page-previous-lesson-link"
+                      eventName="User Clicked Previous Lesson Link"
+                      eventProperties={{
+                        'Current Lesson ID': lesson.id,
+                        'Current Lesson Title': lesson.title,
+                        'Previous Lesson ID': previousLesson.id,
+                        'Previous Lesson Title': previousLesson.title,
+                        'Course ID': course.id,
+                        'Course Slug': slug,
+                        'Current Lesson Completed': isCurrentLessonCompleted,
+                        'Link Section': 'Lesson Navigation Bar',
+                        'Link Position': 'Left side of Navigation Bar',
+                      }}
                       className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                       </svg>
                       Previous
-                    </Link>
+                    </TrackedLink>
                   )}
                 </div>
 
@@ -210,31 +294,60 @@ export default async function LessonPage({
                 <div className="flex-shrink-0">
                   <LessonContentWrapper 
                     lessonId={lesson.id}
+                    courseId={course.id}
+                    lessonTitle={lesson.title}
+                    courseTitle={course.title}
                     isCompleted={isCurrentLessonCompleted}
                   />
                 </div>
 
                 <div className="flex-1 flex justify-end">
                   {nextLesson ? (
-                    <Link
+                    <TrackedLink
                       href={`/dashboard/courses/${slug}/lessons/${nextLesson.id}`}
+                      linkId="lesson-page-next-lesson-link"
+                      eventName="User Clicked Next Lesson Link"
+                      eventProperties={{
+                        'Current Lesson ID': lesson.id,
+                        'Current Lesson Title': lesson.title,
+                        'Next Lesson ID': nextLesson.id,
+                        'Next Lesson Title': nextLesson.title,
+                        'Course ID': course.id,
+                        'Course Slug': slug,
+                        'Current Lesson Completed': isCurrentLessonCompleted,
+                        'Is Last Lesson': false,
+                        'Link Section': 'Lesson Navigation Bar',
+                        'Link Position': 'Right side of Navigation Bar',
+                      }}
                       className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
                     >
                       Next Lesson
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
-                    </Link>
+                    </TrackedLink>
                   ) : (
-                    <Link
+                    <TrackedLink
                       href={`/dashboard/courses`}
+                      linkId="lesson-page-complete-course-link"
+                      eventName="User Clicked Complete Course Link"
+                      eventProperties={{
+                        'Course ID': course.id,
+                        'Course Title': course.title,
+                        'Course Slug': slug,
+                        'Total Lessons': course.lessons.length,
+                        'Lessons Completed': Object.values(progressMap).filter(Boolean).length,
+                        'Course Progress Percentage': 100,
+                        'Link Section': 'Lesson Navigation Bar',
+                        'Link Position': 'Right side of Navigation Bar (when last lesson)',
+                      }}
                       className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
                     >
                       Complete Course
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
-                    </Link>
+                    </TrackedLink>
                   )}
                 </div>
               </div>
@@ -248,6 +361,7 @@ export default async function LessonPage({
             lessons={course.lessons}
             currentLessonId={lesson.id}
             courseSlug={slug}
+            courseId={course.id}
             initialProgress={progressMap}
           />
         </div>

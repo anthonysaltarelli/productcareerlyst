@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ResumeStyles, defaultResumeStyles, ResumeVersion, resumeFonts } from "./mockData";
+import { trackEvent } from "@/lib/amplitude/client";
+import { getUserPlanClient } from "@/lib/utils/resume-tracking";
 
 type Props = {
   styles: ResumeStyles;
@@ -20,6 +22,7 @@ type Props = {
 export default function CustomizationSidebar({ styles, onStyleChange, onExportPDF, onExportDocx, viewMode, onViewModeChange, onBack, selectedVersion, versions, isExportingPDF = false, isExportingDocx = false }: Props) {
   const currentVersion = versions.find((v) => v.id === selectedVersion);
   const [isFontSectionExpanded, setIsFontSectionExpanded] = useState<boolean>(false);
+  const previousStylesRef = useRef<ResumeStyles>(styles);
 
   // Map font names to CSS variables for preview
   const getFontVariable = (fontName: string): string => {
@@ -124,7 +127,21 @@ export default function CustomizationSidebar({ styles, onStyleChange, onExportPD
                  {resumeFonts.map((font) => (
                    <button
                      key={font.name}
-                     onClick={() => onStyleChange({ ...styles, fontFamily: font.name })}
+                     onClick={async () => {
+                       const previousFont = styles.fontFamily;
+                       onStyleChange({ ...styles, fontFamily: font.name });
+                       
+                       // Track font change
+                       if (previousFont !== font.name) {
+                         const userPlan = await getUserPlanClient();
+                         trackEvent('User Changed Resume Font', {
+                           'Resume Version ID': selectedVersion,
+                           'Previous Font': previousFont,
+                           'New Font': font.name,
+                           'User Plan': userPlan,
+                         });
+                       }
+                     }}
                      className={`w-full px-4 py-2.5 rounded-lg border-2 transition-all text-left ${
                        styles.fontFamily === font.name
                          ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
@@ -151,7 +168,24 @@ export default function CustomizationSidebar({ styles, onStyleChange, onExportPD
             max="13"
             step="0.5"
             value={styles.fontSize}
-            onChange={(e) => onStyleChange({ ...styles, fontSize: parseFloat(e.target.value) })}
+            onChange={async (e) => {
+              const previousSize = styles.fontSize;
+              const newSize = parseFloat(e.target.value);
+              onStyleChange({ ...styles, fontSize: newSize });
+              
+              // Track font size change (debounced)
+              if (previousSize !== newSize) {
+                setTimeout(async () => {
+                  const userPlan = await getUserPlanClient();
+                  trackEvent('User Changed Resume Font Size', {
+                    'Resume Version ID': selectedVersion,
+                    'Previous Font Size': previousSize,
+                    'New Font Size': newSize,
+                    'User Plan': userPlan,
+                  });
+                }, 500);
+              }
+            }}
             className="w-full accent-blue-500"
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -171,7 +205,24 @@ export default function CustomizationSidebar({ styles, onStyleChange, onExportPD
             max="1.5"
             step="0.05"
             value={styles.lineHeight}
-            onChange={(e) => onStyleChange({ ...styles, lineHeight: parseFloat(e.target.value) })}
+            onChange={async (e) => {
+              const previousHeight = styles.lineHeight;
+              const newHeight = parseFloat(e.target.value);
+              onStyleChange({ ...styles, lineHeight: newHeight });
+              
+              // Track line height change (debounced)
+              if (previousHeight !== newHeight) {
+                setTimeout(async () => {
+                  const userPlan = await getUserPlanClient();
+                  trackEvent('User Changed Resume Line Height', {
+                    'Resume Version ID': selectedVersion,
+                    'Previous Line Height': previousHeight,
+                    'New Line Height': newHeight,
+                    'User Plan': userPlan,
+                  });
+                }, 500);
+              }
+            }}
             className="w-full accent-blue-500"
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -192,9 +243,24 @@ export default function CustomizationSidebar({ styles, onStyleChange, onExportPD
                 max="1.5"
                 step="0.25"
                 value={styles.marginTop}
-                onChange={(e) => {
+                onChange={async (e) => {
+                  const previousMargin = styles.marginTop;
                   const val = parseFloat(e.target.value);
                   onStyleChange({ ...styles, marginTop: val, marginBottom: val });
+                  
+                  // Track margin change (debounced)
+                  if (previousMargin !== val) {
+                    setTimeout(async () => {
+                      const userPlan = await getUserPlanClient();
+                      trackEvent('User Changed Resume Margins', {
+                        'Resume Version ID': selectedVersion,
+                        'Margin Type': 'top_bottom',
+                        'Previous Margin Value': previousMargin,
+                        'New Margin Value': val,
+                        'User Plan': userPlan,
+                      });
+                    }, 500);
+                  }
                 }}
                 className="w-full accent-blue-500"
               />
@@ -207,9 +273,24 @@ export default function CustomizationSidebar({ styles, onStyleChange, onExportPD
                 max="1.5"
                 step="0.25"
                 value={styles.marginLeft}
-                onChange={(e) => {
+                onChange={async (e) => {
+                  const previousMargin = styles.marginLeft;
                   const val = parseFloat(e.target.value);
                   onStyleChange({ ...styles, marginLeft: val, marginRight: val });
+                  
+                  // Track margin change (debounced)
+                  if (previousMargin !== val) {
+                    setTimeout(async () => {
+                      const userPlan = await getUserPlanClient();
+                      trackEvent('User Changed Resume Margins', {
+                        'Resume Version ID': selectedVersion,
+                        'Margin Type': 'left_right',
+                        'Previous Margin Value': previousMargin,
+                        'New Margin Value': val,
+                        'User Plan': userPlan,
+                      });
+                    }, 500);
+                  }
                 }}
                 className="w-full accent-blue-500"
               />
@@ -219,7 +300,16 @@ export default function CustomizationSidebar({ styles, onStyleChange, onExportPD
 
         {/* Reset Button */}
         <button
-          onClick={() => onStyleChange(defaultResumeStyles)}
+          onClick={async () => {
+            onStyleChange(defaultResumeStyles);
+            
+            // Track reset styles
+            const userPlan = await getUserPlanClient();
+            trackEvent('User Reset Resume Styles', {
+              'Resume Version ID': selectedVersion,
+              'User Plan': userPlan,
+            });
+          }}
           className="w-full py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition-all border border-slate-200"
         >
           Reset to Defaults

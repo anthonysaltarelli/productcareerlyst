@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Check, ArrowLeft, Loader2 } from 'lucide-react';
+import { TrackedButton } from '@/app/components/TrackedButton';
+import { trackEvent } from '@/lib/amplitude/client';
+import { createClient } from '@/lib/supabase/client';
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
@@ -54,6 +57,18 @@ const PaymentFormContent = ({
       return;
     }
 
+    // Track form submission
+    trackEvent('User Submitted Payment Form', {
+      'Button Section': 'Payment Form Section',
+      'Button Position': 'Bottom of payment form',
+      'Button Text': 'Complete Subscription',
+      'Plan Selected': plan,
+      'Billing Cadence Selected': billingCadence,
+      'Price': plans[plan][billingCadence].price,
+      'Form Validation Status': 'valid',
+      'Payment Method Type': 'card',
+    });
+
     setLoading(true);
     setError(null);
 
@@ -62,6 +77,13 @@ const PaymentFormContent = ({
       const { error: submitError } = await elements.submit();
 
       if (submitError) {
+        trackEvent('Payment Form Error', {
+          'Error Type': 'payment_submission_failed',
+          'Error Message': submitError.message || 'Payment submission failed',
+          'Plan Selected': plan,
+          'Billing Cadence Selected': billingCadence,
+          'Form Step': 'payment_form',
+        });
         setError(submitError.message || 'Payment submission failed');
         setLoading(false);
         return;
@@ -75,12 +97,26 @@ const PaymentFormContent = ({
       });
 
       if (confirmError) {
+        trackEvent('Payment Form Error', {
+          'Error Type': 'payment_confirmation_failed',
+          'Error Message': confirmError.message || 'Payment confirmation failed',
+          'Plan Selected': plan,
+          'Billing Cadence Selected': billingCadence,
+          'Form Step': 'payment_form',
+        });
         setError(confirmError.message || 'Payment confirmation failed');
         setLoading(false);
         return;
       }
 
       if (!setupIntent || !setupIntent.payment_method) {
+        trackEvent('Payment Form Error', {
+          'Error Type': 'no_payment_method',
+          'Error Message': 'No payment method returned',
+          'Plan Selected': plan,
+          'Billing Cadence Selected': billingCadence,
+          'Form Step': 'payment_form',
+        });
         setError('No payment method returned');
         setLoading(false);
         return;
@@ -105,12 +141,36 @@ const PaymentFormContent = ({
 
       if (!response.ok) {
         const data = await response.json();
+        trackEvent('Payment Form Error', {
+          'Error Type': 'stripe_error',
+          'Error Message': data.error || 'Failed to create subscription',
+          'Plan Selected': plan,
+          'Billing Cadence Selected': billingCadence,
+          'Form Step': 'payment_form',
+        });
         throw new Error(data.error || 'Failed to create subscription');
       }
+
+      // Track success
+      trackEvent('Payment Form Success', {
+        'Plan Selected': plan,
+        'Billing Cadence Selected': billingCadence,
+        'Price': plans[plan][billingCadence].price,
+        'Payment Method ID': paymentMethodId,
+        'Setup Intent Status': setupIntent.status,
+        'Subscription Created': true,
+      });
 
       // Success - subscription created
       onSuccess();
     } catch (err) {
+      trackEvent('Payment Form Error', {
+        'Error Type': 'stripe_error',
+        'Error Message': err instanceof Error ? err.message : 'An error occurred',
+        'Plan Selected': plan,
+        'Billing Cadence Selected': billingCadence,
+        'Form Step': 'payment_form',
+      });
       setError(err instanceof Error ? err.message : 'An error occurred');
       setLoading(false);
     }
@@ -129,6 +189,18 @@ const PaymentFormContent = ({
       <button
         type="submit"
         disabled={loading || !stripe}
+        onClick={() => {
+          trackEvent('User Submitted Payment Form', {
+            'Button Section': 'Payment Form Section',
+            'Button Position': 'Bottom of payment form',
+            'Button Text': 'Complete Subscription',
+            'Plan Selected': plan,
+            'Billing Cadence Selected': billingCadence,
+            'Price': plans[plan][billingCadence].price,
+            'Form Validation Status': 'valid',
+            'Payment Method Type': 'card',
+          });
+        }}
         className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black text-lg hover:from-purple-700 hover:to-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
       >
         {loading ? (
@@ -158,6 +230,54 @@ export default function SelectBillingPage() {
   const [loadingClientSecret, setLoadingClientSecret] = useState(false);
 
   const plan = searchParams.get('plan') as 'learn' | 'accelerate' | null;
+  const [subscription, setSubscription] = useState<any>(null);
+  const [accountCreatedAt, setAccountCreatedAt] = useState<string | null>(null);
+  const [pageTracked, setPageTracked] = useState(false);
+
+  // Fetch subscription and user data for tracking
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setAccountCreatedAt(user.created_at);
+          
+          // Subscription will be null for users selecting a plan (they don't have one yet)
+          setSubscription(null);
+        }
+      } catch (error) {
+        // Silently fail
+      }
+    };
+    fetchUserData();
+  }, []);
+
+  // Track page view
+  useEffect(() => {
+    if (!plan || pageTracked) return;
+    
+    const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/dashboard/billing/select-billing';
+    const referrer = typeof window !== 'undefined' ? document.referrer : '';
+    let referrerDomain: string | null = null;
+    if (referrer) {
+      try {
+        referrerDomain = new URL(referrer).hostname;
+      } catch {
+        referrerDomain = null;
+      }
+    }
+
+    trackEvent('User Viewed Select Billing Page', {
+      'Page Route': pageRoute,
+      'Plan Selected': plan,
+      'User State': subscription ? 'active_subscriber' : 'no_subscription',
+      'Current Plan': subscription?.plan || null,
+      'Referrer URL': referrer || 'None',
+      'Referrer Domain': referrerDomain || 'None',
+    });
+    setPageTracked(true);
+  }, [plan, subscription, pageTracked]);
 
   useEffect(() => {
     if (!plan) {
@@ -180,8 +300,39 @@ export default function SelectBillingPage() {
         : price / 12;
 
   const handleContinue = async () => {
+    const planData = plans[plan!];
+    const billingData = planData[selectedBilling];
+    const monthlyEquivalent =
+      selectedBilling === 'monthly'
+        ? billingData.price
+        : selectedBilling === 'quarterly'
+          ? billingData.price / 3
+          : billingData.price / 12;
+
+    trackEvent('User Clicked Continue to Payment Button', {
+      'Button Section': 'Billing Cycle Selection Section',
+      'Button Position': 'Bottom center of page',
+      'Button Text': 'Continue to Payment',
+      'Plan Selected': plan!,
+      'Billing Cycle Selected': selectedBilling,
+      'Price': billingData.price,
+      'Monthly Equivalent': monthlyEquivalent,
+      'Savings Percentage': 'savings' in billingData ? billingData.savings : null,
+    });
+
     setShowPaymentForm(true);
     setLoadingClientSecret(true);
+    
+    // Track payment form view
+    trackEvent('User Viewed Payment Form', {
+      'Page Route': typeof window !== 'undefined' ? window.location.pathname : '/dashboard/billing/select-billing',
+      'Form Step': 'payment_form',
+      'Plan Selected': plan!,
+      'Billing Cadence Selected': selectedBilling,
+      'Price': billingData.price,
+      'Order Summary Visible': true,
+      'Payment Form Loaded': false,
+    });
     
     try {
       const response = await fetch('/api/stripe/create-payment-intent', {
@@ -202,6 +353,17 @@ export default function SelectBillingPage() {
 
       const { clientSecret: secret } = await response.json();
       setClientSecret(secret);
+      
+      // Track payment form loaded
+      trackEvent('User Viewed Payment Form', {
+        'Page Route': typeof window !== 'undefined' ? window.location.pathname : '/dashboard/billing/select-billing',
+        'Form Step': 'payment_form',
+        'Plan Selected': plan!,
+        'Billing Cadence Selected': selectedBilling,
+        'Price': billingData.price,
+        'Order Summary Visible': true,
+        'Payment Form Loaded': true,
+      });
     } catch (err) {
       console.error('Error creating payment intent:', err);
       // Still show form, error will be handled in CheckoutForm
@@ -222,13 +384,22 @@ export default function SelectBillingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        <button
+        <TrackedButton
           onClick={() => router.back()}
+          buttonId="select-billing-page-back-button"
+          eventName="User Clicked Back Button"
+          eventProperties={{
+            'Button Section': 'Page Header',
+            'Button Position': 'Top left of page',
+            'Button Text': 'Back',
+            'Plan Selected': plan!,
+            'Billing Cycle Selected': selectedBilling,
+          }}
           className="flex items-center gap-2 text-gray-700 font-semibold mb-8 hover:text-purple-600 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
           Back
-        </button>
+        </TrackedButton>
 
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-4">
@@ -260,7 +431,21 @@ export default function SelectBillingPage() {
                 return (
                   <button
                     key={billing}
-                    onClick={() => setSelectedBilling(billing)}
+                    onClick={() => {
+                      trackEvent('User Selected Billing Cycle', {
+                        'Button Section': 'Billing Cycle Selection Section',
+                        'Button Position': `${billingLabels[billing]} Billing Card`,
+                        'Billing Cycle Selected': billing,
+                        'Plan Selected': plan!,
+                        'Price': billingData.price,
+                        'Monthly Equivalent': monthlyEquivalent,
+                        'Savings Percentage': 'savings' in billingData ? billingData.savings : null,
+                        'Card Position': billing === 'monthly' ? 'First Card' : billing === 'quarterly' ? 'Second Card' : 'Third Card',
+                        'Is Yearly': isYearly,
+                        'Is Most Popular Badge': isYearly,
+                      });
+                      setSelectedBilling(billing);
+                    }}
                     className={`relative p-8 rounded-[2.5rem] border-2 transition-all text-left ${
                       isSelected
                         ? 'border-purple-500 bg-white ring-4 ring-purple-200 shadow-xl'
@@ -315,12 +500,24 @@ export default function SelectBillingPage() {
             </div>
 
             <div className="flex justify-center">
-              <button
+              <TrackedButton
                 onClick={handleContinue}
+                buttonId="select-billing-page-continue-payment-button"
+                eventName="User Clicked Continue to Payment Button"
+                eventProperties={{
+                  'Button Section': 'Billing Cycle Selection Section',
+                  'Button Position': 'Bottom center of page',
+                  'Button Text': 'Continue to Payment',
+                  'Plan Selected': plan!,
+                  'Billing Cycle Selected': selectedBilling,
+                  'Price': price,
+                  'Monthly Equivalent': monthlyEquivalent,
+                  'Savings Percentage': 'savings' in planData[selectedBilling] ? planData[selectedBilling].savings : null,
+                }}
                 className="px-12 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black text-lg hover:from-purple-700 hover:to-pink-700 transition-colors shadow-lg hover:shadow-xl"
               >
                 Continue to Payment
-              </button>
+              </TrackedButton>
             </div>
           </>
         ) : (

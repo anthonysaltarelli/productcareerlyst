@@ -8,6 +8,8 @@ import CreateFromMasterModal from "./CreateFromMasterModal";
 import CloneToMasterModal from "./CloneToMasterModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import ImportResumeModal from "./ImportResumeModal";
+import { trackEvent } from "@/lib/amplitude/client";
+import { getUserPlanClient } from "@/lib/utils/resume-tracking";
 
 type Props = {
   versions: ResumeVersion[];
@@ -186,7 +188,14 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
             <div className="flex gap-3">
               {onImportMaster && (
                 <button
-                  onClick={() => setIsImportModalOpen(true)}
+                  onClick={async () => {
+                    const userPlan = await getUserPlanClient();
+                    trackEvent('User Opened Import Resume Modal', {
+                      'Total Resume Count': versions.length,
+                      'User Plan': userPlan,
+                    });
+                    setIsImportModalOpen(true);
+                  }}
                   className="px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200"
                   aria-label="Import existing resume"
                 >
@@ -217,7 +226,14 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
               <div className="flex gap-3 justify-center">
                 {onImportMaster && (
                   <button
-                    onClick={() => setIsImportModalOpen(true)}
+                    onClick={async () => {
+                      const userPlan = await getUserPlanClient();
+                      trackEvent('User Opened Import Resume Modal', {
+                        'Total Resume Count': versions.length,
+                        'User Plan': userPlan,
+                      });
+                      setIsImportModalOpen(true);
+                    }}
                     className="px-6 py-2 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200"
                     aria-label="Import existing resume"
                   >
@@ -344,8 +360,33 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
         {onImportMaster && (
           <ImportResumeModal
             isOpen={isImportModalOpen}
-            onClose={() => setIsImportModalOpen(false)}
-            onImport={onImportMaster}
+            onClose={async () => {
+              const userPlan = await getUserPlanClient();
+              trackEvent('User Closed Import Resume Modal', {
+                'Modal Action': 'cancelled',
+                'User Plan': userPlan,
+              });
+              setIsImportModalOpen(false);
+            }}
+            onImport={async (file, versionName, isMaster) => {
+              try {
+                await onImportMaster(file, versionName, isMaster);
+                // Track successful import (modal close with imported action)
+                const userPlan = await getUserPlanClient();
+                trackEvent('User Closed Import Resume Modal', {
+                  'Modal Action': 'imported',
+                  'User Plan': userPlan,
+                });
+              } catch (error) {
+                // Track cancelled/error (modal close with cancelled action)
+                const userPlan = await getUserPlanClient();
+                trackEvent('User Closed Import Resume Modal', {
+                  'Modal Action': 'cancelled',
+                  'User Plan': userPlan,
+                });
+                throw error;
+              }
+            }}
           />
         )}
 

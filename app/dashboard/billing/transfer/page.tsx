@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { getUserSubscription } from '@/lib/utils/subscription';
 import { BubbleTransferForm } from '@/app/components/billing/BubbleTransferForm';
+import { BubbleTransferPageTracking } from '@/app/components/billing/BubbleTransferPageTracking';
 
 export default async function TransferPage() {
   const supabase = await createClient();
@@ -10,9 +12,12 @@ export default async function TransferPage() {
     redirect('/auth/login');
   }
 
+  const subscription = await getUserSubscription(user.id);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-8 px-4">
       <div className="max-w-2xl mx-auto">
+        <BubbleTransferPageTracking subscription={subscription} accountCreatedAt={user.created_at} />
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-2">
             Transfer from Bubble

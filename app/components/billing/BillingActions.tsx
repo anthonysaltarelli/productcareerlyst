@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { Subscription } from '@/lib/utils/subscription';
+import { useState, useEffect } from 'react';
 import { CreditCard, X, RotateCcw, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PaymentMethodUpdate } from './PaymentMethodUpdate';
+import { TrackedButton } from '@/app/components/TrackedButton';
+import { trackEvent } from '@/lib/amplitude/client';
+import { getUserStateContextFromSubscription, Subscription } from '@/lib/utils/billing-tracking-client';
 
 interface BillingActionsProps {
   subscription: Subscription | null;
@@ -14,9 +16,40 @@ interface CancelConfirmModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   loading: boolean;
+  subscription: Subscription;
 }
 
-const CancelConfirmModal = ({ onConfirm, onCancel, loading }: CancelConfirmModalProps) => {
+const CancelConfirmModal = ({ onConfirm, onCancel, loading, subscription }: CancelConfirmModalProps) => {
+  const userState = getUserStateContextFromSubscription(subscription, null);
+  
+  const handleKeepSubscription = () => {
+    trackEvent('User Clicked Keep Subscription Button', {
+      'Button Section': 'Cancel Confirmation Modal',
+      'Button Position': 'Left side of modal buttons',
+      'Button Text': 'Keep Subscription',
+      'Current Plan': subscription.plan,
+      'Current Billing Cadence': subscription.billing_cadence,
+      'Days Until Period End': userState.daysUntilPeriodEnd,
+      'Modal Shown': true,
+    });
+    onCancel();
+  };
+
+  const handleConfirmCancel = () => {
+    trackEvent('User Clicked Confirm Cancel Subscription Button', {
+      'Button Section': 'Cancel Confirmation Modal',
+      'Button Position': 'Right side of modal buttons',
+      'Button Text': 'Yes, Cancel Subscription',
+      'Current Plan': subscription.plan,
+      'Current Billing Cadence': subscription.billing_cadence,
+      'Days Since Subscription Start': userState.daysSinceSubscriptionStart,
+      'Days Until Period End': userState.daysUntilPeriodEnd,
+      'Has Used Feature': false, // Would need to fetch this separately
+      'Feature Usage Count': 0, // Would need to fetch this separately
+    });
+    onConfirm();
+  };
+
   return (
     <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-[2.5rem] shadow-2xl border-2 border-gray-200 p-10 max-w-2xl w-full">
@@ -55,22 +88,46 @@ const CancelConfirmModal = ({ onConfirm, onCancel, loading }: CancelConfirmModal
         </div>
 
         <div className="flex gap-4">
-          <button
+          <TrackedButton
             type="button"
-            onClick={onCancel}
+            onClick={handleKeepSubscription}
+            buttonId="cancel-modal-keep-subscription-button"
+            eventName="User Clicked Keep Subscription Button"
+            eventProperties={{
+              'Button Section': 'Cancel Confirmation Modal',
+              'Button Position': 'Left side of modal buttons',
+              'Button Text': 'Keep Subscription',
+              'Current Plan': subscription.plan,
+              'Current Billing Cadence': subscription.billing_cadence,
+              'Days Until Period End': userState.daysUntilPeriodEnd,
+              'Modal Shown': true,
+            }}
             disabled={loading}
             className="flex-1 px-8 py-4 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base"
           >
             Keep Subscription
-          </button>
-          <button
+          </TrackedButton>
+          <TrackedButton
             type="button"
-            onClick={onConfirm}
+            onClick={handleConfirmCancel}
+            buttonId="cancel-modal-confirm-cancel-button"
+            eventName="User Clicked Confirm Cancel Subscription Button"
+            eventProperties={{
+              'Button Section': 'Cancel Confirmation Modal',
+              'Button Position': 'Right side of modal buttons',
+              'Button Text': 'Yes, Cancel Subscription',
+              'Current Plan': subscription.plan,
+              'Current Billing Cadence': subscription.billing_cadence,
+              'Days Since Subscription Start': userState.daysSinceSubscriptionStart,
+              'Days Until Period End': userState.daysUntilPeriodEnd,
+              'Has Used Feature': false,
+              'Feature Usage Count': 0,
+            }}
             disabled={loading}
             className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold hover:from-red-700 hover:to-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base shadow-lg hover:shadow-xl"
           >
             {loading ? 'Processing...' : 'Yes, Cancel Subscription'}
-          </button>
+          </TrackedButton>
         </div>
       </div>
     </div>
@@ -94,10 +151,26 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
   );
 
   const handleCancelClick = () => {
+    if (!subscription) return;
+    const userState = getUserStateContextFromSubscription(subscription, null);
+    
+    trackEvent('User Clicked Cancel Subscription Button', {
+      'Button Section': 'Billing Actions Section',
+      'Button Position': 'Right side of Manage Subscription Card',
+      'Button Text': 'Cancel Subscription',
+      'Current Plan': subscription.plan,
+      'Current Billing Cadence': subscription.billing_cadence,
+      'Days Since Subscription Start': userState.daysSinceSubscriptionStart,
+      'Days Until Period End': userState.daysUntilPeriodEnd,
+      'Has Used Feature': false,
+      'Feature Usage Count': 0,
+    });
     setShowCancelConfirm(true);
   };
 
   const handleCancelConfirm = async () => {
+    if (!subscription) return;
+    
     setLoading(true);
     setError(null);
     setSuccessMessage(null);
@@ -116,6 +189,17 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
         throw new Error(data.error || 'Failed to cancel subscription');
       }
 
+      const userState = getUserStateContextFromSubscription(subscription, null);
+      
+      // Track success
+      trackEvent('Subscription Canceled Successfully', {
+        'Current Plan': subscription.plan,
+        'Current Billing Cadence': subscription.billing_cadence,
+        'Cancel at Period End': true,
+        'Days Until Period End': userState.daysUntilPeriodEnd,
+        'Cancel Date': new Date().toISOString(),
+      });
+
       setSuccessMessage('Your subscription will be canceled at the end of the current billing period.');
       setShowCancelConfirm(false);
       router.refresh();
@@ -126,6 +210,19 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
   };
 
   const handleReactivateSubscription = async () => {
+    if (!subscription) return;
+    
+    const userState = getUserStateContextFromSubscription(subscription, null);
+    
+    trackEvent('User Clicked Reactivate Subscription Button', {
+      'Button Section': 'Billing Actions Section',
+      'Button Position': 'Right side of Manage Subscription Card',
+      'Button Text': 'Reactivate Subscription',
+      'Current Plan': subscription.plan,
+      'Current Billing Cadence': subscription.billing_cadence,
+      'Days Until Period End': userState.daysUntilPeriodEnd,
+    });
+
     setLoading(true);
     setError(null);
     setSuccessMessage(null);
@@ -153,6 +250,16 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
   };
 
   const handlePaymentMethodUpdate = () => {
+    if (!subscription) return;
+    
+    trackEvent('User Clicked Update Payment Method Button', {
+      'Button Section': 'Billing Actions Section',
+      'Button Position': 'Left side of Manage Subscription Card',
+      'Button Text': 'Update Payment Method',
+      'Current Plan': subscription.plan,
+      'Subscription Status': subscription.status,
+      'Has Past Due': subscription.status === 'past_due',
+    });
     setShowPaymentUpdate(true);
   };
 
@@ -183,33 +290,66 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
         )}
 
         <div className="flex gap-4">
-          <button
+          <TrackedButton
             onClick={handlePaymentMethodUpdate}
+            buttonId="billing-page-update-payment-method-button"
+            eventName="User Clicked Update Payment Method Button"
+            eventProperties={{
+              'Button Section': 'Billing Actions Section',
+              'Button Position': 'Left side of Manage Subscription Card',
+              'Button Text': 'Update Payment Method',
+              'Current Plan': subscription.plan,
+              'Subscription Status': subscription.status,
+              'Has Past Due': subscription.status === 'past_due',
+            }}
             disabled={loading}
             className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-purple-200"
           >
             <CreditCard className="w-4 h-4" />
             Update Payment Method
-          </button>
+          </TrackedButton>
 
           {willCancel ? (
-            <button
+            <TrackedButton
               onClick={handleReactivateSubscription}
+              buttonId="billing-page-reactivate-subscription-button"
+              eventName="User Clicked Reactivate Subscription Button"
+              eventProperties={{
+                'Button Section': 'Billing Actions Section',
+                'Button Position': 'Right side of Manage Subscription Card',
+                'Button Text': 'Reactivate Subscription',
+                'Current Plan': subscription.plan,
+                'Current Billing Cadence': subscription.billing_cadence,
+                'Days Until Period End': getUserStateContextFromSubscription(subscription, null).daysUntilPeriodEnd,
+              }}
               disabled={loading}
               className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-green-100 text-green-700 font-bold hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-green-200"
             >
               <RotateCcw className="w-4 h-4" />
               {loading ? 'Reactivating...' : 'Reactivate Subscription'}
-            </button>
+            </TrackedButton>
           ) : (
-            <button
+            <TrackedButton
               onClick={handleCancelClick}
+              buttonId="billing-page-cancel-subscription-button"
+              eventName="User Clicked Cancel Subscription Button"
+              eventProperties={{
+                'Button Section': 'Billing Actions Section',
+                'Button Position': 'Right side of Manage Subscription Card',
+                'Button Text': 'Cancel Subscription',
+                'Current Plan': subscription.plan,
+                'Current Billing Cadence': subscription.billing_cadence,
+                'Days Since Subscription Start': getUserStateContextFromSubscription(subscription, null).daysSinceSubscriptionStart,
+                'Days Until Period End': getUserStateContextFromSubscription(subscription, null).daysUntilPeriodEnd,
+                'Has Used Feature': false,
+                'Feature Usage Count': 0,
+              }}
               disabled={loading}
               className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-red-100 text-red-700 font-bold hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-red-200"
             >
               <X className="w-4 h-4" />
               Cancel Subscription
-            </button>
+            </TrackedButton>
           )}
         </div>
       </div>
@@ -218,14 +358,16 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
         <PaymentMethodUpdate
           onClose={() => setShowPaymentUpdate(false)}
           onSuccess={handlePaymentUpdateSuccess}
+          subscription={subscription}
         />
       )}
 
-      {showCancelConfirm && (
+      {showCancelConfirm && subscription && (
         <CancelConfirmModal
           onConfirm={handleCancelConfirm}
           onCancel={() => setShowCancelConfirm(false)}
           loading={loading}
+          subscription={subscription}
         />
       )}
     </>

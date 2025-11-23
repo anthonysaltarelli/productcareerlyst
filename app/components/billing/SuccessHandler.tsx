@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Check, RefreshCw, AlertCircle } from 'lucide-react';
+import { trackEvent } from '@/lib/amplitude/client';
 
 export const SuccessHandler = () => {
   const router = useRouter();
@@ -15,9 +16,34 @@ export const SuccessHandler = () => {
 
   const success = searchParams.get('success');
   const canceled = searchParams.get('canceled');
+  const successTracked = useRef(false);
 
   useEffect(() => {
     if (success === 'true' && !synced && !syncing && !shouldHide) {
+      // Track success page view if not already tracked
+      if (!successTracked.current) {
+        const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/dashboard/billing';
+        const referrer = typeof window !== 'undefined' ? document.referrer : '';
+        let referrerDomain: string | null = null;
+        if (referrer) {
+          try {
+            referrerDomain = new URL(referrer).hostname;
+          } catch {
+            referrerDomain = null;
+          }
+        }
+
+        trackEvent('User Viewed Billing Page with Success', {
+          'Page Route': pageRoute,
+          'Success Type': 'subscription_created',
+          'Plan': null, // Would need to get from subscription after sync
+          'Billing Cadence': null,
+          'Referrer URL': referrer || 'None',
+          'Success Message': 'Payment successful! Your subscription is being activated...',
+        });
+        successTracked.current = true;
+      }
+      
       // Auto-sync subscription when success=true
       syncSubscription();
     }

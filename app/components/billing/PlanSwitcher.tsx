@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Subscription } from '@/lib/utils/subscription';
 import { ArrowRight, Check, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { TrackedButton } from '@/app/components/TrackedButton';
+import { trackEvent } from '@/lib/amplitude/client';
+import { getUserStateContextFromSubscription, Subscription } from '@/lib/utils/billing-tracking-client';
 
 interface PlanSwitcherProps {
   subscription: Subscription | null;
@@ -71,6 +73,29 @@ export const PlanSwitcher = ({ subscription }: PlanSwitcherProps) => {
       return;
     }
 
+    // Track update button click
+    const isPlanChange = selectedPlan !== subscription.plan;
+    const isBillingChange = selectedBilling !== subscription.billing_cadence;
+    const isUpgrade = selectedPlan === 'accelerate' && subscription.plan === 'learn';
+    const isDowngrade = selectedPlan === 'learn' && subscription.plan === 'accelerate';
+    const willRemoveCancellation = willCancel;
+
+    trackEvent('User Clicked Update Subscription Button', {
+      'Button Section': 'Plan Switcher Expanded Section',
+      'Button Position': 'Bottom of switcher card',
+      'Button Text': 'Update Subscription',
+      'Current Plan': subscription.plan,
+      'New Plan': selectedPlan,
+      'Current Billing Cadence': subscription.billing_cadence,
+      'New Billing Cadence': selectedBilling,
+      'Is Plan Change': isPlanChange,
+      'Is Billing Change': isBillingChange,
+      'Is Upgrade': isUpgrade,
+      'Is Downgrade': isDowngrade,
+      'Cancel at Period End': willCancel,
+      'Will Remove Cancellation': willRemoveCancellation,
+    });
+
     setLoading(true);
     setError(null);
     setSuccess(false);
@@ -90,8 +115,29 @@ export const PlanSwitcher = ({ subscription }: PlanSwitcherProps) => {
       const data = await response.json();
 
       if (!response.ok) {
+        // Track error
+        trackEvent('Subscription Update Error', {
+          'Error Type': 'update_failed',
+          'Error Message': data.error || 'Failed to update subscription',
+          'Current Plan': subscription.plan,
+          'New Plan': selectedPlan,
+          'Current Billing Cadence': subscription.billing_cadence,
+          'New Billing Cadence': selectedBilling,
+        });
         throw new Error(data.error || 'Failed to update subscription');
       }
+
+      // Track success
+      trackEvent('Subscription Updated Successfully', {
+        'Current Plan': subscription.plan,
+        'New Plan': selectedPlan,
+        'Current Billing Cadence': subscription.billing_cadence,
+        'New Billing Cadence': selectedBilling,
+        'Is Plan Change': isPlanChange,
+        'Is Billing Change': isBillingChange,
+        'Is Upgrade': isUpgrade,
+        'Is Downgrade': isDowngrade,
+      });
 
       setSuccess(true);
       setLoading(false);
@@ -108,6 +154,15 @@ export const PlanSwitcher = ({ subscription }: PlanSwitcherProps) => {
   };
 
   const handleExpand = () => {
+    trackEvent('User Clicked Update Plan Button', {
+      'Button Section': 'Plan Switcher Section',
+      'Button Position': 'Right side of Plan Switcher Card',
+      'Button Text': 'Update Plan',
+      'Current Plan': subscription.plan,
+      'Current Billing Cadence': subscription.billing_cadence,
+      'Cancel at Period End': willCancel,
+      'User State': willCancel ? 'canceled_pending_end' : 'active_subscriber',
+    });
     setIsExpanded(true);
     // Reset selections to current subscription when expanding
     setSelectedPlan(subscription.plan);
@@ -117,6 +172,15 @@ export const PlanSwitcher = ({ subscription }: PlanSwitcherProps) => {
   };
 
   const handleCancel = () => {
+    trackEvent('User Clicked Cancel Button', {
+      'Button Section': 'Plan Switcher Expanded Section',
+      'Button Position': 'Top right of switcher card',
+      'Button Text': 'Cancel',
+      'Plan Selected Before Cancel': selectedPlan,
+      'Billing Selected Before Cancel': selectedBilling,
+      'Current Plan': subscription.plan,
+      'Current Billing Cadence': subscription.billing_cadence,
+    });
     setIsExpanded(false);
     setSelectedPlan(subscription.plan);
     setSelectedBilling(subscription.billing_cadence);
@@ -146,12 +210,23 @@ export const PlanSwitcher = ({ subscription }: PlanSwitcherProps) => {
               Switch plans or billing cycles. Changes are prorated automatically.
             </p>
           </div>
-          <button
+          <TrackedButton
             onClick={handleExpand}
+            buttonId="billing-page-plan-switcher-expand-button"
+            eventName="User Clicked Update Plan Button"
+            eventProperties={{
+              'Button Section': 'Plan Switcher Section',
+              'Button Position': 'Right side of Plan Switcher Card',
+              'Button Text': 'Update Plan',
+              'Current Plan': subscription.plan,
+              'Current Billing Cadence': subscription.billing_cadence,
+              'Cancel at Period End': willCancel,
+              'User State': willCancel ? 'canceled_pending_end' : 'active_subscriber',
+            }}
             className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:from-purple-700 hover:to-pink-700 transition-colors"
           >
             Update Plan
-          </button>
+          </TrackedButton>
         </div>
       </div>
     );
@@ -215,17 +290,34 @@ export const PlanSwitcher = ({ subscription }: PlanSwitcherProps) => {
       <div className="mb-6">
         <h3 className="text-lg font-bold text-gray-900 mb-4">Select Plan</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Object.entries(plans).map(([key, plan]) => (
-            <button
-              key={key}
-              onClick={() => setSelectedPlan(key as 'learn' | 'accelerate')}
-              disabled={loading}
-              className={`p-4 rounded-xl border-2 transition-all text-left ${
-                selectedPlan === key
-                  ? 'border-purple-500 bg-purple-50 ring-2 ring-purple-200'
-                  : 'border-gray-200 hover:border-purple-300'
-              } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-            >
+          {Object.entries(plans).map(([key, plan]) => {
+            const planKey = key as 'learn' | 'accelerate';
+            const isUpgrade = planKey === 'accelerate' && subscription.plan === 'learn';
+            const isDowngrade = planKey === 'learn' && subscription.plan === 'accelerate';
+            const isSamePlan = planKey === subscription.plan;
+            
+            return (
+              <button
+                key={key}
+                onClick={() => {
+                  trackEvent('User Selected Plan in Switcher', {
+                    'Button Section': 'Plan Switcher Expanded Section',
+                    'Button Position': 'Plan Selection Cards',
+                    'Plan Selected': planKey,
+                    'Current Plan': subscription.plan,
+                    'Is Upgrade': isUpgrade,
+                    'Is Downgrade': isDowngrade,
+                    'Is Same Plan': isSamePlan,
+                  });
+                  setSelectedPlan(planKey);
+                }}
+                disabled={loading}
+                className={`p-4 rounded-xl border-2 transition-all text-left ${
+                  selectedPlan === key
+                    ? 'border-purple-500 bg-purple-50 ring-2 ring-purple-200'
+                    : 'border-gray-200 hover:border-purple-300'
+                } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+              >
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-bold text-lg text-gray-900">{plan.name}</div>
@@ -236,7 +328,8 @@ export const PlanSwitcher = ({ subscription }: PlanSwitcherProps) => {
                 )}
               </div>
             </button>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -250,10 +343,27 @@ export const PlanSwitcher = ({ subscription }: PlanSwitcherProps) => {
               const billingData = planData[billing];
               const isSelected = selectedBilling === billing;
 
+              const isUpgrade = billing === 'yearly' && subscription.billing_cadence !== 'yearly';
+              const isDowngrade = (billing === 'monthly' && subscription.billing_cadence !== 'monthly') ||
+                                  (billing === 'quarterly' && subscription.billing_cadence === 'yearly');
+              
               return (
                 <button
                   key={billing}
-                  onClick={() => setSelectedBilling(billing)}
+                  onClick={() => {
+                    trackEvent('User Selected Billing Cycle in Switcher', {
+                      'Button Section': 'Plan Switcher Expanded Section',
+                      'Button Position': 'Billing Cycle Selection Cards',
+                      'Billing Cycle Selected': billing,
+                      'Current Billing Cadence': subscription.billing_cadence,
+                      'Plan Selected': selectedPlan,
+                      'Price': billingData.price,
+                      'Savings Percentage': 'savings' in billingData ? billingData.savings : null,
+                      'Is Upgrade': isUpgrade,
+                      'Is Downgrade': isDowngrade,
+                    });
+                    setSelectedBilling(billing);
+                  }}
                   disabled={loading}
                   className={`p-4 rounded-xl border-2 transition-all text-left relative ${
                     isSelected
@@ -293,8 +403,25 @@ export const PlanSwitcher = ({ subscription }: PlanSwitcherProps) => {
       {/* Update Button */}
       {selectedPlan && selectedBilling && !isCurrentSelection && (
         <div className="mt-6">
-          <button
+          <TrackedButton
             onClick={handleUpdate}
+            buttonId="plan-switcher-update-subscription-button"
+            eventName="User Clicked Update Subscription Button"
+            eventProperties={{
+              'Button Section': 'Plan Switcher Expanded Section',
+              'Button Position': 'Bottom of switcher card',
+              'Button Text': 'Update Subscription',
+              'Current Plan': subscription.plan,
+              'New Plan': selectedPlan,
+              'Current Billing Cadence': subscription.billing_cadence,
+              'New Billing Cadence': selectedBilling,
+              'Is Plan Change': selectedPlan !== subscription.plan,
+              'Is Billing Change': selectedBilling !== subscription.billing_cadence,
+              'Is Upgrade': selectedPlan === 'accelerate' && subscription.plan === 'learn',
+              'Is Downgrade': selectedPlan === 'learn' && subscription.plan === 'accelerate',
+              'Cancel at Period End': willCancel,
+              'Will Remove Cancellation': willCancel,
+            }}
             disabled={loading || isCurrentSelection}
             className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:from-purple-700 hover:to-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -309,7 +436,7 @@ export const PlanSwitcher = ({ subscription }: PlanSwitcherProps) => {
                 <ArrowRight className="w-5 h-5" />
               </>
             )}
-          </button>
+          </TrackedButton>
           <p className="text-sm text-gray-600 text-center mt-3">
             Your subscription will be updated immediately with automatic proration. 
             You'll be charged or credited the difference based on the time remaining in your billing period.

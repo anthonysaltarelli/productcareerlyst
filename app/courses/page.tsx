@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { SignUpModal } from '@/app/components/SignUpModal'
 import { PageTracking } from '@/app/components/PageTracking'
-import { trackEvent } from '@/lib/amplitude/client'
+import { trackEventWithContext } from '@/lib/amplitude/client'
 import { TrackedLink } from '@/app/components/TrackedLink'
 import { TrackedButton } from '@/app/components/TrackedButton'
 
@@ -186,7 +186,7 @@ export default function CoursesPage() {
             }
             const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
             
-            trackEvent('User Expanded Course', {
+            trackEventWithContext('User Expanded Course', {
               'Page Route': pageRoute,
               'Course ID': courseId,
               'Course Title': course.title,
@@ -268,7 +268,7 @@ export default function CoursesPage() {
         }
         const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
         
-        trackEvent('User Clicked Lesson', {
+        trackEventWithContext('User Clicked Lesson', {
           'Page Route': pageRoute,
           'Lesson Title': lessonTitle,
           'Course Title': courseTitle || 'Unknown',

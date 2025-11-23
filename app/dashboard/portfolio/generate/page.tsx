@@ -4,6 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import { Loader2, Sparkles, Plus, MessageSquare, Trash2, Calendar, MapPin, DollarSign, Users, Briefcase, Heart, AlertCircle, Target, ThumbsUp, ThumbsDown, Star } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { trackEvent } from '@/lib/amplitude/client';
+import { TrackedLink } from '@/app/components/TrackedLink';
+import { TrackedButton } from '@/app/components/TrackedButton';
+import { PortfolioPageTracking } from '@/app/components/PortfolioPageTracking';
 
 type PortfolioIdea = {
   id: string;
@@ -48,12 +52,46 @@ export default function GenerateIdeasPage() {
   const [showFeedbackInput, setShowFeedbackInput] = useState<Record<string, boolean>>({});
   const inputRef = useRef<HTMLInputElement>(null);
   const contentEndRef = useRef<HTMLDivElement>(null);
+  const [userState, setUserState] = useState<{
+    userPlan: 'learn' | 'accelerate' | null;
+    totalPortfolioRequests: number;
+    totalFavoritedIdeas: number;
+  } | null>(null);
+  const generationStartTime = useRef<number | null>(null);
+  const ideaCardRefs = useRef<Map<string, IntersectionObserver>>(new Map());
+
+  // Fetch user state on mount
+  useEffect(() => {
+    const fetchUserState = async () => {
+      try {
+        const response = await fetch('/api/portfolio/user-state');
+        if (response.ok) {
+          const data = await response.json();
+          setUserState({
+            userPlan: data.state.userPlan,
+            totalPortfolioRequests: data.state.totalPortfolioRequests,
+            totalFavoritedIdeas: data.state.totalFavoritedIdeas,
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching user state:', error);
+      }
+    };
+    fetchUserState();
+  }, []);
 
   // Fetch previous requests on mount
   useEffect(() => {
     fetchRequests();
     fetchFavorites();
   }, []);
+
+  // Determine current view mode
+  const getViewMode = (): 'discover' | 'request_selected' | 'favorites' => {
+    if (showFavorites) return 'favorites';
+    if (selectedRequestId) return 'request_selected';
+    return 'discover';
+  };
 
   // Fetch ratings for ideas when requests are loaded
   useEffect(() => {
@@ -180,6 +218,56 @@ export default function GenerateIdeasPage() {
       return;
     }
 
+    // Track form submission
+    const isRegeneration = !!existingRequestId;
+    const viewMode = getViewMode();
+    setTimeout(() => {
+      try {
+        const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+        const referrer = typeof window !== 'undefined' ? document.referrer : '';
+        let referrerDomain: string | null = null;
+        if (referrer) {
+          try {
+            referrerDomain = new URL(referrer).hostname;
+          } catch {
+            referrerDomain = null;
+          }
+        }
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        
+        trackEvent('User Submitted Generate Ideas Form', {
+          'Button ID': 'portfolio-generate-submit-button',
+          'Button Section': 'Main Content Area',
+          'Button Position': 'Below input field',
+          'Button Text': 'Generate',
+          'Button Type': 'Primary Submit Button',
+          'Button Context': 'Below "Enter an industry or company name" input',
+          'Input Text': textToUse.trim().substring(0, 100), // Truncated for privacy
+          'Input Text Length': textToUse.trim().length,
+          'Input Text Word Count': textToUse.trim().split(/\s+/).filter(Boolean).length,
+          'Is Regeneration': isRegeneration,
+          'Selected Request ID': existingRequestId || null,
+          'Previous Ideas Count': previousIdeas?.length || 0,
+          'View Mode': viewMode,
+          'Total Previous Requests': userState?.totalPortfolioRequests || 0,
+          'Is First Time User': (userState?.totalPortfolioRequests || 0) === 0,
+          'User Plan': userState?.userPlan || null,
+          'Page Route': pageRoute,
+          'Referrer URL': referrer || 'None',
+          'Referrer Domain': referrerDomain || 'None',
+          'UTM Source': urlParams?.get('utm_source') || null,
+          'UTM Medium': urlParams?.get('utm_medium') || null,
+          'UTM Campaign': urlParams?.get('utm_campaign') || null,
+        });
+      } catch (error) {
+        // Silently fail
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ Tracking error (non-blocking):', error);
+        }
+      }
+    }, 0);
+
+    generationStartTime.current = Date.now();
     setIsGenerating(true);
     try {
       const response = await fetch("/api/portfolio/generate-ideas", {
@@ -221,16 +309,149 @@ export default function GenerateIdeasPage() {
       // Refresh ratings after generating new ideas
       await fetchRatings();
       
+      // Track successful generation
+      const generationTime = generationStartTime.current ? (Date.now() - generationStartTime.current) / 1000 : null;
+      setTimeout(() => {
+        try {
+          const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+          const referrer = typeof window !== 'undefined' ? document.referrer : '';
+          let referrerDomain: string | null = null;
+          if (referrer) {
+            try {
+              referrerDomain = new URL(referrer).hostname;
+            } catch {
+              referrerDomain = null;
+            }
+          }
+          const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+          const totalIdeasInRequest = data.request.ideas.length;
+          
+          trackEvent('User Generated Portfolio Ideas Successfully', {
+            'Request ID': data.request.id,
+            'Input Text': textToUse.trim().substring(0, 100),
+            'Input Text Length': textToUse.trim().length,
+            'Is Regeneration': isRegeneration,
+            'Previous Request ID': existingRequestId || null,
+            'Ideas Generated Count': 3,
+            'Total Ideas In Request': totalIdeasInRequest,
+            'Generation Time Seconds': generationTime,
+            'Is First Time User': (userState?.totalPortfolioRequests || 0) === 0,
+            'Total Requests After': (userState?.totalPortfolioRequests || 0) + (isRegeneration ? 0 : 1),
+            'User Plan': userState?.userPlan || null,
+            'Page Route': pageRoute,
+            'Referrer URL': referrer || 'None',
+            'Referrer Domain': referrerDomain || 'None',
+            'UTM Source': urlParams?.get('utm_source') || null,
+            'UTM Medium': urlParams?.get('utm_medium') || null,
+            'UTM Campaign': urlParams?.get('utm_campaign') || null,
+          });
+        } catch (error) {
+          // Silently fail
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('⚠️ Tracking error (non-blocking):', error);
+          }
+        }
+      }, 0);
+      
       toast.success(previousIdeas ? "More ideas generated successfully!" : "Case study ideas generated successfully!");
     } catch (error) {
       console.error("Error generating ideas:", error);
+      
+      // Track error
+      setTimeout(() => {
+        try {
+          const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+          const referrer = typeof window !== 'undefined' ? document.referrer : '';
+          let referrerDomain: string | null = null;
+          if (referrer) {
+            try {
+              referrerDomain = new URL(referrer).hostname;
+            } catch {
+              referrerDomain = null;
+            }
+          }
+          const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          let errorType = 'api_error';
+          if (errorMessage.includes('timeout')) {
+            errorType = 'timeout';
+          } else if (errorMessage.includes('validation') || errorMessage.includes('required')) {
+            errorType = 'validation_error';
+          }
+          
+          trackEvent('User Generated Portfolio Ideas Failed', {
+            'Input Text': textToUse.trim().substring(0, 100),
+            'Input Text Length': textToUse.trim().length,
+            'Error Message': errorMessage.substring(0, 100),
+            'Error Type': errorType,
+            'Is Regeneration': isRegeneration,
+            'Previous Request ID': existingRequestId || null,
+            'User Plan': userState?.userPlan || null,
+            'Total Previous Requests': userState?.totalPortfolioRequests || 0,
+            'Page Route': pageRoute,
+            'Referrer URL': referrer || 'None',
+            'Referrer Domain': referrerDomain || 'None',
+            'UTM Source': urlParams?.get('utm_source') || null,
+            'UTM Medium': urlParams?.get('utm_medium') || null,
+            'UTM Campaign': urlParams?.get('utm_campaign') || null,
+          });
+        } catch (trackingError) {
+          // Silently fail
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('⚠️ Tracking error (non-blocking):', trackingError);
+          }
+        }
+      }, 0);
+      
       toast.error(error instanceof Error ? error.message : "Failed to generate ideas");
     } finally {
       setIsGenerating(false);
+      generationStartTime.current = null;
     }
   };
 
   const handleNewChat = () => {
+    // Track click
+    const viewModeBefore = getViewMode();
+    setTimeout(() => {
+      try {
+        const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+        const referrer = typeof window !== 'undefined' ? document.referrer : '';
+        let referrerDomain: string | null = null;
+        if (referrer) {
+          try {
+            referrerDomain = new URL(referrer).hostname;
+          } catch {
+            referrerDomain = null;
+          }
+        }
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        
+        trackEvent('User Clicked Discover Ideas Button', {
+          'Button ID': 'portfolio-generate-discover-ideas-button',
+          'Button Section': 'Left Sidebar Header',
+          'Button Position': 'Top of Sidebar',
+          'Button Text': 'Discover Ideas',
+          'Button Type': 'Primary Action Button',
+          'Button Context': 'Above favorites and previous requests list',
+          'View Mode Before Click': viewModeBefore,
+          'Total Previous Requests': userState?.totalPortfolioRequests || 0,
+          'User Plan': userState?.userPlan || null,
+          'Page Route': pageRoute,
+          'Referrer URL': referrer || 'None',
+          'Referrer Domain': referrerDomain || 'None',
+          'UTM Source': urlParams?.get('utm_source') || null,
+          'UTM Medium': urlParams?.get('utm_medium') || null,
+          'UTM Campaign': urlParams?.get('utm_campaign') || null,
+        });
+      } catch (error) {
+        // Silently fail
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ Tracking error (non-blocking):', error);
+        }
+      }
+    }, 0);
+
     setInputText("");
     setSelectedRequestId(null);
     inputRef.current?.focus();
@@ -250,6 +471,15 @@ export default function GenerateIdeasPage() {
   };
 
   const handleRateIdea = async (ideaId: string, rating: 'up' | 'down', feedback?: string) => {
+    // Find the idea to get context
+    const idea = requests.flatMap(r => r.ideas).find(i => i.id === ideaId) || 
+                favorites.find(i => i.id === ideaId);
+    const selectedRequest = requests.find(r => r.ideas.some(i => i.id === ideaId));
+    const viewMode = getViewMode();
+    const previousRating = ratings[ideaId];
+    const isRatingChange = !!previousRating;
+    const isFavorited = idea?.is_favorited || favorites.some(f => f.id === ideaId);
+    
     try {
       const response = await fetch(`/api/portfolio/ideas/${ideaId}/rate`, {
         method: 'POST',
@@ -265,6 +495,79 @@ export default function GenerateIdeasPage() {
         // Hide feedback input after successful submission
         setShowFeedbackInput(prev => ({ ...prev, [ideaId]: false }));
         setFeedbackInputs(prev => ({ ...prev, [ideaId]: '' }));
+        
+        // Track rating
+        setTimeout(() => {
+          try {
+            const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+            const referrer = typeof window !== 'undefined' ? document.referrer : '';
+            let referrerDomain: string | null = null;
+            if (referrer) {
+              try {
+                referrerDomain = new URL(referrer).hostname;
+              } catch {
+                referrerDomain = null;
+              }
+            }
+            const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+            
+            if (rating === 'up') {
+              trackEvent('User Rated Idea Thumbs Up', {
+                'Button ID': `portfolio-idea-thumbs-up-${ideaId}`,
+                'Button Section': 'Idea Card Rating Section',
+                'Button Position': 'Bottom of idea card, rating section',
+                'Button Text': '(Icon only - thumbs up icon)',
+                'Button Type': 'Rating Action',
+                'Button Context': 'In "Rate this idea:" section',
+                'Idea ID': ideaId,
+                'Idea Number': idea?.idea_number || null,
+                'Company Name': idea?.company_name || null,
+                'Request ID': selectedRequest?.id || null,
+                'Previous Rating': previousRating?.rating || null,
+                'Is Rating Change': isRatingChange,
+                'View Mode': viewMode,
+                'Is Favorited': isFavorited,
+                'User Plan': userState?.userPlan || null,
+                'Page Route': pageRoute,
+                'Referrer URL': referrer || 'None',
+                'Referrer Domain': referrerDomain || 'None',
+                'UTM Source': urlParams?.get('utm_source') || null,
+                'UTM Medium': urlParams?.get('utm_medium') || null,
+                'UTM Campaign': urlParams?.get('utm_campaign') || null,
+              });
+            } else {
+              trackEvent('User Rated Idea Thumbs Down', {
+                'Button ID': `portfolio-idea-thumbs-down-${ideaId}`,
+                'Button Section': 'Idea Card Rating Section',
+                'Button Position': 'Bottom of idea card, rating section',
+                'Button Text': '(Icon only - thumbs down icon)',
+                'Button Type': 'Rating Action',
+                'Button Context': 'In "Rate this idea:" section',
+                'Idea ID': ideaId,
+                'Idea Number': idea?.idea_number || null,
+                'Company Name': idea?.company_name || null,
+                'Request ID': selectedRequest?.id || null,
+                'Previous Rating': previousRating?.rating || null,
+                'Is Rating Change': isRatingChange,
+                'View Mode': viewMode,
+                'Is Favorited': isFavorited,
+                'User Plan': userState?.userPlan || null,
+                'Page Route': pageRoute,
+                'Referrer URL': referrer || 'None',
+                'Referrer Domain': referrerDomain || 'None',
+                'UTM Source': urlParams?.get('utm_source') || null,
+                'UTM Medium': urlParams?.get('utm_medium') || null,
+                'UTM Campaign': urlParams?.get('utm_campaign') || null,
+              });
+            }
+          } catch (error) {
+            // Silently fail
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('⚠️ Tracking error (non-blocking):', error);
+            }
+          }
+        }, 0);
+        
         toast.success(rating === 'up' ? 'Thanks for the feedback!' : 'Feedback submitted');
       } else {
         const error = await response.json();
@@ -277,12 +580,23 @@ export default function GenerateIdeasPage() {
   };
 
   const handleRemoveRating = async (ideaId: string) => {
+    // Find the idea to get context
+    const idea = requests.flatMap(r => r.ideas).find(i => i.id === ideaId) || 
+                favorites.find(i => i.id === ideaId);
+    const selectedRequest = requests.find(r => r.ideas.some(i => i.id === ideaId));
+    const viewMode = getViewMode();
+    const previousRating = ratings[ideaId];
+    const isFavorited = idea?.is_favorited || favorites.some(f => f.id === ideaId);
+    
     try {
       const response = await fetch(`/api/portfolio/ideas/${ideaId}/rate`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
+        const removedRating = previousRating?.rating || null;
+        const hadFeedback = !!(previousRating?.feedback);
+        
         setRatings(prev => {
           const newRatings = { ...prev };
           delete newRatings[ideaId];
@@ -290,6 +604,47 @@ export default function GenerateIdeasPage() {
         });
         setShowFeedbackInput(prev => ({ ...prev, [ideaId]: false }));
         setFeedbackInputs(prev => ({ ...prev, [ideaId]: '' }));
+        
+        // Track removal
+        setTimeout(() => {
+          try {
+            const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+            const referrer = typeof window !== 'undefined' ? document.referrer : '';
+            let referrerDomain: string | null = null;
+            if (referrer) {
+              try {
+                referrerDomain = new URL(referrer).hostname;
+              } catch {
+                referrerDomain = null;
+              }
+            }
+            const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+            
+            trackEvent('User Removed Idea Rating', {
+              'Idea ID': ideaId,
+              'Idea Number': idea?.idea_number || null,
+              'Company Name': idea?.company_name || null,
+              'Request ID': selectedRequest?.id || null,
+              'Removed Rating': removedRating,
+              'Had Feedback': hadFeedback,
+              'Time Since Rated': null, // Would need to track when rating was created
+              'View Mode': viewMode,
+              'Is Favorited': isFavorited,
+              'User Plan': userState?.userPlan || null,
+              'Page Route': pageRoute,
+              'Referrer URL': referrer || 'None',
+              'Referrer Domain': referrerDomain || 'None',
+              'UTM Source': urlParams?.get('utm_source') || null,
+              'UTM Medium': urlParams?.get('utm_medium') || null,
+              'UTM Campaign': urlParams?.get('utm_campaign') || null,
+            });
+          } catch (error) {
+            // Silently fail
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('⚠️ Tracking error (non-blocking):', error);
+            }
+          }
+        }, 0);
       }
     } catch (error) {
       console.error('Error removing rating:', error);
@@ -297,6 +652,13 @@ export default function GenerateIdeasPage() {
   };
 
   const handleToggleFavorite = async (ideaId: string, isFavorited: boolean) => {
+    // Find the idea to get context
+    const idea = requests.flatMap(r => r.ideas).find(i => i.id === ideaId) || 
+                favorites.find(i => i.id === ideaId);
+    const selectedRequest = requests.find(r => r.ideas.some(i => i.id === ideaId));
+    const viewMode = getViewMode();
+    const totalFavoritesBefore = favorites.length;
+    
     try {
       const response = await fetch(`/api/portfolio/ideas/${ideaId}/favorite`, {
         method: isFavorited ? 'DELETE' : 'POST',
@@ -324,6 +686,79 @@ export default function GenerateIdeasPage() {
           await fetchFavorites();
         }
 
+        // Track the action
+        setTimeout(() => {
+          try {
+            const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+            const referrer = typeof window !== 'undefined' ? document.referrer : '';
+            let referrerDomain: string | null = null;
+            if (referrer) {
+              try {
+                referrerDomain = new URL(referrer).hostname;
+              } catch {
+                referrerDomain = null;
+              }
+            }
+            const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+            const totalFavoritesAfter = isFavorited ? totalFavoritesBefore - 1 : totalFavoritesBefore + 1;
+            
+            if (isFavorited) {
+              trackEvent('User Unfavorited Portfolio Idea', {
+                'Button ID': `portfolio-idea-unfavorite-${ideaId}`,
+                'Button Section': 'Idea Card',
+                'Button Position': 'Top right of idea card',
+                'Button Text': '(Icon only - filled star icon)',
+                'Button Type': 'Unfavorite Action',
+                'Button Context': 'Top right corner of idea card',
+                'Idea ID': ideaId,
+                'Idea Number': idea?.idea_number || null,
+                'Company Name': idea?.company_name || null,
+                'Request ID': selectedRequest?.id || null,
+                'View Mode': viewMode,
+                'Total Favorites Before': totalFavoritesBefore,
+                'Total Favorites After': totalFavoritesAfter,
+                'User Plan': userState?.userPlan || null,
+                'Page Route': pageRoute,
+                'Referrer URL': referrer || 'None',
+                'Referrer Domain': referrerDomain || 'None',
+                'UTM Source': urlParams?.get('utm_source') || null,
+                'UTM Medium': urlParams?.get('utm_medium') || null,
+                'UTM Campaign': urlParams?.get('utm_campaign') || null,
+              });
+            } else {
+              trackEvent('User Favorited Portfolio Idea', {
+                'Button ID': `portfolio-idea-favorite-${ideaId}`,
+                'Button Section': 'Idea Card',
+                'Button Position': 'Top right of idea card',
+                'Button Text': '(Icon only - star icon)',
+                'Button Type': 'Favorite Action',
+                'Button Context': 'Top right corner of idea card',
+                'Idea ID': ideaId,
+                'Idea Number': idea?.idea_number || null,
+                'Company Name': idea?.company_name || null,
+                'Request ID': selectedRequest?.id || null,
+                'Request Input Text': selectedRequest?.input_text?.substring(0, 50) || null,
+                'View Mode': viewMode,
+                'Total Favorites Before': totalFavoritesBefore,
+                'Total Favorites After': totalFavoritesAfter,
+                'Is First Favorite': totalFavoritesBefore === 0,
+                'User Plan': userState?.userPlan || null,
+                'Page Route': pageRoute,
+                'Referrer URL': referrer || 'None',
+                'Referrer Domain': referrerDomain || 'None',
+                'UTM Source': urlParams?.get('utm_source') || null,
+                'UTM Medium': urlParams?.get('utm_medium') || null,
+                'UTM Campaign': urlParams?.get('utm_campaign') || null,
+              });
+            }
+          } catch (error) {
+            // Silently fail
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('⚠️ Tracking error (non-blocking):', error);
+            }
+          }
+        }, 0);
+
         toast.success(isFavorited ? 'Removed from favorites' : 'Added to favorites');
       } else {
         toast.error('Failed to update favorite');
@@ -339,13 +774,33 @@ export default function GenerateIdeasPage() {
   const displayedIdeas = showFavorites ? favorites : (selectedRequest?.ideas || []);
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <>
+      <PortfolioPageTracking 
+        pageName="Portfolio Generate Ideas" 
+        viewMode={getViewMode()}
+        selectedRequestId={selectedRequestId}
+      />
+      <div className="flex h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Left Sidebar - Previous Requests */}
       <aside className="w-72 bg-white/80 backdrop-blur-sm border-r border-slate-200 flex flex-col flex-shrink-0 overflow-y-auto shadow-lg">
         {/* Header */}
         <div className="p-4 border-b border-slate-200 flex-shrink-0">
-          <Link
+          <TrackedLink
             href="/dashboard/portfolio"
+            linkId="portfolio-generate-back-to-portfolio-link"
+            eventName="User Clicked Back to Portfolio Link"
+            eventProperties={{
+              'Link Section': 'Left Sidebar Header',
+              'Link Position': 'Top of Sidebar',
+              'Link Text': 'Back to Portfolio',
+              'Link Type': 'Navigation Link',
+              'Link Context': 'Above Discover Ideas button',
+              'Link Destination': '/dashboard/portfolio',
+              'View Mode': getViewMode(),
+              'Total Requests': requests.length,
+              'Total Favorites': favorites.length,
+              'User Plan': userState?.userPlan || null,
+            }}
             className="text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors mb-3 block flex items-center gap-2"
           >
             <svg
@@ -362,22 +817,85 @@ export default function GenerateIdeasPage() {
               />
             </svg>
             Back to Portfolio
-          </Link>
-          <button
+          </TrackedLink>
+          <TrackedButton
             onClick={handleNewChat}
+            buttonId="portfolio-generate-discover-ideas-button"
+            eventName="User Clicked Discover Ideas Button"
+            eventProperties={{
+              'Button Section': 'Left Sidebar Header',
+              'Button Position': 'Top of Sidebar',
+              'Button Text': 'Discover Ideas',
+              'Button Type': 'Primary Action Button',
+              'Button Context': 'Above favorites and previous requests list',
+              'View Mode Before Click': getViewMode(),
+              'Total Previous Requests': userState?.totalPortfolioRequests || 0,
+              'User Plan': userState?.userPlan || null,
+            }}
             className="w-full px-4 py-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-sm"
           >
             <Plus className="w-4 h-4" />
             Discover Ideas
-          </button>
+          </TrackedButton>
         </div>
 
         {/* Favorites Section */}
         <div className="px-4 py-2 border-b border-slate-200">
-          <button
+          <TrackedButton
             onClick={() => {
+              const viewModeBefore = getViewMode();
+              setTimeout(() => {
+                try {
+                  const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+                  const referrer = typeof window !== 'undefined' ? document.referrer : '';
+                  let referrerDomain: string | null = null;
+                  if (referrer) {
+                    try {
+                      referrerDomain = new URL(referrer).hostname;
+                    } catch {
+                      referrerDomain = null;
+                    }
+                  }
+                  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+                  
+                  trackEvent('User Clicked Favorites Tab', {
+                    'Button ID': 'portfolio-generate-favorites-tab',
+                    'Button Section': 'Left Sidebar Favorites Section',
+                    'Button Position': 'Below Discover Ideas Button',
+                    'Button Text': 'Favorites',
+                    'Button Type': 'Navigation Tab',
+                    'Button Context': 'Between Discover Ideas and Requests List',
+                    'Favorites Count': favorites.length,
+                    'View Mode Before Click': viewModeBefore,
+                    'User Plan': userState?.userPlan || null,
+                    'Page Route': pageRoute,
+                    'Referrer URL': referrer || 'None',
+                    'Referrer Domain': referrerDomain || 'None',
+                    'UTM Source': urlParams?.get('utm_source') || null,
+                    'UTM Medium': urlParams?.get('utm_medium') || null,
+                    'UTM Campaign': urlParams?.get('utm_campaign') || null,
+                  });
+                } catch (error) {
+                  // Silently fail
+                  if (process.env.NODE_ENV === 'development') {
+                    console.warn('⚠️ Tracking error (non-blocking):', error);
+                  }
+                }
+              }, 0);
               setShowFavorites(true);
               setSelectedRequestId(null);
+            }}
+            buttonId="portfolio-generate-favorites-tab"
+            eventName="User Clicked Favorites Tab"
+            eventProperties={{
+              'Button Section': 'Left Sidebar Favorites Section',
+              'Button Position': 'Below Discover Ideas Button',
+              'Button Text': 'Favorites',
+              'Button Type': 'Navigation Tab',
+              'Button Context': 'Between Discover Ideas and Requests List',
+              'Favorites Count': favorites.length,
+              'View Mode Before Click': getViewMode(),
+              'User Plan': userState?.userPlan || null,
             }}
             className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 ${
               showFavorites
@@ -392,7 +910,7 @@ export default function GenerateIdeasPage() {
                 {favorites.length}
               </span>
             )}
-          </button>
+          </TrackedButton>
         </div>
 
         {/* Requests List */}
@@ -408,10 +926,56 @@ export default function GenerateIdeasPage() {
             </div>
           ) : (
             <div className="space-y-1">
-              {requests.map((request) => (
+              {requests.map((request, index) => {
+                const requestAgeDays = Math.floor((Date.now() - new Date(request.created_at).getTime()) / (1000 * 60 * 60 * 24));
+                return (
                 <div
                   key={request.id}
                   onClick={() => {
+                    const viewModeBefore = getViewMode();
+                    setTimeout(() => {
+                      try {
+                        const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+                        const referrer = typeof window !== 'undefined' ? document.referrer : '';
+                        let referrerDomain: string | null = null;
+                        if (referrer) {
+                          try {
+                            referrerDomain = new URL(referrer).hostname;
+                          } catch {
+                            referrerDomain = null;
+                          }
+                        }
+                        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+                        
+                        trackEvent('User Clicked Previous Request', {
+                          'Button ID': `portfolio-generate-request-${request.id}`,
+                          'Button Section': 'Left Sidebar Requests List',
+                          'Button Position': 'In Requests List',
+                          'Button Text': request.input_text.substring(0, 50),
+                          'Button Type': 'Request History Item',
+                          'Button Context': 'In chronological list of previous requests',
+                          'Request ID': request.id,
+                          'Request Input Text': request.input_text.substring(0, 50),
+                          'Request Created Date': request.created_at,
+                          'Request Age Days': requestAgeDays,
+                          'Ideas Count': request.ideas.length,
+                          'Request Index': index + 1,
+                          'View Mode Before Click': viewModeBefore,
+                          'User Plan': userState?.userPlan || null,
+                          'Page Route': pageRoute,
+                          'Referrer URL': referrer || 'None',
+                          'Referrer Domain': referrerDomain || 'None',
+                          'UTM Source': urlParams?.get('utm_source') || null,
+                          'UTM Medium': urlParams?.get('utm_medium') || null,
+                          'UTM Campaign': urlParams?.get('utm_campaign') || null,
+                        });
+                      } catch (error) {
+                        // Silently fail
+                        if (process.env.NODE_ENV === 'development') {
+                          console.warn('⚠️ Tracking error (non-blocking):', error);
+                        }
+                      }
+                    }, 0);
                     setSelectedRequestId(request.id);
                     setShowFavorites(false);
                   }}
@@ -445,7 +1009,8 @@ export default function GenerateIdeasPage() {
                     </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -487,9 +1052,28 @@ export default function GenerateIdeasPage() {
                         Press Cmd/Ctrl + Enter to generate
                       </p>
                     </div>
-                    <button
+                    <TrackedButton
                       onClick={() => handleGenerateIdeas()}
                       disabled={isGenerating || !inputText.trim()}
+                      buttonId="portfolio-generate-submit-button"
+                      eventName="User Submitted Generate Ideas Form"
+                      eventProperties={{
+                        'Button Section': 'Main Content Area',
+                        'Button Position': 'Below input field',
+                        'Button Text': 'Generate',
+                        'Button Type': 'Primary Submit Button',
+                        'Button Context': 'Below "Enter an industry or company name" input',
+                        'Input Text': inputText.trim().substring(0, 100),
+                        'Input Text Length': inputText.trim().length,
+                        'Input Text Word Count': inputText.trim().split(/\s+/).filter(Boolean).length,
+                        'Is Regeneration': false,
+                        'Selected Request ID': null,
+                        'Previous Ideas Count': 0,
+                        'View Mode': getViewMode(),
+                        'Total Previous Requests': userState?.totalPortfolioRequests || 0,
+                        'Is First Time User': (userState?.totalPortfolioRequests || 0) === 0,
+                        'User Plan': userState?.userPlan || null,
+                      }}
                       className="w-full px-6 py-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
                     >
                       {isGenerating ? (
@@ -503,7 +1087,7 @@ export default function GenerateIdeasPage() {
                           Generate
                         </>
                       )}
-                    </button>
+                    </TrackedButton>
                   </div>
                 </div>
               </div>
@@ -821,6 +1405,54 @@ export default function GenerateIdeasPage() {
                                     onClick={() => {
                                       const feedback = feedbackInputs[idea.id] ?? currentRating?.feedback ?? '';
                                       if (feedback.trim()) {
+                                        // Track feedback submission
+                                        const isUpdate = !!(currentRating?.rating === 'down' && currentRating.feedback);
+                                        setTimeout(() => {
+                                          try {
+                                            const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+                                            const referrer = typeof window !== 'undefined' ? document.referrer : '';
+                                            let referrerDomain: string | null = null;
+                                            if (referrer) {
+                                              try {
+                                                referrerDomain = new URL(referrer).hostname;
+                                              } catch {
+                                                referrerDomain = null;
+                                              }
+                                            }
+                                            const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+                                            const selectedRequest = requests.find(r => r.ideas.some(i => i.id === idea.id));
+                                            
+                                            trackEvent('User Submitted Idea Feedback', {
+                                              'Button ID': `portfolio-idea-submit-feedback-${idea.id}`,
+                                              'Button Section': 'Idea Card Feedback Section',
+                                              'Button Position': 'Below feedback textarea',
+                                              'Button Text': isUpdate ? 'Update Feedback' : 'Submit Feedback',
+                                              'Button Type': 'Feedback Submit Button',
+                                              'Button Context': 'In feedback input section after thumbs down',
+                                              'Idea ID': idea.id,
+                                              'Idea Number': idea.idea_number || null,
+                                              'Company Name': idea.company_name || null,
+                                              'Request ID': selectedRequest?.id || null,
+                                              'Feedback Text Length': feedback.trim().length,
+                                              'Feedback Word Count': feedback.trim().split(/\s+/).filter(Boolean).length,
+                                              'Is Update': isUpdate,
+                                              'View Mode': getViewMode(),
+                                              'Is Favorited': idea.is_favorited || favorites.some(f => f.id === idea.id),
+                                              'User Plan': userState?.userPlan || null,
+                                              'Page Route': pageRoute,
+                                              'Referrer URL': referrer || 'None',
+                                              'Referrer Domain': referrerDomain || 'None',
+                                              'UTM Source': urlParams?.get('utm_source') || null,
+                                              'UTM Medium': urlParams?.get('utm_medium') || null,
+                                              'UTM Campaign': urlParams?.get('utm_campaign') || null,
+                                            });
+                                          } catch (error) {
+                                            // Silently fail
+                                            if (process.env.NODE_ENV === 'development') {
+                                              console.warn('⚠️ Tracking error (non-blocking):', error);
+                                            }
+                                          }
+                                        }, 0);
                                         handleRateIdea(idea.id, 'down', feedback.trim());
                                       } else {
                                         toast.error('Please provide feedback');
@@ -857,16 +1489,74 @@ export default function GenerateIdeasPage() {
                 {/* Generate More Button - Only show for selected request */}
                 {selectedRequest && !showFavorites && (
                   <div className="mt-6 flex justify-center">
-                    <button
+                    <TrackedButton
                       onClick={() => {
+                        const requestAgeDays = selectedRequest.created_at 
+                          ? Math.floor((Date.now() - new Date(selectedRequest.created_at).getTime()) / (1000 * 60 * 60 * 24))
+                          : 0;
+                        setTimeout(() => {
+                          try {
+                            const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+                            const referrer = typeof window !== 'undefined' ? document.referrer : '';
+                            let referrerDomain: string | null = null;
+                            if (referrer) {
+                              try {
+                                referrerDomain = new URL(referrer).hostname;
+                              } catch {
+                                referrerDomain = null;
+                              }
+                            }
+                            const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+                            
+                            trackEvent('User Clicked Generate More Ideas Button', {
+                              'Button ID': 'portfolio-generate-more-ideas-button',
+                              'Button Section': 'Main Content Area',
+                              'Button Position': 'Below ideas list, centered',
+                              'Button Text': 'Generate More Ideas',
+                              'Button Type': 'Secondary Action Button',
+                              'Button Context': 'After viewing generated ideas',
+                              'Request ID': selectedRequest.id,
+                              'Request Input Text': selectedRequest.input_text.substring(0, 50),
+                              'Current Ideas Count': selectedRequest.ideas.length,
+                              'Request Age Days': requestAgeDays,
+                              'View Mode': 'request_selected',
+                              'User Plan': userState?.userPlan || null,
+                              'Page Route': pageRoute,
+                              'Referrer URL': referrer || 'None',
+                              'Referrer Domain': referrerDomain || 'None',
+                              'UTM Source': urlParams?.get('utm_source') || null,
+                              'UTM Medium': urlParams?.get('utm_medium') || null,
+                              'UTM Campaign': urlParams?.get('utm_campaign') || null,
+                            });
+                          } catch (error) {
+                            // Silently fail
+                            if (process.env.NODE_ENV === 'development') {
+                              console.warn('⚠️ Tracking error (non-blocking):', error);
+                            }
+                          }
+                        }, 0);
                         handleGenerateIdeas(selectedRequest.ideas, selectedRequest.input_text, selectedRequest.id);
                       }}
                       disabled={isGenerating}
+                      buttonId="portfolio-generate-more-ideas-button"
+                      eventName="User Clicked Generate More Ideas Button"
+                      eventProperties={{
+                        'Button Section': 'Main Content Area',
+                        'Button Position': 'Below ideas list, centered',
+                        'Button Text': 'Generate More Ideas',
+                        'Button Type': 'Secondary Action Button',
+                        'Button Context': 'After viewing generated ideas',
+                        'Request ID': selectedRequest.id,
+                        'Request Input Text': selectedRequest.input_text.substring(0, 50),
+                        'Current Ideas Count': selectedRequest.ideas.length,
+                        'View Mode': 'request_selected',
+                        'User Plan': userState?.userPlan || null,
+                      }}
                       className="px-6 py-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
                     >
                       <Sparkles className="w-4 h-4" />
                       Generate More Ideas
-                    </button>
+                    </TrackedButton>
                   </div>
                 )}
               </div>
@@ -885,6 +1575,7 @@ export default function GenerateIdeasPage() {
         </div>
       </main>
     </div>
+    </>
   );
 }
 

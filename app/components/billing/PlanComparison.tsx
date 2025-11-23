@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { Check, X } from 'lucide-react';
+import { TrackedButton } from '@/app/components/TrackedButton';
+import { trackEvent } from '@/lib/amplitude/client';
 
 const plans = {
   learn: {
@@ -65,9 +67,11 @@ const featureList = [
 export const PlanComparison = () => {
   const router = useRouter();
 
-  const handleContinue = (plan: 'learn' | 'accelerate') => {
-    router.push(`/dashboard/billing/select-billing?plan=${plan}`);
-  };
+  // Determine which page we're on
+  const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/dashboard/billing';
+  const isBillingPage = pageRoute === '/dashboard/billing';
+  const isPlansPage = pageRoute === '/dashboard/billing/plans';
+  const pagePrefix = isBillingPage ? 'billing-page' : isPlansPage ? 'plans-page' : 'plan-comparison';
 
   const acceleratePlan = plans.accelerate;
   const learnPlan = plans.learn;
@@ -80,6 +84,24 @@ export const PlanComparison = () => {
     if (feature === false) return 'not-included';
     if (feature === Infinity) return 'unlimited';
     return 'not-included';
+  };
+
+  const handleContinue = (plan: 'learn' | 'accelerate') => {
+    router.push(`/dashboard/billing/select-billing?plan=${plan}`);
+  };
+
+  const handleFeatureRowClick = (feature: typeof featureList[0], rowIndex: number) => {
+    const accelerateValue = getFeatureValue(plans.accelerate, feature.key);
+    const learnValue = getFeatureValue(plans.learn, feature.key);
+    
+    trackEvent('User Clicked Feature Comparison Row', {
+      'Button Section': 'Feature Comparison Table',
+      'Feature Name': feature.label,
+      'Feature Key': feature.key,
+      'Learn Plan Value': learnValue,
+      'Accelerate Plan Value': accelerateValue,
+      'Row Position': rowIndex + 1,
+    });
   };
 
   return (
@@ -113,12 +135,26 @@ export const PlanComparison = () => {
               </div>
             </div>
             <div className="mt-auto">
-              <button
+              <TrackedButton
                 onClick={() => handleContinue('learn')}
+                buttonId={`${pagePrefix}-no-sub-plan-learn-card`}
+                eventName="User Clicked Plan Card"
+                eventProperties={{
+                  'Button Section': 'Plan Comparison Section',
+                  'Button Position': 'Learn Plan Card',
+                  'Button Text': 'Continue',
+                  'Plan Selected': 'learn',
+                  'Plan Price Display': `$${learnMonthlyPriceFromYearly.toFixed(0)}/mo`,
+                  'Plan Savings Display': 'Save 40% annually',
+                  'User State': 'no_subscription',
+                  'Page Section': 'Above the fold',
+                  'Card Position': 'First Plan Card',
+                  'Card Highlighted': false,
+                }}
                 className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-[0_8px_0_0_rgba(147,51,234,0.5)] hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.5)]"
               >
                 Continue
-              </button>
+              </TrackedButton>
             </div>
           </div>
         </div>
@@ -161,12 +197,26 @@ export const PlanComparison = () => {
                 <p className="text-sm font-semibold text-gray-500 italic">+ more</p>
               </div>
             </div>
-            <button
+            <TrackedButton
               onClick={() => handleContinue('accelerate')}
+              buttonId={`${pagePrefix}-no-sub-plan-accelerate-card`}
+              eventName="User Clicked Plan Card"
+              eventProperties={{
+                'Button Section': 'Plan Comparison Section',
+                'Button Position': 'Accelerate Plan Card',
+                'Button Text': 'Continue',
+                'Plan Selected': 'accelerate',
+                'Plan Price Display': `$${accelerateMonthlyPriceFromYearly.toFixed(0)}/mo`,
+                'Plan Savings Display': 'Save 40% annually',
+                'User State': 'no_subscription',
+                'Page Section': 'Above the fold',
+                'Card Position': 'Second Plan Card',
+                'Card Highlighted': true,
+              }}
               className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-[0_8px_0_0_rgba(147,51,234,0.5)] hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.5)]"
             >
               Continue
-            </button>
+            </TrackedButton>
           </div>
         </div>
       </div>
@@ -194,12 +244,16 @@ export const PlanComparison = () => {
             </tr>
           </thead>
           <tbody>
-            {featureList.map((feature) => {
+            {featureList.map((feature, index) => {
               const accelerateValue = getFeatureValue(acceleratePlan, feature.key);
               const learnValue = getFeatureValue(learnPlan, feature.key);
 
               return (
-                <tr key={feature.key} className="border-b border-gray-100">
+                <tr 
+                  key={feature.key} 
+                  className="border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => handleFeatureRowClick(feature, index)}
+                >
                   <td className="py-3 px-6 font-bold text-sm text-gray-900">
                     {feature.label}
                   </td>

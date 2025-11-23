@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Experience } from "./mockData";
 import BulletEditor from "./BulletEditor";
+import { trackEvent } from "@/lib/amplitude/client";
+import { getUserPlanClient } from "@/lib/utils/resume-tracking";
 
 type Props = {
   experience: Experience;
@@ -15,6 +17,7 @@ type Props = {
   onAddBullet?: (content: string) => Promise<void>;
   hideHeader?: boolean;
   hideBulletHeader?: boolean;
+  resumeVersionId?: string;
 };
 
 export default function ExperienceCard({
@@ -28,6 +31,7 @@ export default function ExperienceCard({
   onAddBullet,
   hideHeader = false,
   hideBulletHeader = false,
+  resumeVersionId,
 }: Props) {
   const [isExpanded, setIsExpanded] = useState(isFirst);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -40,6 +44,23 @@ export default function ExperienceCard({
   const handleDragStart = (index: number) => (e: React.DragEvent) => {
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = "move";
+    
+    // Track drag start
+    if (resumeVersionId) {
+      const bullet = bullets[index];
+      getUserPlanClient().then(userPlan => {
+        trackEvent('User Started Dragging Bullet', {
+          'Resume Version ID': resumeVersionId,
+          'Experience ID': experience.id,
+          'Bullet ID': bullet.id,
+          'Company Name': experience.company,
+          'Role Title': experience.title,
+          'Current Position': index,
+          'User Plan': userPlan,
+        });
+      });
+    }
+    
     // Add a slight opacity to show it's being dragged
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.opacity = "0.5";
@@ -52,6 +73,10 @@ export default function ExperienceCard({
 
     if (draggedIndex === null || draggedIndex === index) return;
 
+    const previousPosition = draggedIndex;
+    const dragStartTime = (e.currentTarget as any).__dragStartTime || Date.now();
+    (e.currentTarget as any).__dragStartTime = dragStartTime;
+
     // Reorder the bullets array
     const newBullets = [...bullets];
     const draggedBullet = newBullets[draggedIndex];
@@ -60,6 +85,22 @@ export default function ExperienceCard({
     
     onExperienceChange({ ...experience, bullets: newBullets });
     setDraggedIndex(index);
+    
+    // Track reorder when position actually changes
+    if (resumeVersionId && previousPosition !== index) {
+      getUserPlanClient().then(userPlan => {
+        trackEvent('User Reordered Bullet', {
+          'Resume Version ID': resumeVersionId,
+          'Experience ID': experience.id,
+          'Bullet ID': draggedBullet.id,
+          'Previous Position': previousPosition,
+          'New Position': index,
+          'Company Name': experience.company,
+          'Role Title': experience.title,
+          'User Plan': userPlan,
+        });
+      });
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -67,6 +108,14 @@ export default function ExperienceCard({
   };
 
   const handleDragEnd = () => {
+    // Track drop if position changed
+    if (draggedIndex !== null && resumeVersionId) {
+      const bullet = bullets[draggedIndex];
+      // The new position is already reflected in the bullets array
+      // We'll track this when the drag actually completes and position is confirmed
+      // For now, we'll track it in the drag over handler when position actually changes
+    }
+    
     setDraggedIndex(null);
     // Reset opacity
     const draggedElements = document.querySelectorAll('[draggable="true"]');
@@ -77,9 +126,12 @@ export default function ExperienceCard({
     });
   };
 
-  const handleToggleSelection = (bulletId: string) => (checked: boolean) => {
+  const handleToggleSelection = (bulletId: string) => async (checked: boolean) => {
     const bulletIndex = bullets.findIndex((b) => b.id === bulletId);
     if (bulletIndex === -1) return;
+
+    const bullet = bullets[bulletIndex];
+    const previousSelectionState = bullet.isSelected;
 
     const newBullets = [...bullets];
 
@@ -122,18 +174,58 @@ export default function ExperienceCard({
       newBullets.splice(targetIndex, 0, movedBullet);
     }
 
+    // Track toggle selection
+    if (resumeVersionId && previousSelectionState !== checked) {
+      const userPlan = await getUserPlanClient();
+      const totalSelectedBullets = newBullets.filter(b => b.isSelected).length;
+      
+      trackEvent('User Toggled Bullet Selection', {
+        'Resume Version ID': resumeVersionId,
+        'Experience ID': experience.id,
+        'Bullet ID': bulletId,
+        'Previous Selection State': previousSelectionState,
+        'New Selection State': checked,
+        'Company Name': experience.company,
+        'Role Title': experience.title,
+        'Total Selected Bullets': totalSelectedBullets,
+        'User Plan': userPlan,
+      });
+    }
+
     onExperienceChange({ ...experience, bullets: newBullets });
   };
 
-  const handleBulletContentChange = (bulletId: string) => (newContent: string) => {
+  const handleBulletContentChange = (bulletId: string) => async (newContent: string) => {
     const bulletIndex = bullets.findIndex((b) => b.id === bulletId);
     if (bulletIndex === -1) return;
+
+    const bullet = bullets[bulletIndex];
+    const previousContentLength = bullet.content.length;
+    const contentChanged = bullet.content !== newContent;
 
     const newBullets = [...bullets];
     newBullets[bulletIndex] = {
       ...newBullets[bulletIndex],
       content: newContent,
     };
+
+    // Track edit bullet (debounced)
+    if (resumeVersionId && contentChanged) {
+      setTimeout(async () => {
+        const userPlan = await getUserPlanClient();
+        trackEvent('User Edited Bullet', {
+          'Resume Version ID': resumeVersionId,
+          'Experience ID': experience.id,
+          'Bullet ID': bulletId,
+          'Company Name': experience.company,
+          'Role Title': experience.title,
+          'Previous Content Length': previousContentLength,
+          'New Content Length': newContent.length,
+          'Content Changed': true,
+          'User Plan': userPlan,
+        });
+      }, 1000);
+    }
 
     onExperienceChange({ ...experience, bullets: newBullets });
   };
@@ -357,6 +449,10 @@ export default function ExperienceCard({
                 onDragEnd={handleDragEnd}
                 onToggleSelection={handleToggleSelection(bullet.id)}
                 onContentChange={handleBulletContentChange(bullet.id)}
+                resumeVersionId={resumeVersionId}
+                experienceId={experience.id}
+                companyName={experience.company}
+                roleTitle={experience.title}
               />
             ))}
           </div>
