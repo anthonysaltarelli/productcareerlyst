@@ -203,10 +203,61 @@ const handleClick = (e: React.MouseEvent) => {
 #### How trackEvent Works
 
 - `trackEvent()` is **synchronous** (returns immediately)
+- **Single-sending strategy**: Uses Browser SDK if initialized, otherwise falls back to API route
+- **NEVER send both**: Each event is sent exactly once (Browser SDK OR API route, never both)
 - Browser SDK tracking happens synchronously (if available)
 - API route tracking uses `Promise.race()` with 50ms timeout for `getUser()`
 - All fetch requests are fire-and-forget (no await)
 - Errors are handled silently (warnings only in dev mode)
+
+#### Single-Sending Strategy (CRITICAL)
+
+**Each event must be sent exactly ONCE, not twice.**
+
+**✅ CORRECT:**
+- Use `trackEvent()` from `@/lib/amplitude/client` - it handles single-sending automatically
+- Browser SDK is preferred when initialized (enables Session Replay)
+- API route is used as fallback when Browser SDK is not available
+- The client library checks `isBrowserSdkInitialized()` to decide which method to use
+
+**❌ NEVER DO:**
+- Never call both `trackEventBrowser()` AND `trackEvent()` for the same event
+- Never call both Browser SDK and API route directly
+- Never send events via multiple methods simultaneously
+- Never bypass the client library's single-sending logic
+
+**Decision Logic:**
+```typescript
+// ✅ CORRECT - Use client library (handles single-sending)
+import { trackEvent } from '@/lib/amplitude/client';
+trackEvent('User Clicked Button', { ... });
+
+// ❌ WRONG - Don't call both methods
+trackEventBrowser('User Clicked Button', { ... });  // Browser SDK
+trackEvent('User Clicked Button', { ... });         // Also sends to API route = DOUBLE SEND!
+
+// ❌ WRONG - Don't bypass client library
+import { trackEventBrowser } from '@/lib/amplitude/browser';
+import { trackEvent } from '@/lib/amplitude/client';
+// Calling both = DOUBLE SEND!
+```
+
+**For API Routes:**
+- API routes use server-side SDK (`@/lib/amplitude/server`)
+- **CRITICAL**: Never `await` tracking calls in API routes - always fire-and-forget
+- Server-side tracking is separate from client-side tracking
+- Example:
+  ```typescript
+  // ✅ CORRECT - Fire-and-forget
+  trackEvent(eventType, eventProperties, userId, deviceId).catch((error) => {
+    // Handle errors silently
+  });
+  return NextResponse.json({ success: true }); // Return immediately
+
+  // ❌ WRONG - Blocks API response
+  await trackEvent(eventType, eventProperties, userId, deviceId);
+  return NextResponse.json({ success: true }); // Waits 30+ seconds!
+  ```
 
 #### Components Already Non-Blocking
 
@@ -223,7 +274,9 @@ const handleClick = (e: React.MouseEvent) => {
 3. **Use TrackedButton/TrackedLink**: Don't use raw trackEvent for clicks
 4. **Include all required properties**: Section, Position, Text, Type, Context
 5. **Ensure non-blocking**: Use setTimeout for click handlers
-6. **Test**: Verify event fires with all properties AND navigation is instant
+6. **Use client library only**: Always import from `@/lib/amplitude/client`, never call Browser SDK directly
+7. **Verify single-sending**: Check Amplitude dashboard to ensure events aren't duplicated
+8. **Test**: Verify event fires with all properties AND navigation is instant
 
 ### Reference Files
 
