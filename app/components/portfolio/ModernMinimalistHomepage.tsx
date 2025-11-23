@@ -5,7 +5,7 @@ import { FontCombination } from '@/lib/constants/portfolio-fonts';
 import { getColorValue } from '@/lib/utils/portfolio-colors';
 import CaseStudyCarousel from './CaseStudyCarousel';
 
-interface CaseStudy {
+interface PortfolioItem {
   id: string;
   title: string;
   description: string;
@@ -14,25 +14,34 @@ interface CaseStudy {
   order: number;
 }
 
+interface PortfolioSection {
+  id: string;
+  title: string;
+  items: PortfolioItem[];
+  order: number;
+}
+
 interface ModernMinimalistHomepageProps {
   siteTitle: string;
   siteSubtitle: string;
   bio: string;
-  caseStudies: CaseStudy[];
+  sections: PortfolioSection[];
   colorPalette: ColorPalette;
   fontCombination: FontCombination;
-  onCaseStudyClick: (caseStudyId: string) => void;
+  onItemClick: (itemId: string) => void;
 }
 
 export default function ModernMinimalistHomepage({
   siteTitle,
   siteSubtitle,
   bio,
-  caseStudies,
+  sections,
   colorPalette,
   fontCombination,
-  onCaseStudyClick,
+  onItemClick,
 }: ModernMinimalistHomepageProps) {
+  const sortedSections = [...sections].sort((a, b) => a.order - b.order);
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: getColorValue(colorPalette.colors.bg) }}>
       {/* Header */}
@@ -53,15 +62,32 @@ export default function ModernMinimalistHomepage({
         )}
       </header>
 
-      {/* Carousel */}
-      <div className="mt-8">
-        <CaseStudyCarousel
-          caseStudies={caseStudies}
-          colorPalette={colorPalette}
-          fontCombination={fontCombination}
-          onCardClick={onCaseStudyClick}
-        />
-      </div>
+      {/* Sections */}
+      {sortedSections.map((section) => (
+        section.items && section.items.length > 0 && (
+          <div key={section.id} className="mt-12 md:mt-16">
+            {/* Section Title */}
+            <div className="px-4 md:px-8 mb-6">
+              <h2
+                className={`${fontCombination.headingFont} font-light text-2xl md:text-3xl`}
+                style={{ color: getColorValue(colorPalette.colors.text) }}
+              >
+                {section.title}
+              </h2>
+            </div>
+
+            {/* Section Carousel */}
+            <div>
+              <CaseStudyCarousel
+                caseStudies={section.items}
+                colorPalette={colorPalette}
+                fontCombination={fontCombination}
+                onCardClick={onItemClick}
+              />
+            </div>
+          </div>
+        )
+      ))}
 
       {/* Bio Section */}
       {bio && (

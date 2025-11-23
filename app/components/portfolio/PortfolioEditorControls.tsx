@@ -1,32 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import { ColorPalette, PORTFOLIO_COLOR_PALETTES } from '@/lib/constants/portfolio-palettes';
 import { FontCombination, PORTFOLIO_FONT_COMBINATIONS } from '@/lib/constants/portfolio-fonts';
+import { PORTFOLIO_TEMPLATES } from '@/lib/constants/portfolio-templates';
 import { getColorValue } from '@/lib/utils/portfolio-colors';
-
-interface Metric {
-  id: string;
-  label: string;
-  value: string;
-}
-
-interface CaseStudy {
-  id: string;
-  title: string;
-  description: string;
-  heroImage: string;
-  problemDiscover: string;
-  problemDefine: string;
-  solutionDevelop: string;
-  solutionDeliver: string;
-  process: string;
-  metrics: Metric[];
-  outcomes: string;
-  images: string[];
-  tags: string[];
-  order: number;
-}
+import { PageContent, PortfolioSection } from '@/lib/types/portfolio-content';
+import ContentBlockEditor from './ContentBlockEditor';
 
 interface PortfolioEditorControlsProps {
   siteTitle: string;
@@ -39,14 +18,18 @@ interface PortfolioEditorControlsProps {
   onColorPaletteChange: (palette: ColorPalette) => void;
   fontCombination: FontCombination;
   onFontCombinationChange: (font: FontCombination) => void;
-  caseStudies: CaseStudy[];
-  selectedCaseStudyId: string | null;
-  onSelectCaseStudy: (id: string | null) => void;
-  onAddCaseStudy: () => void;
-  onDeleteCaseStudy: (id: string) => void;
-  onMoveCaseStudyUp: (id: string) => void;
-  onMoveCaseStudyDown: (id: string) => void;
-  onUpdateCaseStudy: (id: string, updates: Partial<CaseStudy>) => void;
+  templateId: string;
+  onTemplateChange: (templateId: string) => void;
+  sections: PortfolioSection[];
+  selectedSectionId: string | null;
+  selectedItemId: string | null;
+  onSelectSection: (sectionId: string | null) => void;
+  onSelectItem: (sectionId: string, itemId: string) => void;
+  onAddItem: (sectionId: string) => void;
+  onDeleteItem: (sectionId: string, itemId: string) => void;
+  onMoveItemUp: (sectionId: string, itemId: string) => void;
+  onMoveItemDown: (sectionId: string, itemId: string) => void;
+  onUpdateItem: (sectionId: string, itemId: string, updates: Partial<PageContent>) => void;
   onSave: () => void;
 }
 
@@ -61,83 +44,31 @@ export default function PortfolioEditorControls({
   onColorPaletteChange,
   fontCombination,
   onFontCombinationChange,
-  caseStudies,
-  selectedCaseStudyId,
-  onSelectCaseStudy,
-  onAddCaseStudy,
-  onDeleteCaseStudy,
-  onMoveCaseStudyUp,
-  onMoveCaseStudyDown,
-  onUpdateCaseStudy,
+  templateId,
+  onTemplateChange,
+  sections,
+  selectedSectionId,
+  selectedItemId,
+  onSelectSection,
+  onSelectItem,
+  onAddItem,
+  onDeleteItem,
+  onMoveItemUp,
+  onMoveItemDown,
+  onUpdateItem,
   onSave,
 }: PortfolioEditorControlsProps) {
-  const selectedCaseStudy = caseStudies.find((cs) => cs.id === selectedCaseStudyId) || null;
-  const sortedCaseStudies = [...caseStudies].sort((a, b) => a.order - b.order);
+  const sortedSections = [...sections].sort((a, b) => a.order - b.order);
+  const selectedSection = sections.find((s) => s.id === selectedSectionId);
+  const selectedItem = selectedSection?.items.find((item) => item.id === selectedItemId) || null;
 
-  const handleAddMetric = (caseStudyId: string) => {
-    const newMetric: Metric = {
-      id: `metric-${Date.now()}`,
-      label: '',
-      value: '',
-    };
-    const caseStudy = caseStudies.find((cs) => cs.id === caseStudyId);
-    if (caseStudy) {
-      onUpdateCaseStudy(caseStudyId, {
-        metrics: [...(caseStudy.metrics || []), newMetric],
-      });
-    }
-  };
-
-  const handleUpdateMetric = (caseStudyId: string, metricId: string, updates: Partial<Metric>) => {
-    const caseStudy = caseStudies.find((cs) => cs.id === caseStudyId);
-    if (caseStudy) {
-      onUpdateCaseStudy(caseStudyId, {
-        metrics: (caseStudy.metrics || []).map((m) =>
-          m.id === metricId ? { ...m, ...updates } : m
-        ),
-      });
-    }
-  };
-
-  const handleDeleteMetric = (caseStudyId: string, metricId: string) => {
-    const caseStudy = caseStudies.find((cs) => cs.id === caseStudyId);
-    if (caseStudy) {
-      onUpdateCaseStudy(caseStudyId, {
-        metrics: (caseStudy.metrics || []).filter((m) => m.id !== metricId),
-      });
-    }
-  };
-
-  const handleAddImage = (caseStudyId: string) => {
-    const caseStudy = caseStudies.find((cs) => cs.id === caseStudyId);
-    if (caseStudy) {
-      onUpdateCaseStudy(caseStudyId, {
-        images: [...(caseStudy.images || []), ''],
-      });
-    }
-  };
-
-  const handleUpdateImage = (caseStudyId: string, index: number, url: string) => {
-    const caseStudy = caseStudies.find((cs) => cs.id === caseStudyId);
-    if (caseStudy) {
-      const newImages = [...(caseStudy.images || [])];
-      newImages[index] = url;
-      onUpdateCaseStudy(caseStudyId, { images: newImages });
-    }
-  };
-
-  const handleDeleteImage = (caseStudyId: string, index: number) => {
-    const caseStudy = caseStudies.find((cs) => cs.id === caseStudyId);
-    if (caseStudy) {
-      const newImages = [...(caseStudy.images || [])];
-      newImages.splice(index, 1);
-      onUpdateCaseStudy(caseStudyId, { images: newImages });
-    }
-  };
-
-  const handleUpdateTags = (caseStudyId: string, tagsString: string) => {
+  const handleUpdateTags = (sectionId: string, itemId: string, tagsString: string) => {
     const tags = tagsString.split(',').map((t) => t.trim()).filter(Boolean);
-    onUpdateCaseStudy(caseStudyId, { tags });
+    onUpdateItem(sectionId, itemId, { tags });
+  };
+
+  const handleUpdateBlocks = (sectionId: string, itemId: string, blocks: PageContent['contentBlocks']) => {
+    onUpdateItem(sectionId, itemId, { contentBlocks: blocks });
   };
 
   return (
@@ -152,6 +83,25 @@ export default function PortfolioEditorControls({
             Save Portfolio
           </button>
         </div>
+
+        {/* Template Selector */}
+        <section>
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Template</h2>
+          <select
+            value={templateId}
+            onChange={(e) => onTemplateChange(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            {PORTFOLIO_TEMPLATES.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.icon} {template.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            {PORTFOLIO_TEMPLATES.find((t) => t.id === templateId)?.description}
+          </p>
+        </section>
 
         {/* Design Settings */}
         <section>
@@ -189,9 +139,9 @@ export default function PortfolioEditorControls({
               onChange={(e) => onBioChange(e.target.value)}
               rows={6}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="I design for startups of all sizes. When you have a groundbreaking business idea, but nothing anyone can look at or click on, that's where I come in..."
+              placeholder="I design for startups of all sizes..."
             />
-            <p className="text-xs text-gray-500 mt-1">This text will appear below your case studies</p>
+            <p className="text-xs text-gray-500 mt-1">This text will appear below your sections</p>
           </div>
 
           {/* Color Palette Selector */}
@@ -245,83 +195,93 @@ export default function PortfolioEditorControls({
           </div>
         </section>
 
-        {/* Case Studies List */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Case Studies</h2>
-            <button
-              onClick={onAddCaseStudy}
-              className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              + Add
-            </button>
-          </div>
-          <div className="space-y-2">
-            {sortedCaseStudies.map((caseStudy, index) => (
-              <div
-                key={caseStudy.id}
-                className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                  selectedCaseStudyId === caseStudy.id
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <button
-                    onClick={() => onSelectCaseStudy(caseStudy.id)}
-                    className="flex-1 text-left font-medium text-gray-900"
-                  >
-                    {caseStudy.title || 'Untitled Case Study'}
-                  </button>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onMoveCaseStudyUp(caseStudy.id);
-                      }}
-                      disabled={index === 0}
-                      className="p-1 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      ↑
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onMoveCaseStudyDown(caseStudy.id);
-                      }}
-                      disabled={index === sortedCaseStudies.length - 1}
-                      className="p-1 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      ↓
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteCaseStudy(caseStudy.id);
-                      }}
-                      className="p-1 text-red-600 hover:text-red-700"
-                    >
-                      ×
-                    </button>
-                  </div>
-                </div>
+        {/* Sections */}
+        {sortedSections.map((section) => {
+          const sortedItems = [...section.items].sort((a, b) => a.order - b.order);
+          const isSectionSelected = selectedSectionId === section.id;
+          
+          return (
+            <section key={section.id}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-gray-900">{section.title}</h2>
+                <button
+                  onClick={() => onAddItem(section.id)}
+                  className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  + Add
+                </button>
               </div>
-            ))}
-          </div>
-        </section>
+              <div className="space-y-2">
+                {sortedItems.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                      selectedItemId === item.id && isSectionSelected
+                        ? 'border-blue-600 bg-blue-50'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <button
+                        onClick={() => onSelectItem(section.id, item.id)}
+                        className="flex-1 text-left font-medium text-gray-900"
+                      >
+                        {item.title || 'Untitled Item'}
+                      </button>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onMoveItemUp(section.id, item.id);
+                          }}
+                          disabled={index === 0}
+                          className="p-1 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onMoveItemDown(section.id, item.id);
+                          }}
+                          disabled={index === sortedItems.length - 1}
+                          className="p-1 text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          ↓
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteItem(section.id, item.id);
+                          }}
+                          className="p-1 text-red-600 hover:text-red-700"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {sortedItems.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4">No items yet. Click "+ Add" to add one.</p>
+                )}
+              </div>
+            </section>
+          );
+        })}
 
-        {/* Case Study Editor */}
-        {selectedCaseStudy && (
+        {/* Item Editor */}
+        {selectedItem && selectedSectionId && (
           <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Edit Case Study</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Edit Item</h2>
             <div className="space-y-4">
               {/* Title */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
                 <input
                   type="text"
-                  value={selectedCaseStudy.title}
-                  onChange={(e) => onUpdateCaseStudy(selectedCaseStudy.id, { title: e.target.value })}
+                  value={selectedItem.title}
+                  onChange={(e) => onUpdateItem(selectedSectionId, selectedItem.id, { title: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -330,8 +290,8 @@ export default function PortfolioEditorControls({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea
-                  value={selectedCaseStudy.description}
-                  onChange={(e) => onUpdateCaseStudy(selectedCaseStudy.id, { description: e.target.value })}
+                  value={selectedItem.description}
+                  onChange={(e) => onUpdateItem(selectedSectionId, selectedItem.id, { description: e.target.value })}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -342,157 +302,11 @@ export default function PortfolioEditorControls({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Hero Image URL</label>
                 <input
                   type="text"
-                  value={selectedCaseStudy.heroImage}
-                  onChange={(e) => onUpdateCaseStudy(selectedCaseStudy.id, { heroImage: e.target.value })}
+                  value={selectedItem.heroImage}
+                  onChange={(e) => onUpdateItem(selectedSectionId, selectedItem.id, { heroImage: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="https://..."
                 />
-              </div>
-
-              {/* Problem Section */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Problem</label>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Discover</label>
-                    <textarea
-                      value={selectedCaseStudy.problemDiscover}
-                      onChange={(e) => onUpdateCaseStudy(selectedCaseStudy.id, { problemDiscover: e.target.value })}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Define</label>
-                    <textarea
-                      value={selectedCaseStudy.problemDefine}
-                      onChange={(e) => onUpdateCaseStudy(selectedCaseStudy.id, { problemDefine: e.target.value })}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Solution Section */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Solution</label>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Develop</label>
-                    <textarea
-                      value={selectedCaseStudy.solutionDevelop}
-                      onChange={(e) => onUpdateCaseStudy(selectedCaseStudy.id, { solutionDevelop: e.target.value })}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Deliver</label>
-                    <textarea
-                      value={selectedCaseStudy.solutionDeliver}
-                      onChange={(e) => onUpdateCaseStudy(selectedCaseStudy.id, { solutionDeliver: e.target.value })}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Process */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Process</label>
-                <textarea
-                  value={selectedCaseStudy.process}
-                  onChange={(e) => onUpdateCaseStudy(selectedCaseStudy.id, { process: e.target.value })}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              {/* Results */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Results</label>
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-xs text-gray-600">Metrics</label>
-                      <button
-                        onClick={() => handleAddMetric(selectedCaseStudy.id)}
-                        className="text-xs text-blue-600 hover:text-blue-700"
-                      >
-                        + Add Metric
-                      </button>
-                    </div>
-                    <div className="space-y-2">
-                      {(selectedCaseStudy.metrics || []).map((metric) => (
-                        <div key={metric.id} className="flex gap-2">
-                          <input
-                            type="text"
-                            value={metric.label}
-                            onChange={(e) => handleUpdateMetric(selectedCaseStudy.id, metric.id, { label: e.target.value })}
-                            placeholder="Label"
-                            className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                          <input
-                            type="text"
-                            value={metric.value}
-                            onChange={(e) => handleUpdateMetric(selectedCaseStudy.id, metric.id, { value: e.target.value })}
-                            placeholder="Value"
-                            className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                          <button
-                            onClick={() => handleDeleteMetric(selectedCaseStudy.id, metric.id)}
-                            className="px-2 text-red-600 hover:text-red-700"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Outcomes</label>
-                    <textarea
-                      value={selectedCaseStudy.outcomes}
-                      onChange={(e) => onUpdateCaseStudy(selectedCaseStudy.id, { outcomes: e.target.value })}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Image Gallery */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">Image Gallery</label>
-                  <button
-                    onClick={() => handleAddImage(selectedCaseStudy.id)}
-                    className="text-xs text-blue-600 hover:text-blue-700"
-                  >
-                    + Add Image
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  {(selectedCaseStudy.images || []).map((image, index) => (
-                    <div key={index} className="flex gap-2">
-                      <input
-                        type="text"
-                        value={image}
-                        onChange={(e) => handleUpdateImage(selectedCaseStudy.id, index, e.target.value)}
-                        placeholder="Image URL"
-                        className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <button
-                        onClick={() => handleDeleteImage(selectedCaseStudy.id, index)}
-                        className="px-2 text-red-600 hover:text-red-700"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
               </div>
 
               {/* Tags */}
@@ -500,12 +314,21 @@ export default function PortfolioEditorControls({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
                 <input
                   type="text"
-                  value={(selectedCaseStudy.tags || []).join(', ')}
-                  onChange={(e) => handleUpdateTags(selectedCaseStudy.id, e.target.value)}
+                  value={(selectedItem.tags || []).join(', ')}
+                  onChange={(e) => handleUpdateTags(selectedSectionId, selectedItem.id, e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="tag1, tag2, tag3"
                 />
-                <p className="text-xs text-gray-500 mt-1">Separate tags with commas</p>
+                <p className="text-xs text-gray-500 mt-1">Separate tags with commas (2-3 recommended)</p>
+              </div>
+
+              {/* Content Blocks Editor */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Content Blocks</label>
+                <ContentBlockEditor
+                  blocks={selectedItem.contentBlocks || []}
+                  onBlocksChange={(blocks) => handleUpdateBlocks(selectedSectionId, selectedItem.id, blocks)}
+                />
               </div>
             </div>
           </section>
@@ -514,4 +337,3 @@ export default function PortfolioEditorControls({
     </div>
   );
 }
-

@@ -11,20 +11,28 @@ interface Metric {
   value: string;
 }
 
-interface CaseStudy {
+interface PortfolioItem {
   id: string;
   title: string;
   description: string;
   heroImage: string;
-  problemDiscover: string;
-  problemDefine: string;
-  solutionDevelop: string;
-  solutionDeliver: string;
-  process: string;
-  metrics: Metric[];
-  outcomes: string;
-  images: string[];
   tags: string[];
+  order: number;
+  // Full case study details (for detail view)
+  problemDiscover?: string;
+  problemDefine?: string;
+  solutionDevelop?: string;
+  solutionDeliver?: string;
+  process?: string;
+  metrics?: Metric[];
+  outcomes?: string;
+  images?: string[];
+}
+
+interface PortfolioSection {
+  id: string;
+  title: string;
+  items: PortfolioItem[];
   order: number;
 }
 
@@ -33,11 +41,11 @@ interface ModernMinimalistPreviewProps {
   siteTitle: string;
   siteSubtitle: string;
   bio: string;
-  caseStudies: CaseStudy[];
-  selectedCaseStudy: CaseStudy | null;
+  sections: PortfolioSection[];
+  selectedItem: PortfolioItem | null;
   colorPalette: ColorPalette;
   fontCombination: FontCombination;
-  onCaseStudyClick: (caseStudyId: string) => void;
+  onItemClick: (itemId: string) => void;
   onBackToHomepage: () => void;
 }
 
@@ -46,17 +54,34 @@ export default function ModernMinimalistPreview({
   siteTitle,
   siteSubtitle,
   bio,
-  caseStudies,
-  selectedCaseStudy,
+  sections,
+  selectedItem,
   colorPalette,
   fontCombination,
-  onCaseStudyClick,
+  onItemClick,
   onBackToHomepage,
 }: ModernMinimalistPreviewProps) {
-  if (view === 'case-study-detail') {
+  if (view === 'case-study-detail' && selectedItem) {
+    // Convert PortfolioItem to CaseStudy format for detail view
+    const caseStudy = {
+      id: selectedItem.id,
+      title: selectedItem.title,
+      description: selectedItem.description,
+      heroImage: selectedItem.heroImage,
+      problemDiscover: selectedItem.problemDiscover || '',
+      problemDefine: selectedItem.problemDefine || '',
+      solutionDevelop: selectedItem.solutionDevelop || '',
+      solutionDeliver: selectedItem.solutionDeliver || '',
+      process: selectedItem.process || '',
+      metrics: selectedItem.metrics || [],
+      outcomes: selectedItem.outcomes || '',
+      images: selectedItem.images || [],
+      tags: selectedItem.tags || [],
+    };
+    
     return (
       <CaseStudyDetailPreview
-        caseStudy={selectedCaseStudy}
+        caseStudy={caseStudy}
         colorPalette={colorPalette}
         fontCombination={fontCombination}
         onBack={onBackToHomepage}
@@ -69,10 +94,10 @@ export default function ModernMinimalistPreview({
       siteTitle={siteTitle}
       siteSubtitle={siteSubtitle}
       bio={bio}
-      caseStudies={caseStudies}
+      sections={sections}
       colorPalette={colorPalette}
       fontCombination={fontCombination}
-      onCaseStudyClick={onCaseStudyClick}
+      onItemClick={onItemClick}
     />
   );
 }

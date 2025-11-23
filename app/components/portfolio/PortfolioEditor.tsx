@@ -1,123 +1,243 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ColorPalette, PORTFOLIO_COLOR_PALETTES } from '@/lib/constants/portfolio-palettes';
 import { FontCombination, PORTFOLIO_FONT_COMBINATIONS } from '@/lib/constants/portfolio-fonts';
-import ModernMinimalistPreview from './ModernMinimalistPreview';
+import { PortfolioContent, PageContent, PortfolioSection, PortfolioTheme } from '@/lib/types/portfolio-content';
+import { getTemplate, PORTFOLIO_TEMPLATES } from '@/lib/constants/portfolio-templates';
+import { migrateLegacyItemToPageContent } from '@/lib/utils/portfolio-migration';
+import { createContentBlock } from '@/lib/utils/content-blocks';
 import PortfolioEditorControls from './PortfolioEditorControls';
+import TemplatePreview from './TemplatePreview';
 
-interface Metric {
-  id: string;
-  label: string;
-  value: string;
-}
-
-interface CaseStudy {
+// Legacy interfaces for migration
+interface LegacyPortfolioItem {
   id: string;
   title: string;
   description: string;
   heroImage: string;
-  problemDiscover: string;
-  problemDefine: string;
-  solutionDevelop: string;
-  solutionDeliver: string;
-  process: string;
-  metrics: Metric[];
-  outcomes: string;
-  images: string[];
   tags: string[];
+  order: number;
+  problemDiscover?: string;
+  problemDefine?: string;
+  solutionDevelop?: string;
+  solutionDeliver?: string;
+  process?: string;
+  metrics?: Array<{ id: string; label: string; value: string }>;
+  outcomes?: string;
+  images?: string[];
+}
+
+interface LegacyPortfolioSection {
+  id: string;
+  title: string;
+  items: LegacyPortfolioItem[];
   order: number;
 }
 
 interface PortfolioEditorProps {
-  initialCaseStudies?: CaseStudy[];
+  initialSections?: PortfolioSection[] | LegacyPortfolioSection[];
   initialColorPalette?: ColorPalette;
   initialFontCombination?: FontCombination;
   initialSiteTitle?: string;
   initialSiteSubtitle?: string;
   initialBio?: string;
+  initialTemplateId?: string;
 }
 
+const createDefaultSections = (): PortfolioSection[] => [
+  {
+    id: 'work',
+    title: 'Work',
+    items: [],
+    order: 0,
+  },
+  {
+    id: 'case-studies',
+    title: 'Case Studies',
+    items: [],
+    order: 1,
+  },
+  {
+    id: 'side-projects',
+    title: 'Side Projects',
+    items: [],
+    order: 2,
+  },
+];
+
+// Migrate legacy sections to new format
+const migrateSections = (sections: PortfolioSection[] | LegacyPortfolioSection[]): PortfolioSection[] => {
+  // Check if it's legacy format (has items with old structure)
+  const firstItem = sections[0]?.items[0];
+  if (firstItem && 'problemDiscover' in firstItem) {
+    // Legacy format - migrate
+    return sections.map((section) => ({
+      ...section,
+      items: (section.items as LegacyPortfolioItem[]).map((item) =>
+        migrateLegacyItemToPageContent(item)
+      ),
+    })) as PortfolioSection[];
+  }
+  return sections as PortfolioSection[];
+};
+
 export default function PortfolioEditor({
-  initialCaseStudies = [],
+  initialSections,
   initialColorPalette = PORTFOLIO_COLOR_PALETTES[0],
   initialFontCombination = PORTFOLIO_FONT_COMBINATIONS[0],
   initialSiteTitle = 'Product Portfolio',
   initialSiteSubtitle = '',
   initialBio = '',
+  initialTemplateId = 'modern-minimalist',
 }: PortfolioEditorProps) {
   const [siteTitle, setSiteTitle] = useState(initialSiteTitle);
   const [siteSubtitle, setSiteSubtitle] = useState(initialSiteSubtitle);
   const [bio, setBio] = useState(initialBio);
   const [colorPalette, setColorPalette] = useState<ColorPalette>(initialColorPalette);
   const [fontCombination, setFontCombination] = useState<FontCombination>(initialFontCombination);
-  const [caseStudies, setCaseStudies] = useState<CaseStudy[]>(initialCaseStudies);
-  const [selectedCaseStudyId, setSelectedCaseStudyId] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<'homepage' | 'case-study-detail'>('homepage');
+  const [templateId, setTemplateId] = useState(initialTemplateId);
+  const [sections, setSections] = useState<PortfolioSection[]>(() => {
+    if (initialSections) {
+      return migrateSections(initialSections);
+    }
+    return createDefaultSections();
+  });
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<'homepage' | 'detail'>('homepage');
 
-  const selectedCaseStudy = caseStudies.find((cs) => cs.id === selectedCaseStudyId) || null;
+  // Get current template
+  const template = getTemplate(templateId) || PORTFOLIO_TEMPLATES[0];
 
-  const handleAddCaseStudy = () => {
-    const newCaseStudy: CaseStudy = {
-      id: `case-study-${Date.now()}`,
-      title: 'New Case Study',
-      description: '',
-      heroImage: '',
-      problemDiscover: '',
-      problemDefine: '',
-      solutionDevelop: '',
-      solutionDeliver: '',
-      process: '',
-      metrics: [],
-      outcomes: '',
-      images: [],
-      tags: [],
-      order: caseStudies.length,
-    };
-    setCaseStudies([...caseStudies, newCaseStudy]);
-    setSelectedCaseStudyId(newCaseStudy.id);
+  // Build portfolio content
+  const portfolioContent: PortfolioContent = {
+    siteTitle,
+    siteSubtitle,
+    bio,
+    sections,
   };
 
-  const handleDeleteCaseStudy = (id: string) => {
-    const newCaseStudies = caseStudies.filter((cs) => cs.id !== id);
-    setCaseStudies(newCaseStudies);
-    if (selectedCaseStudyId === id) {
-      setSelectedCaseStudyId(null);
+  // Build theme
+  const theme: PortfolioTheme = {
+    colorPalette,
+    fontCombination,
+    spacing: 'normal',
+    borderRadius: 'medium',
+  };
+
+  // Find selected item across all sections
+  const selectedItem = sections
+    .flatMap((s) => s.items)
+    .find((item) => item.id === selectedItemId) || null;
+
+  const handleAddItem = (sectionId: string) => {
+    const newItemId = `item-${Date.now()}`;
+    const newItem: PageContent = {
+      id: newItemId,
+      title: 'New Item',
+      description: '',
+      heroImage: '',
+      tags: [],
+      order: 0,
+      contentBlocks: [
+        createContentBlock('hero-image', 0, { images: [] }),
+        createContentBlock('title-description', 1, { title: 'New Item', description: '' }),
+      ],
+    };
+    
+    setSections(
+      sections.map((section) => {
+        if (section.id === sectionId) {
+          newItem.order = section.items.length;
+          return {
+            ...section,
+            items: [...section.items, newItem],
+          };
+        }
+        return section;
+      })
+    );
+    
+    setSelectedSectionId(sectionId);
+    setSelectedItemId(newItemId);
+    setCurrentView('detail');
+  };
+
+  const handleDeleteItem = (sectionId: string, itemId: string) => {
+    setSections(
+      sections.map((section) => {
+        if (section.id === sectionId) {
+          return {
+            ...section,
+            items: section.items.filter((item) => item.id !== itemId),
+          };
+        }
+        return section;
+      })
+    );
+    if (selectedItemId === itemId) {
+      setSelectedItemId(null);
+      setSelectedSectionId(null);
       setCurrentView('homepage');
     }
   };
 
-  const handleMoveCaseStudyUp = (id: string) => {
-    const index = caseStudies.findIndex((cs) => cs.id === id);
-    if (index > 0) {
-      const newCaseStudies = [...caseStudies];
-      const temp = newCaseStudies[index].order;
-      newCaseStudies[index].order = newCaseStudies[index - 1].order;
-      newCaseStudies[index - 1].order = temp;
-      setCaseStudies(newCaseStudies);
-    }
-  };
-
-  const handleMoveCaseStudyDown = (id: string) => {
-    const index = caseStudies.findIndex((cs) => cs.id === id);
-    if (index < caseStudies.length - 1) {
-      const newCaseStudies = [...caseStudies];
-      const temp = newCaseStudies[index].order;
-      newCaseStudies[index].order = newCaseStudies[index + 1].order;
-      newCaseStudies[index + 1].order = temp;
-      setCaseStudies(newCaseStudies);
-    }
-  };
-
-  const handleUpdateCaseStudy = (id: string, updates: Partial<CaseStudy>) => {
-    setCaseStudies(
-      caseStudies.map((cs) => (cs.id === id ? { ...cs, ...updates } : cs))
+  const handleMoveItemUp = (sectionId: string, itemId: string) => {
+    setSections(
+      sections.map((section) => {
+        if (section.id === sectionId) {
+          const items = [...section.items];
+          const index = items.findIndex((item) => item.id === itemId);
+          if (index > 0) {
+            const temp = items[index].order;
+            items[index].order = items[index - 1].order;
+            items[index - 1].order = temp;
+            return { ...section, items };
+          }
+        }
+        return section;
+      })
     );
   };
 
-  const handleCaseStudyClick = (caseStudyId: string) => {
-    setSelectedCaseStudyId(caseStudyId);
-    setCurrentView('case-study-detail');
+  const handleMoveItemDown = (sectionId: string, itemId: string) => {
+    setSections(
+      sections.map((section) => {
+        if (section.id === sectionId) {
+          const items = [...section.items];
+          const index = items.findIndex((item) => item.id === itemId);
+          if (index < items.length - 1) {
+            const temp = items[index].order;
+            items[index].order = items[index + 1].order;
+            items[index + 1].order = temp;
+            return { ...section, items };
+          }
+        }
+        return section;
+      })
+    );
+  };
+
+  const handleUpdateItem = (sectionId: string, itemId: string, updates: Partial<PageContent>) => {
+    setSections(
+      sections.map((section) => {
+        if (section.id === sectionId) {
+          return {
+            ...section,
+            items: section.items.map((item) =>
+              item.id === itemId ? { ...item, ...updates } : item
+            ),
+          };
+        }
+        return section;
+      })
+    );
+  };
+
+  const handleItemClick = (itemId: string) => {
+    setSelectedItemId(itemId);
+    setCurrentView('detail');
   };
 
   const handleBackToHomepage = () => {
@@ -129,9 +249,9 @@ export default function PortfolioEditor({
       siteTitle,
       colorPalette: colorPalette.id,
       fontCombination: fontCombination.id,
-      caseStudies,
+      templateId,
+      sections,
     });
-    // TODO: Add toast notification
     alert('Portfolio saved! (This is a placeholder - persistence will be added later)');
   };
 
@@ -150,34 +270,38 @@ export default function PortfolioEditor({
           onColorPaletteChange={setColorPalette}
           fontCombination={fontCombination}
           onFontCombinationChange={setFontCombination}
-          caseStudies={caseStudies}
-          selectedCaseStudyId={selectedCaseStudyId}
-          onSelectCaseStudy={setSelectedCaseStudyId}
-          onAddCaseStudy={handleAddCaseStudy}
-          onDeleteCaseStudy={handleDeleteCaseStudy}
-          onMoveCaseStudyUp={handleMoveCaseStudyUp}
-          onMoveCaseStudyDown={handleMoveCaseStudyDown}
-          onUpdateCaseStudy={handleUpdateCaseStudy}
+          templateId={templateId}
+          onTemplateChange={setTemplateId}
+          sections={sections}
+          selectedSectionId={selectedSectionId}
+          selectedItemId={selectedItemId}
+          onSelectSection={setSelectedSectionId}
+          onSelectItem={(sectionId, itemId) => {
+            setSelectedSectionId(sectionId);
+            setSelectedItemId(itemId);
+            setCurrentView('detail');
+          }}
+          onAddItem={handleAddItem}
+          onDeleteItem={handleDeleteItem}
+          onMoveItemUp={handleMoveItemUp}
+          onMoveItemDown={handleMoveItemDown}
+          onUpdateItem={handleUpdateItem}
           onSave={handleSave}
         />
       </div>
 
       {/* Preview Side - Right, 70% on desktop, full width on mobile */}
       <div className="flex-1 overflow-y-auto md:w-[70%]">
-        <ModernMinimalistPreview
+        <TemplatePreview
+          template={template}
+          content={portfolioContent}
+          theme={theme}
+          selectedItem={selectedItem}
           view={currentView}
-          siteTitle={siteTitle}
-          siteSubtitle={siteSubtitle}
-          bio={bio}
-          caseStudies={caseStudies}
-          selectedCaseStudy={selectedCaseStudy}
-          colorPalette={colorPalette}
-          fontCombination={fontCombination}
-          onCaseStudyClick={handleCaseStudyClick}
+          onItemClick={handleItemClick}
           onBackToHomepage={handleBackToHomepage}
         />
       </div>
     </div>
   );
 }
-

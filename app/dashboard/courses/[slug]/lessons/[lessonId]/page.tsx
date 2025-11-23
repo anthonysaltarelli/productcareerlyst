@@ -6,6 +6,8 @@ import LessonNavigator from '@/app/components/LessonNavigator';
 import LessonContentWrapper from '@/app/components/LessonContentWrapper';
 import { LessonPageTracking } from '@/app/components/LessonPageTracking';
 import { TrackedLink } from '@/app/components/TrackedLink';
+import { PremiumLessonGate } from '@/app/components/PremiumLessonGate';
+import { getUserPlan } from '@/lib/utils/subscription';
 
 interface Lesson {
   id: string;
@@ -153,6 +155,20 @@ export default async function LessonPage({
 
   const { lesson, course, progressMap } = data;
 
+  // Check if user has access to premium lesson
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  let userPlan: 'learn' | 'accelerate' | null = null;
+  if (user) {
+    userPlan = await getUserPlan(user.id);
+  }
+
+  // Check if lesson requires subscription and user doesn't have access
+  const requiresSubscription = lesson.requires_subscription;
+  const hasAccess = userPlan === 'learn' || userPlan === 'accelerate';
+  const shouldShowGate = requiresSubscription && !hasAccess;
+
   const isCurrentLessonCompleted = progressMap[lesson.id] || false;
 
   // Find current lesson index and next/previous lessons
@@ -236,33 +252,47 @@ export default async function LessonPage({
         {/* Main Content */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            {/* Video Player */}
-            <LessonPlayer 
-              videoUrl={lesson.video_url} 
-              lessonId={lesson.id}
-              courseId={course.id}
-              lessonTitle={lesson.title}
-              courseTitle={course.title}
-            />
+            {/* Show gate if premium lesson and no access, otherwise show video */}
+            {shouldShowGate ? (
+              <PremiumLessonGate
+                lessonTitle={lesson.title}
+                lessonId={lesson.id}
+                courseTitle={course.title}
+                courseId={course.id}
+                currentPlan={userPlan}
+              />
+            ) : (
+              <>
+                {/* Video Player */}
+                <LessonPlayer 
+                  videoUrl={lesson.video_url} 
+                  lessonId={lesson.id}
+                  courseId={course.id}
+                  lessonTitle={lesson.title}
+                  courseTitle={course.title}
+                />
+              </>
+            )}
 
-            {/* Lesson Info */}
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">{lesson.title}</h1>
-                  <p className="text-sm text-gray-500">
-                    Lesson {lesson.prioritization} of {course.lessons.length}
-                  </p>
+            {/* Lesson Info - Only show if user has access */}
+            {!shouldShowGate && (
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">{lesson.title}</h1>
+                    <p className="text-sm text-gray-500">
+                      Lesson {lesson.prioritization} of {course.lessons.length}
+                    </p>
+                  </div>
+                  {lesson.requires_subscription && (
+                    <span className="text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">
+                      Premium
+                    </span>
+                  )}
                 </div>
-                {lesson.requires_subscription && (
-                  <span className="text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">
-                    Premium
-                  </span>
-                )}
-              </div>
 
-              {/* Navigation Bar with Completion Button */}
-              <div className="flex items-center gap-4 pt-6 border-t border-gray-200">
+                {/* Navigation Bar with Completion Button */}
+                <div className="flex items-center gap-4 pt-6 border-t border-gray-200">
                 <div className="flex-1 flex justify-start">
                   {previousLesson && (
                     <TrackedLink
@@ -352,6 +382,7 @@ export default async function LessonPage({
                 </div>
               </div>
             </div>
+            )}
           </div>
         </div>
 
