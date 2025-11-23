@@ -168,7 +168,7 @@ export const trackEventBrowser = (
  * Useful for privacy-sensitive areas of the application
  */
 export const disableSessionReplay = async () => {
-  if (sessionReplayPluginInstance) {
+  if (sessionReplayPluginInstance && sessionReplayPluginInstance.name) {
     try {
       await amplitude.remove(sessionReplayPluginInstance.name).promise;
       if (process.env.NODE_ENV === 'development') {
