@@ -249,6 +249,7 @@ export const PortfolioTemplateRequest = () => {
   };
 
   const hasPendingRequest = request?.status === 'pending';
+  const hasFulfilledRequest = request?.status === 'fulfilled';
 
   return (
     <>
@@ -267,6 +268,22 @@ export const PortfolioTemplateRequest = () => {
 
             {loading ? (
               <div className="text-gray-600 font-medium">Loading...</div>
+            ) : hasFulfilledRequest ? (
+              <div className="space-y-3">
+                <div className="p-4 rounded-[1.5rem] bg-white/80 border-2 border-green-300">
+                  <p className="text-gray-800 font-semibold mb-1">
+                    ✓ Template Delivered
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    Your portfolio template has been delivered! Check your email for the template.
+                  </p>
+                  {request?.updated_at && (
+                    <p className="text-gray-500 text-xs mt-2">
+                      Delivered on {new Date(request.updated_at).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              </div>
             ) : hasPendingRequest ? (
               <div className="space-y-3">
                 <div className="p-4 rounded-[1.5rem] bg-white/80 border-2 border-green-300">

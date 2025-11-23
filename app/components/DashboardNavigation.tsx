@@ -5,7 +5,7 @@ import { CreditCard, Settings } from 'lucide-react'
 import { NavLink } from '@/app/components/NavLink'
 
 export const DashboardNavigation = () => {
-  const { coach, compensation, impactPortfolio, careerTracker } = useFlags()
+  const { coach, compensation, impactPortfolio, careerTracker, nativeProductPortfolio } = useFlags()
 
   return (
     <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
@@ -89,6 +89,25 @@ export const DashboardNavigation = () => {
       >
         <span>Product Portfolio</span>
       </NavLink>
+      {nativeProductPortfolio && (
+        <NavLink
+          href="/dashboard/portfolio/editor"
+          eventName="User Clicked Dashboard Navigation Link"
+          linkId="dashboard-nav-portfolio-editor-link"
+          eventProperties={{
+            'Link Text': 'Portfolio Editor',
+            'Link Destination': '/dashboard/portfolio/editor',
+            'Link Section': 'Sidebar Navigation',
+            'Link Position': 'Main Navigation',
+            'Link Type': 'Navigation Link',
+            'Feature Flag Required': true,
+            'Feature Flag Name': 'native-product-portfolio',
+          }}
+          className="flex items-center gap-3 px-4 py-3 rounded-[1rem] text-gray-300 hover:bg-slate-700 hover:text-white transition-all duration-200 font-semibold group"
+        >
+          <span>Portfolio Editor</span>
+        </NavLink>
+      )}
       {coach && (
         <NavLink
           href="/dashboard/interview"
