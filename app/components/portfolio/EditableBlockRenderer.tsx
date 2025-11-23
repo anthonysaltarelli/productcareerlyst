@@ -512,35 +512,48 @@ function EditableMetricsGridBlock({
           >
             {isEditMode ? (
               <div className="space-y-2">
-                <input
-                  type="text"
-                  value={metric.label}
-                  onChange={(e) => {
+                <div
+                  contentEditable
+                  suppressContentEditableWarning
+                  onInput={(e) => {
                     onUpdate({
                       metrics: metrics.map((m) =>
-                        m.id === metric.id ? { ...m, label: e.target.value } : m
+                        m.id === metric.id ? { ...m, label: e.currentTarget.textContent || '' } : m
                       ),
                     });
                   }}
-                  placeholder="Label"
-                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                  onBlur={(e) => {
+                    if (!e.currentTarget.textContent?.trim()) {
+                      e.currentTarget.textContent = metric.label;
+                    }
+                  }}
+                  className="text-sm outline-none border-2 border-blue-500 rounded px-2 py-1 min-h-[1.5em]"
+                  style={{ color: getColorValue(theme.colorPalette.colors.textSecondary) }}
                   onClick={(e) => e.stopPropagation()}
-                />
-                <input
-                  type="text"
-                  value={metric.value}
-                  onChange={(e) => {
+                >
+                  {metric.label}
+                </div>
+                <div
+                  contentEditable
+                  suppressContentEditableWarning
+                  onInput={(e) => {
                     onUpdate({
                       metrics: metrics.map((m) =>
-                        m.id === metric.id ? { ...m, value: e.target.value } : m
+                        m.id === metric.id ? { ...m, value: e.currentTarget.textContent || '' } : m
                       ),
                     });
                   }}
-                  placeholder="Value"
-                  className={`w-full px-2 py-1 text-sm border border-gray-300 rounded ${theme.fontCombination.headingFont} font-bold text-2xl`}
+                  onBlur={(e) => {
+                    if (!e.currentTarget.textContent?.trim()) {
+                      e.currentTarget.textContent = metric.value;
+                    }
+                  }}
+                  className={`outline-none border-2 border-blue-500 rounded px-2 py-1 min-h-[1.5em] ${theme.fontCombination.headingFont} font-bold text-2xl`}
                   style={{ color: getColorValue(theme.colorPalette.colors.primary) }}
                   onClick={(e) => e.stopPropagation()}
-                />
+                >
+                  {metric.value}
+                </div>
               </div>
             ) : (
               <>

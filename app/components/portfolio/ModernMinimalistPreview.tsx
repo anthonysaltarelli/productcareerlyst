@@ -2,39 +2,9 @@
 
 import { ColorPalette } from '@/lib/constants/portfolio-palettes';
 import { FontCombination } from '@/lib/constants/portfolio-fonts';
+import { PageContent, PortfolioSection } from '@/lib/types/portfolio-content';
 import ModernMinimalistHomepage from './ModernMinimalistHomepage';
 import CaseStudyDetailPreview from './CaseStudyDetailPreview';
-
-interface Metric {
-  id: string;
-  label: string;
-  value: string;
-}
-
-interface PortfolioItem {
-  id: string;
-  title: string;
-  description: string;
-  heroImage: string;
-  tags: string[];
-  order: number;
-  // Full case study details (for detail view)
-  problemDiscover?: string;
-  problemDefine?: string;
-  solutionDevelop?: string;
-  solutionDeliver?: string;
-  process?: string;
-  metrics?: Metric[];
-  outcomes?: string;
-  images?: string[];
-}
-
-interface PortfolioSection {
-  id: string;
-  title: string;
-  items: PortfolioItem[];
-  order: number;
-}
 
 interface ModernMinimalistPreviewProps {
   view: 'homepage' | 'case-study-detail';
@@ -42,7 +12,7 @@ interface ModernMinimalistPreviewProps {
   siteSubtitle: string;
   bio: string;
   sections: PortfolioSection[];
-  selectedItem: PortfolioItem | null;
+  selectedItem: PageContent | null;
   colorPalette: ColorPalette;
   fontCombination: FontCombination;
   onItemClick: (itemId: string) => void;
@@ -62,20 +32,31 @@ export default function ModernMinimalistPreview({
   onBackToHomepage,
 }: ModernMinimalistPreviewProps) {
   if (view === 'case-study-detail' && selectedItem) {
-    // Convert PortfolioItem to CaseStudy format for detail view
+    // Extract data from content blocks for legacy CaseStudyDetailPreview
+    // Find relevant blocks
+    const heroBlock = selectedItem.contentBlocks.find(b => b.type === 'hero-image');
+    const titleBlock = selectedItem.contentBlocks.find(b => b.type === 'title-description');
+    const problemBlocks = selectedItem.contentBlocks.filter(b => b.data.title?.toLowerCase().includes('problem') || b.data.title?.toLowerCase().includes('discover') || b.data.title?.toLowerCase().includes('define'));
+    const solutionBlocks = selectedItem.contentBlocks.filter(b => b.data.title?.toLowerCase().includes('solution') || b.data.title?.toLowerCase().includes('develop') || b.data.title?.toLowerCase().includes('deliver'));
+    const processBlock = selectedItem.contentBlocks.find(b => b.data.title?.toLowerCase().includes('process'));
+    const resultsBlock = selectedItem.contentBlocks.find(b => b.data.title?.toLowerCase().includes('results'));
+    const metricsBlock = selectedItem.contentBlocks.find(b => b.type === 'metrics-grid');
+    const galleryBlock = selectedItem.contentBlocks.find(b => b.type === 'gallery');
+    
+    // Convert PageContent to CaseStudy format for detail view
     const caseStudy = {
       id: selectedItem.id,
       title: selectedItem.title,
       description: selectedItem.description,
-      heroImage: selectedItem.heroImage,
-      problemDiscover: selectedItem.problemDiscover || '',
-      problemDefine: selectedItem.problemDefine || '',
-      solutionDevelop: selectedItem.solutionDevelop || '',
-      solutionDeliver: selectedItem.solutionDeliver || '',
-      process: selectedItem.process || '',
-      metrics: selectedItem.metrics || [],
-      outcomes: selectedItem.outcomes || '',
-      images: selectedItem.images || [],
+      heroImage: selectedItem.heroImage || heroBlock?.data.images?.[0] || '',
+      problemDiscover: problemBlocks.find(b => b.data.title?.toLowerCase().includes('discover'))?.data.text || '',
+      problemDefine: problemBlocks.find(b => b.data.title?.toLowerCase().includes('define'))?.data.text || '',
+      solutionDevelop: solutionBlocks.find(b => b.data.title?.toLowerCase().includes('develop'))?.data.text || '',
+      solutionDeliver: solutionBlocks.find(b => b.data.title?.toLowerCase().includes('deliver'))?.data.text || '',
+      process: processBlock?.data.text || '',
+      metrics: metricsBlock?.data.metrics || [],
+      outcomes: resultsBlock?.data.text || '',
+      images: galleryBlock?.data.images || [],
       tags: selectedItem.tags || [],
     };
     
