@@ -1,5 +1,6 @@
 import { LoginForm } from '@/app/components/login-form'
 import { PageTracking } from '@/app/components/PageTracking'
+import { TrackedLink } from '@/app/components/TrackedLink'
 
 export default function LoginPage() {
   return (
@@ -22,19 +23,37 @@ export default function LoginPage() {
           <div className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100 border-2 border-blue-300 shadow-md">
             <p className="text-sm text-gray-800 leading-relaxed">
               <span className="font-semibold">Signed up before November 22, 2025?</span> We launched a new platform!{' '}
-              <a 
+              <TrackedLink 
                 href="/auth/sign-up" 
                 className="text-blue-600 hover:text-blue-800 font-semibold underline"
+                eventName="User Clicked Sign Up Link"
+                linkId="login-create-account-link"
+                eventProperties={{
+                  'Link Section': 'Login Page',
+                  'Link Position': 'Info banner',
+                  'Link Type': 'Text Link',
+                  'Link Text': 'Create a new account',
+                  'Link Context': 'In migration notice banner',
+                }}
               >
                 Create a new account
-              </a>
+              </TrackedLink>
               {' '}with the same email address. Questions? Reach out to{' '}
-              <a 
+              <TrackedLink 
                 href="mailto:team@productcareerlyst.com" 
                 className="text-blue-600 hover:text-blue-800 font-semibold underline"
+                eventName="User Clicked Support Email Link"
+                linkId="login-support-email-link"
+                eventProperties={{
+                  'Link Section': 'Login Page',
+                  'Link Position': 'Info banner',
+                  'Link Type': 'Email Link',
+                  'Link Text': 'team@productcareerlyst.com',
+                  'Link Context': 'In migration notice banner',
+                }}
               >
                 team@productcareerlyst.com
-              </a>
+              </TrackedLink>
             </p>
           </div>
 

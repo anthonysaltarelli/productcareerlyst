@@ -311,13 +311,25 @@ export default function CoursesPage() {
                             <span>📝 {course.lesson_count} lessons</span>
                           </div>
 
-                          <button
+                          <TrackedButton
                             onClick={() => handleCourseClick(course.id)}
                             className="w-full px-6 py-3 rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-gray-300 font-black text-gray-800 transition-all duration-200"
-                            aria-label={isExpanded ? 'Hide lessons' : 'View lessons'}
+                            eventName="User Clicked View Lessons Button"
+                            buttonId="courses-view-lessons-button"
+                            eventProperties={{
+                              'Button Section': 'Courses Landing Page',
+                              'Button Position': 'Course Card',
+                              'Button Type': 'Course Action Button',
+                              'Button Text': isExpanded ? 'Hide Lessons' : 'View Lessons →',
+                              'Button Context': 'Below course description and metadata',
+                              'Course ID': course.id,
+                              'Course Title': course.title,
+                              'Course Category': category.name,
+                              'Course Lesson Count': course.lesson_count,
+                            }}
                           >
                             {isExpanded ? 'Hide Lessons' : 'View Lessons →'}
-                          </button>
+                          </TrackedButton>
                         </div>
 
                         {/* Expanded Lessons List */}

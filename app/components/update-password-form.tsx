@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { trackEvent } from '@/lib/amplitude/client'
 
 export const UpdatePasswordForm = () => {
   const [password, setPassword] = useState('')
@@ -16,12 +17,30 @@ export const UpdatePasswordForm = () => {
     setError(null)
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      const errorMessage = 'Passwords do not match'
+      setError(errorMessage)
+      
+      // Track validation error
+      const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/auth/update-password';
+      trackEvent('User Failed Password Update', {
+        'Page Route': pageRoute,
+        'Error Message': errorMessage,
+        'Error Type': 'Validation Error',
+      })
       return
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long')
+      const errorMessage = 'Password must be at least 6 characters long'
+      setError(errorMessage)
+      
+      // Track validation error
+      const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/auth/update-password';
+      trackEvent('User Failed Password Update', {
+        'Page Route': pageRoute,
+        'Error Message': errorMessage,
+        'Error Type': 'Validation Error',
+      })
       return
     }
 
@@ -35,10 +54,25 @@ export const UpdatePasswordForm = () => {
 
       if (error) throw error
 
+      // Track successful password update
+      const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/auth/update-password';
+      trackEvent('User Updated Password', {
+        'Page Route': pageRoute,
+      })
+
       router.push('/dashboard')
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred'
+      setError(errorMessage)
+      
+      // Track failed password update
+      const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/auth/update-password';
+      trackEvent('User Failed Password Update', {
+        'Page Route': pageRoute,
+        'Error Message': errorMessage,
+        'Error Type': errorMessage.toLowerCase().includes('password') ? 'Password Error' : 'Unknown Error',
+      })
     } finally {
       setLoading(false)
     }

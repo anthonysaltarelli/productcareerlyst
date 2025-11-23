@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { trackEvent } from '@/lib/amplitude/client'
+import { TrackedLink } from '@/app/components/TrackedLink'
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('')
@@ -63,19 +64,37 @@ export const LoginForm = () => {
           {isAccountNotFound && (
             <p className="text-sm text-gray-800 leading-relaxed">
               <span className="font-semibold">Signed up before November 22, 2025?</span> We launched a new platform!{' '}
-              <a 
+              <TrackedLink 
                 href="/auth/sign-up" 
                 className="text-blue-600 hover:text-blue-800 font-semibold underline"
+                eventName="User Clicked Sign Up Link"
+                linkId="login-form-create-account-link"
+                eventProperties={{
+                  'Link Section': 'Login Form',
+                  'Link Position': 'Error message',
+                  'Link Type': 'Text Link',
+                  'Link Text': 'Create a new account',
+                  'Link Context': 'In account not found error message',
+                }}
               >
                 Create a new account
-              </a>
+              </TrackedLink>
               {' '}with the same email address. Questions? Reach out to{' '}
-              <a 
+              <TrackedLink 
                 href="mailto:team@productcareerlyst.com" 
                 className="text-blue-600 hover:text-blue-800 font-semibold underline"
+                eventName="User Clicked Support Email Link"
+                linkId="login-form-support-email-link"
+                eventProperties={{
+                  'Link Section': 'Login Form',
+                  'Link Position': 'Error message',
+                  'Link Type': 'Email Link',
+                  'Link Text': 'team@productcareerlyst.com',
+                  'Link Context': 'In account not found error message',
+                }}
               >
                 team@productcareerlyst.com
-              </a>
+              </TrackedLink>
             </p>
           )}
         </div>
@@ -122,13 +141,21 @@ export const LoginForm = () => {
       </div>
 
       <div className="flex items-center justify-between">
-        <a
+        <TrackedLink
           href="/auth/forgot-password"
           className="text-sm font-bold text-purple-600 hover:text-purple-700 transition-colors"
-          tabIndex={0}
+          eventName="User Clicked Forgot Password Link"
+          linkId="login-form-forgot-password-link"
+          eventProperties={{
+            'Link Section': 'Login Form',
+            'Link Position': 'Above submit button',
+            'Link Type': 'Text Link',
+            'Link Text': 'Forgot password?',
+            'Link Context': 'Below password input field',
+          }}
         >
           Forgot password?
-        </a>
+        </TrackedLink>
       </div>
 
       <button
@@ -141,12 +168,21 @@ export const LoginForm = () => {
 
       <p className="text-center text-sm text-gray-600 font-medium">
         Don't have an account?{' '}
-        <a
+        <TrackedLink
           href="/auth/sign-up"
           className="font-bold text-purple-600 hover:text-purple-700 transition-colors"
+          eventName="User Clicked Sign Up Link"
+          linkId="login-form-sign-up-link"
+          eventProperties={{
+            'Link Section': 'Login Form',
+            'Link Position': 'Bottom of form',
+            'Link Type': 'Text Link',
+            'Link Text': 'Sign up',
+            'Link Context': 'Below submit button',
+          }}
         >
           Sign up
-        </a>
+        </TrackedLink>
       </p>
     </form>
   )

@@ -1,3 +1,6 @@
+import { TrackedLink } from './TrackedLink'
+import { NavLink } from './NavLink'
+
 export const Footer = () => {
   return (
     <footer className="bg-gradient-to-br from-slate-800 to-slate-900 border-t-4 border-slate-700">
@@ -14,34 +17,58 @@ export const Footer = () => {
               Your AI-powered career operating system. Stop feeling stuck. Start crushing it.
             </p>
             <div className="flex gap-4">
-              <a
+              <TrackedLink
                 href="https://www.youtube.com/@ProductManagerAnthony"
+                className="w-10 h-10 rounded-[0.75rem] bg-slate-700 hover:bg-purple-500 flex items-center justify-center transition-all duration-200 border-2 border-slate-600 hover:border-purple-400"
+                eventName="User Clicked YouTube Link"
+                linkId="footer-youtube-link"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-[0.75rem] bg-slate-700 hover:bg-purple-500 flex items-center justify-center transition-all duration-200 border-2 border-slate-600 hover:border-purple-400"
-                aria-label="YouTube"
+                ariaLabel="YouTube"
                 tabIndex={0}
+                eventProperties={{
+                  'Link Section': 'Footer',
+                  'Link Position': 'Social media icons',
+                  'Link Type': 'Social Media Link',
+                  'Link Text': 'YouTube',
+                }}
               >
                 <span className="text-white font-bold">▶</span>
-              </a>
-              <a
+              </TrackedLink>
+              <TrackedLink
                 href="https://www.linkedin.com/company/productcareerlyst/"
+                className="w-10 h-10 rounded-[0.75rem] bg-slate-700 hover:bg-purple-500 flex items-center justify-center transition-all duration-200 border-2 border-slate-600 hover:border-purple-400"
+                eventName="User Clicked LinkedIn Link"
+                linkId="footer-linkedin-link"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-[0.75rem] bg-slate-700 hover:bg-purple-500 flex items-center justify-center transition-all duration-200 border-2 border-slate-600 hover:border-purple-400"
-                aria-label="LinkedIn"
+                ariaLabel="LinkedIn"
                 tabIndex={0}
+                eventProperties={{
+                  'Link Section': 'Footer',
+                  'Link Position': 'Social media icons',
+                  'Link Type': 'Social Media Link',
+                  'Link Text': 'LinkedIn',
+                }}
               >
                 <span className="text-white font-bold">in</span>
-              </a>
-              <a
+              </TrackedLink>
+              <TrackedLink
                 href="mailto:team@productcareerlyst.com"
                 className="w-10 h-10 rounded-[0.75rem] bg-slate-700 hover:bg-purple-500 flex items-center justify-center transition-all duration-200 border-2 border-slate-600 hover:border-purple-400"
-                aria-label="Email"
+                eventName="User Clicked Email Link"
+                linkId="footer-email-link"
+                ariaLabel="Email"
                 tabIndex={0}
+                eventProperties={{
+                  'Link Section': 'Footer',
+                  'Link Position': 'Social media icons',
+                  'Link Type': 'Email Link',
+                  'Link Text': 'Email',
+                }}
               >
                 <span className="text-white font-bold">✉</span>
-              </a>
+              </TrackedLink>
             </div>
           </div>
 
@@ -50,22 +77,36 @@ export const Footer = () => {
             <h3 className="text-white font-bold text-lg mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <a
+                <NavLink
                   href="#features"
                   className="text-gray-300 hover:text-purple-400 font-medium transition-colors duration-200"
-                  tabIndex={0}
+                  eventName="User Clicked Features Link"
+                  linkId="footer-features-link"
+                  eventProperties={{
+                    'Link Section': 'Footer',
+                    'Link Position': 'Quick Links section',
+                    'Link Type': 'Anchor Link',
+                    'Link Text': 'Features',
+                  }}
                 >
                   Features
-                </a>
+                </NavLink>
               </li>
               <li>
-                <a
+                <NavLink
                   href="#testimonials"
                   className="text-gray-300 hover:text-purple-400 font-medium transition-colors duration-200"
-                  tabIndex={0}
+                  eventName="User Clicked Testimonials Link"
+                  linkId="footer-testimonials-link"
+                  eventProperties={{
+                    'Link Section': 'Footer',
+                    'Link Position': 'Quick Links section',
+                    'Link Type': 'Anchor Link',
+                    'Link Text': 'Testimonials',
+                  }}
                 >
                   Testimonials
-                </a>
+                </NavLink>
               </li>
             </ul>
           </div>
@@ -75,22 +116,36 @@ export const Footer = () => {
             <h3 className="text-white font-bold text-lg mb-4">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <a
+                <TrackedLink
                   href="/privacy"
                   className="text-gray-300 hover:text-purple-400 font-medium transition-colors duration-200"
-                  tabIndex={0}
+                  eventName="User Clicked Privacy Policy Link"
+                  linkId="footer-privacy-policy-link"
+                  eventProperties={{
+                    'Link Section': 'Footer',
+                    'Link Position': 'Legal section',
+                    'Link Type': 'Legal Link',
+                    'Link Text': 'Privacy Policy',
+                  }}
                 >
                   Privacy Policy
-                </a>
+                </TrackedLink>
               </li>
               <li>
-                <a
+                <TrackedLink
                   href="/terms"
                   className="text-gray-300 hover:text-purple-400 font-medium transition-colors duration-200"
-                  tabIndex={0}
+                  eventName="User Clicked Terms of Service Link"
+                  linkId="footer-terms-link"
+                  eventProperties={{
+                    'Link Section': 'Footer',
+                    'Link Position': 'Legal section',
+                    'Link Type': 'Legal Link',
+                    'Link Text': 'Terms of Service',
+                  }}
                 >
                   Terms of Service
-                </a>
+                </TrackedLink>
               </li>
             </ul>
           </div>

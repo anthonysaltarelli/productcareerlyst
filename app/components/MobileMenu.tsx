@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { NavLink } from './NavLink'
+import { TrackedLink } from './TrackedLink'
+import { TrackedButton } from './TrackedButton'
+import { trackEvent } from '@/lib/amplitude/client'
 
 interface MobileMenuProps {
   user: User | null
@@ -12,7 +15,14 @@ export const MobileMenu = ({ user }: MobileMenuProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const handleToggleMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen)
+    const newState = !isMobileMenuOpen
+    setIsMobileMenuOpen(newState)
+    
+    // Track menu toggle
+    const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+    trackEvent(newState ? 'User Opened Mobile Menu' : 'User Closed Mobile Menu', {
+      'Page Route': pageRoute,
+    })
   }
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -50,31 +60,51 @@ export const MobileMenu = ({ user }: MobileMenuProps) => {
                   <p className="text-xs font-medium text-gray-600 mb-1">Signed in as</p>
                   <p className="text-sm font-bold text-purple-700">{user.email}</p>
                 </div>
-                <a
+                <TrackedLink
                   href="/dashboard"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
-                  tabIndex={0}
-                  aria-label="Dashboard"
+                  eventName="User Clicked Dashboard Link"
+                  linkId="mobile-menu-dashboard-link"
+                  eventProperties={{
+                    'Link Section': 'Mobile Menu',
+                    'Link Position': 'Mobile menu (when logged in)',
+                    'Link Type': 'Navigation Link',
+                    'Link Text': 'Dashboard',
+                  }}
                 >
                   Dashboard
-                </a>
+                </TrackedLink>
               </>
             ) : (
               <>
-                <a
+                <TrackedLink
                   href="/courses"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
-                  tabIndex={0}
-                  aria-label="Courses"
+                  eventName="User Clicked Courses Link"
+                  linkId="mobile-menu-courses-link"
+                  eventProperties={{
+                    'Link Section': 'Mobile Menu',
+                    'Link Position': 'Mobile menu',
+                    'Link Type': 'Navigation Link',
+                    'Link Text': 'Courses',
+                  }}
                 >
                   Courses
-                </a>
+                </TrackedLink>
                 <NavLink
                   href="#features"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
                   tabIndex={0}
                   ariaLabel="Features"
                   onClick={() => setIsMobileMenuOpen(false)}
+                  eventName="User Clicked Features Link"
+                  linkId="mobile-menu-features-link"
+                  eventProperties={{
+                    'Link Section': 'Mobile Menu',
+                    'Link Position': 'Mobile menu',
+                    'Link Type': 'Anchor Link',
+                    'Link Text': 'Features',
+                  }}
                 >
                   Features
                 </NavLink>
@@ -84,24 +114,46 @@ export const MobileMenu = ({ user }: MobileMenuProps) => {
                   tabIndex={0}
                   ariaLabel="Testimonials"
                   onClick={() => setIsMobileMenuOpen(false)}
+                  eventName="User Clicked Testimonials Link"
+                  linkId="mobile-menu-testimonials-link"
+                  eventProperties={{
+                    'Link Section': 'Mobile Menu',
+                    'Link Position': 'Mobile menu',
+                    'Link Type': 'Anchor Link',
+                    'Link Text': 'Testimonials',
+                  }}
                 >
                   Testimonials
                 </NavLink>
-                <a
+                <TrackedLink
                   href="/auth/login"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
-                  tabIndex={0}
-                  aria-label="Sign In"
+                  eventName="User Clicked Sign In Link"
+                  linkId="mobile-menu-sign-in-link"
+                  eventProperties={{
+                    'Link Section': 'Mobile Menu',
+                    'Link Position': 'Mobile menu',
+                    'Link Type': 'Navigation Link',
+                    'Link Text': 'Sign In',
+                  }}
                 >
                   Sign In
-                </a>
-                <a
+                </TrackedLink>
+                <TrackedButton
                   href="/auth/sign-up"
                   className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 text-center"
-                  aria-label="Get access"
+                  eventName="User Clicked Sign Up Button"
+                  buttonId="mobile-menu-get-access-button"
+                  eventProperties={{
+                    'Button Section': 'Mobile Menu',
+                    'Button Position': 'Bottom of mobile menu',
+                    'Button Type': 'Primary CTA',
+                    'Button Text': 'Get Access →',
+                    'Button Context': 'Mobile menu, after Sign In link',
+                  }}
                 >
                   Get Access →
-                </a>
+                </TrackedButton>
               </>
             )}
           </div>

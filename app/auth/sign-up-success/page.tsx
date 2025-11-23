@@ -1,6 +1,10 @@
+import { PageTracking } from '@/app/components/PageTracking'
+import { TrackedButton } from '@/app/components/TrackedButton'
+
 export default function SignUpSuccessPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 flex items-center justify-center p-4">
+      <PageTracking pageName="Sign Up Success" />
       <div className="w-full max-w-md">
         <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_20px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300">
           <div className="text-center mb-8">
@@ -30,12 +34,21 @@ export default function SignUpSuccessPage() {
                 </li>
               </ol>
             </div>
-            <a
+            <TrackedButton
               href="/auth/login"
               className="block w-full px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.6)] font-black text-white text-center transition-all duration-200"
+              eventName="User Clicked Back to Login Button"
+              buttonId="sign-up-success-back-to-login-button"
+              eventProperties={{
+                'Button Section': 'Sign Up Success Page',
+                'Button Position': 'Center of success card',
+                'Button Type': 'Navigation Button',
+                'Button Text': 'Back to Login →',
+                'Button Context': 'After email confirmation instructions',
+              }}
             >
               Back to Login →
-            </a>
+            </TrackedButton>
           </div>
         </div>
       </div>

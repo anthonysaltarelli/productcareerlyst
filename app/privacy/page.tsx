@@ -1,6 +1,10 @@
+import { PageTracking } from '@/app/components/PageTracking'
+import { TrackedLink } from '@/app/components/TrackedLink'
+
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <PageTracking pageName="Privacy Policy" />
       <div className="max-w-4xl mx-auto bg-white shadow-sm rounded-lg p-8 sm:p-12">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -359,7 +363,21 @@ export default function PrivacyPolicy() {
             </p>
             <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
               <p className="text-gray-700">
-                <a href="mailto:support@pmcareercatalyst.com" className="text-blue-600 hover:text-blue-800 underline">support@pmcareercatalyst.com</a>
+                <TrackedLink
+                  href="mailto:support@pmcareercatalyst.com"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                  eventName="User Clicked Support Email Link"
+                  linkId="privacy-policy-email-link"
+                  eventProperties={{
+                    'Link Section': 'Privacy Policy Page',
+                    'Link Position': 'Contact Us Section',
+                    'Link Type': 'Email Link',
+                    'Link Text': 'support@pmcareercatalyst.com',
+                    'Link Context': 'In contact information box',
+                  }}
+                >
+                  support@pmcareercatalyst.com
+                </TrackedLink>
               </p>
             </div>
           </section>

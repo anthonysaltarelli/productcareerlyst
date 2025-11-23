@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { trackEvent } from '@/lib/amplitude/client'
 
 interface NavLinkProps {
   href: string
@@ -10,6 +11,9 @@ interface NavLinkProps {
   tabIndex?: number
   ariaLabel?: string
   onClick?: () => void
+  linkId?: string
+  eventName?: string
+  eventProperties?: Record<string, any>
 }
 
 export const NavLink = ({ 
@@ -18,13 +22,53 @@ export const NavLink = ({
   className, 
   tabIndex, 
   ariaLabel,
-  onClick 
+  onClick,
+  linkId,
+  eventName,
+  eventProperties
 }: NavLinkProps) => {
   const pathname = usePathname()
   const router = useRouter()
 
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
+    
+    // Track the click if tracking props are provided
+    if (eventName) {
+      const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+      const pageName = pageRoute === '/' ? 'Homepage' : pageRoute.split('/').filter(Boolean).join(' - ') || 'Unknown';
+      const referrer = typeof window !== 'undefined' ? document.referrer : '';
+      const referrerDomain = referrer ? new URL(referrer).hostname : null;
+      const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+      const clickX = e.clientX;
+      const clickY = e.clientY;
+      const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 0;
+      const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 0;
+      const clickPosition = {
+        horizontal: clickX < viewportWidth / 3 ? 'Left' : clickX > (viewportWidth * 2 / 3) ? 'Right' : 'Center',
+        vertical: clickY < viewportHeight / 3 ? 'Top' : clickY > (viewportHeight * 2 / 3) ? 'Bottom' : 'Middle',
+      };
+      
+      trackEvent(eventName, {
+        ...eventProperties,
+        'Page Route': pageRoute,
+        'Page Name': pageName,
+        'Link URL': href,
+        'Link Destination': href,
+        'Link ID': linkId || 'Not Specified',
+        'Referrer URL': referrer || 'None',
+        'Referrer Domain': referrerDomain || 'None',
+        'UTM Source': urlParams?.get('utm_source') || null,
+        'UTM Medium': urlParams?.get('utm_medium') || null,
+        'UTM Campaign': urlParams?.get('utm_campaign') || null,
+        'Click Position X': clickX,
+        'Click Position Y': clickY,
+        'Click Position Horizontal': clickPosition.horizontal,
+        'Click Position Vertical': clickPosition.vertical,
+        'Viewport Width': viewportWidth,
+        'Viewport Height': viewportHeight,
+      });
+    }
     
     // If it's an anchor link (starts with #)
     if (href.startsWith('#')) {

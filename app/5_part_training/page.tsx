@@ -1,8 +1,12 @@
+import { PageTracking } from '@/app/components/PageTracking'
+import { TrackedButton } from '@/app/components/TrackedButton'
+
 export default function FivePartTraining() {
   const loomVideoId = "46b9376ca7e0471a910a955e47a4a6ec";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100">
+      <PageTracking pageName="5 Part Training" />
       <div className="max-w-5xl mx-auto p-8 md:p-12 lg:p-16">
         {/* Header Section */}
         <div className="text-center mb-12">
@@ -32,13 +36,22 @@ export default function FivePartTraining() {
 
         {/* Sign Up Button Section */}
         <div className="text-center">
-          <a
+          <TrackedButton
             href="/auth/sign-up"
             className="inline-block w-full max-w-md px-10 py-6 rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_10px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(147,51,234,0.6)] text-xl font-black text-white transition-all duration-200"
-            aria-label="Sign up to get started"
+            eventName="User Clicked Sign Up Button"
+            buttonId="5-part-training-sign-up-button"
+            eventProperties={{
+              'Button Section': '5 Part Training Page',
+              'Button Position': 'Bottom of page',
+              'Button Type': 'Primary CTA',
+              'Button Text': 'Sign Up to Get Started →',
+              'Button Context': 'After video embed section',
+              'Page Section': 'Below the fold',
+            }}
           >
             Sign Up to Get Started →
-          </a>
+          </TrackedButton>
           <p className="mt-4 text-center text-sm text-gray-600 font-medium">
             Join thousands of PMs who've already leveled up their careers
           </p>

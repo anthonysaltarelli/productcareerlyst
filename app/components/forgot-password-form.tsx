@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/client'
 import { getSiteUrl } from '@/lib/utils/site-url'
 import { useState } from 'react'
+import { trackEvent } from '@/lib/amplitude/client'
+import { TrackedLink } from '@/app/components/TrackedLink'
 
 export const ForgotPasswordForm = () => {
   const [email, setEmail] = useState('')
@@ -25,9 +27,25 @@ export const ForgotPasswordForm = () => {
 
       if (error) throw error
 
+      // Track successful password reset request
+      const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/auth/forgot-password';
+      trackEvent('User Requested Password Reset', {
+        'Page Route': pageRoute,
+        'Email': email,
+      })
+
       setSuccess(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred'
+      setError(errorMessage)
+      
+      // Track failed password reset request
+      const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/auth/forgot-password';
+      trackEvent('User Failed Password Reset Request', {
+        'Page Route': pageRoute,
+        'Error Message': errorMessage,
+        'Error Type': errorMessage.toLowerCase().includes('email') ? 'Email Error' : errorMessage.toLowerCase().includes('user') ? 'User Not Found' : 'Unknown Error',
+      })
     } finally {
       setLoading(false)
     }
@@ -48,12 +66,21 @@ export const ForgotPasswordForm = () => {
           </div>
         </div>
 
-        <a
+        <TrackedLink
           href="/auth/login"
           className="block w-full px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.6)] font-black text-white text-center transition-all duration-200"
+          eventName="User Clicked Back to Sign In Link"
+          linkId="forgot-password-back-to-sign-in-link"
+          eventProperties={{
+            'Link Section': 'Forgot Password Form',
+            'Link Position': 'Success state',
+            'Link Type': 'Navigation Link',
+            'Link Text': 'Back to Sign In →',
+            'Link Context': 'After successful password reset email sent',
+          }}
         >
           Back to Sign In →
-        </a>
+        </TrackedLink>
       </div>
     )
   }
@@ -102,12 +129,21 @@ export const ForgotPasswordForm = () => {
 
       <p className="text-center text-sm text-gray-600 font-medium">
         Remember your password?{' '}
-        <a
+        <TrackedLink
           href="/auth/login"
           className="font-bold text-purple-600 hover:text-purple-700 transition-colors"
+          eventName="User Clicked Sign In Link"
+          linkId="forgot-password-sign-in-link"
+          eventProperties={{
+            'Link Section': 'Forgot Password Form',
+            'Link Position': 'Bottom of form',
+            'Link Type': 'Text Link',
+            'Link Text': 'Sign in',
+            'Link Context': 'Below submit button',
+          }}
         >
           Sign in
-        </a>
+        </TrackedLink>
       </p>
     </form>
   )

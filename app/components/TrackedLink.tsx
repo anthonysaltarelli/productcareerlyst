@@ -10,6 +10,10 @@ interface TrackedLinkProps {
   eventName: string;
   eventProperties?: Record<string, any>;
   linkId?: string; // Unique identifier for this specific link instance
+  target?: string;
+  rel?: string;
+  tabIndex?: number;
+  ariaLabel?: string;
 }
 
 /**
@@ -23,6 +27,10 @@ export const TrackedLink = ({
   eventName,
   eventProperties = {},
   linkId,
+  target,
+  rel,
+  tabIndex,
+  ariaLabel,
 }: TrackedLinkProps) => {
   const handleClick = (e: React.MouseEvent) => {
     const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
@@ -67,6 +75,25 @@ export const TrackedLink = ({
       'Viewport Height': viewportHeight,
     });
   };
+
+  // For external links, use regular anchor tag
+  const isExternal = href.startsWith('http') || href.startsWith('mailto:')
+  
+  if (isExternal) {
+    return (
+      <a
+        href={href}
+        className={className}
+        onClick={handleClick}
+        target={target}
+        rel={rel}
+        tabIndex={tabIndex}
+        aria-label={ariaLabel}
+      >
+        {children}
+      </a>
+    )
+  }
 
   return (
     <Link href={href} className={className} onClick={handleClick}>
