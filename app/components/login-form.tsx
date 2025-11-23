@@ -27,16 +27,20 @@ export const LoginForm = () => {
 
       if (error) throw error
 
-      // Explicitly identify user in Amplitude before tracking login event
-      await identifyUser(email)
+      // Explicitly identify user in Amplitude (non-blocking - don't wait for it)
+      identifyUser(email).catch(err => {
+        // Silently handle errors - don't block login flow
+        console.error('Failed to identify user in Amplitude:', err);
+      });
 
-      // Track successful login
+      // Track successful login (also non-blocking)
       const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/auth/login';
       trackEvent('User Completed Login', {
         'Page Route': pageRoute,
         'Login Method': 'Email',
-      })
+      });
 
+      // Redirect immediately - don't wait for analytics
       router.push('/dashboard')
       router.refresh()
     } catch (err) {

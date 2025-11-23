@@ -70,6 +70,7 @@ export const trackEvent = async (
 /**
  * Identify a user in Amplitude
  * This should be called when a user logs in or signs up to explicitly set their user ID
+ * Passes device_id to help Amplitude merge anonymous sessions with identified users
  * @param userId - User's email address
  * @param userProperties - Optional user properties to set
  */
@@ -78,9 +79,13 @@ export const identifyUser = async (
   userProperties?: Record<string, any>
 ) => {
   try {
+    // Get device ID to help Amplitude merge anonymous sessions with identified users
+    const deviceId = getDeviceId();
+
     if (process.env.NODE_ENV === 'development') {
       console.log('👤 Identifying user in Amplitude:', {
         userId,
+        deviceId,
         hasProperties: !!userProperties,
       });
     }
@@ -92,6 +97,7 @@ export const identifyUser = async (
       },
       body: JSON.stringify({
         userId,
+        deviceId,
         userProperties,
       }),
     });

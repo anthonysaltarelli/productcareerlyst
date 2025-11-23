@@ -87,10 +87,12 @@ export const trackEvent = async (
 /**
  * Identify user with properties
  * @param userId - User's email address
- * @param userProperties - User properties to set
+ * @param deviceId - Optional device ID to help Amplitude merge anonymous sessions
+ * @param userProperties - Optional user properties to set
  */
 export const identifyUser = async (
   userId: string,
+  deviceId?: string,
   userProperties?: Record<string, any>
 ) => {
   if (!isInitialized) {
@@ -106,7 +108,20 @@ export const identifyUser = async (
       });
     }
 
-    await identify(identifyObj, { user_id: userId }).promise;
+    // Include device_id to help Amplitude merge anonymous sessions with identified users
+    const options: { user_id: string; device_id?: string } = { user_id: userId };
+    if (deviceId) {
+      options.device_id = deviceId;
+    }
+
+    await identify(identifyObj, options).promise;
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ User identified:', {
+        userId,
+        deviceId: deviceId || 'none',
+      });
+    }
   } catch (error) {
     console.error('Error identifying Amplitude user:', error);
   }

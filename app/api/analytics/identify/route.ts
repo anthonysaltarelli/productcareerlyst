@@ -11,11 +11,12 @@ initializeAmplitude();
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, userProperties } = body;
+    const { userId, deviceId, userProperties } = body;
 
     if (process.env.NODE_ENV === 'development') {
       console.log('👤 Received identification request:', {
         userId: userId || 'none',
+        deviceId: deviceId || 'none',
         hasProperties: !!userProperties,
       });
     }
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await identifyUser(userId, userProperties);
+    await identifyUser(userId, deviceId, userProperties);
 
     if (process.env.NODE_ENV === 'development') {
       console.log('✅ User identified successfully:', userId);
