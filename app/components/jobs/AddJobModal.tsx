@@ -429,17 +429,17 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
 
             {/* Loading Progress Indicator */}
             {isImporting && (
-              <div className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-[1rem] space-y-4">
+              <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 rounded-[1rem] space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
                     {importStep === 'scraping' ? (
-                      <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-8 h-8 border-4 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
                     ) : importStep === 'extracting' ? (
-                      <div className="w-8 h-8 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
                     ) : importStep === 'creating' ? (
-                      <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
                     ) : (
-                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
                         <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
@@ -464,9 +464,9 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
                 
                 {/* Progress Steps */}
                 <div className="flex items-center gap-2 pt-2">
-                  <div className={`flex-1 h-2 rounded-full ${importStep === 'scraping' || importStep === 'extracting' || importStep === 'creating' || importStep === 'complete' ? 'bg-purple-500' : 'bg-gray-200'}`}></div>
-                  <div className={`flex-1 h-2 rounded-full ${importStep === 'extracting' || importStep === 'creating' || importStep === 'complete' ? 'bg-pink-500' : 'bg-gray-200'}`}></div>
-                  <div className={`flex-1 h-2 rounded-full ${importStep === 'creating' || importStep === 'complete' ? 'bg-green-500' : 'bg-gray-200'}`}></div>
+                  <div className={`flex-1 h-2 rounded-full ${importStep === 'scraping' || importStep === 'extracting' || importStep === 'creating' || importStep === 'complete' ? 'bg-purple-400' : 'bg-gray-200'}`}></div>
+                  <div className={`flex-1 h-2 rounded-full ${importStep === 'extracting' || importStep === 'creating' || importStep === 'complete' ? 'bg-purple-500' : 'bg-gray-200'}`}></div>
+                  <div className={`flex-1 h-2 rounded-full ${importStep === 'creating' || importStep === 'complete' ? 'bg-purple-600' : 'bg-gray-200'}`}></div>
                 </div>
               </div>
             )}
