@@ -913,10 +913,10 @@ export default function JobDetailPage() {
         {activeTab === 'research' && application?.company_id && (
           <>
             {userPlan === 'accelerate' ? (
-              <CompanyResearch
-                companyId={application.company_id}
-                companyName={application.company?.name || 'Unknown Company'}
-              />
+          <CompanyResearch
+            companyId={application.company_id}
+            companyName={application.company?.name || 'Unknown Company'}
+          />
             ) : (
               <div className="bg-white rounded-2xl border-2 border-slate-200 p-12 shadow-sm">
                 <div className="flex items-center justify-center min-h-[400px]">

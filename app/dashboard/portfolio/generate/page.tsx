@@ -8,6 +8,7 @@ import { trackEvent } from '@/lib/amplitude/client';
 import { TrackedLink } from '@/app/components/TrackedLink';
 import { TrackedButton } from '@/app/components/TrackedButton';
 import { PortfolioPageTracking } from '@/app/components/PortfolioPageTracking';
+import PremiumFeatureGateModal from '@/app/components/resume/PremiumFeatureGateModal';
 
 type PortfolioIdea = {
   id: string;
@@ -59,6 +60,7 @@ export default function GenerateIdeasPage() {
   } | null>(null);
   const generationStartTime = useRef<number | null>(null);
   const ideaCardRefs = useRef<Map<string, IntersectionObserver>>(new Map());
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
 
   // Fetch user state on mount
   useEffect(() => {
@@ -215,6 +217,12 @@ export default function GenerateIdeasPage() {
     const textToUse = inputTextOverride || inputText;
     if (!textToUse.trim()) {
       toast.error("Please enter an industry or company name");
+      return;
+    }
+
+    // Check if user has Accelerate plan
+    if (userState?.userPlan !== 'accelerate') {
+      setShowPremiumGate(true);
       return;
     }
 
@@ -1574,6 +1582,16 @@ export default function GenerateIdeasPage() {
           </div>
         </div>
       </main>
+
+      {/* Premium Feature Gate Modal */}
+      <PremiumFeatureGateModal
+        isOpen={showPremiumGate}
+        onClose={() => setShowPremiumGate(false)}
+        featureName="AI Case Study Idea Generator"
+        featureDescription="AI Case Study Idea Generator is available exclusively for Accelerate plan subscribers."
+        currentPlan={userState?.userPlan || null}
+        requiresAccelerate={true}
+      />
     </div>
     </>
   );

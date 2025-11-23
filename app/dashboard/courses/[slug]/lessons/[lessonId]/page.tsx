@@ -263,36 +263,36 @@ export default async function LessonPage({
               />
             ) : (
               <>
-                {/* Video Player */}
-                <LessonPlayer 
-                  videoUrl={lesson.video_url} 
-                  lessonId={lesson.id}
-                  courseId={course.id}
-                  lessonTitle={lesson.title}
-                  courseTitle={course.title}
-                />
+            {/* Video Player */}
+            <LessonPlayer 
+              videoUrl={lesson.video_url} 
+              lessonId={lesson.id}
+              courseId={course.id}
+              lessonTitle={lesson.title}
+              courseTitle={course.title}
+            />
               </>
             )}
 
             {/* Lesson Info - Only show if user has access */}
             {!shouldShowGate && (
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">{lesson.title}</h1>
-                    <p className="text-sm text-gray-500">
-                      Lesson {lesson.prioritization} of {course.lessons.length}
-                    </p>
-                  </div>
-                  {lesson.requires_subscription && (
-                    <span className="text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">
-                      Premium
-                    </span>
-                  )}
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">{lesson.title}</h1>
+                  <p className="text-sm text-gray-500">
+                    Lesson {lesson.prioritization} of {course.lessons.length}
+                  </p>
                 </div>
+                {lesson.requires_subscription && (
+                  <span className="text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">
+                    Premium
+                  </span>
+                )}
+              </div>
 
-                {/* Navigation Bar with Completion Button */}
-                <div className="flex items-center gap-4 pt-6 border-t border-gray-200">
+              {/* Navigation Bar with Completion Button */}
+              <div className="flex items-center gap-4 pt-6 border-t border-gray-200">
                 <div className="flex-1 flex justify-start">
                   {previousLesson && (
                     <TrackedLink
