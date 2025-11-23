@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useUserEmail } from '@/lib/amplitude/client';
-import { trackEvent } from '@/lib/amplitude/client';
+import { useEffect, useRef } from 'react';
+import { useUserEmail, identifyUser } from '@/lib/amplitude/client';
 
 /**
  * Amplitude provider component that:
@@ -15,14 +14,14 @@ export const AmplitudeProvider = ({
   children: React.ReactNode;
 }) => {
   const { email } = useUserEmail();
+  const identifiedEmail = useRef<string | null>(null);
 
   useEffect(() => {
-    // When user email is available, we can identify the user
-    // The actual identification happens server-side when events are tracked
-    // This effect ensures we're ready to track with user context
-    if (email) {
-      // User is authenticated - events will automatically include user_id
-      // No need to explicitly identify here since we pass userId in trackEvent
+    // When user email is available, explicitly identify the user in Amplitude
+    // This handles cases where user is already logged in when app loads
+    if (email && email !== identifiedEmail.current) {
+      identifiedEmail.current = email;
+      identifyUser(email);
     }
   }, [email]);
 

@@ -68,6 +68,52 @@ export const trackEvent = async (
 };
 
 /**
+ * Identify a user in Amplitude
+ * This should be called when a user logs in or signs up to explicitly set their user ID
+ * @param userId - User's email address
+ * @param userProperties - Optional user properties to set
+ */
+export const identifyUser = async (
+  userId: string,
+  userProperties?: Record<string, any>
+) => {
+  try {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('👤 Identifying user in Amplitude:', {
+        userId,
+        hasProperties: !!userProperties,
+      });
+    }
+
+    const response = await fetch('/api/analytics/identify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId,
+        userProperties,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Identification failed: ${response.status} - ${JSON.stringify(errorData)}`);
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ User identified successfully:', userId);
+    }
+  } catch (error) {
+    // Always log errors for debugging
+    console.error('❌ Error identifying user:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+    }
+  }
+};
+
+/**
  * Hook to get current user email for tracking
  */
 export const useUserEmail = () => {

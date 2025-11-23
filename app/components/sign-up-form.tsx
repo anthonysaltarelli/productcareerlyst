@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { getSiteUrl } from '@/lib/utils/site-url'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { trackEvent } from '@/lib/amplitude/client'
+import { trackEvent, identifyUser } from '@/lib/amplitude/client'
 
 export const SignUpForm = () => {
   const [email, setEmail] = useState('')
@@ -30,6 +30,9 @@ export const SignUpForm = () => {
       })
 
       if (error) throw error
+
+      // Explicitly identify user in Amplitude before tracking sign up event
+      await identifyUser(email)
 
       // Track successful sign up
       const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/auth/sign-up';
