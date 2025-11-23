@@ -22,11 +22,19 @@ export const PageTracking = ({ pageName }: PageTrackingProps) => {
     }
     trackedPageName.current = pageName;
 
-    // Get current URL and referrer information
+    // Get current URL and referrer information (safely handle invalid URLs)
     const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
     const referrer = typeof window !== 'undefined' ? document.referrer : '';
-    const referrerUrl = referrer ? new URL(referrer) : null;
-    const referrerDomain = referrerUrl ? referrerUrl.hostname : null;
+    let referrerDomain: string | null = null;
+    if (referrer) {
+      try {
+        const referrerUrl = new URL(referrer);
+        referrerDomain = referrerUrl.hostname;
+      } catch {
+        // Invalid referrer URL - ignore silently
+        referrerDomain = null;
+      }
+    }
     
     // Check if referrer is from same domain (internal navigation)
     const isInternalReferrer = referrerDomain && typeof window !== 'undefined' 

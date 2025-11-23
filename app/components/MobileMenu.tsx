@@ -18,11 +18,20 @@ export const MobileMenu = ({ user }: MobileMenuProps) => {
     const newState = !isMobileMenuOpen
     setIsMobileMenuOpen(newState)
     
-    // Track menu toggle
-    const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
-    trackEvent(newState ? 'User Opened Mobile Menu' : 'User Closed Mobile Menu', {
-      'Page Route': pageRoute,
-    })
+    // Track menu toggle in background - don't block UI
+    setTimeout(() => {
+      try {
+        const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/';
+        trackEvent(newState ? 'User Opened Mobile Menu' : 'User Closed Mobile Menu', {
+          'Page Route': pageRoute,
+        });
+      } catch (error) {
+        // Silently fail - analytics should never block UI
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ Mobile menu tracking error (non-blocking):', error);
+        }
+      }
+    }, 0);
   }
 
   const handleKeyDown = (event: React.KeyboardEvent) => {

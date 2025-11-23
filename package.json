@@ -11,7 +11,9 @@
     "test:perplexity": "tsx scripts/test-perplexity-api.ts"
   },
   "dependencies": {
+    "@amplitude/analytics-browser": "^2.31.3",
     "@amplitude/analytics-node": "^1.5.26",
+    "@amplitude/plugin-session-replay-browser": "^1.23.6",
     "@react-email/render": "^1.4.0",
     "@stripe/react-stripe-js": "^5.4.0",
     "@stripe/stripe-js": "^8.5.2",

@@ -11,11 +11,20 @@ Amplitude is integrated to track both anonymous and authenticated user behavior 
 Add your Amplitude API keys to your environment variables:
 
 ```bash
+# Required for server-side tracking
 AMPLITUDE_API_KEY=your_amplitude_api_key_here
 AMPLITUDE_API_SECRET_KEY=your_amplitude_api_secret_key_here
+
+# Required for Session Replay (Browser SDK)
+NEXT_PUBLIC_AMPLITUDE_API_KEY=your_amplitude_api_key_here
+
+# Optional: Set server zone for Session Replay (US or EU)
+NEXT_PUBLIC_AMPLITUDE_SERVER_ZONE=US
 ```
 
 You can find your API key and secret key in your Amplitude project settings.
+
+**Note**: `NEXT_PUBLIC_AMPLITUDE_API_KEY` should be the same as `AMPLITUDE_API_KEY` for Session Replay to work correctly with your existing events.
 
 ## Architecture
 
@@ -27,7 +36,13 @@ You can find your API key and secret key in your Amplitude project settings.
 ### Client-Side (`lib/amplitude/client.ts`)
 - Provides client-side tracking utilities
 - Automatically includes user email for authenticated users
-- Uses API routes to send events to Amplitude
+- Uses Browser SDK when available (for Session Replay)
+- Falls back to API routes for server-side tracking
+
+### Browser SDK (`lib/amplitude/browser.ts`)
+- Initializes Amplitude Browser SDK with Session Replay plugin
+- Handles client-side event tracking for Session Replay
+- Manages Session Replay collection and configuration
 
 ### API Route (`app/api/analytics/track/route.ts`)
 - Receives tracking requests from client-side code
@@ -128,8 +143,19 @@ await trackEvent('Order Completed', {
 
 In development mode, Amplitude will log events to the console. Check your Amplitude dashboard to verify events are being received.
 
+## Session Replay
+
+Session Replay is enabled and automatically captures user sessions for replay in Amplitude. See [AMPLITUDE_SESSION_REPLAY.md](./AMPLITUDE_SESSION_REPLAY.md) for detailed information about:
+
+- Session Replay configuration
+- Sample rate settings
+- Privacy and data masking
+- Troubleshooting
+
 ## Resources
 
 - [Amplitude Node.js SDK Documentation](https://developers.amplitude.com/docs/nodejs)
+- [Amplitude Browser SDK Documentation](https://developers.amplitude.com/docs/browser)
+- [Session Replay Documentation](https://docs.amplitude.com/data/session-replay/)
 - [Amplitude Data Best Practices](https://developers.amplitude.com/docs/data-best-practices)
 

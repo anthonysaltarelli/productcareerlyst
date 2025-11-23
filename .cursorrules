@@ -150,13 +150,80 @@ Examples:
 ❌ **Don't**: Inconsistent naming
 ✅ **Do**: Follow Title Case, "User [Action] [Object]" pattern
 
+### Non-Blocking Tracking (CRITICAL)
+
+**Analytics tracking must NEVER block user interactions or navigation.**
+
+#### Core Principles
+
+1. **All tracking is fire-and-forget**: Never await tracking calls
+2. **Tracking never blocks navigation**: Links and buttons must respond immediately
+3. **Errors are silent**: Analytics failures should never affect user experience
+4. **Use setTimeout for click handlers**: Wrap tracking logic in `setTimeout(..., 0)` to defer execution
+
+#### Implementation Rules
+
+**✅ DO:**
+- Use `trackEvent()` synchronously (it's already non-blocking internally)
+- Wrap click tracking in `setTimeout(..., 0)` to defer execution
+- Call `onClick()` callbacks immediately, before tracking
+- Handle URL parsing errors with try-catch
+- Let navigation happen immediately, tracking runs in background
+
+**❌ DON'T:**
+- Never `await trackEvent()` or `await identifyUser()`
+- Never do synchronous work before navigation in click handlers
+- Never let tracking errors throw or block execution
+- Never wait for tracking to complete before navigation
+
+#### Example: Non-Blocking Click Handler
+
+```tsx
+const handleClick = (e: React.MouseEvent) => {
+  // ✅ Call onClick immediately - don't wait for tracking
+  if (onClick) {
+    onClick();
+  }
+  
+  // ✅ Defer tracking to next event loop tick
+  setTimeout(() => {
+    try {
+      // All tracking logic here
+      trackEvent(eventName, eventProperties);
+    } catch (error) {
+      // Silently fail - analytics should never block
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ Tracking error (non-blocking):', error);
+      }
+    }
+  }, 0);
+};
+```
+
+#### How trackEvent Works
+
+- `trackEvent()` is **synchronous** (returns immediately)
+- Browser SDK tracking happens synchronously (if available)
+- API route tracking uses `Promise.race()` with 50ms timeout for `getUser()`
+- All fetch requests are fire-and-forget (no await)
+- Errors are handled silently (warnings only in dev mode)
+
+#### Components Already Non-Blocking
+
+- ✅ `TrackedLink` - Uses setTimeout to defer tracking
+- ✅ `TrackedButton` - Uses setTimeout to defer tracking
+- ✅ `PageTracking` - Tracking happens in useEffect (non-blocking)
+- ✅ `NavLink` - Tracking happens before navigation
+- ✅ All form components - Tracking happens after user actions
+
 ### When Adding New Tracking
 
 1. **Identify the exact location**: Section, position, context
 2. **Create unique ID**: Follow naming convention
 3. **Use TrackedButton/TrackedLink**: Don't use raw trackEvent for clicks
 4. **Include all required properties**: Section, Position, Text, Type, Context
-5. **Test**: Verify event fires with all properties in Amplitude dashboard
+5. **Ensure non-blocking**: Use setTimeout for click handlers
+6. **Test**: Verify event fires with all properties AND navigation is instant
 
 ### Reference Files
 

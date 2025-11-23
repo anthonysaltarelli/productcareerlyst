@@ -168,29 +168,47 @@ export default function CoursesPage() {
       )
       const course = category?.courses.find(c => c.id === courseId)
       
-      // Track course expansion with full context
+      // Track course expansion with full context (non-blocking)
       if (course) {
-        const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/courses';
-        const referrer = typeof window !== 'undefined' ? document.referrer : '';
-        const referrerDomain = referrer ? new URL(referrer).hostname : null;
-        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-        
-        trackEvent('User Expanded Course', {
-          'Page Route': pageRoute,
-          'Course ID': courseId,
-          'Course Title': course.title,
-          'Course Category': category?.name || 'Unknown',
-          'Course Slug': course.slug || 'Unknown',
-          'Course Description': course.description || 'Unknown',
-          'Course Lesson Count': course.lesson_count || 0,
-          'Course Length': course.length || 'Unknown',
-          'Category Slug': category?.slug || 'Unknown',
-          'Referrer URL': referrer || 'None',
-          'Referrer Domain': referrerDomain || 'None',
-          'UTM Source': urlParams?.get('utm_source') || null,
-          'UTM Medium': urlParams?.get('utm_medium') || null,
-          'UTM Campaign': urlParams?.get('utm_campaign') || null,
-        })
+        setTimeout(() => {
+          try {
+            const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/courses';
+            const referrer = typeof window !== 'undefined' ? document.referrer : '';
+            // Safely handle invalid referrer URLs
+            let referrerDomain: string | null = null;
+            if (referrer) {
+              try {
+                referrerDomain = new URL(referrer).hostname;
+              } catch {
+                // Invalid referrer URL - ignore silently
+                referrerDomain = null;
+              }
+            }
+            const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+            
+            trackEvent('User Expanded Course', {
+              'Page Route': pageRoute,
+              'Course ID': courseId,
+              'Course Title': course.title,
+              'Course Category': category?.name || 'Unknown',
+              'Course Slug': course.slug || 'Unknown',
+              'Course Description': course.description || 'Unknown',
+              'Course Lesson Count': course.lesson_count || 0,
+              'Course Length': course.length || 'Unknown',
+              'Category Slug': category?.slug || 'Unknown',
+              'Referrer URL': referrer || 'None',
+              'Referrer Domain': referrerDomain || 'None',
+              'UTM Source': urlParams?.get('utm_source') || null,
+              'UTM Medium': urlParams?.get('utm_medium') || null,
+              'UTM Campaign': urlParams?.get('utm_campaign') || null,
+            });
+          } catch (error) {
+            // Silently fail - analytics should never block UI
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('⚠️ Course expansion tracking error (non-blocking):', error);
+            }
+          }
+        }, 0);
       }
       
       // Fetch lessons if not already loaded
@@ -226,30 +244,49 @@ export default function CoursesPage() {
   }
 
   const handleLessonClick = (lessonTitle: string, courseTitle?: string, courseId?: string) => {
-    // Track lesson click with full context
-    const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/courses';
-    const referrer = typeof window !== 'undefined' ? document.referrer : '';
-    const referrerDomain = referrer ? new URL(referrer).hostname : null;
-    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    
-    trackEvent('User Clicked Lesson', {
-      'Page Route': pageRoute,
-      'Lesson Title': lessonTitle,
-      'Course Title': courseTitle || 'Unknown',
-      'Course ID': courseId || 'Unknown',
-      'Click Context': 'Expanded course lessons list',
-      'Referrer URL': referrer || 'None',
-      'Referrer Domain': referrerDomain || 'None',
-      'UTM Source': urlParams?.get('utm_source') || null,
-      'UTM Medium': urlParams?.get('utm_medium') || null,
-      'UTM Campaign': urlParams?.get('utm_campaign') || null,
-    })
-    
+    // Show modal immediately - don't wait for tracking
     setModalContent({
       title: 'Create a Free Account',
       description: `Sign up to watch "${lessonTitle}" and access all our courses and lessons. It's completely free!`
     })
     setModalOpen(true)
+    
+    // Track lesson click in background - don't block UI
+    setTimeout(() => {
+      try {
+        const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/courses';
+        const referrer = typeof window !== 'undefined' ? document.referrer : '';
+        // Safely handle invalid referrer URLs
+        let referrerDomain: string | null = null;
+        if (referrer) {
+          try {
+            referrerDomain = new URL(referrer).hostname;
+          } catch {
+            // Invalid referrer URL - ignore silently
+            referrerDomain = null;
+          }
+        }
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        
+        trackEvent('User Clicked Lesson', {
+          'Page Route': pageRoute,
+          'Lesson Title': lessonTitle,
+          'Course Title': courseTitle || 'Unknown',
+          'Course ID': courseId || 'Unknown',
+          'Click Context': 'Expanded course lessons list',
+          'Referrer URL': referrer || 'None',
+          'Referrer Domain': referrerDomain || 'None',
+          'UTM Source': urlParams?.get('utm_source') || null,
+          'UTM Medium': urlParams?.get('utm_medium') || null,
+          'UTM Campaign': urlParams?.get('utm_campaign') || null,
+        });
+      } catch (error) {
+        // Silently fail - analytics should never block UI
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ Lesson click tracking error (non-blocking):', error);
+        }
+      }
+    }, 0);
   }
 
   if (loading) {

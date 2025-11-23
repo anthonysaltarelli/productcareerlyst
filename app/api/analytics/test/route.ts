@@ -14,18 +14,23 @@ export async function GET() {
     // Initialize Amplitude
     initializeAmplitude();
 
-    // Try to track a test event
+    // Try to track a test event (fire-and-forget - don't block response)
     const testDeviceId = 'test-device-' + Date.now();
-    await trackEvent('Test Event', {
+    trackEvent('Test Event', {
       'Test Property': 'test value',
       'Timestamp': new Date().toISOString(),
-    }, undefined, testDeviceId);
+    }, undefined, testDeviceId).catch((error) => {
+      // Silently handle errors - test endpoint should still return success
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ Test event tracking error (non-blocking):', error);
+      }
+    });
 
     return NextResponse.json({
       success: true,
       hasApiKey,
       apiKeyLength: apiKey?.length || 0,
-      message: 'Test event sent. Check Amplitude dashboard and server logs.',
+      message: 'Test event queued. Check Amplitude dashboard and server logs.',
     });
   } catch (error) {
     return NextResponse.json({

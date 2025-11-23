@@ -30,8 +30,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await trackEvent(eventType, eventProperties, userId, deviceId);
+    // Fire-and-forget: Don't await tracking - analytics should never block API responses
+    // This ensures the API returns immediately while tracking happens in the background
+    trackEvent(eventType, eventProperties, userId, deviceId).catch((error) => {
+      // Silently handle errors - analytics failures should never affect API responses
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ Analytics tracking error (non-blocking):', error);
+      }
+    });
 
+    // Return immediately - don't wait for tracking to complete
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('❌ Error in analytics track route:', error);

@@ -29,12 +29,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await identifyUser(userId, deviceId, userProperties);
+    // Fire-and-forget: Don't await identification - analytics should never block API responses
+    // This ensures the API returns immediately while identification happens in the background
+    identifyUser(userId, deviceId, userProperties).catch((error) => {
+      // Silently handle errors - analytics failures should never affect API responses
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ Analytics identification error (non-blocking):', error);
+      }
+    });
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('✅ User identified successfully:', userId);
-    }
-
+    // Return immediately - don't wait for identification to complete
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('❌ Error in analytics identify route:', error);

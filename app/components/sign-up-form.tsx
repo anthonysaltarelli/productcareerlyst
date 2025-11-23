@@ -31,11 +31,8 @@ export const SignUpForm = () => {
 
       if (error) throw error
 
-      // Explicitly identify user in Amplitude (non-blocking - don't wait for it)
-      identifyUser(email).catch(err => {
-        // Silently handle errors - don't block sign up flow
-        console.error('Failed to identify user in Amplitude:', err);
-      });
+      // Explicitly identify user in Amplitude (non-blocking - fire-and-forget)
+      identifyUser(email);
 
       // Track successful sign up (also non-blocking)
       const pageRoute = typeof window !== 'undefined' ? window.location.pathname : '/auth/sign-up';

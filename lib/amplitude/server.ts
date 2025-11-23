@@ -68,20 +68,23 @@ export const trackEvent = async (
     return;
   }
 
-  try {
-    const result = await track(eventType, eventProperties, options).promise;
-    if (process.env.NODE_ENV === 'development') {
-      console.log('✅ Amplitude event tracked:', {
-        eventType,
-        userId: options.user_id || 'anonymous',
-        deviceId: options.device_id || 'none',
-        result: result?.code || 'pending',
-      });
-    }
-  } catch (error) {
-    console.error('❌ Error tracking Amplitude event:', error);
-    console.error('Event details:', { eventType, eventProperties, options });
-  }
+  // Fire-and-forget: Don't await the promise to avoid blocking
+  // The event will be queued and sent by Amplitude's flush mechanism
+  track(eventType, eventProperties, options).promise
+    .then((result) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Amplitude event tracked:', {
+          eventType,
+          userId: options.user_id || 'anonymous',
+          deviceId: options.device_id || 'none',
+          result: result?.code || 'pending',
+        });
+      }
+    })
+    .catch((error) => {
+      console.error('❌ Error tracking Amplitude event:', error);
+      console.error('Event details:', { eventType, eventProperties, options });
+    });
 };
 
 /**
@@ -114,14 +117,19 @@ export const identifyUser = async (
       options.device_id = deviceId;
     }
 
-    await identify(identifyObj, options).promise;
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log('✅ User identified:', {
-        userId,
-        deviceId: deviceId || 'none',
+    // Fire-and-forget: Don't await the promise to avoid blocking
+    identify(identifyObj, options).promise
+      .then(() => {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('✅ User identified:', {
+            userId,
+            deviceId: deviceId || 'none',
+          });
+        }
+      })
+      .catch((error) => {
+        console.error('Error identifying Amplitude user:', error);
       });
-    }
   } catch (error) {
     console.error('Error identifying Amplitude user:', error);
   }
