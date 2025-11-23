@@ -106,6 +106,8 @@ export default function PortfolioEditor({
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<'homepage' | 'detail'>('homepage');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
 
   // Get current template
   const template = getTemplate(templateId) || PORTFOLIO_TEMPLATES[0];
@@ -242,6 +244,46 @@ export default function PortfolioEditor({
 
   const handleBackToHomepage = () => {
     setCurrentView('homepage');
+    setSelectedBlockId(null);
+    setIsEditMode(false);
+  };
+
+  const handleBlockSelect = (blockId: string | null) => {
+    setSelectedBlockId(blockId);
+  };
+
+  const handleBlockUpdate = (blockId: string, updates: Partial<PageContent['contentBlocks'][0]['data']>) => {
+    if (!selectedItemId || !selectedSectionId) return;
+    
+    setSections(
+      sections.map((section) => {
+        if (section.id === selectedSectionId) {
+          return {
+            ...section,
+            items: section.items.map((item) => {
+              if (item.id === selectedItemId) {
+                return {
+                  ...item,
+                  contentBlocks: item.contentBlocks.map((block) =>
+                    block.id === blockId
+                      ? {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            ...updates,
+                          },
+                        }
+                      : block
+                  ),
+                };
+              }
+              return item;
+            }),
+          };
+        }
+        return section;
+      })
+    );
   };
 
   const handleSave = () => {
@@ -291,15 +333,49 @@ export default function PortfolioEditor({
       </div>
 
       {/* Preview Side - Right, 70% on desktop, full width on mobile */}
-      <div className="flex-1 overflow-y-auto md:w-[70%]">
+      <div className="flex-1 overflow-y-auto md:w-[70%] relative">
+        {/* Edit Mode Toggle */}
+        <div className="absolute top-4 right-4 z-50">
+          <button
+            onClick={() => {
+              setIsEditMode(!isEditMode);
+              if (!isEditMode && currentView === 'detail') {
+                // When entering edit mode, ensure we're on detail view
+                if (!selectedItemId) {
+                  // If no item selected, select first item in first section
+                  const firstSection = sections.find((s) => s.items.length > 0);
+                  if (firstSection && firstSection.items.length > 0) {
+                    setSelectedSectionId(firstSection.id);
+                    setSelectedItemId(firstSection.items[0].id);
+                    setCurrentView('detail');
+                  }
+                }
+              } else if (!isEditMode) {
+                setSelectedBlockId(null);
+              }
+            }}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              isEditMode
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            {isEditMode ? '✕ Exit Edit Mode' : '✏️ Edit Mode'}
+          </button>
+        </div>
+        
         <TemplatePreview
           template={template}
           content={portfolioContent}
           theme={theme}
           selectedItem={selectedItem}
           view={currentView}
+          isEditMode={isEditMode}
+          selectedBlockId={selectedBlockId}
           onItemClick={handleItemClick}
           onBackToHomepage={handleBackToHomepage}
+          onBlockSelect={handleBlockSelect}
+          onBlockUpdate={handleBlockUpdate}
         />
       </div>
     </div>

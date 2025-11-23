@@ -3,23 +3,8 @@
 import { ColorPalette } from '@/lib/constants/portfolio-palettes';
 import { FontCombination } from '@/lib/constants/portfolio-fonts';
 import { getColorValue } from '@/lib/utils/portfolio-colors';
+import { PageContent, PortfolioSection } from '@/lib/types/portfolio-content';
 import CaseStudyCarousel from './CaseStudyCarousel';
-
-interface PortfolioItem {
-  id: string;
-  title: string;
-  description: string;
-  heroImage: string;
-  tags: string[];
-  order: number;
-}
-
-interface PortfolioSection {
-  id: string;
-  title: string;
-  items: PortfolioItem[];
-  order: number;
-}
 
 interface ModernMinimalistHomepageProps {
   siteTitle: string;
