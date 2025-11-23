@@ -11,6 +11,8 @@ import { EditJobModal } from '@/app/components/jobs/EditJobModal';
 import { WizaAutomatedFlow } from '@/app/components/jobs/WizaAutomatedFlow';
 import { WizaRequestHistory } from '@/app/components/jobs/WizaRequestHistory';
 import { CompanyResearch } from '@/app/components/jobs/CompanyResearch';
+import PremiumFeatureGateModal from '@/app/components/resume/PremiumFeatureGateModal';
+import { getUserPlanClient } from '@/lib/utils/resume-tracking';
 
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
   wishlist: { label: 'Wishlist', color: 'text-gray-700', bgColor: 'bg-gray-50' },
@@ -41,6 +43,27 @@ export default function JobDetailPage() {
       ? tabFromQuery 
       : 'overview'
   );
+  const [userPlan, setUserPlan] = useState<'learn' | 'accelerate' | null>(null);
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
+
+  // Load user plan on mount
+  useEffect(() => {
+    getUserPlanClient().then(setUserPlan);
+  }, []);
+
+  // Check access when research tab is activated
+  useEffect(() => {
+    if (activeTab === 'research') {
+      const checkAccess = async () => {
+        const plan = userPlan || await getUserPlanClient();
+        setUserPlan(plan);
+        if (plan !== 'accelerate') {
+          setShowPremiumGate(true);
+        }
+      };
+      checkAccess();
+    }
+  }, [activeTab, userPlan]);
 
   // Update activeTab when query param changes (e.g., browser back/forward)
   useEffect(() => {
@@ -680,8 +703,18 @@ export default function JobDetailPage() {
               <div className="flex items-center gap-3">
                 {!hasCompletedOrInProgressRequest && !showWizaAutomated && (
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (isWizaButtonDisabled) return;
+                      
+                      // Check if user has Accelerate plan
+                      const plan = userPlan || await getUserPlanClient();
+                      setUserPlan(plan);
+                      
+                      if (plan !== 'accelerate') {
+                        setShowPremiumGate(true);
+                        return;
+                      }
+                      
                       setIsWizaButtonDisabled(true);
                       setShowWizaAutomated(true);
                       // Re-enable after a short delay to prevent rapid clicks
@@ -878,10 +911,41 @@ export default function JobDetailPage() {
 
         {/* Research Tab */}
         {activeTab === 'research' && application?.company_id && (
-          <CompanyResearch
-            companyId={application.company_id}
-            companyName={application.company?.name || 'Unknown Company'}
-          />
+          <>
+            {userPlan === 'accelerate' ? (
+              <CompanyResearch
+                companyId={application.company_id}
+                companyName={application.company?.name || 'Unknown Company'}
+              />
+            ) : (
+              <div className="bg-white rounded-2xl border-2 border-slate-200 p-12 shadow-sm">
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="max-w-md w-full text-center">
+                    <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl border-2 border-purple-200 mx-auto mb-6">
+                      <svg className="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    <h2 className="text-3xl font-black text-gray-900 mb-4">
+                      Accelerate Plan Required
+                    </h2>
+                    <p className="text-gray-700 font-semibold mb-2 text-lg">
+                      Company research is available exclusively for Accelerate plan subscribers.
+                    </p>
+                    <p className="text-gray-600 mb-8">
+                      Upgrade your plan to unlock access to comprehensive company research and accelerate your job search.
+                    </p>
+                    <button
+                      onClick={() => setShowPremiumGate(true)}
+                      className="inline-block w-full px-6 py-4 text-base font-bold rounded-xl transition-all bg-gradient-to-br from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl text-center"
+                    >
+                      View Plans & Pricing
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -1178,6 +1242,20 @@ export default function JobDetailPage() {
           refetch();
           setShowEditModal(false);
         }}
+      />
+
+      {/* Premium Feature Gate Modal */}
+      <PremiumFeatureGateModal
+        isOpen={showPremiumGate}
+        onClose={() => setShowPremiumGate(false)}
+        featureName={activeTab === 'research' ? 'Company Research' : 'Find Contacts Automatically'}
+        featureDescription={
+          activeTab === 'research' 
+            ? 'Company research is available exclusively for Accelerate plan subscribers.'
+            : 'Find Contacts Automatically is available exclusively for Accelerate plan subscribers.'
+        }
+        currentPlan={userPlan}
+        requiresAccelerate={true}
       />
     </div>
   );

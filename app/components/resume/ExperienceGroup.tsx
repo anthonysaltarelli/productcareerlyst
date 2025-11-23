@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Experience } from "./mockData";
 import BulletEditor from "./BulletEditor";
+import PremiumFeatureGateModal from "./PremiumFeatureGateModal";
+import { getUserPlanClient } from "@/lib/utils/resume-tracking";
 
 type Props = {
   groupId: string;
@@ -50,6 +52,8 @@ export default function ExperienceGroup({
   const [newBulletContent, setNewBulletContent] = useState("");
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizedVersions, setOptimizedVersions] = useState<string[] | null>(null);
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
+  const [userPlan, setUserPlan] = useState<'learn' | 'accelerate' | null>(null);
   
   // Drag and drop state
   const [draggedBulletId, setDraggedBulletId] = useState<string | null>(null);
@@ -81,6 +85,11 @@ export default function ExperienceGroup({
   const allBullets = Array.from(allBulletsMap.values());
   const selectedBullets = allBullets.filter(b => b.isSelected);
 
+  // Load user plan on mount
+  useEffect(() => {
+    getUserPlanClient().then(setUserPlan);
+  }, []);
+
   const handleAddBulletClick = (experienceId: string) => {
     setAddingBulletForExperienceId(experienceId);
     setNewBulletContent("");
@@ -107,6 +116,15 @@ export default function ExperienceGroup({
 
   const handleOptimizeBulletText = async () => {
     if (!newBulletContent.trim() || !onOptimizeBulletText) return;
+
+    // Check if user has Accelerate plan
+    const plan = userPlan || await getUserPlanClient();
+    setUserPlan(plan);
+    
+    if (plan !== 'accelerate') {
+      setShowPremiumGate(true);
+      return;
+    }
 
     setIsOptimizing(true);
     setOptimizedVersions(null);
@@ -802,6 +820,16 @@ export default function ExperienceGroup({
           </div>
         </div>
       )}
+
+      {/* Premium Feature Gate Modal */}
+      <PremiumFeatureGateModal
+        isOpen={showPremiumGate}
+        onClose={() => setShowPremiumGate(false)}
+        featureName="AI Bullet Optimization"
+        featureDescription="AI bullet optimization is available exclusively for Accelerate plan subscribers."
+        currentPlan={userPlan}
+        requiresAccelerate={true}
+      />
     </div>
   );
 }

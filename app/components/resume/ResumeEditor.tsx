@@ -578,13 +578,10 @@ export default function ResumeEditor({
               className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all resize-none bg-slate-50 focus:bg-white"
               placeholder="Write a compelling professional summary..."
             />
-            <div className="mt-5 flex items-center justify-between">
+            <div className="mt-5">
               <span className="text-sm font-medium text-gray-500">
                 {resumeData.summary.length} characters
               </span>
-              <button className="px-5 py-2.5 text-sm font-bold bg-gradient-to-br from-purple-100 to-pink-100 text-purple-700 hover:from-purple-200 hover:to-pink-200 rounded-xl transition-all border border-purple-200">
-                ✨ AI Optimize
-              </button>
             </div>
           </div>
         );

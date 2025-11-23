@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Bullet } from "./mockData";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import PremiumFeatureGateModal from "./PremiumFeatureGateModal";
 import { trackEvent } from "@/lib/amplitude/client";
 import { getUserPlanClient } from "@/lib/utils/resume-tracking";
 
@@ -49,6 +50,8 @@ export default function BulletEditor({
   const [optimizedVersions, setOptimizedVersions] = useState<string[] | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
+  const [userPlan, setUserPlan] = useState<'learn' | 'accelerate' | null>(null);
 
   // Sync local content state when bullet prop changes
   useEffect(() => {
@@ -56,6 +59,11 @@ export default function BulletEditor({
       setContent(bullet.content);
     }
   }, [bullet.content, isEditing]);
+
+  // Load user plan on mount
+  useEffect(() => {
+    getUserPlanClient().then(setUserPlan);
+  }, []);
 
   // Clear optimized versions when content changes
   useEffect(() => {
@@ -75,6 +83,15 @@ export default function BulletEditor({
   const handleOptimize = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!onOptimize || !bullet.id) return;
+
+    // Check if user has Accelerate plan
+    const plan = userPlan || await getUserPlanClient();
+    setUserPlan(plan);
+    
+    if (plan !== 'accelerate') {
+      setShowPremiumGate(true);
+      return;
+    }
 
     setIsOptimizing(true);
     setOptimizedVersions(null);
@@ -337,6 +354,16 @@ export default function BulletEditor({
         onClose={handleCancelDelete}
         onCancel={handleCancelDelete}
         isDeleting={isDeleting}
+      />
+
+      {/* Premium Feature Gate Modal */}
+      <PremiumFeatureGateModal
+        isOpen={showPremiumGate}
+        onClose={() => setShowPremiumGate(false)}
+        featureName="AI Bullet Optimization"
+        featureDescription="AI bullet optimization is available exclusively for Accelerate plan subscribers."
+        currentPlan={userPlan}
+        requiresAccelerate={true}
       />
     </div>
   );
