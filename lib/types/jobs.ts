@@ -20,13 +20,15 @@ export type WorkMode = 'remote' | 'hybrid' | 'onsite';
 
 export type InterviewType = 
   | 'recruiter_screen' 
-  | 'phone_screen' 
-  | 'technical' 
-  | 'behavioral' 
+  | 'hiring_manager_screen' 
+  | 'product_sense' 
+  | 'product_analytics_execution' 
   | 'system_design' 
-  | 'onsite' 
-  | 'final' 
-  | 'other';
+  | 'technical' 
+  | 'product_strategy' 
+  | 'estimation' 
+  | 'executive' 
+  | 'cross_functional';
 
 export type InterviewStatus = 'scheduled' | 'completed' | 'cancelled';
 

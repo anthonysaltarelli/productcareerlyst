@@ -96,6 +96,23 @@ export const POST = async (
     const interviewType = interview.type || 'general';
     const interviewers = interview.interview_interviewers || [];
     
+    // Format interview type for display
+    const formatInterviewType = (type: string): string => {
+      const typeMap: Record<string, string> = {
+        'recruiter_screen': 'Recruiter Screen',
+        'hiring_manager_screen': 'Hiring Manager Screen',
+        'product_sense': 'Product Sense',
+        'product_analytics_execution': 'Product Analytics / Execution',
+        'system_design': 'System Design',
+        'technical': 'Technical',
+        'product_strategy': 'Product Strategy',
+        'estimation': 'Estimation',
+        'executive': 'Executive',
+        'cross_functional': 'Cross Functional',
+      };
+      return typeMap[type] || type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+    };
+    
     // Build interviewer context
     let interviewerContext = '';
     if (interviewers.length > 0) {
@@ -119,7 +136,7 @@ export const POST = async (
 Context:
 - Company: ${companyName}
 - Role: ${jobTitle}
-- Interview Type: ${interviewType.replace('_', ' ')}${interviewerContext}
+- Interview Type: ${formatInterviewType(interviewType)}${interviewerContext}
 
 Requirements:
 1. Questions should be tailored to the interview type (e.g., Product Sense interviews should focus on product strategy; Technical interviews should focus on technical aspects, especially if the interviewer is not a PM)

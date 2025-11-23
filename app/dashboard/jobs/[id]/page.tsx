@@ -6,12 +6,13 @@ import { useParams, useRouter, useSearchParams, usePathname } from 'next/navigat
 import { useJobApplication, updateJobApplication } from '@/lib/hooks/useJobApplications';
 import { useInterviews, createInterview, updateInterview, deleteInterview } from '@/lib/hooks/useInterviews';
 import { useContacts, createContact, updateContact, deleteContact } from '@/lib/hooks/useContacts';
-import { ApplicationStatus, InterviewType, InterviewStatus, ContactRelationship } from '@/lib/types/jobs';
+import { ApplicationStatus, InterviewType, InterviewStatus, ContactRelationship, ContactWithInteractions } from '@/lib/types/jobs';
 import { EditJobModal } from '@/app/components/jobs/EditJobModal';
 import { WizaAutomatedFlow } from '@/app/components/jobs/WizaAutomatedFlow';
 import { WizaRequestHistory } from '@/app/components/jobs/WizaRequestHistory';
 import { CompanyResearch } from '@/app/components/jobs/CompanyResearch';
 import PremiumFeatureGateModal from '@/app/components/resume/PremiumFeatureGateModal';
+import DeleteConfirmationModal from '@/app/components/resume/DeleteConfirmationModal';
 import { getUserPlanClient } from '@/lib/utils/resume-tracking';
 
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
@@ -23,6 +24,23 @@ const statusConfig: Record<ApplicationStatus, { label: string; color: string; bg
   rejected: { label: 'Rejected', color: 'text-red-700', bgColor: 'bg-red-50' },
   accepted: { label: 'Accepted', color: 'text-emerald-700', bgColor: 'bg-emerald-50' },
   withdrawn: { label: 'Withdrawn', color: 'text-gray-700', bgColor: 'bg-gray-50' },
+};
+
+const formatInterviewType = (type?: InterviewType): string => {
+  if (!type) return '';
+  const typeMap: Record<InterviewType, string> = {
+    'recruiter_screen': 'Recruiter Screen',
+    'hiring_manager_screen': 'Hiring Manager Screen',
+    'product_sense': 'Product Sense',
+    'product_analytics_execution': 'Product Analytics / Execution',
+    'system_design': 'System Design',
+    'technical': 'Technical',
+    'product_strategy': 'Product Strategy',
+    'estimation': 'Estimation',
+    'executive': 'Executive',
+    'cross_functional': 'Cross Functional',
+  };
+  return typeMap[type] || type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
 export default function JobDetailPage() {
@@ -95,11 +113,14 @@ export default function JobDetailPage() {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [notesValue, setNotesValue] = useState('');
   const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [editingContact, setEditingContact] = useState<{ id: string; name: string } | null>(null);
+  const [deletingContact, setDeletingContact] = useState<{ id: string; name: string } | null>(null);
+  const [isDeletingContact, setIsDeletingContact] = useState(false);
 
   // Interview form state
   const [interviewForm, setInterviewForm] = useState({
     title: '',
-    type: 'phone_screen' as InterviewType,
+    type: 'recruiter_screen' as InterviewType,
     status: 'scheduled' as InterviewStatus,
     scheduled_for: '',
     duration_minutes: '',
@@ -243,7 +264,7 @@ export default function JobDetailPage() {
       // Reset form
       setInterviewForm({
         title: '',
-        type: 'phone_screen',
+        type: 'recruiter_screen',
         status: 'scheduled',
         scheduled_for: '',
         duration_minutes: '',
@@ -303,6 +324,84 @@ export default function JobDetailPage() {
       setSubmitError(err instanceof Error ? err.message : 'Failed to add contact');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEditContact = (contact: ContactWithInteractions) => {
+    setEditingContact({ id: contact.id, name: contact.name });
+    setContactForm({
+      name: contact.name,
+      title: contact.title || '',
+      email: contact.email || '',
+      linkedin_url: contact.linkedin_url || '',
+      phone: contact.phone || '',
+      relationship: contact.relationship || 'team_member',
+      notes: contact.notes || '',
+    });
+    setShowAddContact(true);
+  };
+
+  const handleUpdateContact = async () => {
+    if (!editingContact) return;
+
+    if (!contactForm.name.trim()) {
+      setSubmitError('Please enter a contact name');
+      return;
+    }
+
+    if (!contactForm.title.trim()) {
+      setSubmitError('Please enter a contact title');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      await updateContact(editingContact.id, {
+        name: contactForm.name,
+        title: contactForm.title,
+        email: contactForm.email || undefined,
+        linkedin_url: contactForm.linkedin_url || undefined,
+        phone: contactForm.phone || undefined,
+        relationship: contactForm.relationship,
+        notes: contactForm.notes || undefined,
+      });
+
+      await refetchContacts();
+      setShowAddContact(false);
+      setEditingContact(null);
+      
+      // Reset form
+      setContactForm({
+        name: '',
+        title: '',
+        email: '',
+        linkedin_url: '',
+        phone: '',
+        relationship: 'team_member',
+        notes: '',
+      });
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to update contact');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteContact = async () => {
+    if (!deletingContact) return;
+
+    setIsDeletingContact(true);
+    try {
+      await deleteContact(deletingContact.id);
+      await refetchContacts();
+      setDeletingContact(null);
+    } catch (err) {
+      console.error('Failed to delete contact:', err);
+      alert('Failed to delete contact. Please try again.');
+    } finally {
+      setIsDeletingContact(false);
     }
   };
 
@@ -727,8 +826,8 @@ export default function JobDetailPage() {
                             {interview.status.charAt(0).toUpperCase() + interview.status.slice(1)}
                           </span>
                           {interview.type && (
-                            <span className="px-4 py-1.5 rounded-[1rem] text-xs font-black bg-blue-100 text-blue-700 border-2 border-blue-400 capitalize">
-                              {interview.type.replace('_', ' ')}
+                            <span className="px-4 py-1.5 rounded-[1rem] text-xs font-black bg-blue-100 text-blue-700 border-2 border-blue-400">
+                              {formatInterviewType(interview.type)}
                             </span>
                           )}
                         </div>
@@ -905,11 +1004,34 @@ export default function JobDetailPage() {
                               <p className="text-gray-700 font-semibold text-sm mt-1 truncate">{contact.title}</p>
                             )}
                           </div>
-                          {contact.relationship && (
-                            <span className="px-3 py-1.5 bg-blue-100 text-blue-700 border-2 border-blue-400 rounded-[0.75rem] text-xs font-black capitalize flex-shrink-0 whitespace-nowrap">
-                              {contact.relationship.replace('_', ' ')}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {contact.relationship && (
+                              <span className="px-3 py-1.5 bg-blue-100 text-blue-700 border-2 border-blue-400 rounded-[0.75rem] text-xs font-black capitalize whitespace-nowrap">
+                                {contact.relationship.replace('_', ' ')}
+                              </span>
+                            )}
+                            {/* Edit and Delete Buttons */}
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => handleEditContact(contact)}
+                                className="p-2 rounded-[0.75rem] bg-purple-50 border-2 border-purple-200 text-purple-700 hover:bg-purple-100 transition-colors"
+                                aria-label="Edit contact"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => setDeletingContact({ id: contact.id, name: contact.name })}
+                                className="p-2 rounded-[0.75rem] bg-red-50 border-2 border-red-200 text-red-700 hover:bg-red-100 transition-colors"
+                                aria-label="Delete contact"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
                         </div>
 
                         {/* Contact Info */}
@@ -1096,13 +1218,15 @@ export default function JobDetailPage() {
                     className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-bold"
                   >
                     <option value="recruiter_screen">Recruiter Screen</option>
-                    <option value="phone_screen">Phone Screen</option>
-                    <option value="technical">Technical</option>
-                    <option value="behavioral">Behavioral</option>
+                    <option value="hiring_manager_screen">Hiring Manager Screen</option>
+                    <option value="product_sense">Product Sense</option>
+                    <option value="product_analytics_execution">Product Analytics / Execution</option>
                     <option value="system_design">System Design</option>
-                    <option value="onsite">Onsite</option>
-                    <option value="final">Final Round</option>
-                    <option value="other">Other</option>
+                    <option value="technical">Technical</option>
+                    <option value="product_strategy">Product Strategy</option>
+                    <option value="estimation">Estimation</option>
+                    <option value="executive">Executive</option>
+                    <option value="cross_functional">Cross Functional</option>
                   </select>
                 </div>
                 <div>
@@ -1125,7 +1249,28 @@ export default function JobDetailPage() {
                   <input
                     type="datetime-local"
                     value={interviewForm.scheduled_for}
-                    onChange={(e) => setInterviewForm({ ...interviewForm, scheduled_for: e.target.value })}
+                    onChange={(e) => {
+                      // Round to nearest 15 minutes
+                      if (e.target.value) {
+                        const date = new Date(e.target.value);
+                        const minutes = date.getMinutes();
+                        const roundedMinutes = Math.round(minutes / 15) * 15;
+                        date.setMinutes(roundedMinutes);
+                        date.setSeconds(0);
+                        date.setMilliseconds(0);
+                        // Format back to datetime-local format (YYYY-MM-DDTHH:mm)
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const hours = String(date.getHours()).padStart(2, '0');
+                        const mins = String(date.getMinutes()).padStart(2, '0');
+                        const formatted = `${year}-${month}-${day}T${hours}:${mins}`;
+                        setInterviewForm({ ...interviewForm, scheduled_for: formatted });
+                      } else {
+                        setInterviewForm({ ...interviewForm, scheduled_for: e.target.value });
+                      }
+                    }}
+                    step="900"
                     className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium"
                   />
                 </div>
@@ -1198,16 +1343,29 @@ export default function JobDetailPage() {
         </div>
       )}
 
-      {/* Add Contact Modal */}
+      {/* Add/Edit Contact Modal */}
       {showAddContact && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="rounded-[2.5rem] bg-white shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">Add Contact 👥</h2>
+              <h2 className="text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">
+                {editingContact ? 'Edit Contact 👥' : 'Add Contact 👥'}
+              </h2>
               <button
                 onClick={() => {
                   setShowAddContact(false);
+                  setEditingContact(null);
                   setSubmitError(null);
+                  // Reset form
+                  setContactForm({
+                    name: '',
+                    title: '',
+                    email: '',
+                    linkedin_url: '',
+                    phone: '',
+                    relationship: 'team_member',
+                    notes: '',
+                  });
                 }}
                 className="text-gray-600 hover:text-gray-900 transition-colors p-2 hover:bg-gray-100 rounded-[1rem]"
                 disabled={isSubmitting}
@@ -1314,7 +1472,18 @@ export default function JobDetailPage() {
               <button
                 onClick={() => {
                   setShowAddContact(false);
+                  setEditingContact(null);
                   setSubmitError(null);
+                  // Reset form
+                  setContactForm({
+                    name: '',
+                    title: '',
+                    email: '',
+                    linkedin_url: '',
+                    phone: '',
+                    relationship: 'team_member',
+                    notes: '',
+                  });
                 }}
                 disabled={isSubmitting}
                 className="flex-1 px-6 py-3.5 rounded-[1.5rem] border-2 border-gray-300 bg-white text-gray-700 font-black hover:bg-gray-50 transition-colors disabled:opacity-50"
@@ -1322,16 +1491,28 @@ export default function JobDetailPage() {
                 Cancel
               </button>
               <button 
-                onClick={handleAddContact}
+                onClick={editingContact ? handleUpdateContact : handleAddContact}
                 disabled={isSubmitting || !contactForm.name || !contactForm.title}
                 className="flex-1 px-6 py-3.5 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 disabled:opacity-50 disabled:translate-y-0"
               >
-                {isSubmitting ? 'Adding...' : 'Add Contact'}
+                {isSubmitting 
+                  ? (editingContact ? 'Updating...' : 'Adding...') 
+                  : (editingContact ? 'Update Contact' : 'Add Contact')}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Delete Contact Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={!!deletingContact}
+        title="Delete Contact?"
+        message={`Are you sure you want to delete ${deletingContact?.name}? This action cannot be undone.`}
+        onConfirm={handleDeleteContact}
+        onClose={() => setDeletingContact(null)}
+        isDeleting={isDeletingContact}
+      />
 
       {/* Edit Modal */}
       <EditJobModal

@@ -9,6 +9,23 @@ import { InterviewType, InterviewStatus, InterviewOutcome, InterviewerRole, Cont
 import { getUserPlanClient } from '@/lib/utils/resume-tracking';
 import PremiumFeatureGateModal from '@/app/components/resume/PremiumFeatureGateModal';
 
+const formatInterviewType = (type?: InterviewType): string => {
+  if (!type) return '';
+  const typeMap: Record<InterviewType, string> = {
+    'recruiter_screen': 'Recruiter Screen',
+    'hiring_manager_screen': 'Hiring Manager Screen',
+    'product_sense': 'Product Sense',
+    'product_analytics_execution': 'Product Analytics / Execution',
+    'system_design': 'System Design',
+    'technical': 'Technical',
+    'product_strategy': 'Product Strategy',
+    'estimation': 'Estimation',
+    'executive': 'Executive',
+    'cross_functional': 'Cross Functional',
+  };
+  return typeMap[type] || type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+};
+
 export default function InterviewDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -30,7 +47,7 @@ export default function InterviewDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     title: '',
-    type: 'phone_screen' as InterviewType,
+    type: 'recruiter_screen' as InterviewType,
     status: 'scheduled' as InterviewStatus,
     scheduled_for: '',
     duration_minutes: '',
@@ -73,7 +90,7 @@ export default function InterviewDetailPage() {
     if (interview) {
       setEditForm({
         title: interview.title || '',
-        type: interview.type || 'phone_screen',
+        type: interview.type || 'recruiter_screen',
         status: interview.status || 'scheduled',
         scheduled_for: interview.scheduled_for ? new Date(interview.scheduled_for).toISOString().slice(0, 16) : '',
         duration_minutes: interview.duration_minutes?.toString() || '',
@@ -157,7 +174,7 @@ export default function InterviewDetailPage() {
         return;
       }
 
-      if (!interview.application?.company_id) {
+      if (!interview || !interview.application || !interview.application.company_id) {
         setSubmitError('Company information not available');
         return;
       }
@@ -536,7 +553,7 @@ export default function InterviewDetailPage() {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               {isEditing ? (
-                <div className="space-y-4">
+                  <div className="space-y-4">
                   <input
                     type="text"
                     value={editForm.title}
@@ -551,13 +568,15 @@ export default function InterviewDetailPage() {
                       className="px-5 py-3.5 border-2 border-purple-400 rounded-[1rem] bg-white font-bold"
                     >
                       <option value="recruiter_screen">Recruiter Screen</option>
-                      <option value="phone_screen">Phone Screen</option>
-                      <option value="technical">Technical</option>
-                      <option value="behavioral">Behavioral</option>
+                      <option value="hiring_manager_screen">Hiring Manager Screen</option>
+                      <option value="product_sense">Product Sense</option>
+                      <option value="product_analytics_execution">Product Analytics / Execution</option>
                       <option value="system_design">System Design</option>
-                      <option value="onsite">Onsite</option>
-                      <option value="final">Final Round</option>
-                      <option value="other">Other</option>
+                      <option value="technical">Technical</option>
+                      <option value="product_strategy">Product Strategy</option>
+                      <option value="estimation">Estimation</option>
+                      <option value="executive">Executive</option>
+                      <option value="cross_functional">Cross Functional</option>
                     </select>
                     <select
                       value={editForm.status}
@@ -586,8 +605,8 @@ export default function InterviewDetailPage() {
                       {interview.status.charAt(0).toUpperCase() + interview.status.slice(1)}
                     </span>
                     {interview.type && (
-                      <span className="px-4 py-2 rounded-[1rem] text-sm font-black bg-blue-100 text-blue-700 border-2 border-blue-400 capitalize">
-                        {interview.type.replace('_', ' ')}
+                      <span className="px-4 py-2 rounded-[1rem] text-sm font-black bg-blue-100 text-blue-700 border-2 border-blue-400">
+                        {formatInterviewType(interview.type)}
                       </span>
                     )}
                     {interview.scheduled_for && (
