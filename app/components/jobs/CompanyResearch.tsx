@@ -472,6 +472,18 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
               </div>
             )}
           </div>
+          {/* Generate Missing Vectors Button */}
+          {!generating && completedCount < totalCount && completedCount > 0 && (
+            <button
+              onClick={generateAllResearch}
+              className="w-full mb-4 px-4 py-2 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 text-white font-bold text-sm shadow-[0_4px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-700 hover:translate-y-1 hover:shadow-[0_2px_0_0_rgba(147,51,234,0.6)] transition-all duration-200 flex items-center justify-center gap-2"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Generate Missing ({totalCount - completedCount})
+            </button>
+          )}
           {generating && (
             <div className="mb-4 p-3 bg-blue-50 border-2 border-blue-200 rounded-xl">
               <div className="flex items-center justify-between mb-2">
@@ -493,39 +505,74 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
               const isLoading = loadingVectors.has(vector.type);
               const hasResearch = !!validResearch[vector.type];
               const isGenerating = generating && !hasResearch;
+              const isMissing = !hasResearch && !isLoading && !isGenerating;
+              
+              const handleRetryClick = (e: React.MouseEvent) => {
+                e.stopPropagation(); // Prevent selecting the vector
+                generateSingleResearch(vector.type);
+              };
               
               return (
-                <button
+                <div
                   key={vector.type}
-                  onClick={() => setSelectedVector(vector.type)}
-                  className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all ${
+                  className={`group relative w-full rounded-xl border-2 transition-all ${
                     isSelected
-                      ? 'bg-purple-100 border-purple-400 text-purple-700'
+                      ? 'bg-purple-100 border-purple-400'
                       : hasResearch
-                      ? 'border-gray-200 hover:bg-gray-50 text-gray-700'
-                      : 'border-gray-200 bg-gray-50 text-gray-500'
-                  } ${isLoading ? 'opacity-50' : ''}`}
-                  disabled={isLoading || isGenerating}
+                      ? 'border-gray-200 hover:bg-gray-50'
+                      : 'border-gray-200 bg-gray-50'
+                  }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">{vector.icon}</span>
-                      <span className="font-bold text-sm">{vector.label}</span>
+                  <button
+                    onClick={() => {
+                      // Allow selecting any vector (even missing ones) so user can see retry option
+                      if (!isLoading && !isGenerating) {
+                        setSelectedVector(vector.type);
+                      }
+                    }}
+                    className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
+                      isSelected
+                        ? 'text-purple-700'
+                        : hasResearch
+                        ? 'text-gray-700'
+                        : 'text-gray-500'
+                    } ${isLoading || isGenerating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    disabled={isLoading || isGenerating}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{vector.icon}</span>
+                        <span className="font-bold text-sm">{vector.label}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isLoading && (
+                          <svg className="animate-spin h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                        )}
+                        {isGenerating && (
+                          <svg className="animate-spin h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                        )}
+                        {isMissing && (
+                          <button
+                            onClick={handleRetryClick}
+                            className="p-1.5 rounded-lg hover:bg-purple-200 text-purple-600 hover:text-purple-700 transition-colors"
+                            title={`Generate ${vector.label} research`}
+                            aria-label={`Generate ${vector.label} research`}
+                          >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    {isLoading && (
-                      <svg className="animate-spin h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                    )}
-                    {isGenerating && (
-                      <svg className="animate-spin h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                    )}
-                  </div>
-                </button>
+                  </button>
+                </div>
               );
             })}
           </nav>
@@ -741,6 +788,40 @@ export const CompanyResearch = ({ companyId, companyName }: CompanyResearchProps
                 </div>
               </div>
             )}
+          </div>
+        ) : selectedVector ? (
+          <div className="p-8 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 text-center">
+            <div className="text-6xl mb-4">
+              {RESEARCH_VECTORS.find((v) => v.type === selectedVector)?.icon}
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 mb-2">
+              {RESEARCH_VECTORS.find((v) => v.type === selectedVector)?.label} Research Not Available
+            </h3>
+            <p className="text-gray-600 font-medium mb-6">
+              This research vector hasn't been generated yet. Click the button below to generate it now.
+            </p>
+            <button
+              onClick={() => generateSingleResearch(selectedVector)}
+              disabled={loadingVectors.has(selectedVector)}
+              className="px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-600 to-pink-600 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-700 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loadingVectors.has(selectedVector) ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Generate {RESEARCH_VECTORS.find((v) => v.type === selectedVector)?.label} Research
+                </>
+              )}
+            </button>
           </div>
         ) : (
           <div className="p-8 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 text-center">

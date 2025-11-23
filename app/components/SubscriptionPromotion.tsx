@@ -109,7 +109,7 @@ export const SubscriptionPromotion = ({ subscription, stats }: SubscriptionPromo
                 </div>
               </TrackedButton>
               <p className="text-white/80 text-xs text-center font-medium">
-                Starting at $12/month • Cancel anytime
+                Starting at $7/month • Cancel anytime
               </p>
             </div>
           </div>
@@ -117,17 +117,12 @@ export const SubscriptionPromotion = ({ subscription, stats }: SubscriptionPromo
           <div className="flex flex-wrap items-center justify-center gap-4 pt-6 border-t border-white/20 text-white/80 text-sm font-medium">
             <span className="flex items-center gap-2">
               <span className="text-lg">✨</span>
-              <span>Save up to 42% with yearly plans</span>
+              <span>Save up to 40% with yearly plans</span>
             </span>
             <span>•</span>
             <span className="flex items-center gap-2">
               <span className="text-lg">🎯</span>
               <span>Unlimited AI features</span>
-            </span>
-            <span>•</span>
-            <span className="flex items-center gap-2">
-              <span className="text-lg">💳</span>
-              <span>No credit card required to start</span>
             </span>
           </div>
         </div>
