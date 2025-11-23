@@ -29,7 +29,7 @@ export const POST = async (request: NextRequest) => {
 
     const body = await request.json();
     const { company_id, company_name, company_linkedin_url, job_titles, application_id } = body;
-    const max_profiles = 2; // Set to 2 for testing
+    const max_profiles = 10;
 
     if (!company_id) {
       return NextResponse.json(
