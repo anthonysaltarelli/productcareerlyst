@@ -109,6 +109,7 @@ export default function InlineTextEditor({
           ref={contentEditableRef}
           contentEditable
           suppressContentEditableWarning
+          dir="ltr"
           onInput={(e) => {
             setEditValue(e.currentTarget.textContent || '');
           }}
@@ -118,6 +119,7 @@ export default function InlineTextEditor({
           style={{
             ...style,
             backgroundColor: 'transparent',
+            direction: 'ltr',
             // Remove default contentEditable styling
             WebkitUserSelect: 'text',
             userSelect: 'text',
@@ -188,7 +190,11 @@ export default function InlineTextEditor({
     <div
       onClick={handleClick}
       className={`cursor-text hover:bg-blue-50/50 rounded px-1 py-0.5 transition-colors ${className}`}
-      style={style}
+      style={{
+        ...style,
+        direction: 'ltr',
+      }}
+      dir="ltr"
     >
       {value || <span className="text-gray-400 italic">{placeholder}</span>}
     </div>

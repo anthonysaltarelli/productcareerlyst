@@ -28,7 +28,12 @@ export const GET = async (
           *,
           company:companies(*)
         ),
-        questions:interview_questions(*)
+        questions:interview_questions(*),
+        interview_interviewers(
+          id,
+          role,
+          contact:contacts(*)
+        )
       `)
       .eq('id', id)
       .eq('user_id', user.id)

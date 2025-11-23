@@ -180,6 +180,8 @@ export interface Interview {
   prep_notes?: string;
   feedback?: string;
   outcome?: InterviewOutcome;
+  thank_you_email_subject?: string;
+  thank_you_email_body?: string;
   created_at: string;
   updated_at: string;
 }
@@ -239,8 +241,12 @@ export interface JobApplicationWithCompany extends JobApplication {
 }
 
 export interface InterviewWithRelations extends Interview {
-  application?: JobApplication;
-  interviewers?: Contact[];
+  application?: JobApplicationWithCompany;
+  interview_interviewers?: Array<{
+    id: string;
+    role?: InterviewerRole;
+    contact?: Contact;
+  }>;
   questions?: InterviewQuestion[];
 }
 

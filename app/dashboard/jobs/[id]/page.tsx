@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useJobApplication } from '@/lib/hooks/useJobApplications';
+import { useJobApplication, updateJobApplication } from '@/lib/hooks/useJobApplications';
 import { useInterviews, createInterview, updateInterview, deleteInterview } from '@/lib/hooks/useInterviews';
 import { useContacts, createContact, updateContact, deleteContact } from '@/lib/hooks/useContacts';
 import { ApplicationStatus, InterviewType, InterviewStatus, ContactRelationship } from '@/lib/types/jobs';
@@ -92,6 +92,9 @@ export default function JobDetailPage() {
   const [wizaHistoryRefreshTrigger, setWizaHistoryRefreshTrigger] = useState(0);
   const [wizaRequests, setWizaRequests] = useState<any[]>([]);
   const [isLoadingWizaRequests, setIsLoadingWizaRequests] = useState(false);
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [notesValue, setNotesValue] = useState('');
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
 
   // Interview form state
   const [interviewForm, setInterviewForm] = useState({
@@ -140,6 +143,13 @@ export default function JobDetailPage() {
 
     fetchWizaRequests();
   }, [application?.id, wizaHistoryRefreshTrigger]);
+
+  // Initialize notes value when application loads
+  useEffect(() => {
+    if (application && !isEditingNotes) {
+      setNotesValue(application.notes || '');
+    }
+  }, [application?.notes, isEditingNotes]);
 
   // Check if user has completed or has a request in progress
   const hasCompletedOrInProgressRequest = wizaRequests.some(
@@ -296,6 +306,35 @@ export default function JobDetailPage() {
     }
   };
 
+  const handleStartEditingNotes = () => {
+    setNotesValue(application?.notes || '');
+    setIsEditingNotes(true);
+  };
+
+  const handleCancelEditingNotes = () => {
+    setNotesValue(application?.notes || '');
+    setIsEditingNotes(false);
+  };
+
+  const handleSaveNotes = async () => {
+    if (!application) return;
+
+    setIsSavingNotes(true);
+    try {
+      await updateJobApplication(application.id, {
+        notes: notesValue || undefined,
+      });
+      await refetch();
+      setIsEditingNotes(false);
+    } catch (err) {
+      console.error('Failed to save notes:', err);
+      // Show error to user
+      alert('Failed to save notes. Please try again.');
+    } finally {
+      setIsSavingNotes(false);
+    }
+  };
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
     { id: 'interviews', label: 'Interviews', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', count: interviews.length },
@@ -320,15 +359,12 @@ export default function JobDetailPage() {
         <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
+              <div className="mb-3">
                 <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">
                   {application.title}
                 </h1>
-                <span className={`px-4 py-2 rounded-[1rem] text-sm font-black border-2 ${statusConfig[application.status].bgColor} ${statusConfig[application.status].color} ${application.status === 'wishlist' || application.status === 'withdrawn' ? 'border-gray-400' : application.status === 'applied' ? 'border-blue-400' : application.status === 'screening' ? 'border-yellow-400' : application.status === 'interviewing' ? 'border-purple-400' : application.status === 'offer' || application.status === 'accepted' ? 'border-green-400' : 'border-red-400'}`}>
-                  {statusConfig[application.status].label}
-                </span>
               </div>
-              <div className="flex items-center gap-4 text-gray-700 font-semibold text-lg">
+              <div className="flex items-center gap-4 text-gray-700 font-semibold text-lg flex-wrap">
                 <span className="flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -347,6 +383,10 @@ export default function JobDetailPage() {
                     </span>
                   </>
                 )}
+                <span className="text-gray-400">•</span>
+                <span className={`px-4 py-2 rounded-[1rem] text-sm font-black border-2 ${statusConfig[application.status].bgColor} ${statusConfig[application.status].color} ${application.status === 'wishlist' || application.status === 'withdrawn' ? 'border-gray-400' : application.status === 'applied' ? 'border-blue-400' : application.status === 'screening' ? 'border-yellow-400' : application.status === 'interviewing' ? 'border-purple-400' : application.status === 'offer' || application.status === 'accepted' ? 'border-green-400' : 'border-red-400'}`}>
+                  {statusConfig[application.status].label}
+                </span>
                 {application.work_mode && (
                   <>
                     <span className="text-gray-400">•</span>
@@ -450,11 +490,72 @@ export default function JobDetailPage() {
               <div className="p-8 rounded-[2rem] bg-gradient-to-br from-yellow-200 to-orange-200 shadow-[0_8px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-300">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-2xl font-black text-gray-900">My Notes 📝</h3>
+                  {!isEditingNotes && (
+                    <button
+                      onClick={handleStartEditingNotes}
+                      className="px-4 py-2 rounded-[1rem] bg-white border-2 border-orange-400 text-gray-700 font-black hover:bg-orange-50 transition-colors flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      Edit
+                    </button>
+                  )}
                 </div>
-                {application.notes ? (
-                  <p className="text-gray-800 font-semibold leading-relaxed whitespace-pre-wrap">{application.notes}</p>
+                {isEditingNotes ? (
+                  <div className="space-y-4">
+                    <textarea
+                      value={notesValue}
+                      onChange={(e) => setNotesValue(e.target.value)}
+                      placeholder="Add your notes here..."
+                      rows={8}
+                      dir="ltr"
+                      className="w-full px-4 py-3 border-2 border-orange-400 rounded-[1rem] focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-semibold text-gray-800 resize-none outline-none"
+                      style={{ direction: 'ltr' }}
+                    />
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handleSaveNotes}
+                        disabled={isSavingNotes}
+                        className="px-6 py-3 rounded-[1rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_4px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_2px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 flex items-center gap-2"
+                      >
+                        {isSavingNotes ? (
+                          <>
+                            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Save
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={handleCancelEditingNotes}
+                        disabled={isSavingNotes}
+                        className="px-6 py-3 rounded-[1rem] bg-white border-2 border-gray-300 text-gray-700 font-black hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
                 ) : (
-                  <p className="text-gray-600 font-bold italic">No notes yet</p>
+                  <div
+                    onClick={handleStartEditingNotes}
+                    className="text-gray-800 font-semibold leading-relaxed whitespace-pre-wrap min-h-[100px] cursor-text hover:bg-orange-50/50 rounded px-2 py-2 transition-colors"
+                    dir="ltr"
+                    style={{ direction: 'ltr' }}
+                  >
+                    {application.notes || (
+                      <span className="text-gray-500 italic">Click to add notes...</span>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -607,7 +708,11 @@ export default function JobDetailPage() {
                 </div>
               ) : (
                 interviews.map((interview) => (
-                  <div key={interview.id} className="p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 hover:border-purple-400 hover:shadow-[0_10px_0_0_rgba(147,51,234,0.3)] transition-all">
+                  <Link
+                    key={interview.id}
+                    href={`/dashboard/jobs/${jobId}/interviews/${interview.id}`}
+                    className="block p-6 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 hover:border-purple-400 hover:shadow-[0_10px_0_0_rgba(147,51,234,0.3)] transition-all"
+                  >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
@@ -659,33 +764,28 @@ export default function JobDetailPage() {
                         {interview.prep_notes && (
                           <div className="mb-4 p-4 rounded-[1.5rem] bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-orange-200">
                             <div className="text-sm font-black text-gray-900 mb-2">Prep Notes:</div>
-                            <p className="text-gray-700 font-semibold text-sm whitespace-pre-wrap">{interview.prep_notes}</p>
-                          </div>
-                        )}
-
-                        {interview.feedback && (
-                          <div className="mb-4 p-4 rounded-[1.5rem] bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200">
-                            <div className="text-sm font-black text-gray-900 mb-2">Feedback:</div>
-                            <p className="text-gray-700 font-semibold text-sm whitespace-pre-wrap">{interview.feedback}</p>
+                            <p className="text-gray-700 font-semibold text-sm whitespace-pre-wrap line-clamp-2">{interview.prep_notes}</p>
                           </div>
                         )}
 
                         {interview.meeting_link && (
-                          <a
-                            href={interview.meeting_link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-bold"
-                          >
+                          <div className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-bold">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                             </svg>
                             Join Meeting
-                          </a>
+                          </div>
                         )}
+
+                        <div className="mt-4 text-purple-600 font-bold text-sm flex items-center gap-2">
+                          View Details
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))
               )}
             </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCompanies, createCompany } from '@/lib/hooks/useCompanies';
 import { createJobApplication } from '@/lib/hooks/useJobApplications';
 import { Company, ApplicationStatus, PriorityLevel, WorkMode } from '@/lib/types/jobs';
@@ -19,7 +20,15 @@ interface BrandfetchBrand {
   brandId?: string;
 }
 
+type ImportMode = 'import' | 'manual';
+type ImportStep = 'idle' | 'scraping' | 'extracting' | 'creating' | 'complete';
+
 export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) => {
+  const router = useRouter();
+  const [mode, setMode] = useState<ImportMode>('import');
+  const [importUrl, setImportUrl] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+  const [importStep, setImportStep] = useState<ImportStep>('idle');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [showCompanyForm, setShowCompanyForm] = useState(false);
@@ -142,6 +151,10 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
   useEffect(() => {
     if (!isOpen) {
       // Reset form when modal closes
+      setMode('import');
+      setImportUrl('');
+      setIsImporting(false);
+      setImportStep('idle');
       setFormData({
         title: '',
         location: '',
@@ -164,6 +177,76 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
       setBrandfetchBrands([]);
     }
   }, [isOpen]);
+
+  const handleImportFromUrl = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!importUrl || importUrl.trim().length === 0) {
+      setError('Please enter a job description URL');
+      return;
+    }
+
+    // Validate URL format
+    try {
+      new URL(importUrl);
+    } catch {
+      setError('Please enter a valid URL');
+      return;
+    }
+
+    setIsImporting(true);
+    setError(null);
+    setImportStep('scraping');
+
+    try {
+      // Step 1: Scraping (we'll update this as we go)
+      setImportStep('scraping');
+      
+      const response = await fetch('/api/jobs/import-from-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: importUrl }),
+      });
+
+      // Update step to extracting (happens during the API call)
+      setImportStep('extracting');
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to import job');
+      }
+
+      const data = await response.json();
+      
+      // Step 3: Creating (company and job are being created)
+      setImportStep('creating');
+      
+      // Small delay to show the creating step
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Success! Navigate to job detail page
+      setImportStep('complete');
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Close modal first
+      onClose();
+      
+      // Navigate to the job detail page
+      if (data.application?.id) {
+        router.push(`/dashboard/jobs/${data.application.id}`);
+      } else {
+        // Fallback: refresh the list if no ID
+        onSuccess();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to import job. Please try adding it manually.');
+      setImportStep('idle');
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -276,11 +359,45 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isImporting}
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
+          </button>
+        </div>
+
+        {/* Mode Selector */}
+        <div className="mb-6 flex gap-2 p-1 bg-gray-100 rounded-[1rem] border-2 border-gray-300">
+          <button
+            type="button"
+            onClick={() => {
+              setMode('import');
+              setError(null);
+            }}
+            disabled={isSubmitting || isImporting}
+            className={`flex-1 px-4 py-2.5 rounded-[0.75rem] font-black transition-all ${
+              mode === 'import'
+                ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md'
+                : 'text-gray-600 hover:text-gray-900'
+            } disabled:opacity-50`}
+          >
+            📋 Paste JD Link
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode('manual');
+              setError(null);
+            }}
+            disabled={isSubmitting || isImporting}
+            className={`flex-1 px-4 py-2.5 rounded-[0.75rem] font-black transition-all ${
+              mode === 'manual'
+                ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md'
+                : 'text-gray-600 hover:text-gray-900'
+            } disabled:opacity-50`}
+          >
+            ✏️ Add Manually
           </button>
         </div>
 
@@ -290,7 +407,90 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {mode === 'import' ? (
+          <form onSubmit={handleImportFromUrl} className="space-y-6">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Job Description URL *
+              </label>
+              <input
+                type="url"
+                value={importUrl}
+                onChange={(e) => setImportUrl(e.target.value)}
+                placeholder="Paste in the job description URL here..."
+                className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium"
+                disabled={isImporting}
+                required
+              />
+              <p className="mt-2 text-xs text-gray-600">
+                Paste the link to the job posting. We'll automatically extract the company and job details.
+              </p>
+            </div>
+
+            {/* Loading Progress Indicator */}
+            {isImporting && (
+              <div className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-[1rem] space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0">
+                    {importStep === 'scraping' ? (
+                      <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                    ) : importStep === 'extracting' ? (
+                      <div className="w-8 h-8 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+                    ) : importStep === 'creating' ? (
+                      <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-black text-gray-900">
+                      {importStep === 'scraping' && '📄 Scraping job description...'}
+                      {importStep === 'extracting' && '🤖 Extracting company and job details...'}
+                      {importStep === 'creating' && '💾 Creating job application...'}
+                      {importStep === 'complete' && '✅ Job imported successfully!'}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {importStep === 'scraping' && 'Reading the job posting from the URL'}
+                      {importStep === 'extracting' && 'Using AI to extract structured information'}
+                      {importStep === 'creating' && 'Saving company and job to your list'}
+                      {importStep === 'complete' && 'All done! Your job has been added.'}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Progress Steps */}
+                <div className="flex items-center gap-2 pt-2">
+                  <div className={`flex-1 h-2 rounded-full ${importStep === 'scraping' || importStep === 'extracting' || importStep === 'creating' || importStep === 'complete' ? 'bg-purple-500' : 'bg-gray-200'}`}></div>
+                  <div className={`flex-1 h-2 rounded-full ${importStep === 'extracting' || importStep === 'creating' || importStep === 'complete' ? 'bg-pink-500' : 'bg-gray-200'}`}></div>
+                  <div className={`flex-1 h-2 rounded-full ${importStep === 'creating' || importStep === 'complete' ? 'bg-green-500' : 'bg-gray-200'}`}></div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-4 mt-10">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isImporting}
+                className="flex-1 px-8 py-4 rounded-[1.5rem] bg-white border-2 border-gray-300 text-gray-700 font-black hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isImporting || !importUrl.trim()}
+                className="flex-1 px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0"
+              >
+                {isImporting ? 'Importing...' : 'Import Job'}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
           {/* Company Selection */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">
@@ -638,6 +838,7 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );
