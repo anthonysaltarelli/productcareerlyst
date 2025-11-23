@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import { getDeviceId } from '@/lib/utils/device-id';
-import { trackEventBrowser } from '@/lib/amplitude/browser';
+import { trackEventBrowser, identifyUserBrowser, isBrowserSdkInitialized } from '@/lib/amplitude/browser';
 
 /**
  * Client-side Amplitude tracking utility
@@ -21,21 +21,28 @@ export const trackEvent = (
   eventType: string,
   eventProperties?: Record<string, any>
 ) => {
-  // Try Browser SDK first (for Session Replay integration)
-  // This ensures events are associated with session replays
-  if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY) {
+  // Use Browser SDK if initialized (for Session Replay integration)
+  // Otherwise, fall back to API route
+  const useBrowserSdk = typeof window !== 'undefined' && 
+                        process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY && 
+                        isBrowserSdkInitialized();
+
+  if (useBrowserSdk) {
+    // Browser SDK is initialized - use it only (no double-sending)
     try {
       trackEventBrowser(eventType, eventProperties);
+      return; // Exit early - don't send to API route
     } catch (browserError) {
-      // If Browser SDK fails, continue to API route
+      // If Browser SDK fails, fall back to API route
       if (process.env.NODE_ENV === 'development') {
-        console.warn('⚠️ Browser SDK tracking failed, using API route only:', browserError);
+        console.warn('⚠️ Browser SDK tracking failed, falling back to API route:', browserError);
       }
+      // Continue to API route fallback below
     }
   }
 
-  // Always also send to API route for server-side tracking
-  // This ensures events are captured even if Browser SDK isn't initialized
+  // Fallback: Send to API route (server-side tracking)
+  // This is used when Browser SDK is not initialized or fails
   // Fire-and-forget: don't await, just send it off
   // Get user ID asynchronously with timeout - never block on this
   (async () => {
@@ -127,6 +134,28 @@ export const identifyUser = (
   userId: string,
   userProperties?: Record<string, any>
 ) => {
+  // Use Browser SDK if initialized (for Session Replay integration)
+  // Otherwise, fall back to API route
+  const useBrowserSdk = typeof window !== 'undefined' && 
+                        process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY && 
+                        isBrowserSdkInitialized();
+
+  if (useBrowserSdk) {
+    // Browser SDK is initialized - use it only (no double-sending)
+    try {
+      identifyUserBrowser(userId, userProperties);
+      return; // Exit early - don't send to API route
+    } catch (browserError) {
+      // If Browser SDK fails, fall back to API route
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ Browser SDK identification failed, falling back to API route:', browserError);
+      }
+      // Continue to API route fallback below
+    }
+  }
+
+  // Fallback: Send to API route (server-side identification)
+  // This is used when Browser SDK is not initialized or fails
   // Fire-and-forget: don't await, just send it off
   (async () => {
     try {
@@ -134,7 +163,7 @@ export const identifyUser = (
       const deviceId = getDeviceId();
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('👤 Identifying user in Amplitude:', {
+        console.log('👤 Identifying user in Amplitude (API route):', {
           userId,
           deviceId,
           hasProperties: !!userProperties,

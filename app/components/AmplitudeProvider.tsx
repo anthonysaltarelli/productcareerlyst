@@ -2,10 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useUserEmail, identifyUser } from '@/lib/amplitude/client';
-import { 
-  initializeAmplitudeBrowser, 
-  identifyUserBrowser 
-} from '@/lib/amplitude/browser';
+import { initializeAmplitudeBrowser } from '@/lib/amplitude/browser';
 
 /**
  * Amplitude provider component that:
@@ -31,16 +28,12 @@ export const AmplitudeProvider = ({
   }, []);
 
   useEffect(() => {
-    // When user email is available, identify the user in both SDKs
+    // When user email is available, identify the user
     // This handles cases where user is already logged in when app loads
+    // identifyUser will automatically use Browser SDK if available, otherwise API route
     if (email && email !== identifiedEmail.current) {
       identifiedEmail.current = email;
-      
-      // Identify in server-side SDK (via API route)
       identifyUser(email);
-      
-      // Identify in Browser SDK (for Session Replay)
-      identifyUserBrowser(email);
     }
   }, [email]);
 

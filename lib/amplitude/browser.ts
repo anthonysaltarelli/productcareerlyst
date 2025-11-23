@@ -9,6 +9,14 @@ let isInitialized = false;
 let sessionReplayPluginInstance: ReturnType<typeof sessionReplayPlugin> | null = null;
 
 /**
+ * Check if Browser SDK is initialized
+ * Used to determine whether to use Browser SDK or API route for tracking
+ */
+export const isBrowserSdkInitialized = () => {
+  return isInitialized;
+};
+
+/**
  * Initialize Amplitude Browser SDK with Session Replay
  * Should be called once on the client side when the app loads
  * 
