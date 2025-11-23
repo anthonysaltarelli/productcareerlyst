@@ -203,7 +203,7 @@ export const enableSessionReplay = async () => {
  */
 export const resetUserBrowser = () => {
   try {
-    amplitude.setUserId(null);
+    amplitude.setUserId(undefined);
     if (process.env.NODE_ENV === 'development') {
       console.log('🔄 User reset in Browser SDK');
     }
