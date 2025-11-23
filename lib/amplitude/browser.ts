@@ -47,9 +47,9 @@ export const initializeAmplitudeBrowser = async (
     const deviceId = getDeviceId();
 
     // Create and install Session Replay Plugin
-    // Sample rate: 0.01 = 1% of sessions (adjust based on your quota)
-    // Set to 1.0 (100%) for testing, then reduce for production
-    const sampleRate = process.env.NODE_ENV === 'development' ? 1.0 : 0.01;
+    // Sample rate: 1.0 = 100% of sessions
+    // IMPORTANT: Sample rate must be > 0 for Session Replay to work
+    const sampleRate = 1.0; // 100% for all environments
 
     sessionReplayPluginInstance = sessionReplayPlugin({
       sampleRate,
@@ -68,16 +68,18 @@ export const initializeAmplitudeBrowser = async (
       debugMode: process.env.NODE_ENV === 'development',
     });
 
-    // Add Session Replay plugin to Amplitude
+    // CRITICAL: Add Session Replay plugin BEFORE initializing Amplitude
+    // This ensures the plugin is attached to all events and can add Session Replay IDs
     await amplitude.add(sessionReplayPluginInstance).promise;
 
     // Initialize Amplitude Browser SDK
+    // This must happen AFTER adding the plugin so events get Session Replay IDs
     amplitude.init(apiKey, {
       // Set user ID if provided
       userId: userId || undefined,
-      // Set device ID for anonymous users
+      // Set device ID for anonymous users (REQUIRED for Session Replay)
       deviceId,
-      // Enable session tracking
+      // Enable session tracking (REQUIRED for Session Replay)
       defaultTracking: {
         sessions: true,
         pageViews: false, // We handle page views separately
@@ -102,9 +104,15 @@ export const initializeAmplitudeBrowser = async (
     if (process.env.NODE_ENV === 'development') {
       console.log('✅ Amplitude Browser SDK with Session Replay initialized successfully');
       console.log('📊 Sample rate:', sampleRate * 100 + '%');
+      console.log('🔑 Device ID:', deviceId);
+      console.log('👤 User ID:', userId || 'anonymous');
+      console.log('⚠️  IMPORTANT: Enable Remote Configuration in Amplitude dashboard:');
+      console.log('   Settings > Account Settings > Session Replay > Enable Remote Configuration');
     }
   } catch (error) {
     console.error('❌ Error initializing Amplitude Browser SDK:', error);
+    // Don't set isInitialized to true if initialization failed
+    isInitialized = false;
   }
 };
 
