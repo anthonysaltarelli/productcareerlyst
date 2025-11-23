@@ -1,7 +1,9 @@
 'use client'
 
 import { useFlags } from 'launchdarkly-react-client-sdk'
-import Link from 'next/link'
+import { TrackedLink } from '@/app/components/TrackedLink'
+import { getDashboardTrackingContext } from '@/lib/utils/dashboard-tracking-context'
+import type { DashboardStats } from '@/app/api/dashboard/stats/route'
 
 interface Milestones {
   firstLessonWatched: boolean
@@ -23,6 +25,12 @@ interface DashboardNextStepsProps {
     coursesCompleted: number
     highestResumeScore: number | null
     totalJobApplications: number
+  } | null
+  fullStats?: DashboardStats | null
+  subscription?: {
+    plan: 'learn' | 'accelerate' | null
+    status: string | null
+    isActive: boolean
   } | null
 }
 
@@ -125,9 +133,14 @@ const getNextSteps = (milestones: Milestones, stats: DashboardNextStepsProps['st
   return steps.sort((a, b) => a.priority - b.priority).slice(0, 3)
 }
 
-export const DashboardNextSteps = ({ milestones, stats }: DashboardNextStepsProps) => {
+export const DashboardNextSteps = ({ milestones, stats, fullStats, subscription }: DashboardNextStepsProps) => {
   const { coach } = useFlags()
   const nextSteps = getNextSteps(milestones, stats)
+
+  // Get user state context for tracking
+  const userStateContext = fullStats && subscription
+    ? getDashboardTrackingContext(fullStats, subscription)
+    : {}
 
   // If no next steps, show generic encouragement
   if (nextSteps.length === 0) {
@@ -150,9 +163,22 @@ export const DashboardNextSteps = ({ milestones, stats }: DashboardNextStepsProp
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {nextSteps.map((step, index) => (
-          <Link
+          <TrackedLink
             key={index}
             href={step.href}
+            eventName="User Clicked Next Step Card"
+            linkId={`dashboard-next-step-${step.number}-link`}
+            eventProperties={{
+              'Step Number': step.number,
+              'Step Title': step.title,
+              'Step Description': step.description,
+              'Step Href': step.href,
+              'Step Color': step.color,
+              'Step Priority': step.priority,
+              'Step Position': `Step ${step.number}`,
+              'Total Next Steps': nextSteps.length,
+              ...userStateContext,
+            }}
             className="group"
           >
             <div className="p-6 rounded-[1.5rem] bg-white/10 border-2 border-slate-600 hover:bg-white/15 transition-all duration-200">
@@ -164,7 +190,7 @@ export const DashboardNextSteps = ({ milestones, stats }: DashboardNextStepsProp
                 {step.description}
               </p>
             </div>
-          </Link>
+          </TrackedLink>
         ))}
       </div>
     </div>

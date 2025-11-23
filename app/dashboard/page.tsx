@@ -8,6 +8,7 @@ import { FeatureDiscovery } from '@/app/components/FeatureDiscovery'
 import { SubscriptionPromotion } from '@/app/components/SubscriptionPromotion'
 import { DashboardNextSteps } from '@/app/components/DashboardNextSteps'
 import { AutoSyncSubscription } from '@/app/components/billing/AutoSyncSubscription'
+import { DashboardPageTracking } from '@/app/components/DashboardPageTracking'
 
 export default async function DashboardHome() {
   const supabase = await createClient()
@@ -33,8 +34,21 @@ export default async function DashboardHome() {
   // Get subscription for auto-sync component
   const subscription = await getUserSubscription(user.id)
 
+  // Get user creation date for tracking
+  const userCreatedAt = user.created_at
+
   return (
     <div className="p-8 md:p-12">
+      {/* Page view tracking with comprehensive user state context */}
+      <DashboardPageTracking
+        stats={stats}
+        subscription={subscription ? {
+          plan: subscription.plan,
+          status: subscription.status,
+          isActive: subscription.status === 'active' || subscription.status === 'trialing',
+        } : null}
+        userCreatedAt={userCreatedAt}
+      />
       {/* Auto-sync subscription status in background (throttled) */}
       <AutoSyncSubscription subscription={subscription} minSyncIntervalMinutes={5} />
       {/* Welcome Section */}
@@ -55,7 +69,15 @@ export default async function DashboardHome() {
 
       {/* Onboarding Milestones */}
       {stats && (
-        <OnboardingMilestones milestones={stats.milestones} />
+        <OnboardingMilestones
+          milestones={stats.milestones}
+          stats={stats}
+          subscription={subscription ? {
+            plan: subscription.plan,
+            status: subscription.status,
+            isActive: subscription.status === 'active' || subscription.status === 'trialing',
+          } : null}
+        />
       )}
 
       {/* Feature Discovery */}
@@ -69,6 +91,12 @@ export default async function DashboardHome() {
           contactsCount: stats.contactsCount,
           companiesResearchedCount: stats.companiesResearchedCount,
         } : null}
+        fullStats={stats}
+        subscription={subscription ? {
+          plan: subscription.plan,
+          status: subscription.status,
+          isActive: subscription.status === 'active' || subscription.status === 'trialing',
+        } : null}
       />
 
       {/* Next Steps */}
@@ -81,12 +109,21 @@ export default async function DashboardHome() {
             highestResumeScore: stats.highestResumeScore,
             totalJobApplications: stats.totalJobApplications,
           }}
+          fullStats={stats}
+          subscription={subscription ? {
+            plan: subscription.plan,
+            status: subscription.status,
+            isActive: subscription.status === 'active' || subscription.status === 'trialing',
+          } : null}
         />
       )}
 
       {/* Subscription Promotion (only shows if not subscribed) */}
       {stats && (
-        <SubscriptionPromotion subscription={stats.subscription} />
+        <SubscriptionPromotion
+          subscription={stats.subscription}
+          stats={stats}
+        />
       )}
     </div>
   )

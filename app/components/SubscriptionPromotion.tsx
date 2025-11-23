@@ -1,6 +1,8 @@
 'use client'
 
-import Link from 'next/link'
+import { TrackedButton } from '@/app/components/TrackedButton'
+import { getDashboardTrackingContext } from '@/lib/utils/dashboard-tracking-context'
+import type { DashboardStats } from '@/app/api/dashboard/stats/route'
 
 interface SubscriptionPromotionProps {
   subscription: {
@@ -8,13 +10,19 @@ interface SubscriptionPromotionProps {
     status: string | null
     isActive: boolean
   }
+  stats?: DashboardStats | null
 }
 
-export const SubscriptionPromotion = ({ subscription }: SubscriptionPromotionProps) => {
+export const SubscriptionPromotion = ({ subscription, stats }: SubscriptionPromotionProps) => {
   // Only show if user doesn't have an active subscription
   if (subscription.isActive) {
     return null
   }
+
+  // Get user state context for tracking
+  const userStateContext = stats
+    ? getDashboardTrackingContext(stats, subscription)
+    : {}
 
   const keyBenefits = [
     {
@@ -78,14 +86,28 @@ export const SubscriptionPromotion = ({ subscription }: SubscriptionPromotionPro
             </div>
 
             <div className="flex-shrink-0 w-full lg:w-auto">
-              <Link
+              <TrackedButton
                 href="/dashboard/billing/plans"
+                eventName="User Clicked Subscription Promotion CTA"
+                buttonId="dashboard-subscription-promotion-cta"
+                eventProperties={{
+                  'Button Section': 'Subscription Promotion',
+                  'Button Position': 'Center of Promotion Card',
+                  'Button Text': 'View Plans & Pricing →',
+                  'Button Type': 'Primary CTA',
+                  'Button Context': 'After all dashboard content, subscription promotion section',
+                  'Subscription Plan': subscription.plan,
+                  'Subscription Status': subscription.status,
+                  'Is Subscription Active': subscription.isActive,
+                  'Promotion Theme': 'Gradient purple to pink to orange',
+                  ...userStateContext,
+                }}
                 className="group block"
               >
                 <div className="px-8 py-4 rounded-[1.5rem] bg-white text-purple-600 font-black text-lg shadow-[0_8px_0_0_rgba(0,0,0,0.2)] hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(0,0,0,0.2)] transition-all duration-200 text-center whitespace-nowrap mb-3">
                   View Plans & Pricing →
                 </div>
-              </Link>
+              </TrackedButton>
               <p className="text-white/80 text-xs text-center font-medium">
                 Starting at $12/month • Cancel anytime
               </p>

@@ -1,7 +1,9 @@
 'use client'
 
 import React from 'react'
-import Link from 'next/link'
+import { TrackedLink } from '@/app/components/TrackedLink'
+import { getDashboardTrackingContext } from '@/lib/utils/dashboard-tracking-context'
+import type { DashboardStats } from '@/app/api/dashboard/stats/route'
 
 interface Milestones {
   firstLessonWatched: boolean
@@ -18,6 +20,12 @@ interface Milestones {
 
 interface OnboardingMilestonesProps {
   milestones: Milestones
+  stats?: DashboardStats | null
+  subscription?: {
+    plan: 'learn' | 'accelerate' | null
+    status: string | null
+    isActive: boolean
+  } | null
 }
 
 const MILESTONE_CONFIG = [
@@ -123,7 +131,7 @@ const MILESTONE_CONFIG = [
   },
 ]
 
-export const OnboardingMilestones = ({ milestones }: OnboardingMilestonesProps) => {
+export const OnboardingMilestones = ({ milestones, stats, subscription }: OnboardingMilestonesProps) => {
   const completedCount = Object.values(milestones).filter(Boolean).length
   const totalCount = MILESTONE_CONFIG.length
   const allCompleted = completedCount === totalCount
@@ -136,6 +144,14 @@ export const OnboardingMilestones = ({ milestones }: OnboardingMilestonesProps) 
   const incompleteMilestones = MILESTONE_CONFIG.filter(
     config => !milestones[config.key]
   )
+
+  // Get user state context for tracking
+  const userStateContext = stats && subscription
+    ? getDashboardTrackingContext(stats, subscription)
+    : {}
+
+  // Calculate onboarding completion percentage
+  const onboardingCompletionPercentage = Math.round((completedCount / totalCount) * 100)
 
   return (
     <div className="mb-8">
@@ -155,7 +171,7 @@ export const OnboardingMilestones = ({ milestones }: OnboardingMilestonesProps) 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {incompleteMilestones.slice(0, 6).map((milestone) => {
+        {incompleteMilestones.slice(0, 6).map((milestone, index) => {
           const shadowStyle: React.CSSProperties = { 
             boxShadow: `0 8px 0 0 ${milestone.shadowColor}` 
           }
@@ -163,10 +179,30 @@ export const OnboardingMilestones = ({ milestones }: OnboardingMilestonesProps) 
             boxShadow: `0 4px 0 0 ${milestone.shadowColor}` 
           }
           
+          // Calculate position in grid
+          const row = Math.floor(index / 3) + 1
+          const col = (index % 3) + 1
+          const position = `Row ${row}, Column ${col}`
+          
           return (
-            <Link
+            <TrackedLink
               key={milestone.key}
               href={milestone.href}
+              eventName="User Clicked Onboarding Milestone"
+              linkId={`dashboard-milestone-${milestone.key}-link`}
+              eventProperties={{
+                'Milestone Key': milestone.key,
+                'Milestone Label': milestone.label,
+                'Milestone Description': milestone.description,
+                'Milestone Icon': milestone.icon,
+                'Milestone Href': milestone.href,
+                'Milestone Color': milestone.color,
+                'Milestone Position': position,
+                'Onboarding Completion Percentage': onboardingCompletionPercentage,
+                'Milestones Completed Count': completedCount,
+                'Total Milestones': totalCount,
+                ...userStateContext,
+              }}
               className="group"
             >
               <div 
@@ -194,7 +230,7 @@ export const OnboardingMilestones = ({ milestones }: OnboardingMilestonesProps) 
                   </div>
                 </div>
               </div>
-            </Link>
+            </TrackedLink>
           )
         })}
       </div>
