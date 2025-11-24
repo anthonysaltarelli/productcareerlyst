@@ -37,7 +37,23 @@ export const LoginForm = () => {
         'Login Method': 'Email',
       });
 
-      // Redirect immediately - don't wait for analytics
+      // Check onboarding status and redirect accordingly
+      try {
+        const response = await fetch('/api/onboarding/check');
+        if (response.ok) {
+          const data = await response.json();
+          if (!data.isComplete) {
+            router.push('/onboarding');
+            router.refresh();
+            return;
+          }
+        }
+      } catch (error) {
+        // If check fails, default to dashboard
+        console.error('Error checking onboarding status:', error);
+      }
+
+      // Redirect to dashboard if onboarding is complete
       router.push('/dashboard')
       router.refresh()
     } catch (err) {

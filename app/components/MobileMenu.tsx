@@ -9,9 +9,10 @@ import { trackEvent } from '@/lib/amplitude/client'
 
 interface MobileMenuProps {
   user: User | null
+  isOnboardingComplete?: boolean
 }
 
-export const MobileMenu = ({ user }: MobileMenuProps) => {
+export const MobileMenu = ({ user, isOnboardingComplete = true }: MobileMenuProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const handleToggleMenu = () => {
@@ -69,20 +70,22 @@ export const MobileMenu = ({ user }: MobileMenuProps) => {
                   <p className="text-xs font-medium text-gray-600 mb-1">Signed in as</p>
                   <p className="text-sm font-bold text-purple-700">{user.email}</p>
                 </div>
-                <TrackedLink
-                  href="/dashboard"
-                  className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
-                  eventName="User Clicked Dashboard Link"
-                  linkId="mobile-menu-dashboard-link"
-                  eventProperties={{
-                    'Link Section': 'Mobile Menu',
-                    'Link Position': 'Mobile menu (when logged in)',
-                    'Link Type': 'Navigation Link',
-                    'Link Text': 'Dashboard',
-                  }}
-                >
-                  Dashboard
-                </TrackedLink>
+                {isOnboardingComplete && (
+                  <TrackedLink
+                    href="/dashboard"
+                    className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
+                    eventName="User Clicked Dashboard Link"
+                    linkId="mobile-menu-dashboard-link"
+                    eventProperties={{
+                      'Link Section': 'Mobile Menu',
+                      'Link Position': 'Mobile menu (when logged in)',
+                      'Link Type': 'Navigation Link',
+                      'Link Text': 'Dashboard',
+                    }}
+                  >
+                    Dashboard
+                  </TrackedLink>
+                )}
               </>
             ) : (
               <>

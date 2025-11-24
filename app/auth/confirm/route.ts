@@ -6,6 +6,7 @@ import { getStripeClient } from '@/lib/stripe/client'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 import { addSubscriberToFormAndSequence } from '@/lib/utils/convertkit'
+import { isOnboardingComplete } from '@/lib/utils/onboarding'
 
 // Type alias to avoid conflict with our Subscription interface
 type StripeSubscription = Stripe.Subscription;
@@ -76,6 +77,17 @@ export async function GET(request: NextRequest) {
         } catch (convertkitError) {
           // Don't block user if ConvertKit fails - log error but continue
           console.error('[ConvertKit] Error adding subscriber to ConvertKit:', convertkitError);
+        }
+      }
+      
+      // Check onboarding status and redirect accordingly
+      // Only check onboarding for new signups (type === 'email'), not password recovery
+      if (type === 'email') {
+        const onboardingComplete = await isOnboardingComplete(user.id);
+        if (!onboardingComplete) {
+          // Redirect to onboarding if not complete
+          redirect('/onboarding');
+          return;
         }
       }
       

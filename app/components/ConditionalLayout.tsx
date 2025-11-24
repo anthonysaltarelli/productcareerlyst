@@ -16,9 +16,12 @@ export const ConditionalLayout = ({
   
   // Check if we're on a dashboard route
   const isDashboard = pathname?.startsWith('/dashboard')
+  
+  // Check if we're on an onboarding route
+  const isOnboarding = pathname?.startsWith('/onboarding')
 
-  if (isDashboard) {
-    // Dashboard pages have their own layout with sidebar, no nav/footer needed
+  if (isDashboard || isOnboarding) {
+    // Dashboard and onboarding pages have their own layouts, no nav/footer needed
     return <>{children}</>
   }
 

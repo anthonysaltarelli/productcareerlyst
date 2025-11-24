@@ -436,46 +436,76 @@ export const POST = async (
       );
     }
 
-    // Check usage limit
-    const usageCheck = await checkAndIncrementUsage(supabase, user.id);
-    if (!usageCheck.allowed) {
-      // Check if Accelerate plan is required
-      if (usageCheck.requiresAccelerate) {
-        return NextResponse.json(
-          {
-            error: 'Accelerate plan required',
-            message: 'Resume analysis is available exclusively for Accelerate plan subscribers.',
-            requiresSubscription: true,
-            requiresAccelerate: true,
-          },
-          { status: 403 }
-        );
+    // Check if this is an onboarding request and if user is eligible for free onboarding analysis
+    const isOnboardingRequest = request.headers.get('x-onboarding-request') === 'true';
+    let onboardingAnalysisUsed = false;
+    let allowOnboardingAnalysis = false;
+
+    if (isOnboardingRequest) {
+      // Check onboarding progress to see if user is in onboarding and hasn't used analysis yet
+      const { data: onboardingProgress } = await supabase
+        .from('onboarding_progress')
+        .select('progress_data, is_complete')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (onboardingProgress && !onboardingProgress.is_complete) {
+        // User is in onboarding
+        const resumeUploadData = onboardingProgress.progress_data?.resume_upload;
+        const onboardingVersionId = resumeUploadData?.versionId;
+        onboardingAnalysisUsed = resumeUploadData?.onboardingAnalysisUsed === true;
+        
+        // Only allow if: user hasn't used it yet AND the versionId matches the one from onboarding
+        if (!onboardingAnalysisUsed && onboardingVersionId === versionId) {
+          // Allow one-time analysis during onboarding for this specific resume
+          allowOnboardingAnalysis = true;
+        }
       }
-      
-      // Distinguish between no subscription and limit reached
-      if (usageCheck.requiresSubscription) {
+    }
+
+    // Check usage limit (skip if onboarding analysis is allowed)
+    let usageCheck;
+    if (!allowOnboardingAnalysis) {
+      usageCheck = await checkAndIncrementUsage(supabase, user.id);
+      if (!usageCheck.allowed) {
+        // Check if Accelerate plan is required
+        if (usageCheck.requiresAccelerate) {
+          return NextResponse.json(
+            {
+              error: 'Accelerate plan required',
+              message: 'Resume analysis is available exclusively for Accelerate plan subscribers.',
+              requiresSubscription: true,
+              requiresAccelerate: true,
+            },
+            { status: 403 }
+          );
+        }
+        
+        // Distinguish between no subscription and limit reached
+        if (usageCheck.requiresSubscription) {
+          return NextResponse.json(
+            {
+              error: 'Subscription required',
+              message: 'An active subscription is required to use resume analysis.',
+              requiresSubscription: true,
+              requiresAccelerate: false,
+            },
+            { status: 403 }
+          );
+        }
+        
         return NextResponse.json(
           {
-            error: 'Subscription required',
-            message: 'An active subscription is required to use resume analysis.',
-            requiresSubscription: true,
+            error: 'Monthly analysis limit reached',
+            count: usageCheck.count,
+            limit: usageCheck.limit,
+            resetDate: usageCheck.resetDate,
+            requiresSubscription: false,
             requiresAccelerate: false,
           },
-          { status: 403 }
+          { status: 429 }
         );
       }
-      
-      return NextResponse.json(
-        {
-          error: 'Monthly analysis limit reached',
-          count: usageCheck.count,
-          limit: usageCheck.limit,
-          resetDate: usageCheck.resetDate,
-          requiresSubscription: false,
-          requiresAccelerate: false,
-        },
-        { status: 429 }
-      );
     }
 
     // Check for OpenAI API key
@@ -845,6 +875,40 @@ export const POST = async (
       savedAnalysis = data;
     }
 
+    // Mark onboarding analysis as used if this was an onboarding request
+    if (allowOnboardingAnalysis) {
+      const { data: onboardingProgress } = await supabase
+        .from('onboarding_progress')
+        .select('progress_data')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (onboardingProgress) {
+        const updatedProgressData = {
+          ...onboardingProgress.progress_data,
+          resume_upload: {
+            ...onboardingProgress.progress_data?.resume_upload,
+            onboardingAnalysisUsed: true,
+            versionId,
+            uploadedAt: new Date().toISOString(),
+            analysisStatus: 'completed',
+            analysisData: {
+              id: savedAnalysis.id,
+              overallScore: extractedData.overallScore,
+            },
+          },
+        };
+
+        await supabase
+          .from('onboarding_progress')
+          .update({
+            progress_data: updatedProgressData,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', user.id);
+      }
+    }
+
     return NextResponse.json({
       id: savedAnalysis.id,
       overallScore: extractedData.overallScore,
@@ -855,7 +919,8 @@ export const POST = async (
       recommendations: extractedData.recommendations,
       categoryDescriptions: extractedData.categoryDescriptions,
       createdAt: savedAnalysis.created_at,
-      usageCount: usageCheck.count,
+      usageCount: usageCheck?.count ?? 0,
+      onboardingAnalysis: allowOnboardingAnalysis,
     });
   } catch (error) {
     console.error('Unexpected error:', error);

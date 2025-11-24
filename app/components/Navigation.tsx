@@ -3,12 +3,16 @@ import { MobileMenu } from './MobileMenu'
 import { NavLink } from './NavLink'
 import { TrackedLink } from './TrackedLink'
 import { TrackedButton } from './TrackedButton'
+import { isOnboardingComplete } from '@/lib/utils/onboarding'
 
 export const Navigation = async () => {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  // Check if onboarding is complete
+  const onboardingComplete = user ? await isOnboardingComplete(user.id) : true
 
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-[0_8px_0_0_rgba(147,51,234,0.15)] border-b-2 border-purple-200">
@@ -36,20 +40,22 @@ export const Navigation = async () => {
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <>
-                <TrackedLink
-                  href="/dashboard"
-                  className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"
-                  eventName="User Clicked Dashboard Link"
-                  linkId="navigation-dashboard-link"
-                  eventProperties={{
-                    'Link Section': 'Navigation',
-                    'Link Position': 'Desktop navigation (when logged in)',
-                    'Link Type': 'Navigation Link',
-                    'Link Text': 'Dashboard',
-                  }}
-                >
-                  Dashboard
-                </TrackedLink>
+                {onboardingComplete && (
+                  <TrackedLink
+                    href="/dashboard"
+                    className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"
+                    eventName="User Clicked Dashboard Link"
+                    linkId="navigation-dashboard-link"
+                    eventProperties={{
+                      'Link Section': 'Navigation',
+                      'Link Position': 'Desktop navigation (when logged in)',
+                      'Link Type': 'Navigation Link',
+                      'Link Text': 'Dashboard',
+                    }}
+                  >
+                    Dashboard
+                  </TrackedLink>
+                )}
                 <div className="flex items-center gap-3 px-4 py-2 rounded-[1.5rem] bg-white/50 border-2 border-purple-200">
                   <span className="text-sm font-medium text-gray-700">
                     {user.email}
@@ -138,7 +144,7 @@ export const Navigation = async () => {
           </div>
 
           {/* Mobile Menu */}
-          <MobileMenu user={user} />
+          <MobileMenu user={user} isOnboardingComplete={onboardingComplete} />
         </div>
       </div>
     </nav>

@@ -22,6 +22,9 @@ interface UpcomingInvoice {
 export const BillingStatus = ({ subscription }: BillingStatusProps) => {
   const [upcomingInvoice, setUpcomingInvoice] = useState<UpcomingInvoice | null>(null);
   const [loadingInvoice, setLoadingInvoice] = useState(true);
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
+  const [trialProgress, setTrialProgress] = useState<number | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   
   if (!subscription) {
     return null;
@@ -59,6 +62,11 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
     yearly: 'Yearly',
   };
 
+  // Mark component as mounted to prevent hydration mismatches
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   useEffect(() => {
     const fetchUpcomingInvoice = async () => {
       if (!subscription) {
@@ -83,6 +91,43 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
     fetchUpcomingInvoice();
   }, [subscription]);
 
+  // Calculate trial progress and days remaining only on client side after mount
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const isTrialActive = subscription.status === 'trialing';
+    
+    if (isTrialActive && subscription.trial_end) {
+      // Calculate trial days remaining
+      const endDate = typeof subscription.trial_end === 'string' 
+        ? new Date(subscription.trial_end) 
+        : new Date(subscription.trial_end * 1000);
+      const now = new Date();
+      const diffTime = endDate.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setTrialDaysRemaining(Math.max(0, diffDays));
+    } else {
+      setTrialDaysRemaining(null);
+    }
+
+    if (isTrialActive && subscription.trial_start && subscription.trial_end) {
+      // Calculate trial progress percentage
+      const startDate = typeof subscription.trial_start === 'string' 
+        ? new Date(subscription.trial_start) 
+        : new Date(subscription.trial_start * 1000);
+      const endDate = typeof subscription.trial_end === 'string' 
+        ? new Date(subscription.trial_end) 
+        : new Date(subscription.trial_end * 1000);
+      const now = new Date();
+      const totalDuration = endDate.getTime() - startDate.getTime();
+      const elapsed = now.getTime() - startDate.getTime();
+      const progress = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
+      setTrialProgress(progress);
+    } else {
+      setTrialProgress(null);
+    }
+  }, [isMounted, subscription.status, subscription.trial_start, subscription.trial_end]);
+
   const formatDate = (dateInput: string | number | null) => {
     if (!dateInput) return null;
     const date = typeof dateInput === 'string' 
@@ -102,6 +147,9 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
       currency: currency.toUpperCase(),
     }).format(amount / 100);
   };
+
+  const isTrialActive = subscription.status === 'trialing';
+  const isTrialEndingSoon = trialDaysRemaining !== null && trialDaysRemaining <= 2;
 
   return (
     <div className="bg-white rounded-[2.5rem] shadow-lg border-2 border-gray-200 p-8">
@@ -162,6 +210,121 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
           <p className="text-red-800 font-semibold">
             ⚠️ Your payment failed. Please update your payment method to continue service.
           </p>
+        </div>
+      )}
+
+      {/* Enhanced Trial Information */}
+      {isTrialActive && (
+        <div className="mb-6 space-y-4">
+          {/* Trial Banner */}
+          <div className={`p-6 rounded-xl border-2 ${
+            isTrialEndingSoon
+              ? 'bg-yellow-50 border-yellow-300'
+              : 'bg-blue-50 border-blue-200'
+          }`}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-xl font-black text-gray-900 mb-1">
+                  7-Day Free Trial
+                </h3>
+                {trialDaysRemaining !== null && (
+                  <p className={`text-2xl font-black ${
+                    isTrialEndingSoon ? 'text-yellow-800' : 'text-blue-900'
+                  }`}>
+                    {trialDaysRemaining} {trialDaysRemaining === 1 ? 'day' : 'days'} remaining
+                  </p>
+                )}
+              </div>
+              <div className="px-4 py-2 rounded-lg bg-blue-100 text-blue-700 text-sm font-bold">
+                TRIAL ACTIVE
+              </div>
+            </div>
+
+            {/* Trial Progress Bar */}
+            {trialProgress !== null && (
+              <div className="mb-4">
+                <div className="flex items-center justify-between text-sm font-semibold text-gray-700 mb-2">
+                  <span>Trial Progress</span>
+                  <span>{Math.round(trialProgress)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className={`h-3 rounded-full transition-all ${
+                      isTrialEndingSoon ? 'bg-yellow-500' : 'bg-blue-500'
+                    }`}
+                    style={{ width: `${trialProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Trial Dates */}
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              {subscription.trial_start && (
+                <div>
+                  <div className="text-gray-600 font-semibold mb-1">Trial Started</div>
+                  <div className="text-gray-900 font-bold">
+                    {formatDate(subscription.trial_start)}
+                  </div>
+                </div>
+              )}
+              {subscription.trial_end && (
+                <div>
+                  <div className="text-gray-600 font-semibold mb-1">Trial Ends</div>
+                  <div className="text-gray-900 font-bold">
+                    {formatDate(subscription.trial_end)}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Trial Conversion Info */}
+          <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
+            <h4 className="font-black text-gray-900 mb-4">After Your Trial</h4>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600 font-semibold">Plan</span>
+                <span className="text-gray-900 font-bold">
+                  {planNames[subscription.plan]} Plan
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600 font-semibold">Billing</span>
+                <span className="text-gray-900 font-bold">
+                  {billingLabels[subscription.billing_cadence]}
+                </span>
+              </div>
+              {upcomingInvoice && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 font-semibold">First Charge</span>
+                    <span className="text-gray-900 font-bold">
+                      {formatAmount(upcomingInvoice.amount_due, upcomingInvoice.currency)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 font-semibold">Charge Date</span>
+                    <span className="text-gray-900 font-bold">
+                      {formatDate(subscription.trial_end)}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+            <p className="mt-4 text-sm text-gray-600 font-semibold">
+              Your card will be charged on {formatDate(subscription.trial_end) || 'the trial end date'}.
+            </p>
+          </div>
+
+          {/* Trial Ending Soon Warning */}
+          {isTrialEndingSoon && (
+            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
+              <p className="text-yellow-800 font-semibold">
+                ⚠️ Your trial is ending soon! Your subscription will automatically convert to a paid plan on {formatDate(subscription.trial_end) || 'the trial end date'}.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
