@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { getUserPlan } from '@/lib/utils/subscription';
 
 // JSON Schema for structured output
 const THANK_YOU_EMAIL_SCHEMA = {
@@ -61,6 +62,15 @@ export const POST = async (
       return NextResponse.json(
         { error: 'Interview not found' },
         { status: 404 }
+      );
+    }
+
+    // Check if user has Accelerate plan
+    const userPlan = await getUserPlan(user.id);
+    if (userPlan !== 'accelerate') {
+      return NextResponse.json(
+        { error: 'This feature requires an Accelerate plan subscription', requiresAccelerate: true },
+        { status: 403 }
       );
     }
 

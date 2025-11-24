@@ -467,6 +467,22 @@ export default function InterviewDetailPage() {
   };
 
   const handleGenerateEmail = async () => {
+    // Check plan
+    const plan = userPlan || await getUserPlanClient();
+    setUserPlan(plan);
+    
+    if (plan !== 'accelerate') {
+      setShowPremiumGate(true);
+      return;
+    }
+
+    // Check if there are any answers
+    const hasAnswers = questions.some((q: any) => q.answer && q.answer.trim().length > 0);
+    if (!hasAnswers) {
+      setSubmitError('Please add answers to at least one question before generating the email.');
+      return;
+    }
+
     setIsGeneratingEmail(true);
     setSubmitError(null);
 
@@ -477,6 +493,10 @@ export default function InterviewDetailPage() {
 
       if (!response.ok) {
         const error = await response.json();
+        if (error.requiresAccelerate) {
+          setShowPremiumGate(true);
+          return;
+        }
         throw new Error(error.error || 'Failed to generate email');
       }
 
@@ -993,49 +1013,65 @@ export default function InterviewDetailPage() {
             )}
 
             {/* Generate Email Button */}
-            {questions.some((q: any) => q.answer && q.answer.trim().length > 0) && (
+            {userPlan === 'accelerate' && (
               <div className="mt-6 pt-6 border-t border-gray-300">
-                {!generatedEmail ? (
-                  <button
-                    onClick={handleGenerateEmail}
-                    disabled={isGeneratingEmail}
-                    className="w-full px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:translate-y-0"
-                  >
-                    {isGeneratingEmail ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Generating Email...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        Generate Thank You Email
-                      </>
-                    )}
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleGenerateEmail}
-                    disabled={isGeneratingEmail}
-                    className="w-full px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_6px_0_0_rgba(37,99,235,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(37,99,235,0.6)] font-black text-white transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:translate-y-0"
-                  >
-                    {isGeneratingEmail ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Regenerating Email...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        Regenerate Email
-                      </>
-                    )}
-                  </button>
-                )}
+                {(() => {
+                  const hasAnswers = questions.some((q: any) => q.answer && q.answer.trim().length > 0);
+                  const isDisabled = !hasAnswers || isGeneratingEmail;
+                  
+                  return !generatedEmail ? (
+                    <div className="relative group">
+                      <button
+                        onClick={handleGenerateEmail}
+                        disabled={isDisabled}
+                        className="w-full px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:translate-y-0 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                        title={!hasAnswers ? "Please add answers to at least one question before generating the email." : undefined}
+                      >
+                        {isGeneratingEmail ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            Generating Email...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            Generate Thank You Email
+                          </>
+                        )}
+                      </button>
+                      {!hasAnswers && (
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                          Please add answers to at least one question before generating the email.
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                            <div className="border-4 border-transparent border-t-gray-900"></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleGenerateEmail}
+                      disabled={isGeneratingEmail}
+                      className="w-full px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_6px_0_0_rgba(37,99,235,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(37,99,235,0.6)] font-black text-white transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:translate-y-0"
+                    >
+                      {isGeneratingEmail ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Regenerating Email...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Regenerate Email
+                        </>
+                      )}
+                    </button>
+                  );
+                })()}
               </div>
             )}
 
@@ -1411,8 +1447,8 @@ export default function InterviewDetailPage() {
       <PremiumFeatureGateModal
         isOpen={showPremiumGate}
         onClose={() => setShowPremiumGate(false)}
-        featureName="AI-Powered Interview Questions"
-        featureDescription="Generate personalized interview questions using AI. This feature is available exclusively for Accelerate plan subscribers."
+        featureName="AI-Powered Interview Features"
+        featureDescription="Generate personalized interview questions and thank you emails using AI. This feature is available exclusively for Accelerate plan subscribers."
         currentPlan={userPlan}
         requiresAccelerate={true}
       />
