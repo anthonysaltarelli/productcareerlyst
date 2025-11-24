@@ -41,8 +41,9 @@ export const SignUpForm = () => {
         'Sign Up Method': 'Email',
       });
 
-      // Redirect immediately - don't wait for analytics
-      router.push('/auth/sign-up-success')
+      // Redirect immediately with email query for OTP entry
+      const successUrl = `/auth/sign-up-success?email=${encodeURIComponent(email.trim())}`
+      router.push(successUrl)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred'
       setError(errorMessage)

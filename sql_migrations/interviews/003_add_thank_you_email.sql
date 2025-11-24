@@ -10,3 +10,4 @@ ADD COLUMN IF NOT EXISTS thank_you_email_body TEXT;
 COMMENT ON COLUMN interviews.thank_you_email_subject IS 'Subject line of the generated thank you email';
 COMMENT ON COLUMN interviews.thank_you_email_body IS 'Body text of the generated thank you email';
 
+

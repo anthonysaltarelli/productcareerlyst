@@ -41,3 +41,4 @@ ALTER TYPE interview_type_new RENAME TO interview_type;
 -- Add comment
 COMMENT ON TYPE interview_type IS 'Type of interview round - PM-specific interview types';
 
+

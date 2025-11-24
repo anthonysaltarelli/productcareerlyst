@@ -60,3 +60,4 @@ COMMENT ON COLUMN onboarding_progress.progress_data IS 'Flexible JSONB storage f
 COMMENT ON COLUMN onboarding_progress.is_complete IS 'Whether onboarding is finished';
 COMMENT ON COLUMN onboarding_progress.completed_at IS 'When onboarding was completed';
 
+
