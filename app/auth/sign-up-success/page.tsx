@@ -1,29 +1,45 @@
+import { Suspense } from 'react'
 import { PageTracking } from '@/app/components/PageTracking'
-import { TrackedButton } from '@/app/components/TrackedButton'
+import { TrackedLink } from '@/app/components/TrackedLink'
 import { OtpConfirmationCard } from './OtpConfirmationCard'
 
 export default function SignUpSuccessPage() {
+  const otpFallback = (
+    <div
+      role="status"
+      aria-live="polite"
+      className="w-full rounded-[2.5rem] bg-white/80 border-2 border-purple-200 p-10 text-center shadow-[0_12px_0_0_rgba(147,51,234,0.25)]"
+    >
+      <p className="text-lg font-semibold text-purple-700">Loading verification form…</p>
+      <p className="mt-2 text-sm text-purple-500">Please hold on while we prepare your OTP screen.</p>
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 flex items-center justify-center p-4">
       <PageTracking pageName="Sign Up Success" />
       <div className="w-full max-w-md">
-        <OtpConfirmationCard />
+        <Suspense fallback={otpFallback}>
+          <OtpConfirmationCard />
+        </Suspense>
         <div className="mt-6">
-          <TrackedButton
+          <TrackedLink
             href="/auth/login"
-            className="block w-full px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.6)] font-black text-white text-center transition-all duration-200"
+            className="block text-center font-semibold text-purple-700 hover:text-purple-900 underline decoration-purple-400 decoration-2 transition-colors duration-150"
             eventName="User Clicked Back to Login Button"
-            buttonId="sign-up-success-back-to-login-button"
+            linkId="sign-up-success-back-to-login-link"
+            ariaLabel="Return to the login page"
             eventProperties={{
-              'Button Section': 'Sign Up Success Page',
-              'Button Position': 'Below OTP form',
-              'Button Type': 'Navigation Button',
-              'Button Text': 'Back to Login →',
-              'Button Context': 'Fallback navigation after OTP instructions',
+              'Link Section': 'Sign Up Success Page',
+              'Link Position': 'Below OTP form',
+              'Link Type': 'Navigation Link',
+              'Link Text': 'Back to Login →',
+              'Link Context': 'Fallback navigation after OTP instructions',
+              'Page Section': 'Below the fold',
             }}
           >
             Back to Login →
-          </TrackedButton>
+          </TrackedLink>
         </div>
       </div>
     </div>

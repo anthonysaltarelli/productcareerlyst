@@ -95,8 +95,15 @@ export async function GET(request: NextRequest) {
       // redirect user to specified redirect URL or protected page
       redirect(next)
     } else {
-      // redirect the user to an error page with some instructions
-      redirect(`/auth/error?error=${encodeURIComponent(error?.message || 'Verification failed')}`)
+      // For manual OTP entry (legacy token flow), redirect back to OTP page with error
+      const email = searchParams.get('email');
+      if (token && email) {
+        const errorMessage = error?.message || 'The code you entered is incorrect or has expired. Please try again.';
+        redirect(`/auth/sign-up-success?email=${encodeURIComponent(email)}&error=${encodeURIComponent(errorMessage)}`);
+      } else {
+        // For other flows (token_hash), redirect to error page
+        redirect(`/auth/error?error=${encodeURIComponent(error?.message || 'Verification failed')}`)
+      }
     }
   }
 

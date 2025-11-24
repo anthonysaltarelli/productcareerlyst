@@ -10,8 +10,9 @@ export const OtpConfirmationCard = () => {
   const searchParams = useSearchParams()
   const router = useRouter()
   const emailParam = searchParams.get('email')?.trim() ?? ''
+  const errorParam = searchParams.get('error')?.trim() ?? null
   const [otp, setOtp] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(errorParam)
   const [loading, setLoading] = useState(false)
 
   const maskedEmail = useMemo(() => {
@@ -127,6 +128,10 @@ export const OtpConfirmationCard = () => {
             onChange={(event) => {
               const nextValue = event.target.value.replace(/\D/g, '').slice(0, 6)
               setOtp(nextValue)
+              // Clear error when user starts editing
+              if (error) {
+                setError(null)
+              }
             }}
             disabled={isEmailMissing || loading}
             className="w-full text-center tracking-[0.6rem] text-3xl font-black px-4 py-4 rounded-[1.5rem] border-4 border-green-400 bg-white focus:outline-none focus:ring-4 focus:ring-green-200 placeholder:text-gray-400"
