@@ -3,6 +3,7 @@ import { getStripeClient } from '@/lib/stripe/client';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { tagSubscriber } from '@/lib/utils/convertkit';
+import { resolvePlanAndCadenceFromSubscription } from '@/lib/stripe/plan-utils';
 
 // Disable body parsing for webhook to get raw body
 export const runtime = 'nodejs';
@@ -204,26 +205,7 @@ async function syncSubscriptionToDatabase(
     return;
   }
 
-  // Get plan and billing cadence from metadata or price
-  let plan: 'learn' | 'accelerate' = 'learn';
-  let billingCadence: 'monthly' | 'quarterly' | 'yearly' = 'monthly';
-
-  if (metadata.plan) {
-    plan = metadata.plan as 'learn' | 'accelerate';
-  }
-  if (metadata.billing_cadence) {
-    billingCadence = metadata.billing_cadence as 'monthly' | 'quarterly' | 'yearly';
-  } else {
-    // Infer from price interval
-    const price = subscription.items.data[0]?.price;
-    if (price) {
-      if (price.recurring?.interval === 'month') {
-        billingCadence = 'monthly';
-      } else if (price.recurring?.interval === 'year') {
-        billingCadence = 'yearly';
-      }
-    }
-  }
+  const { plan, billingCadence } = resolvePlanAndCadenceFromSubscription(subscription);
 
   const priceId = subscription.items.data[0]?.price.id || '';
 

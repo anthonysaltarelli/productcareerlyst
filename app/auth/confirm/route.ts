@@ -7,6 +7,7 @@ import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 import { addSubscriberToFormAndSequence } from '@/lib/utils/convertkit'
 import { isOnboardingComplete } from '@/lib/utils/onboarding'
+import { resolvePlanAndCadenceFromSubscription } from '@/lib/stripe/plan-utils'
 
 // Type alias to avoid conflict with our Subscription interface
 type StripeSubscription = Stripe.Subscription;
@@ -210,19 +211,17 @@ async function transferBubbleSubscription(userId: string, email: string) {
   
   console.log(`[Bubble Transfer] Using subscription: ${stripeSubscription.id}, status: ${stripeSubscription.status}`);
 
-  const metadata = stripeSubscription.metadata;
-  let plan: 'learn' | 'accelerate' = 'learn';
-  let billingCadence: 'monthly' | 'quarterly' | 'yearly' = 'monthly';
+  const resolvedPlan = resolvePlanAndCadenceFromSubscription(stripeSubscription);
+  let plan: 'learn' | 'accelerate' = resolvedPlan.plan;
+  let billingCadence: 'monthly' | 'quarterly' | 'yearly' = resolvedPlan.billingCadence;
 
   if (bubbleUser.current_plan) {
     const planLower = bubbleUser.current_plan.toLowerCase();
     if (planLower.includes('accelerate') || planLower.includes('pro')) {
       plan = 'accelerate';
+    } else if (planLower.includes('learn')) {
+      plan = 'learn';
     }
-  }
-
-  if (metadata.plan) {
-    plan = metadata.plan as 'learn' | 'accelerate';
   }
 
   if (bubbleUser.subscription_frequency) {
@@ -230,19 +229,6 @@ async function transferBubbleSubscription(userId: string, email: string) {
     if (freq.includes('month')) billingCadence = 'monthly';
     if (freq.includes('quarter')) billingCadence = 'quarterly';
     if (freq.includes('year')) billingCadence = 'yearly';
-  }
-
-  if (metadata.billing_cadence) {
-    billingCadence = metadata.billing_cadence as 'monthly' | 'quarterly' | 'yearly';
-  } else {
-    const price = stripeSubscription.items.data[0]?.price;
-    if (price) {
-      if (price.recurring?.interval === 'month') {
-        billingCadence = 'monthly';
-      } else if (price.recurring?.interval === 'year') {
-        billingCadence = 'yearly';
-      }
-    }
   }
 
   const priceId = stripeSubscription.items.data[0]?.price.id || '';
