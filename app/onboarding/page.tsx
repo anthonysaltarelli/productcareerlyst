@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { useOnboardingProgress } from '@/lib/hooks/useOnboardingProgress';
 import { ResumeUploadStep } from '@/app/components/onboarding/ResumeUploadStep';
 import { BaselineStep } from '@/app/components/onboarding/BaselineStep';
@@ -10,7 +12,7 @@ import { TrialStep } from '@/app/components/onboarding/TrialStep';
 import { PageTracking } from '@/app/components/PageTracking';
 import { trackEvent } from '@/lib/amplitude/client';
 
-const STEPS = [
+const ALL_STEPS = [
   { id: 'resume_upload', name: 'Resume Upload' },
   { id: 'baseline', name: 'Baseline' },
   { id: 'targets', name: 'Goals' },
@@ -19,18 +21,98 @@ const STEPS = [
 ] as const;
 
 export default function OnboardingPage() {
-  const { progress, loading, setCurrentStep } = useOnboardingProgress();
+  const router = useRouter();
+  const { progress, loading, setCurrentStep, markComplete } = useOnboardingProgress();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean | null>(null);
+  const [checkingSubscription, setCheckingSubscription] = useState(true);
 
-  // Initialize step from progress
+  // Check if user has active subscription
   useEffect(() => {
-    if (progress?.current_step) {
+    const checkSubscription = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          setCheckingSubscription(false);
+          return;
+        }
+
+        // Check for active subscription
+        const { data: subscription } = await supabase
+          .from('subscriptions')
+          .select('status')
+          .eq('user_id', user.id)
+          .in('status', ['active', 'trialing', 'past_due'])
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        const hasSubscription = subscription !== null;
+        setHasActiveSubscription(hasSubscription);
+
+        // If user has active subscription, mark onboarding complete and redirect
+        if (hasSubscription) {
+          await markComplete();
+          
+          // Track event (non-blocking)
+          setTimeout(() => {
+            try {
+              trackEvent('User Skipped Onboarding Trial Step', {
+                'Page Route': '/onboarding',
+                'Reason': 'Already has active subscription',
+                'Subscription Status': subscription?.status || 'unknown',
+              });
+            } catch (error) {
+              if (process.env.NODE_ENV === 'development') {
+                console.warn('⚠️ Tracking error (non-blocking):', error);
+              }
+            }
+          }, 0);
+
+          router.push('/dashboard');
+          router.refresh();
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+        setHasActiveSubscription(false);
+      } finally {
+        setCheckingSubscription(false);
+      }
+    };
+
+    checkSubscription();
+  }, [markComplete, router]);
+
+  // Filter out trial step if user has active subscription
+  // Note: If hasActiveSubscription is true, user will be redirected, so this only matters when false
+  const STEPS = useMemo(() => {
+    // If subscription check is complete and user doesn't have subscription, show all steps including trial
+    // If subscription check is complete and user has subscription, they'll be redirected (but filter trial just in case)
+    // If subscription check is not complete, show all steps (will be filtered once check completes)
+    if (hasActiveSubscription === false) {
+      return ALL_STEPS;
+    }
+    // If hasActiveSubscription is true or null, filter out trial
+    // (true = will redirect, null = still checking)
+    return ALL_STEPS.filter(step => step.id !== 'trial');
+  }, [hasActiveSubscription]);
+
+  // Initialize step from progress (only if subscription check is complete)
+  useEffect(() => {
+    if (!checkingSubscription && progress?.current_step) {
       const stepIndex = STEPS.findIndex((s) => s.id === progress.current_step);
       if (stepIndex >= 0) {
         setCurrentStepIndex(stepIndex);
+      } else {
+        // If current step is 'trial' but it's filtered out, go to last step
+        if (progress.current_step === 'trial' && hasActiveSubscription === false) {
+          setCurrentStepIndex(STEPS.length - 1);
+        }
       }
     }
-  }, [progress]);
+  }, [progress, checkingSubscription, hasActiveSubscription, STEPS]);
 
   const handleNext = () => {
     if (currentStepIndex < STEPS.length - 1) {
@@ -105,7 +187,8 @@ export default function OnboardingPage() {
     }
   };
 
-  if (loading) {
+  // Show loading while checking subscription or fetching progress
+  if (loading || checkingSubscription) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
