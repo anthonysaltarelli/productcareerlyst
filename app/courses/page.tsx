@@ -388,15 +388,15 @@ export default function CoursesPage() {
                                     }
                                   }}
                                 >
-                                  <div className="flex flex-col items-start gap-1">
-                                    {lesson.requires_subscription && (
-                                      <span className="inline-block text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold">
-                                        Premium
-                                      </span>
-                                    )}
+                                  <div className="flex items-center justify-between gap-2">
                                     <span className="text-gray-900 font-medium">
                                       {lesson.prioritization}. {lesson.title}
                                     </span>
+                                    {lesson.requires_subscription && (
+                                      <span className="flex-shrink-0 text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold">
+                                        Premium
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                               ))}
