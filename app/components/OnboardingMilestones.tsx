@@ -206,7 +206,7 @@ export const OnboardingMilestones = ({ milestones, stats, subscription }: Onboar
               className="group"
             >
               <div 
-                className={`p-6 rounded-[1.5rem] bg-gradient-to-br ${milestone.color} border-2 ${milestone.borderColor} hover:translate-y-1 transition-all duration-200`}
+                className={`p-4 md:p-6 rounded-[1.5rem] bg-gradient-to-br ${milestone.color} border-2 ${milestone.borderColor} hover:translate-y-1 transition-all duration-200`}
                 style={shadowStyle}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.boxShadow = hoverShadowStyle.boxShadow || ''

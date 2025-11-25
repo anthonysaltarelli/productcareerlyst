@@ -145,7 +145,7 @@ export const DashboardNextSteps = ({ milestones, stats, fullStats, subscription 
   // If no next steps, show generic encouragement
   if (nextSteps.length === 0) {
     return (
-      <div className="mb-8 p-10 rounded-[2.5rem] bg-gradient-to-br from-slate-700 to-slate-900 shadow-[0_20px_0_0_rgba(15,23,42,0.4)] border-2 border-slate-800">
+      <div className="mb-8 p-6 md:p-10 rounded-[2.5rem] bg-gradient-to-br from-slate-700 to-slate-900 shadow-[0_20px_0_0_rgba(15,23,42,0.4)] border-2 border-slate-800">
         <h2 className="text-3xl font-black text-white mb-6 text-center">
           🎉 You're Doing Great!
         </h2>
@@ -156,8 +156,8 @@ export const DashboardNextSteps = ({ milestones, stats, fullStats, subscription 
     )
   }
 
-  return (
-    <div className="mb-8 p-10 rounded-[2.5rem] bg-gradient-to-br from-slate-700 to-slate-900 shadow-[0_20px_0_0_rgba(15,23,42,0.4)] border-2 border-slate-800">
+    return (
+      <div className="mb-8 p-6 md:p-10 rounded-[2.5rem] bg-gradient-to-br from-slate-700 to-slate-900 shadow-[0_20px_0_0_rgba(15,23,42,0.4)] border-2 border-slate-800">
       <h2 className="text-3xl font-black text-white mb-6 text-center">
         🎯 Your Next Steps
       </h2>
@@ -181,7 +181,7 @@ export const DashboardNextSteps = ({ milestones, stats, fullStats, subscription 
             }}
             className="group"
           >
-            <div className="p-6 rounded-[1.5rem] bg-white/10 border-2 border-slate-600 hover:bg-white/15 transition-all duration-200">
+            <div className="p-4 md:p-6 rounded-[1.5rem] bg-white/10 border-2 border-slate-600 hover:bg-white/15 transition-all duration-200">
               <div className={`w-12 h-12 rounded-[1rem] bg-gradient-to-br ${step.color} text-white font-black flex items-center justify-center mb-4`}>
                 {step.number}
               </div>

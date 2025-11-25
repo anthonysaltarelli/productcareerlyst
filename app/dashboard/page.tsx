@@ -40,7 +40,7 @@ export default async function DashboardHome() {
 
   // Desktop dashboard content
   const desktopContent = (
-    <div className="p-8 md:p-12">
+    <div className="px-4 py-6 md:p-12">
       {/* Page view tracking with comprehensive user state context */}
       <DashboardPageTracking
         stats={stats}

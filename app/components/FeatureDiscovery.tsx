@@ -32,7 +32,7 @@ export const FeatureDiscovery = ({ stats, fullStats, subscription }: FeatureDisc
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="p-8 rounded-[2.5rem] bg-gradient-to-br from-gray-200 to-gray-300 shadow-[0_12px_0_0_rgba(107,114,128,0.3)] border-2 border-gray-300 animate-pulse"
+            className="p-5 md:p-8 rounded-[2.5rem] bg-gradient-to-br from-gray-200 to-gray-300 shadow-[0_12px_0_0_rgba(107,114,128,0.3)] border-2 border-gray-300 animate-pulse"
           >
             <div className="h-16 bg-gray-400 rounded-[1.5rem] mb-6"></div>
             <div className="h-4 bg-gray-400 rounded w-3/4 mb-2"></div>
@@ -90,7 +90,7 @@ export const FeatureDiscovery = ({ stats, fullStats, subscription }: FeatureDisc
           }}
           className="group"
         >
-          <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_12px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(99,102,241,0.3)] transition-all duration-200">
+          <div className="p-5 md:p-8 rounded-[2.5rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_12px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(99,102,241,0.3)] transition-all duration-200">
             <div className="flex items-start gap-6 mb-6">
               <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-indigo-400 to-purple-400 shadow-[0_6px_0_0_rgba(99,102,241,0.4)] border-2 border-indigo-500 flex items-center justify-center flex-shrink-0">
                 <span className="text-3xl">📚</span>
@@ -128,7 +128,7 @@ export const FeatureDiscovery = ({ stats, fullStats, subscription }: FeatureDisc
           }}
           className="group"
         >
-          <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_12px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(37,99,235,0.3)] transition-all duration-200">
+          <div className="p-5 md:p-8 rounded-[2.5rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_12px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(37,99,235,0.3)] transition-all duration-200">
             <div className="flex items-start gap-6 mb-6">
               <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-blue-400 to-cyan-400 shadow-[0_6px_0_0_rgba(37,99,235,0.4)] border-2 border-blue-500 flex items-center justify-center flex-shrink-0">
                 <span className="text-3xl">📄</span>
@@ -166,7 +166,7 @@ export const FeatureDiscovery = ({ stats, fullStats, subscription }: FeatureDisc
           }}
           className="group"
         >
-          <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-teal-200 to-cyan-200 shadow-[0_12px_0_0_rgba(20,184,166,0.3)] border-2 border-teal-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(20,184,166,0.3)] transition-all duration-200">
+          <div className="p-5 md:p-8 rounded-[2.5rem] bg-gradient-to-br from-teal-200 to-cyan-200 shadow-[0_12px_0_0_rgba(20,184,166,0.3)] border-2 border-teal-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(20,184,166,0.3)] transition-all duration-200">
             <div className="flex items-start gap-6 mb-6">
               <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-teal-400 to-cyan-400 shadow-[0_6px_0_0_rgba(20,184,166,0.4)] border-2 border-teal-500 flex items-center justify-center flex-shrink-0">
                 <span className="text-3xl">💼</span>
@@ -204,7 +204,7 @@ export const FeatureDiscovery = ({ stats, fullStats, subscription }: FeatureDisc
           }}
           className="group"
         >
-          <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-pink-200 to-rose-200 shadow-[0_12px_0_0_rgba(236,72,153,0.3)] border-2 border-pink-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(236,72,153,0.3)] transition-all duration-200">
+          <div className="p-5 md:p-8 rounded-[2.5rem] bg-gradient-to-br from-pink-200 to-rose-200 shadow-[0_12px_0_0_rgba(236,72,153,0.3)] border-2 border-pink-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(236,72,153,0.3)] transition-all duration-200">
             <div className="flex items-start gap-6 mb-6">
               <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-pink-400 to-rose-400 shadow-[0_6px_0_0_rgba(236,72,153,0.4)] border-2 border-pink-500 flex items-center justify-center flex-shrink-0">
                 <span className="text-3xl">⚡</span>

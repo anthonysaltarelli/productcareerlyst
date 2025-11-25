@@ -19,7 +19,7 @@ export const DashboardWelcome = ({ firstName, subscription }: DashboardWelcomePr
 
   return (
     <div className="mb-8">
-      <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
+      <div className="p-6 md:p-10 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex-1">
             {subscription.isActive && planName && (

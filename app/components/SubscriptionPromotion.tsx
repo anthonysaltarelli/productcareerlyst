@@ -49,7 +49,7 @@ export const SubscriptionPromotion = ({ subscription, stats }: SubscriptionPromo
 
   return (
     <div className="mt-8 mb-0">
-      <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 shadow-[0_20px_0_0_rgba(147,51,234,0.4)] border-2 border-purple-400 relative overflow-hidden">
+      <div className="p-6 md:p-10 rounded-[2.5rem] bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 shadow-[0_20px_0_0_rgba(147,51,234,0.4)] border-2 border-purple-400 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -mr-32 -mt-32"></div>

@@ -6,9 +6,10 @@ import { NavLink } from '@/app/components/NavLink'
 
 interface DashboardNavigationProps {
   fullScreen?: boolean
+  onNavClick?: () => void
 }
 
-export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationProps) => {
+export const DashboardNavigation = ({ fullScreen = false, onNavClick }: DashboardNavigationProps) => {
   const { coach, compensation, impactPortfolio, careerTracker, nativeProductPortfolio } = useFlags()
 
   // Base styles for nav links
@@ -20,26 +21,24 @@ export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationP
 
   return (
     <nav className={fullScreen ? 'px-4 py-6 pb-20 space-y-3 flex-1' : 'flex-1 p-4 space-y-2 overflow-y-auto'}>
-      {/* Show Dashboard Home only in sidebar, not in fullScreen mobile nav */}
-      {!fullScreen && (
-        <NavLink
-          href="/dashboard"
-          eventName="User Clicked Dashboard Navigation Link"
-          linkId="dashboard-nav-home-link"
-          eventProperties={{
-            'Link Text': 'Dashboard Home',
-            'Link Destination': '/dashboard',
-            'Link Section': 'Sidebar Navigation',
-            'Link Position': 'Main Navigation',
-            'Link Type': 'Navigation Link',
-            'Feature Flag Required': false,
-          }}
-          className={baseNavLinkClass}
-        >
-          <Home className={iconClass} />
-          <span>Dashboard Home</span>
-        </NavLink>
-      )}
+      <NavLink
+        href="/dashboard"
+        eventName="User Clicked Dashboard Navigation Link"
+        linkId={fullScreen ? 'mobile-nav-home-link' : 'dashboard-nav-home-link'}
+        eventProperties={{
+          'Link Text': 'Dashboard Home',
+          'Link Destination': '/dashboard',
+          'Link Section': fullScreen ? 'Mobile Navigation' : 'Sidebar Navigation',
+          'Link Position': 'Main Navigation',
+          'Link Type': 'Navigation Link',
+          'Feature Flag Required': false,
+        }}
+        className={baseNavLinkClass}
+        onClick={onNavClick}
+      >
+        <Home className={iconClass} />
+        <span>Dashboard Home</span>
+      </NavLink>
       <NavLink
         href="/dashboard/courses"
         eventName="User Clicked Dashboard Navigation Link"
@@ -53,6 +52,7 @@ export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationP
           'Feature Flag Required': false,
         }}
         className={baseNavLinkClass}
+        onClick={onNavClick}
       >
         <BookOpen className={iconClass} />
         <span>Courses</span>
@@ -70,6 +70,7 @@ export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationP
           'Feature Flag Required': false,
         }}
         className={baseNavLinkClass}
+        onClick={onNavClick}
       >
         <Briefcase className={iconClass} />
         <span>Job Applications</span>
@@ -87,6 +88,7 @@ export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationP
           'Feature Flag Required': false,
         }}
         className={baseNavLinkClass}
+        onClick={onNavClick}
       >
         <FileText className={iconClass} />
         <span>Resume Builder</span>
@@ -104,6 +106,7 @@ export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationP
           'Feature Flag Required': false,
         }}
         className={baseNavLinkClass}
+        onClick={onNavClick}
       >
         <FolderKanban className={iconClass} />
         <span>Product Portfolio</span>
@@ -123,6 +126,7 @@ export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationP
             'Feature Flag Name': 'native-product-portfolio',
           }}
           className={baseNavLinkClass}
+          onClick={onNavClick}
         >
           <LayoutDashboard className={iconClass} />
           <span>Portfolio Editor</span>
@@ -143,6 +147,7 @@ export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationP
             'Feature Flag Name': 'coach',
           }}
           className={baseNavLinkClass}
+          onClick={onNavClick}
         >
           <span>Interview Coach</span>
         </NavLink>
@@ -162,6 +167,7 @@ export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationP
             'Feature Flag Name': 'careerTracker',
           }}
           className={baseNavLinkClass}
+          onClick={onNavClick}
         >
           <span>Career Tracker</span>
         </NavLink>
@@ -181,6 +187,7 @@ export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationP
             'Feature Flag Name': 'impactPortfolio',
           }}
           className={baseNavLinkClass}
+          onClick={onNavClick}
         >
           <span>Impact Portfolio</span>
         </NavLink>
@@ -200,6 +207,7 @@ export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationP
             'Feature Flag Name': 'compensation',
           }}
           className={baseNavLinkClass}
+          onClick={onNavClick}
         >
           <span>Compensation</span>
         </NavLink>
@@ -217,6 +225,7 @@ export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationP
           'Feature Flag Required': false,
         }}
         className={baseNavLinkClass}
+        onClick={onNavClick}
       >
         <FileSpreadsheet className={iconClass} />
         <span>PM Templates</span>
@@ -237,6 +246,7 @@ export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationP
             'Feature Flag Required': false,
           }}
           className={baseNavLinkClass}
+          onClick={onNavClick}
         >
           <CreditCard className={iconClass} />
           <span>Billing & Subscription</span>
@@ -254,6 +264,7 @@ export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationP
             'Feature Flag Required': false,
           }}
           className={baseNavLinkClass}
+          onClick={onNavClick}
         >
           <Settings className={iconClass} />
           <span>Settings</span>
