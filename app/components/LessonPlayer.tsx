@@ -61,6 +61,10 @@ const LessonPlayer = ({
   // Fallback: Hide loading after timeout if iframe doesn't fire onLoad
   // This is especially important for mobile Safari where onLoad may not fire reliably
   useEffect(() => {
+    // Detect if we're on mobile - use longer timeout for mobile devices
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const timeoutDuration = isMobile ? 4000 : 2000; // 4 seconds for mobile, 2 for desktop
+
     const fallbackTimer = setTimeout(() => {
       if (!iframeLoaded) {
         setIsLoading(false);
@@ -85,10 +89,48 @@ const LessonPlayer = ({
           }, 0);
         }
       }
-    }, 2000); // 2 second fallback (reduced from 3s for faster UX)
+    }, timeoutDuration);
 
     return () => clearTimeout(fallbackTimer);
   }, [iframeLoaded, videoUrl, lessonId, courseId, lessonTitle, courseTitle]);
+
+  // Intersection Observer fallback for mobile Safari
+  // Detects when iframe becomes visible and helps with loading state
+  useEffect(() => {
+    if (!iframeRef.current) return;
+
+    let visibilityTimer: NodeJS.Timeout | null = null;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          // If iframe is visible and we haven't detected load yet, hide loading after delay
+          if (entry.isIntersecting && !iframeLoaded) {
+            // Clear any existing timer
+            if (visibilityTimer) {
+              clearTimeout(visibilityTimer);
+            }
+            // Give it a moment to actually load, then hide loading state
+            visibilityTimer = setTimeout(() => {
+              if (!iframeLoaded) {
+                setIsLoading(false);
+              }
+            }, 1500); // 1.5 seconds after becoming visible
+          }
+        });
+      },
+      { threshold: 0.1 } // Trigger when 10% of iframe is visible
+    );
+
+    observer.observe(iframeRef.current);
+
+    return () => {
+      observer.disconnect();
+      if (visibilityTimer) {
+        clearTimeout(visibilityTimer);
+      }
+    };
+  }, [iframeLoaded, videoUrl]);
 
   // Construct Loom embed URL
   const loomEmbedUrl = `https://www.loom.com/embed/${videoUrl}`;
@@ -99,8 +141,8 @@ const LessonPlayer = ({
       style={{ 
         position: 'relative',
         width: '100%',
-        paddingBottom: '56.25%', // 16:9 aspect ratio
-        height: 0
+        aspectRatio: '16 / 9',
+        minHeight: '315px' // Fallback for older browsers that don't support aspect-ratio
       }}
     >
       {isLoading && (
@@ -118,7 +160,9 @@ const LessonPlayer = ({
         allowFullScreen
         onLoad={handleIframeLoad}
         title="Lesson video"
+        loading="eager"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        suppressHydrationWarning
         style={{
           position: 'absolute',
           top: 0,
