@@ -1,7 +1,7 @@
 'use client'
 
 import { useFlags } from 'launchdarkly-react-client-sdk'
-import { CreditCard, Settings, Home, BookOpen, Briefcase, FileText, FolderKanban, LayoutDashboard, FileSpreadsheet } from 'lucide-react'
+import { CreditCard, Settings, Home, BookOpen, Briefcase, FileText, FolderKanban, LayoutDashboard, FileSpreadsheet, Lightbulb } from 'lucide-react'
 import { NavLink } from '@/app/components/NavLink'
 
 interface DashboardNavigationProps {
@@ -26,7 +26,7 @@ export const DashboardNavigation = ({ fullScreen = false, onNavClick }: Dashboar
         eventName="User Clicked Dashboard Navigation Link"
         linkId={fullScreen ? 'mobile-nav-home-link' : 'dashboard-nav-home-link'}
         eventProperties={{
-          'Link Text': 'Dashboard Home',
+          'Link Text': 'Dashboard',
           'Link Destination': '/dashboard',
           'Link Section': fullScreen ? 'Mobile Navigation' : 'Sidebar Navigation',
           'Link Position': 'Main Navigation',
@@ -37,7 +37,7 @@ export const DashboardNavigation = ({ fullScreen = false, onNavClick }: Dashboar
         onClick={onNavClick}
       >
         <Home className={iconClass} />
-        <span>Dashboard Home</span>
+        <span>Dashboard</span>
       </NavLink>
       <NavLink
         href="/dashboard/courses"
@@ -234,11 +234,29 @@ export const DashboardNavigation = ({ fullScreen = false, onNavClick }: Dashboar
       {/* Billing Section */}
       <div className={`${fullScreen ? 'pt-6 mt-6' : 'pt-4 mt-4'} border-t border-slate-700`}>
         <NavLink
+          href="/dashboard/feature-requests"
+          eventName="User Clicked Dashboard Navigation Link"
+          linkId={fullScreen ? 'mobile-nav-feature-requests-link' : 'dashboard-nav-feature-requests-link'}
+          eventProperties={{
+            'Link Text': 'Feature Requests',
+            'Link Destination': '/dashboard/feature-requests',
+            'Link Section': fullScreen ? 'Mobile Navigation' : 'Sidebar Navigation',
+            'Link Position': 'Billing Section',
+            'Link Type': 'Navigation Link',
+            'Feature Flag Required': false,
+          }}
+          className={baseNavLinkClass}
+          onClick={onNavClick}
+        >
+          <Lightbulb className={iconClass} />
+          <span>Feature Requests</span>
+        </NavLink>
+        <NavLink
           href="/dashboard/billing"
           eventName="User Clicked Dashboard Navigation Link"
           linkId={fullScreen ? 'mobile-nav-billing-link' : 'dashboard-nav-billing-link'}
           eventProperties={{
-            'Link Text': 'Billing & Subscription',
+            'Link Text': 'Billing',
             'Link Destination': '/dashboard/billing',
             'Link Section': fullScreen ? 'Mobile Navigation' : 'Sidebar Navigation',
             'Link Position': 'Billing Section',
@@ -249,7 +267,7 @@ export const DashboardNavigation = ({ fullScreen = false, onNavClick }: Dashboar
           onClick={onNavClick}
         >
           <CreditCard className={iconClass} />
-          <span>Billing & Subscription</span>
+          <span>Billing</span>
         </NavLink>
         <NavLink
           href="/dashboard/settings"
