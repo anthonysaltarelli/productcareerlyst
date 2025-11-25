@@ -375,9 +375,9 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
         
         {/* Chart - below everything, smaller */}
         <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t-2 border-purple-200">
-          <div className="w-full h-[220px] sm:h-[260px] md:h-[300px] mb-4 p-2 sm:p-4 rounded-[1rem] sm:rounded-[1.5rem] bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 10, right: 15, left: 10, bottom: 10 }}>
+          <div className="mb-4 p-2 sm:p-4 rounded-[1rem] sm:rounded-[1.5rem] bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 overflow-hidden">
+            <ResponsiveContainer width="99%" height={200} minWidth={280}>
+              <LineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#d8b4fe" opacity={0.3} />
                 <XAxis 
                   dataKey="year" 
@@ -510,7 +510,7 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
                   }}
                   name="With Product Careerlyst"
                 />
-              </LineChart>
+                </LineChart>
             </ResponsiveContainer>
           </div>
           
