@@ -13,13 +13,13 @@ export const DashboardNavigation = ({ fullScreen = false }: DashboardNavigationP
 
   // Base styles for nav links
   const baseNavLinkClass = fullScreen
-    ? 'flex items-center gap-4 px-6 py-4 rounded-[1.5rem] text-gray-300 hover:bg-slate-700 hover:text-white transition-all duration-200 font-bold text-lg group'
+    ? 'flex items-center gap-4 px-4 py-4 rounded-[1.5rem] text-gray-300 hover:bg-slate-700 hover:text-white transition-all duration-200 font-bold text-lg group'
     : 'flex items-center gap-3 px-4 py-3 rounded-[1rem] text-gray-300 hover:bg-slate-700 hover:text-white transition-all duration-200 font-semibold group'
 
   const iconClass = fullScreen ? 'w-6 h-6 flex-shrink-0' : 'w-5 h-5 flex-shrink-0'
 
   return (
-    <nav className={fullScreen ? 'p-6 pb-20 space-y-3 flex-1' : 'flex-1 p-4 space-y-2 overflow-y-auto'}>
+    <nav className={fullScreen ? 'px-4 py-6 pb-20 space-y-3 flex-1' : 'flex-1 p-4 space-y-2 overflow-y-auto'}>
       {/* Show Dashboard Home only in sidebar, not in fullScreen mobile nav */}
       {!fullScreen && (
         <NavLink
