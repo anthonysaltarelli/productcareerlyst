@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { redirect, isRedirectError } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { type NextRequest } from 'next/server'
 import { isOnboardingComplete } from '@/lib/utils/onboarding'
 import { addSubscriberToFormAndSequence } from '@/lib/utils/convertkit'
@@ -146,10 +146,6 @@ export async function GET(request: NextRequest) {
           shouldRedirectToOnboarding = true
         }
       } catch (onboardingError) {
-        // Re-throw redirect errors (from next/navigation)
-        if (isRedirectError(onboardingError)) {
-          throw onboardingError
-        }
         console.error('[OAuth Callback] Error checking onboarding:', onboardingError)
         // Continue to dashboard if onboarding check fails
       }
