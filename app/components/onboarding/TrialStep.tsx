@@ -498,7 +498,7 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
       )}
 
       {/* Accelerate Plan Preview */}
-      <div className="mb-8 bg-white rounded-2xl border-2 border-purple-200 p-4 md:p-8 shadow-lg">
+      <div className="mb-8 md:bg-white md:rounded-2xl md:border-2 md:border-purple-200 md:p-8 md:shadow-lg">
         <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-6">
           <div className="flex items-center gap-3">
             <Sparkles className="w-8 h-8 text-purple-600" />
