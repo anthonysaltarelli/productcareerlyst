@@ -19,8 +19,8 @@ export default async function DashboardLayout({
 
   return (
     <div className="h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 flex overflow-hidden">
-      {/* Left Sidebar Navigation - Fixed and Sticky */}
-      <aside className="w-72 h-screen bg-gradient-to-br from-slate-800 to-slate-900 border-r-2 border-slate-700 flex flex-col sticky top-0 flex-shrink-0">
+      {/* Left Sidebar Navigation - Fixed and Sticky - Hidden on mobile */}
+      <aside className="hidden md:flex w-72 h-screen bg-gradient-to-br from-slate-800 to-slate-900 border-r-2 border-slate-700 flex-col sticky top-0 flex-shrink-0">
         {/* Logo/Brand */}
         <div className="p-6 border-b-2 border-slate-700 flex-shrink-0">
           <h1 className="text-2xl font-black bg-gradient-to-br from-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -35,8 +35,8 @@ export default async function DashboardLayout({
         <DashboardNavigation />
       </aside>
 
-      {/* Main Content Area - Scrollable */}
-      <main className="flex-1 h-screen overflow-y-auto">
+      {/* Main Content Area - Scrollable - Full width on mobile */}
+      <main className="flex-1 h-screen overflow-y-auto md:overflow-y-auto overflow-hidden w-full">
         {children}
       </main>
     </div>

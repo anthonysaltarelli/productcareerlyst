@@ -7,6 +7,7 @@ import { useInterviews } from '@/lib/hooks/useInterviews';
 import { ApplicationStatus, JobApplicationWithCompany } from '@/lib/types/jobs';
 import { AddJobModal } from '@/app/components/jobs/AddJobModal';
 import { EditJobModal } from '@/app/components/jobs/EditJobModal';
+import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
   wishlist: { label: 'Wishlist', color: 'text-gray-700', bgColor: 'bg-gray-50' },
@@ -76,47 +77,55 @@ export default function JobsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-8 md:p-12 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-700 font-semibold">Loading applications...</p>
+      <>
+        <MobileDashboardHeader title="Job Applications" />
+        <div className="min-h-screen p-6 pt-20 md:p-12 md:pt-12 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-700 font-semibold">Loading applications...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen p-8 md:p-12 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 font-bold mb-4">Error loading applications</p>
-          <p className="text-gray-700 mb-4">{error}</p>
-          <button
-            onClick={() => refetch()}
-            className="px-6 py-3 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-700 transition-colors"
-          >
-            Try Again
-          </button>
+      <>
+        <MobileDashboardHeader title="Job Applications" />
+        <div className="min-h-screen p-6 pt-20 md:p-12 md:pt-12 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-red-600 font-bold mb-4">Error loading applications</p>
+            <p className="text-gray-700 mb-4">{error}</p>
+            <button
+              onClick={() => refetch()}
+              className="px-6 py-3 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen p-8 md:p-12">
+    <>
+      <MobileDashboardHeader title="Job Applications" />
+      <div className="min-h-screen p-6 pt-20 md:p-12 md:pt-12">
       {/* Header */}
-      <div className="mb-8">
-        <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
-          <div className="flex items-center justify-between">
+      <div className="mb-6 md:mb-8">
+        <div className="p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_12px_0_0_rgba(147,51,234,0.3)] md:shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-2">
+              <h1 className="text-3xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-2">
                 💼 Job Applications
               </h1>
-              <p className="text-xl text-gray-700 font-semibold">Track your path to your dream PM role</p>
+              <p className="text-base md:text-xl text-gray-700 font-semibold">Track your path to your dream PM role</p>
             </div>
             <div className="flex items-center gap-3">
-              {/* View Toggle */}
-              <div className="flex items-center gap-2 bg-white/60 rounded-[1.5rem] p-1.5 border-2 border-purple-300">
+              {/* View Toggle - Hidden on mobile, list view is forced */}
+              <div className="hidden md:flex items-center gap-2 bg-white/60 rounded-[1.5rem] p-1.5 border-2 border-purple-300">
                 <button
                   onClick={() => setViewMode('kanban')}
                   className={`px-5 py-2.5 rounded-[1rem] text-sm font-black transition-all ${
@@ -151,44 +160,46 @@ export default function JobsPage() {
               
               <button
                 onClick={() => setShowAddModal(true)}
-                className="px-8 py-3 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2"
+                className="px-6 py-3 md:px-8 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2 text-sm md:text-base"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Add Job
+                <span className="hidden sm:inline">Add Job</span>
+                <span className="sm:hidden">Add</span>
               </button>
             </div>
           </div>
 
-          {/* Metrics */}
-          <div className="grid grid-cols-5 gap-4 mt-8">
-            <div className="p-6 rounded-[2rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_10px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300 text-center">
-              <p className="text-4xl font-black text-blue-600 mb-2">{totalApplications}</p>
-              <p className="text-sm font-bold text-gray-700">Total Applications</p>
+          {/* Metrics - 2 cols on mobile, 5 cols on desktop */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mt-6 md:mt-8">
+            <div className="p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_6px_0_0_rgba(37,99,235,0.3)] md:shadow-[0_10px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300 text-center">
+              <p className="text-2xl md:text-4xl font-black text-blue-600 mb-1 md:mb-2">{totalApplications}</p>
+              <p className="text-xs md:text-sm font-bold text-gray-700">Total</p>
             </div>
-            <div className="p-6 rounded-[2rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_10px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 text-center">
-              <p className="text-4xl font-black text-purple-600 mb-2">{activeApplications}</p>
-              <p className="text-sm font-bold text-gray-700">Active</p>
+            <div className="p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_6px_0_0_rgba(147,51,234,0.3)] md:shadow-[0_10px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 text-center">
+              <p className="text-2xl md:text-4xl font-black text-purple-600 mb-1 md:mb-2">{activeApplications}</p>
+              <p className="text-xs md:text-sm font-bold text-gray-700">Active</p>
             </div>
-            <div className="p-6 rounded-[2rem] bg-gradient-to-br from-orange-200 to-yellow-200 shadow-[0_10px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-300 text-center">
-              <p className="text-4xl font-black text-orange-600 mb-2">{interviewsScheduled}</p>
-              <p className="text-sm font-bold text-gray-700">Interviews</p>
+            <div className="p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] bg-gradient-to-br from-orange-200 to-yellow-200 shadow-[0_6px_0_0_rgba(234,88,12,0.3)] md:shadow-[0_10px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-300 text-center">
+              <p className="text-2xl md:text-4xl font-black text-orange-600 mb-1 md:mb-2">{interviewsScheduled}</p>
+              <p className="text-xs md:text-sm font-bold text-gray-700">Interviews</p>
             </div>
-            <div className="p-6 rounded-[2rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_10px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300 text-center">
-              <p className="text-4xl font-black text-green-600 mb-2">{offersReceived}</p>
-              <p className="text-sm font-bold text-gray-700">Offers 🎉</p>
+            <div className="p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_6px_0_0_rgba(22,163,74,0.3)] md:shadow-[0_10px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300 text-center">
+              <p className="text-2xl md:text-4xl font-black text-green-600 mb-1 md:mb-2">{offersReceived}</p>
+              <p className="text-xs md:text-sm font-bold text-gray-700">Offers 🎉</p>
             </div>
-            <div className="p-6 rounded-[2rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_10px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300 text-center">
-              <p className="text-4xl font-black text-indigo-600 mb-2">{responseRate}%</p>
-              <p className="text-sm font-bold text-gray-700">Response Rate</p>
+            <div className="col-span-2 md:col-span-1 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_6px_0_0_rgba(99,102,241,0.3)] md:shadow-[0_10px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300 text-center">
+              <p className="text-2xl md:text-4xl font-black text-indigo-600 mb-1 md:mb-2">{responseRate}%</p>
+              <p className="text-xs md:text-sm font-bold text-gray-700">Response Rate</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Kanban Board */}
+      {/* Kanban Board - Hidden on mobile */}
       {viewMode === 'kanban' && (
+        <div className="hidden md:block">
         <div className="overflow-x-auto">
           <div className="flex gap-6 min-w-max pb-8">
             {columnOrder.map((status) => {
@@ -297,14 +308,16 @@ export default function JobsPage() {
             })}
           </div>
         </div>
+        </div>
       )}
 
-      {/* List View */}
-      {viewMode === 'list' && (
-        <div>
-          <div className="bg-white rounded-[2rem] border-2 border-gray-300 overflow-hidden shadow-[0_12px_0_0_rgba(0,0,0,0.1)]">
-            <table className="w-full">
-              <thead className="bg-gradient-to-br from-purple-200 to-pink-200 border-b-2 border-purple-300">
+      {/* List View - Always shown on mobile, or when list view selected on desktop */}
+      {(viewMode === 'list' || true) && (
+        <div className={viewMode === 'kanban' ? 'md:hidden' : ''}>
+          <div className="bg-white rounded-[1.5rem] md:rounded-[2rem] border-2 border-gray-300 overflow-hidden shadow-[0_8px_0_0_rgba(0,0,0,0.1)] md:shadow-[0_12px_0_0_rgba(0,0,0,0.1)]">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[800px]">
+                <thead className="bg-gradient-to-br from-purple-200 to-pink-200 border-b-2 border-purple-300">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Company & Role</th>
                   <th className="px-6 py-4 text-left text-xs font-black text-gray-700 uppercase tracking-wider">Location</th>
@@ -356,6 +369,7 @@ export default function JobsPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       )}
@@ -379,7 +393,8 @@ export default function JobsPage() {
           setEditingApplication(null);
         }}
       />
-    </div>
+      </div>
+    </>
   );
 }
 

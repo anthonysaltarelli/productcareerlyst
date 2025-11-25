@@ -3,6 +3,7 @@ import { getDashboardStats } from '@/lib/utils/dashboard-stats'
 import { getUserSubscription } from '@/lib/utils/subscription'
 import { SettingsPageClient } from '@/app/components/settings/SettingsPageClient'
 import { SettingsPageTracking } from '@/app/components/SettingsPageTracking'
+import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -55,6 +56,7 @@ export default async function SettingsPage() {
 
   return (
     <>
+      <MobileDashboardHeader title="Settings" />
       <SettingsPageTracking
         stats={stats}
         subscription={subscriptionForTracking}
@@ -62,12 +64,14 @@ export default async function SettingsPage() {
         initialActiveTab="profile"
         profileCompletion={profileCompletion}
       />
-      <SettingsPageClient
-        stats={stats}
-        subscription={subscriptionForTracking}
-        userCreatedAt={userCreatedAt}
-        initialActiveTab="profile"
-      />
+      <div className="pt-16 md:pt-0">
+        <SettingsPageClient
+          stats={stats}
+          subscription={subscriptionForTracking}
+          userCreatedAt={userCreatedAt}
+          initialActiveTab="profile"
+        />
+      </div>
     </>
   )
 }

@@ -9,6 +9,7 @@ import { SubscriptionPromotion } from '@/app/components/SubscriptionPromotion'
 import { DashboardNextSteps } from '@/app/components/DashboardNextSteps'
 import { AutoSyncSubscription } from '@/app/components/billing/AutoSyncSubscription'
 import { DashboardPageTracking } from '@/app/components/DashboardPageTracking'
+import { DashboardHomeContent } from '@/app/components/DashboardHomeContent'
 
 export default async function DashboardHome() {
   const supabase = await createClient()
@@ -37,7 +38,8 @@ export default async function DashboardHome() {
   // Get user creation date for tracking
   const userCreatedAt = user.created_at
 
-  return (
+  // Desktop dashboard content
+  const desktopContent = (
     <div className="p-8 md:p-12">
       {/* Page view tracking with comprehensive user state context */}
       <DashboardPageTracking
@@ -127,5 +129,11 @@ export default async function DashboardHome() {
       )}
     </div>
   )
-}
 
+  return (
+    <DashboardHomeContent 
+      desktopContent={desktopContent}
+      firstName={profile?.first_name}
+    />
+  )
+}

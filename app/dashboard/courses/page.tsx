@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { CoursesPageTracking } from '@/app/components/CoursesPageTracking';
 import { TrackedLink } from '@/app/components/TrackedLink';
+import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 
 interface Course {
   id: string;
@@ -130,11 +131,13 @@ export default async function CoursesPage() {
   const totalCourses = categories.reduce((sum, cat) => sum + cat.courses.length, 0);
 
   return (
-    <div className="p-8 md:p-12">
-      <CoursesPageTracking 
-        totalCategories={totalCategories}
-        totalCourses={totalCourses}
-      />
+    <>
+      <MobileDashboardHeader title="Courses" />
+      <div className="p-6 pt-20 md:p-12 md:pt-12">
+        <CoursesPageTracking 
+          totalCategories={totalCategories}
+          totalCourses={totalCourses}
+        />
       {/* Page Header */}
       <div className="mb-8">
         <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_15px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300">
@@ -230,7 +233,8 @@ export default async function CoursesPage() {
           We're constantly adding new content. Check back regularly for updates.
         </p>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 

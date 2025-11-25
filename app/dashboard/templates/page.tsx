@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getDashboardStats } from '@/lib/utils/dashboard-stats';
 import { getUserSubscription } from '@/lib/utils/subscription';
 import { TemplatesPageContent } from './TemplatesPageContent';
+import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 
 export default async function TemplatesPage() {
   const supabase = await createClient();
@@ -24,14 +25,19 @@ export default async function TemplatesPage() {
   const userCreatedAt = user.created_at;
 
   return (
-    <TemplatesPageContent
-      stats={stats}
-      subscription={subscription ? {
-        plan: subscription.plan,
-        status: subscription.status,
-        isActive: subscription.status === 'active' || subscription.status === 'trialing',
-      } : null}
-      userCreatedAt={userCreatedAt}
-    />
+    <>
+      <MobileDashboardHeader title="PM Templates" />
+      <div className="pt-16 md:pt-0">
+        <TemplatesPageContent
+          stats={stats}
+          subscription={subscription ? {
+            plan: subscription.plan,
+            status: subscription.status,
+            isActive: subscription.status === 'active' || subscription.status === 'trialing',
+          } : null}
+          userCreatedAt={userCreatedAt}
+        />
+      </div>
+    </>
   );
 }

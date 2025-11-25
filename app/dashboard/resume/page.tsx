@@ -7,6 +7,7 @@ import ResumeLanding from "@/app/components/resume/ResumeLanding";
 import { useResumeData } from "@/lib/hooks/useResumeData";
 import { trackEvent } from "@/lib/amplitude/client";
 import { getBaseUserContext, daysSince } from "@/lib/utils/resume-tracking";
+import { DesktopOnlyFallback } from "@/app/components/DesktopOnlyFallback";
 
 export default function ResumePage() {
   const router = useRouter();
@@ -241,13 +242,25 @@ export default function ResumePage() {
   };
 
   return (
-    <ResumeLanding
-      versions={versions}
-      onEditVersion={handleEditVersion}
-      onCreateMaster={handleCreateMaster}
-      onCloneFromMaster={handleCloneFromMaster}
-      onDeleteVersion={handleDeleteVersion}
-      onImportMaster={handleImportMaster}
-    />
+    <>
+      {/* Mobile fallback - shown only on mobile */}
+      <DesktopOnlyFallback 
+        featureName="Resume Builder"
+        description="The Resume Builder requires a larger screen to edit and format your resume effectively. Please access this feature from a desktop or laptop computer."
+        pageTitle="Resume Builder"
+      />
+      
+      {/* Desktop content - hidden on mobile */}
+      <div className="hidden md:block">
+        <ResumeLanding
+          versions={versions}
+          onEditVersion={handleEditVersion}
+          onCreateMaster={handleCreateMaster}
+          onCloneFromMaster={handleCloneFromMaster}
+          onDeleteVersion={handleDeleteVersion}
+          onImportMaster={handleImportMaster}
+        />
+      </div>
+    </>
   );
 }

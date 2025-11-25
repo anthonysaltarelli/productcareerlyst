@@ -9,6 +9,7 @@ import { TrackedLink } from '@/app/components/TrackedLink';
 import { TrackedButton } from '@/app/components/TrackedButton';
 import { PortfolioPageTracking } from '@/app/components/PortfolioPageTracking';
 import PremiumFeatureGateModal from '@/app/components/resume/PremiumFeatureGateModal';
+import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 
 type PortfolioIdea = {
   id: string;
@@ -783,14 +784,15 @@ export default function GenerateIdeasPage() {
 
   return (
     <>
+      <MobileDashboardHeader title="Generate Ideas" />
       <PortfolioPageTracking 
         pageName="Portfolio Generate Ideas" 
         viewMode={getViewMode()}
         selectedRequestId={selectedRequestId}
       />
-      <div className="flex h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Left Sidebar - Previous Requests */}
-      <aside className="w-72 bg-white/80 backdrop-blur-sm border-r border-slate-200 flex flex-col flex-shrink-0 overflow-y-auto shadow-lg">
+      <div className="flex h-screen pt-16 md:pt-0 bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Left Sidebar - Previous Requests - Hidden on mobile */}
+      <aside className="hidden md:flex w-72 bg-white/80 backdrop-blur-sm border-r border-slate-200 flex-col flex-shrink-0 overflow-y-auto shadow-lg">
         {/* Header */}
         <div className="p-4 border-b border-slate-200 flex-shrink-0">
           <TrackedLink

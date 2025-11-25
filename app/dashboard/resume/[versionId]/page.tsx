@@ -16,6 +16,7 @@ import { useResumeData } from "@/lib/hooks/useResumeData";
 import { mapCompleteDBResumeToUI, mapDBStylesToUI, mapUIContactToDB, mapUIStylesToDB, mapDBExperienceToUI } from "@/lib/utils/resumeDataMapper";
 import { trackEvent } from "@/lib/amplitude/client";
 import { getBaseUserContext, getResumeContext, calculateResumeCompleteness, daysSince } from "@/lib/utils/resume-tracking";
+import { DesktopOnlyFallback } from "@/app/components/DesktopOnlyFallback";
 
 // Deep equality check for resume data
 const deepEqual = (obj1: any, obj2: any): boolean => {
@@ -2240,18 +2241,36 @@ export default function ResumeEditorPage({ params }: Props) {
   // Show loading state while fetching resume data
   if (isLoading || !versionId) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-          <p className="mt-4 text-lg font-semibold text-gray-700">Loading resume...</p>
+      <>
+        {/* Mobile fallback - shown only on mobile */}
+        <DesktopOnlyFallback 
+          featureName="Resume Editor"
+          description="The Resume Editor requires a larger screen to edit and format your resume effectively. Please access this feature from a desktop or laptop computer."
+          pageTitle="Resume Editor"
+        />
+        
+        {/* Desktop loading state - hidden on mobile */}
+        <div className="hidden md:flex h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+            <p className="mt-4 text-lg font-semibold text-gray-700">Loading resume...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
     <>
-      <div className="flex h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Mobile fallback - shown only on mobile */}
+      <DesktopOnlyFallback 
+        featureName="Resume Editor"
+        description="The Resume Editor requires a larger screen to edit and format your resume effectively. Please access this feature from a desktop or laptop computer."
+        pageTitle="Resume Editor"
+      />
+      
+      {/* Desktop content - hidden on mobile */}
+      <div className="hidden md:flex h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         {/* Left Sidebar - Conditional based on view mode */}
         <div className="w-72 bg-white/80 backdrop-blur-sm border-r border-slate-200 flex-shrink-0 overflow-y-auto shadow-lg">
           {viewMode === "edit" ? (

@@ -3,12 +3,14 @@
 import { TrackedLink } from '@/app/components/TrackedLink';
 import { PortfolioTemplateRequest } from '@/app/components/portfolio/PortfolioTemplateRequest';
 import { PortfolioPageTracking } from '@/app/components/PortfolioPageTracking';
+import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 
 export default function ProductPortfolioPage() {
   return (
     <>
+      <MobileDashboardHeader title="Product Portfolio" />
       <PortfolioPageTracking pageName="Product Portfolio" />
-      <div className="p-8 md:p-12">
+      <div className="p-6 pt-20 md:p-12 md:pt-12">
       {/* Page Header */}
       <div className="mb-8">
         <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_15px_0_0_rgba(168,85,247,0.3)] border-2 border-purple-300">

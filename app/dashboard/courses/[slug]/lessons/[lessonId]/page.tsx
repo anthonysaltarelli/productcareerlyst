@@ -8,6 +8,7 @@ import { LessonPageTracking } from '@/app/components/LessonPageTracking';
 import { TrackedLink } from '@/app/components/TrackedLink';
 import { PremiumLessonGate } from '@/app/components/PremiumLessonGate';
 import { getUserPlan } from '@/lib/utils/subscription';
+import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 
 interface Lesson {
   id: string;
@@ -183,8 +184,15 @@ export default async function LessonPage({
   const lessonPositionNumber = parseInt(lesson.prioritization.split('.')[0]) || currentIndex + 1;
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <LessonPageTracking
+    <>
+      <MobileDashboardHeader 
+        title={lesson.title} 
+        showBackButton 
+        backHref={`/dashboard/courses`}
+        backLabel="Courses"
+      />
+      <div className="max-w-7xl mx-auto p-4 pt-20 md:p-6 md:pt-6">
+        <LessonPageTracking
         lessonId={lesson.id}
         lessonTitle={lesson.title}
         lessonPosition={lesson.prioritization}
@@ -396,8 +404,9 @@ export default async function LessonPage({
             initialProgress={progressMap}
           />
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
