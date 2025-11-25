@@ -100,9 +100,14 @@ export const DashboardHomeContent = ({ desktopContent, firstName }: DashboardHom
 
       {/* Mobile Content - Show dashboard content on mobile with proper header offset */}
       {/* Dynamic padding-top matches the actual fixed header height */}
+      {/* min-h ensures content is at least viewport height minus header, but can grow beyond */}
+      {/* Bottom padding ensures last component is fully visible when scrolling */}
       <div 
-        className="md:hidden min-h-full"
-        style={{ paddingTop: `${headerHeight}px` }}
+        className="md:hidden pb-24"
+        style={{ 
+          paddingTop: `${headerHeight}px`,
+          minHeight: `calc(100vh - ${headerHeight}px)`
+        }}
       >
         {desktopContent}
       </div>
