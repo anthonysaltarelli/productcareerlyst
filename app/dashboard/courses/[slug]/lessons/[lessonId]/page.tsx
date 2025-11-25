@@ -184,7 +184,7 @@ export default async function LessonPage({
   const lessonPositionNumber = parseInt(lesson.prioritization.split('.')[0]) || currentIndex + 1;
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100">
       <MobileDashboardHeader 
         title={lesson.title} 
         showBackButton 
@@ -300,36 +300,9 @@ export default async function LessonPage({
               </div>
 
               {/* Navigation Bar with Completion Button */}
-              <div className="flex items-center gap-4 pt-6 border-t border-gray-200">
-                <div className="flex-1 flex justify-start">
-                  {previousLesson && (
-                    <TrackedLink
-                      href={`/dashboard/courses/${slug}/lessons/${previousLesson.id}`}
-                      linkId="lesson-page-previous-lesson-link"
-                      eventName="User Clicked Previous Lesson Link"
-                      eventProperties={{
-                        'Current Lesson ID': lesson.id,
-                        'Current Lesson Title': lesson.title,
-                        'Previous Lesson ID': previousLesson.id,
-                        'Previous Lesson Title': previousLesson.title,
-                        'Course ID': course.id,
-                        'Course Slug': slug,
-                        'Current Lesson Completed': isCurrentLessonCompleted,
-                        'Link Section': 'Lesson Navigation Bar',
-                        'Link Position': 'Left side of Navigation Bar',
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
-                      Previous
-                    </TrackedLink>
-                  )}
-                </div>
-
-                {/* Completion Button in Center */}
-                <div className="flex-shrink-0">
+              <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 pt-6 border-t border-gray-200">
+                {/* Completion Button - First on mobile, center on desktop */}
+                <div className="w-full md:w-auto md:flex-shrink-0 md:order-2">
                   <LessonContentWrapper 
                     lessonId={lesson.id}
                     courseId={course.id}
@@ -339,55 +312,80 @@ export default async function LessonPage({
                   />
                 </div>
 
-                <div className="flex-1 flex justify-end">
-                  {nextLesson ? (
-                    <TrackedLink
-                      href={`/dashboard/courses/${slug}/lessons/${nextLesson.id}`}
-                      linkId="lesson-page-next-lesson-link"
-                      eventName="User Clicked Next Lesson Link"
-                      eventProperties={{
-                        'Current Lesson ID': lesson.id,
-                        'Current Lesson Title': lesson.title,
-                        'Next Lesson ID': nextLesson.id,
-                        'Next Lesson Title': nextLesson.title,
-                        'Course ID': course.id,
-                        'Course Slug': slug,
-                        'Current Lesson Completed': isCurrentLessonCompleted,
-                        'Is Last Lesson': false,
-                        'Link Section': 'Lesson Navigation Bar',
-                        'Link Position': 'Right side of Navigation Bar',
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
-                    >
-                      Next Lesson
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </TrackedLink>
-                  ) : (
-                    <TrackedLink
-                      href={`/dashboard/courses`}
-                      linkId="lesson-page-complete-course-link"
-                      eventName="User Clicked Complete Course Link"
-                      eventProperties={{
-                        'Course ID': course.id,
-                        'Course Title': course.title,
-                        'Course Slug': slug,
-                        'Total Lessons': course.lessons.length,
-                        'Lessons Completed': Object.values(progressMap).filter(Boolean).length,
-                        'Course Progress Percentage': 100,
-                        'Link Section': 'Lesson Navigation Bar',
-                        'Link Position': 'Right side of Navigation Bar (when last lesson)',
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
-                    >
-                      Complete Course
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </TrackedLink>
-                  )}
-                </div>
+                {/* Next Lesson / Complete Course Button - Second on mobile, right on desktop */}
+                {nextLesson ? (
+                  <TrackedLink
+                    href={`/dashboard/courses/${slug}/lessons/${nextLesson.id}`}
+                    linkId="lesson-page-next-lesson-link"
+                    eventName="User Clicked Next Lesson Link"
+                    eventProperties={{
+                      'Current Lesson ID': lesson.id,
+                      'Current Lesson Title': lesson.title,
+                      'Next Lesson ID': nextLesson.id,
+                      'Next Lesson Title': nextLesson.title,
+                      'Course ID': course.id,
+                      'Course Slug': slug,
+                      'Current Lesson Completed': isCurrentLessonCompleted,
+                      'Is Last Lesson': false,
+                      'Link Section': 'Lesson Navigation Bar',
+                      'Link Position': 'Right side of Navigation Bar',
+                    }}
+                    className="flex items-center justify-center gap-2 w-full md:w-auto md:flex-1 md:justify-end md:order-3 px-4 py-3 md:py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                  >
+                    Next Lesson
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </TrackedLink>
+                ) : (
+                  <TrackedLink
+                    href={`/dashboard/courses`}
+                    linkId="lesson-page-complete-course-link"
+                    eventName="User Clicked Complete Course Link"
+                    eventProperties={{
+                      'Course ID': course.id,
+                      'Course Title': course.title,
+                      'Course Slug': slug,
+                      'Total Lessons': course.lessons.length,
+                      'Lessons Completed': Object.values(progressMap).filter(Boolean).length,
+                      'Course Progress Percentage': 100,
+                      'Link Section': 'Lesson Navigation Bar',
+                      'Link Position': 'Right side of Navigation Bar (when last lesson)',
+                    }}
+                    className="flex items-center justify-center gap-2 w-full md:w-auto md:flex-1 md:justify-end md:order-3 px-4 py-3 md:py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                  >
+                    Complete Course
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </TrackedLink>
+                )}
+
+                {/* Previous Lesson Button - Third on mobile, left on desktop */}
+                {previousLesson && (
+                  <TrackedLink
+                    href={`/dashboard/courses/${slug}/lessons/${previousLesson.id}`}
+                    linkId="lesson-page-previous-lesson-link"
+                    eventName="User Clicked Previous Lesson Link"
+                    eventProperties={{
+                      'Current Lesson ID': lesson.id,
+                      'Current Lesson Title': lesson.title,
+                      'Previous Lesson ID': previousLesson.id,
+                      'Previous Lesson Title': previousLesson.title,
+                      'Course ID': course.id,
+                      'Course Slug': slug,
+                      'Current Lesson Completed': isCurrentLessonCompleted,
+                      'Link Section': 'Lesson Navigation Bar',
+                      'Link Position': 'Left side of Navigation Bar',
+                    }}
+                    className="flex items-center justify-center gap-2 w-full md:w-auto md:flex-1 md:justify-start md:order-1 px-4 py-3 md:py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Previous
+                  </TrackedLink>
+                )}
               </div>
             </div>
             )}
@@ -406,7 +404,7 @@ export default async function LessonPage({
         </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
