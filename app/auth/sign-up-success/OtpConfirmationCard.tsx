@@ -83,9 +83,9 @@ export const OtpConfirmationCard = () => {
   const isEmailMissing = !emailParam
 
   return (
-    <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_20px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300">
+    <div className="p-5 sm:p-10 rounded-[2.5rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_20px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300">
       <div className="text-center mb-8">
-        <span className="text-6xl mb-6 block">🔐</span>
+        <span className="hidden sm:block text-6xl mb-6">🔐</span>
         <h1 className="text-4xl font-black bg-gradient-to-br from-green-700 to-emerald-600 bg-clip-text text-transparent mb-4">
           Enter Your Verification Code
         </h1>
@@ -101,12 +101,12 @@ export const OtpConfirmationCard = () => {
         )}
       </div>
 
-      <div className="p-6 rounded-[1.5rem] bg-white/80 border-2 border-green-300 mb-6 text-left">
+      <div className="hidden sm:block p-6 rounded-[1.5rem] bg-white/80 border-2 border-green-300 mb-6 text-left">
         <p className="text-gray-700 font-medium text-sm mb-4">
           <span className="font-bold">Need help?</span> Follow these steps:
         </p>
         <ol className="text-gray-800 font-semibold text-sm space-y-2">
-          <li>1. Check your inbox and spam for “Product Careerlyst Verification Code”.</li>
+          <li>1. Check your inbox and spam for "Product Careerlyst Verification Code".</li>
           <li>2. Copy the 6-digit code shown in the email.</li>
           <li>3. Paste it below within 10 minutes to verify.</li>
         </ol>

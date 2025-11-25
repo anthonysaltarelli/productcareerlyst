@@ -16,7 +16,7 @@ export default function SignUpSuccessPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 flex items-start sm:items-center justify-center pt-8 px-4 pb-4 sm:p-4">
       <PageTracking pageName="Sign Up Success" />
       <div className="w-full max-w-md">
         <Suspense fallback={otpFallback}>
