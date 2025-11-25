@@ -303,7 +303,7 @@ export default function CoursesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100">
       <PageTracking pageName="Courses" />
-      <div className="max-w-7xl mx-auto p-8 md:p-12 lg:p-16">
+      <div className="max-w-7xl mx-auto px-4 py-6 md:p-12 lg:p-16">
         {/* Page Header */}
         <div className="mb-12">
           <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_15px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300">
