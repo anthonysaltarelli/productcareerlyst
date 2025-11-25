@@ -2,6 +2,35 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
 // Types matching database schema
+
+export type BulletChange = {
+  bulletId: string;
+  originalContent: string;
+  newContent: string;
+  wasOptimized: boolean;
+  wasReordered: boolean;
+  originalOrder: number;
+  newOrder: number;
+  changeReason?: string;
+};
+
+export type ExperienceBulletChanges = {
+  experienceId: string;
+  experienceTitle: string;
+  experienceCompany: string;
+  bullets: BulletChange[];
+};
+
+export type CustomizationSummary = {
+  bulletsOptimized: number;
+  bulletsReordered: number;
+  skillsAdded: number;
+  originalSummary?: string | null;
+  optimizedSummary?: string | null;
+  summaryChangeReason?: string | null;
+  bulletChanges?: ExperienceBulletChanges[];
+};
+
 export type ResumeVersion = {
   id: string;
   user_id: string;
@@ -9,6 +38,7 @@ export type ResumeVersion = {
   slug: string;
   is_master: boolean;
   application_id?: string | null;
+  customization_summary?: CustomizationSummary | null;
   created_at: string;
   updated_at: string;
 };

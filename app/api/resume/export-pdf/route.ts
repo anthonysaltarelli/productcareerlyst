@@ -166,6 +166,8 @@ const generateResumeHTML = (data: ResumeData): string => {
       margin: 0;
       padding: 0;
       width: 8.5in;
+      orphans: 3;
+      widows: 3;
     }
 
     .resume-content {
@@ -212,12 +214,13 @@ const generateResumeHTML = (data: ResumeData): string => {
       color: #000000;
     }
 
-    /* Section Styles */
+    /* Section Styles - Allow sections to break across pages */
     .resume-section {
       margin-bottom: 0.2in;
-      page-break-inside: avoid;
+      /* Removed page-break-inside: avoid to allow sections to flow across pages */
     }
 
+    /* Keep section heading attached to at least some content */
     .resume-section-heading {
       font-size: ${styles.fontSize}pt;
       font-weight: 700;
@@ -225,12 +228,16 @@ const generateResumeHTML = (data: ResumeData): string => {
       margin: 0 0 0.02in 0;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      break-after: avoid;
+      page-break-after: avoid;
     }
 
     .resume-section-divider {
       height: 1px;
       background-color: #000000;
       margin-bottom: 0.1in;
+      break-after: avoid;
+      page-break-after: avoid;
     }
 
     /* Summary Styles */
@@ -239,21 +246,38 @@ const generateResumeHTML = (data: ResumeData): string => {
       text-align: justify;
     }
 
-    /* Experience Styles */
+    /* Experience Styles - Allow breaking between bullets */
     .resume-experience-item {
       margin-bottom: 0.18in;
-      page-break-inside: avoid;
+      /* Removed page-break-inside: avoid to allow natural flow */
     }
 
     .resume-experience-item:last-child {
       margin-bottom: 0;
     }
 
+    /* Experience header must stay together and with first bullet */
     .resume-experience-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 0.03in;
+      break-inside: avoid;
+      break-after: avoid;
+      page-break-inside: avoid;
+      page-break-after: avoid;
+    }
+
+    /* Wrapper to keep header + first bullet together */
+    .resume-experience-header-group {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    /* Role title within grouped experiences */
+    .resume-role-header {
+      break-after: avoid;
+      page-break-after: avoid;
     }
 
     .resume-experience-title-group {
@@ -301,25 +325,42 @@ const generateResumeHTML = (data: ResumeData): string => {
       margin: 0;
       padding-left: 0.25in;
       list-style-type: disc;
+      orphans: 2;
+      widows: 2;
     }
 
+    /* Individual bullets cannot be split mid-text */
     .resume-bullet {
       margin-bottom: 0.06in;
       padding-left: 0.02in;
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
 
     .resume-bullet:last-child {
       margin-bottom: 0;
     }
 
-    /* Education Styles */
+    /* First bullet in a list - keep with header */
+    .resume-bullet-first {
+      break-before: avoid;
+      page-break-before: avoid;
+    }
+
+    /* Education Styles - Allow breaking if needed */
     .resume-education-item {
       margin-bottom: 0.18in;
-      page-break-inside: avoid;
+      /* Removed page-break-inside: avoid to allow natural flow */
     }
 
     .resume-education-item:last-child {
       margin-bottom: 0;
+    }
+
+    /* Education header should stay together */
+    .resume-education-header-group {
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
 
     /* Skills Styles */
@@ -468,25 +509,46 @@ const generateResumeHTML = (data: ResumeData): string => {
         // Mode 1: Company header, then each role with its bullets
         return `
         <div class="resume-experience-item">
-          <div class="resume-experience-header">
-            <div class="resume-experience-title-group">
-              <h3 class="resume-experience-title"><strong>${company}</strong>${location?.trim() ? `<span>, ${location}</span>` : ''}</h3>
+          <div class="resume-experience-header-group">
+            <div class="resume-experience-header">
+              <div class="resume-experience-title-group">
+                <h3 class="resume-experience-title"><strong>${company}</strong>${location?.trim() ? `<span>, ${location}</span>` : ''}</h3>
+              </div>
+              ${dateRange ? `<div class="resume-experience-meta"><span class="resume-experience-dates">${dateRange}</span></div>` : ''}
             </div>
-            ${dateRange ? `<div class="resume-experience-meta"><span class="resume-experience-dates">${dateRange}</span></div>` : ''}
+            ${sortedExps.length > 0 && sortedExps[0].bullets.length > 0 ? `
+            <div class="resume-role-header" style="margin-top: 0.03in; margin-bottom: 0.05in; font-style: italic;">
+              <em>${sortedExps[0].title}</em>
+              ${sortedExps.length > 1 && (sortedExps[0].startDate || sortedExps[0].endDate) ? `<span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">(${[sortedExps[0].startDate, sortedExps[0].endDate].filter(Boolean).join(' - ')})</span>` : ''}
+            </div>
+            <ul class="resume-bullets" style="margin-left: 0.15in;">
+              <li class="resume-bullet resume-bullet-first">${sortedExps[0].bullets[0].content}</li>
+            </ul>
+            ` : ''}
           </div>
-          ${sortedExps.map(exp => `
-            <div style="margin-top: 0.03in; margin-bottom: 0.1in;">
-              <div style="margin-bottom: 0.05in; font-style: italic;">
+          ${sortedExps.map((exp, expIdx) => {
+            // Skip first role's first bullet since it's in the header group
+            const bulletsToShow = expIdx === 0 ? exp.bullets.slice(1) : exp.bullets;
+            if (expIdx === 0 && bulletsToShow.length === 0) return ''; // Skip if no remaining bullets for first role
+            
+            return `
+            <div style="margin-top: ${expIdx === 0 ? '0' : '0.03in'}; margin-bottom: 0.1in;">
+              ${expIdx > 0 ? `
+              <div class="resume-role-header" style="margin-bottom: 0.05in; font-style: italic;">
                 <em>${exp.title}</em>
                 ${sortedExps.length > 1 && (exp.startDate || exp.endDate) ? `<span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">(${[exp.startDate, exp.endDate].filter(Boolean).join(' - ')})</span>` : ''}
               </div>
+              ` : ''}
+              ${bulletsToShow.length > 0 ? `
               <ul class="resume-bullets" style="margin-left: 0.15in;">
-                ${exp.bullets.map(bullet => `
-                  <li class="resume-bullet">${bullet.content}</li>
+                ${bulletsToShow.map((bullet, bulletIdx) => `
+                  <li class="resume-bullet${expIdx > 0 && bulletIdx === 0 ? ' resume-bullet-first' : ''}">${bullet.content}</li>
                 `).join('')}
               </ul>
+              ` : ''}
             </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
         `;
       } else {
@@ -494,45 +556,63 @@ const generateResumeHTML = (data: ResumeData): string => {
         const allBullets = sortedExps.flatMap(exp => exp.bullets);
         return `
         <div class="resume-experience-item">
-          <div class="resume-experience-header">
-            <div class="resume-experience-title-group">
-              <h3 class="resume-experience-title"><strong>${company}</strong>${location?.trim() ? `<span>, ${location}</span>` : ''}</h3>
-            </div>
-            ${dateRange ? `<div class="resume-experience-meta"><span class="resume-experience-dates">${dateRange}</span></div>` : ''}
-          </div>
-          <div style="margin-bottom: 0.05in;">
-            ${sortedExps.map((exp, idx) => `
-              <div style="margin-bottom: ${idx < sortedExps.length - 1 ? '0.03in' : '0'}; font-style: italic;">
-                <em>${exp.title}</em>
-                ${sortedExps.length > 1 && (exp.startDate || exp.endDate) ? `<span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">(${[exp.startDate, exp.endDate].filter(Boolean).join(' - ')})</span>` : ''}
+          <div class="resume-experience-header-group">
+            <div class="resume-experience-header">
+              <div class="resume-experience-title-group">
+                <h3 class="resume-experience-title"><strong>${company}</strong>${location?.trim() ? `<span>, ${location}</span>` : ''}</h3>
               </div>
-            `).join('')}
+              ${dateRange ? `<div class="resume-experience-meta"><span class="resume-experience-dates">${dateRange}</span></div>` : ''}
+            </div>
+            <div style="margin-bottom: 0.05in;">
+              ${sortedExps.map((exp, idx) => `
+                <div class="resume-role-header" style="margin-bottom: ${idx < sortedExps.length - 1 ? '0.03in' : '0'}; font-style: italic;">
+                  <em>${exp.title}</em>
+                  ${sortedExps.length > 1 && (exp.startDate || exp.endDate) ? `<span style="margin-left: 0.1in; font-size: calc(${styles.fontSize}pt * 0.95);">(${[exp.startDate, exp.endDate].filter(Boolean).join(' - ')})</span>` : ''}
+                </div>
+              `).join('')}
+            </div>
+            ${allBullets.length > 0 ? `
+            <ul class="resume-bullets">
+              <li class="resume-bullet resume-bullet-first">${allBullets[0].content}</li>
+            </ul>
+            ` : ''}
           </div>
+          ${allBullets.length > 1 ? `
           <ul class="resume-bullets">
-            ${allBullets.map(bullet => `
+            ${allBullets.slice(1).map(bullet => `
               <li class="resume-bullet">${bullet.content}</li>
             `).join('')}
           </ul>
+          ` : ''}
         </div>
         `;
       }
     }).join('')}
     ${standalone.map(exp => `
     <div class="resume-experience-item">
-      <div class="resume-experience-header">
-        <div class="resume-experience-title-group">
-          <h3 class="resume-experience-title"><strong>${exp.company}</strong>${exp.location?.trim() ? `<span>, ${exp.location}</span>` : ''}</h3>
+      <div class="resume-experience-header-group">
+        <div class="resume-experience-header">
+          <div class="resume-experience-title-group">
+            <h3 class="resume-experience-title"><strong>${exp.company}</strong>${exp.location?.trim() ? `<span>, ${exp.location}</span>` : ''}</h3>
+          </div>
+          ${exp.startDate || exp.endDate ? `<div class="resume-experience-meta"><span class="resume-experience-dates">${[exp.startDate, exp.endDate].filter(Boolean).join(' - ')}</span></div>` : ''}
         </div>
-        ${exp.startDate || exp.endDate ? `<div class="resume-experience-meta"><span class="resume-experience-dates">${[exp.startDate, exp.endDate].filter(Boolean).join(' - ')}</span></div>` : ''}
+        <div class="resume-role-header" style="margin-top: 0.02in; margin-bottom: 0.05in; font-style: italic;">
+          <em>${exp.title}</em>
+        </div>
+        ${exp.bullets.length > 0 ? `
+        <ul class="resume-bullets">
+          <li class="resume-bullet resume-bullet-first">${exp.bullets[0].content}</li>
+        </ul>
+        ` : ''}
       </div>
-      <div style="margin-top: 0.02in; margin-bottom: 0.05in; font-style: italic;">
-        <em>${exp.title}</em>
-      </div>
+      ${exp.bullets.length > 1 ? `
       <ul class="resume-bullets">
-        ${exp.bullets.map(bullet => `
+        ${exp.bullets.slice(1).map(bullet => `
         <li class="resume-bullet">${bullet.content}</li>
         `).join('')}
       </ul>
+      ` : ''}
     </div>
     `).join('')}
   </section>
@@ -545,21 +625,28 @@ const generateResumeHTML = (data: ResumeData): string => {
     <div class="resume-section-divider"></div>
     ${education.map(edu => `
     <div class="resume-education-item">
-      <div class="resume-experience-header">
-        <div class="resume-experience-title-group">
-          <h3 class="resume-experience-title">${edu.school}</h3>
-          <span class="resume-experience-company">
-            ${edu.degree} - ${edu.field}${edu.gpa ? ` • GPA: ${edu.gpa}` : ''}
-          </span>
+      <div class="resume-education-header-group">
+        <div class="resume-experience-header">
+          <div class="resume-experience-title-group">
+            <h3 class="resume-experience-title">${edu.school}</h3>
+            <span class="resume-experience-company">
+              ${edu.degree} - ${edu.field}${edu.gpa ? ` • GPA: ${edu.gpa}` : ''}
+            </span>
+          </div>
+          <div class="resume-experience-meta">
+            <span class="resume-experience-location">${edu.location}</span>
+            <span class="resume-experience-dates">${[edu.startDate, edu.endDate].filter(Boolean).join(' - ')}</span>
+          </div>
         </div>
-        <div class="resume-experience-meta">
-          <span class="resume-experience-location">${edu.location}</span>
-          <span class="resume-experience-dates">${[edu.startDate, edu.endDate].filter(Boolean).join(' - ')}</span>
-        </div>
+        ${edu.achievements && edu.achievements.length > 0 ? `
+        <ul class="resume-bullets">
+          <li class="resume-bullet resume-bullet-first">${typeof edu.achievements[0] === 'string' ? edu.achievements[0] : edu.achievements[0].achievement || edu.achievements[0]}</li>
+        </ul>
+        ` : ''}
       </div>
-      ${edu.achievements && edu.achievements.length > 0 ? `
+      ${edu.achievements && edu.achievements.length > 1 ? `
       <ul class="resume-bullets">
-        ${edu.achievements.map(achievement => `
+        ${edu.achievements.slice(1).map(achievement => `
         <li class="resume-bullet">${typeof achievement === 'string' ? achievement : achievement.achievement || achievement}</li>
         `).join('')}
       </ul>
