@@ -205,7 +205,7 @@ export default function OnboardingPage() {
   const skippedSteps = progress?.skipped_steps || [];
 
   return (
-    <div className="min-h-screen py-2 sm:py-12 px-2 sm:px-4">
+    <div className="min-h-screen pt-6 pb-2 sm:py-12 px-4">
       <PageTracking pageName="Onboarding" />
       <div className="max-w-6xl mx-auto">
         {/* Header */}
@@ -213,7 +213,7 @@ export default function OnboardingPage() {
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 via-pink-600 to-orange-600 bg-clip-text text-transparent pb-2 mb-4">
             Welcome to Product Careerlyst!
           </h1>
-          <p className="text-xl text-gray-700 font-semibold">
+          <p className="text-base sm:text-xl text-gray-700 font-semibold">
             Let's get you set up in just a few steps
           </p>
         </div>
@@ -234,7 +234,7 @@ export default function OnboardingPage() {
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
-          <div className="flex items-center justify-between mt-4">
+          <div className="hidden sm:flex items-center justify-between mt-4">
             {STEPS.map((step, index) => {
               const isCompleted = completedSteps.includes(step.id);
               const isSkipped = skippedSteps.includes(step.id);
