@@ -249,30 +249,30 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
   
   return (
     <div className={`w-full ${className}`}>
-      <div className="bg-white/90 backdrop-blur-sm rounded-[2rem] p-6 md:p-8 border-2 border-slate-300 shadow-lg">
-        <div className="text-center mb-8">
-          <h3 className="text-2xl md:text-3xl font-black text-gray-800 mb-2">
+      <div className="bg-white/90 backdrop-blur-sm rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-6 md:p-8 border-2 border-slate-300 shadow-lg">
+        <div className="text-center mb-6 sm:mb-8">
+          <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-800 mb-2">
             Career Earnings Calculator
           </h3>
-          <p className="text-base md:text-lg text-gray-600 font-medium">
+          <p className="text-sm sm:text-base md:text-lg text-gray-600 font-medium px-2">
             See how much more you could earn by becoming a top 1% PM with Product Careerlyst
           </p>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-[30%_70%] gap-6 lg:gap-8">
           {/* Left column - Simple inputs */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* PM Stage */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
                 Stage of PM
               </label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {(["Aspiring", "Associate PM", "Product Manager", "Senior PM", "Staff PM", "Director+"] as PMStage[]).map((stage) => (
                   <button
                     key={stage}
                     onClick={() => setPmStage(stage)}
-                    className={`px-4 py-2 rounded-lg border-2 text-sm font-bold transition-colors ${
+                    className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border-2 text-xs sm:text-sm font-bold transition-colors ${
                       pmStage === stage
                         ? "bg-purple-500 text-white border-purple-600"
                         : "bg-white text-gray-700 border-gray-300 hover:border-purple-300"
@@ -286,11 +286,10 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
             
             {/* Current salary */}
             <div>
-              <label className="block text-base font-bold text-gray-700 mb-2">
+              <label className="block text-sm sm:text-base font-bold text-gray-700 mb-2">
                 Current salary
               </label>
-              <div className="relative inline-block">
-                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 text-2xl font-medium z-10">$</span>
+              <div className="flex items-center gap-2">
                 <input
                   type="number"
                   value={Math.round(startSalary / 1000)}
@@ -300,24 +299,25 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
                       setStartSalary(numValue * 1000);
                     }
                   }}
-                  className="w-40 pl-12 pr-12 py-4 text-2xl rounded-xl border-2 border-gray-300 focus:border-purple-500 focus:outline-none font-medium"
+                  className="w-24 sm:w-28 px-3 sm:px-4 py-3 sm:py-4 text-xl sm:text-2xl rounded-xl border-2 border-gray-300 focus:border-purple-500 focus:outline-none font-medium"
                   min="0"
                   step="1"
+                  aria-label="Current salary in thousands"
                 />
-                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 text-2xl font-medium z-10 pointer-events-none">K</span>
+                <span className="text-xl sm:text-2xl font-medium text-gray-500">K</span>
               </div>
             </div>
             
             {/* Years to calculate */}
             <div>
-              <label className="block text-base font-bold text-gray-700 mb-2">
+              <label className="block text-sm sm:text-base font-bold text-gray-700 mb-2">
                 Years to calculate
               </label>
               <input
                 type="number"
                 value={years}
                 onChange={(e) => handleInputChange(setYears, e.target.value)}
-                className="w-40 px-4 py-4 text-2xl rounded-xl border-2 border-purple-300 focus:border-purple-500 focus:outline-none font-medium"
+                className="w-32 sm:w-40 px-3 sm:px-4 py-3 sm:py-4 text-xl sm:text-2xl rounded-xl border-2 border-purple-300 focus:border-purple-500 focus:outline-none font-medium"
                 min="1"
                 max="30"
                 step="1"
@@ -326,47 +326,47 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
           </div>
           
           {/* Right column - Big outcome number first */}
-          <div className="pr-4 lg:pr-6">
-            <div className="space-y-6 pl-6 py-6 rounded-xl bg-gray-50">
+          <div className="pr-0 lg:pr-6">
+            <div className="space-y-4 sm:space-y-6 px-3 sm:pl-6 py-4 sm:py-6 rounded-xl bg-gray-50">
             {/* Big headline number */}
             <div className="text-center">
-              <p className="text-xl md:text-2xl font-bold text-gray-700 mb-2">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-700 mb-2">
                 You could earn an extra
               </p>
-              <p className="text-6xl md:text-8xl font-black bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+              <p className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
                 +{formatCurrency(difference)}
               </p>
-              <p className="text-lg md:text-xl text-gray-600 font-medium">
+              <p className="text-base sm:text-lg md:text-xl text-gray-600 font-medium">
                 over the next {years} years as a PM
               </p>
             </div>
             
             {/* Breakdown */}
             <div className="text-center space-y-1">
-              <p className="text-base md:text-lg text-gray-600">
+              <p className="text-sm sm:text-base md:text-lg text-gray-600">
                 = ~{formatCurrencyFull(avgAnnualDifference)} more per year on average
               </p>
-              <p className="text-base md:text-lg text-gray-600">
+              <p className="text-sm sm:text-base md:text-lg text-gray-600">
                 = ~{formatCurrencyFull(avgMonthlyDifference)} more per month
               </p>
             </div>
             
             {/* Comparison cards */}
-            <div className="grid grid-cols-2 gap-3 pr-4 lg:pr-6">
-              <div className="p-5 rounded-xl bg-gray-50 border-2 border-gray-200">
-                <p className="text-sm font-bold text-gray-600 mb-2">Without Product Careerlyst</p>
-                <p className="text-2xl md:text-3xl font-black text-gray-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pr-0 sm:pr-4 lg:pr-6">
+              <div className="p-4 sm:p-5 rounded-xl bg-gray-50 border-2 border-gray-200">
+                <p className="text-xs sm:text-sm font-bold text-gray-600 mb-1 sm:mb-2">Without Product Careerlyst</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-black text-gray-700">
                   {formatCurrency(withoutLifetimeEarnings)}
                 </p>
-                <p className="text-sm text-gray-500 mt-1">Total earnings</p>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">Total earnings</p>
               </div>
               
-              <div className="p-5 rounded-xl bg-green-50 border-2 border-green-200">
-                <p className="text-sm font-bold text-gray-600 mb-2">With Product Careerlyst</p>
-                <p className="text-2xl md:text-3xl font-black text-green-600">
+              <div className="p-4 sm:p-5 rounded-xl bg-green-50 border-2 border-green-200">
+                <p className="text-xs sm:text-sm font-bold text-gray-600 mb-1 sm:mb-2">With Product Careerlyst</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-black text-green-600">
                   {formatCurrency(withLifetimeEarnings)}
                 </p>
-                <p className="text-sm text-gray-500 mt-1">Total earnings</p>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">Total earnings</p>
               </div>
             </div>
             </div>
@@ -374,10 +374,10 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
         </div>
         
         {/* Chart - below everything, smaller */}
-        <div className="mt-8 pt-8 border-t-2 border-purple-200">
-          <div className="w-full h-[300px] mb-4 p-4 rounded-[1.5rem] bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200">
+        <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t-2 border-purple-200">
+          <div className="w-full h-[220px] sm:h-[260px] md:h-[300px] mb-4 p-2 sm:p-4 rounded-[1rem] sm:rounded-[1.5rem] bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+              <LineChart data={chartData} margin={{ top: 10, right: 15, left: 10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#d8b4fe" opacity={0.3} />
                 <XAxis 
                   dataKey="year" 
@@ -515,23 +515,23 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
           </div>
           
           {/* Legend */}
-          <div className="flex justify-center gap-6">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/60 backdrop-blur-sm border-2 border-gray-300">
-              <div className="w-6 h-1 bg-gray-400" style={{ borderTop: '2px dashed #9ca3af' }}></div>
-              <span className="text-xs font-bold text-gray-700">Without Product Careerlyst</span>
+          <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-6">
+            <div className="flex items-center justify-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-white/60 backdrop-blur-sm border-2 border-gray-300">
+              <div className="w-5 sm:w-6 h-1 bg-gray-400" style={{ borderTop: '2px dashed #9ca3af' }}></div>
+              <span className="text-[10px] sm:text-xs font-bold text-gray-700">Without Product Careerlyst</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/60 backdrop-blur-sm border-2 border-purple-300">
-              <div className="w-6 h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
-              <span className="text-xs font-bold text-gray-700">With Product Careerlyst</span>
+            <div className="flex items-center justify-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-white/60 backdrop-blur-sm border-2 border-purple-300">
+              <div className="w-5 sm:w-6 h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+              <span className="text-[10px] sm:text-xs font-bold text-gray-700">With Product Careerlyst</span>
             </div>
           </div>
         </div>
         
         {/* CTA Button */}
-        <div className="mt-8 text-center">
+        <div className="mt-6 sm:mt-8 text-center">
           <Link
             href="/auth/sign-up"
-            className="inline-block px-8 py-4 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.6)] text-lg font-black text-white transition-all duration-200"
+            className="inline-block px-6 py-3 sm:px-8 sm:py-4 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] sm:shadow-[0_8px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] sm:hover:shadow-[0_4px_0_0_rgba(147,51,234,0.6)] text-base sm:text-lg font-black text-white transition-all duration-200"
           >
             Get started for free
           </Link>
