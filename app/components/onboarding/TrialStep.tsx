@@ -381,10 +381,10 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
     <div className="max-w-4xl mx-auto p-8">
       <div className="mb-8">
         <h2 className="text-3xl font-black text-gray-900 mb-4">
-          Start Your Free Trial
+          Try Accelerate for Free
         </h2>
         <p className="text-lg text-gray-700 font-semibold">
-          Get 7 days free to explore all Accelerate features. Cancel anytime.
+          Get 7 days free to explore all of our premium, AI-enabled features. Cancel anytime.
         </p>
       </div>
 

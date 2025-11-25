@@ -157,7 +157,7 @@ export const FeaturesStep = ({ onNext, onBack, onSkip }: FeaturesStepProps) => {
             >
               <div className="flex items-start gap-4">
                 <div
-                  className={`p-3 rounded-xl ${
+                  className={`hidden sm:block p-3 rounded-xl ${
                     isSelected ? 'bg-purple-100' : 'bg-gray-100'
                   }`}
                 >
