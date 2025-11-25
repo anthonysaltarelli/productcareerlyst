@@ -248,9 +248,16 @@ export const GoalsStep = ({ onNext, onBack, onSkip }: GoalsStepProps) => {
         </div>
       </div>
 
-      {/* Navigation */}
-      <div className="mt-8 flex items-center justify-between">
-        <div className="flex gap-4">
+      {/* Navigation - Mobile: stacked (Continue on top), Desktop: side by side */}
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row-reverse sm:items-center sm:justify-between">
+        <button
+          onClick={handleNext}
+          disabled={!canProceed}
+          className="w-full sm:w-auto px-8 py-3 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        >
+          Continue →
+        </button>
+        <div className="flex justify-between sm:justify-start sm:gap-4">
           <button
             onClick={onBack}
             className="px-6 py-3 text-gray-600 font-bold hover:text-gray-800 transition-colors"
@@ -285,13 +292,6 @@ export const GoalsStep = ({ onNext, onBack, onSkip }: GoalsStepProps) => {
             Skip
           </button>
         </div>
-        <button
-          onClick={handleNext}
-          disabled={!canProceed}
-          className="px-8 py-3 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-        >
-          Continue →
-        </button>
       </div>
     </div>
   );

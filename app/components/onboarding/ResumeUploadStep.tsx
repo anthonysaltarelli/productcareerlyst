@@ -636,36 +636,8 @@ export const ResumeUploadStep = ({ onNext, onSkip }: ResumeUploadStepProps) => {
         </div>
       )}
 
-      {/* Navigation */}
-      <div className="mt-8 flex items-center justify-between">
-        <button
-          onClick={() => {
-            // Track skip (non-blocking)
-            setTimeout(() => {
-              try {
-                trackEvent('User Skipped Onboarding Step', {
-                  'Page Route': '/onboarding',
-                  'Step': 'resume_upload',
-                  'Step Name': 'Resume Upload',
-                  'Has Selected File': selectedFile !== null,
-                  'Has Uploaded': hasUploaded,
-                  'Upload Initiated': uploadInitiated,
-                  'Analysis Status': analysisStatus,
-                });
-              } catch (trackError) {
-                if (process.env.NODE_ENV === 'development') {
-                  console.warn('⚠️ Tracking error (non-blocking):', trackError);
-                }
-              }
-            }, 0);
-            
-            skipStep('resume_upload');
-            onSkip();
-          }}
-          className="px-6 py-3 text-gray-600 font-bold hover:text-gray-800 transition-colors"
-        >
-          Skip this step
-        </button>
+      {/* Navigation - Mobile: stacked (Continue on top), Desktop: side by side */}
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row-reverse sm:items-center sm:justify-between">
         <button
           onClick={() => {
             if (!canProceed) return;
@@ -706,9 +678,37 @@ export const ResumeUploadStep = ({ onNext, onSkip }: ResumeUploadStepProps) => {
             onNext();
           }}
           disabled={!canProceed}
-          className="px-8 py-3 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          className="w-full sm:w-auto px-8 py-3 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           Continue →
+        </button>
+        <button
+          onClick={() => {
+            // Track skip (non-blocking)
+            setTimeout(() => {
+              try {
+                trackEvent('User Skipped Onboarding Step', {
+                  'Page Route': '/onboarding',
+                  'Step': 'resume_upload',
+                  'Step Name': 'Resume Upload',
+                  'Has Selected File': selectedFile !== null,
+                  'Has Uploaded': hasUploaded,
+                  'Upload Initiated': uploadInitiated,
+                  'Analysis Status': analysisStatus,
+                });
+              } catch (trackError) {
+                if (process.env.NODE_ENV === 'development') {
+                  console.warn('⚠️ Tracking error (non-blocking):', trackError);
+                }
+              }
+            }, 0);
+            
+            skipStep('resume_upload');
+            onSkip();
+          }}
+          className="w-full sm:w-auto px-6 py-3 text-gray-600 font-bold hover:text-gray-800 transition-colors text-center"
+        >
+          Skip this step
         </button>
       </div>
     </div>

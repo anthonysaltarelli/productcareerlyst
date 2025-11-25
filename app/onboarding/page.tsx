@@ -205,12 +205,12 @@ export default function OnboardingPage() {
   const skippedSteps = progress?.skipped_steps || [];
 
   return (
-    <div className="min-h-screen py-12 px-4">
+    <div className="min-h-screen py-2 sm:py-12 px-2 sm:px-4">
       <PageTracking pageName="Onboarding" />
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 via-pink-600 to-orange-600 bg-clip-text text-transparent mb-4">
+        <div className="text-center mb-3 sm:mb-12">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 via-pink-600 to-orange-600 bg-clip-text text-transparent pb-2 mb-4">
             Welcome to Product Careerlyst!
           </h1>
           <p className="text-xl text-gray-700 font-semibold">
@@ -219,7 +219,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Progress Indicator */}
-        <div className="mb-8">
+        <div className="mb-3 sm:mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="text-sm font-bold text-gray-600">
               Step {currentStepIndex + 1} of {STEPS.length}
@@ -277,7 +277,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Step Content */}
-        <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 p-8 md:p-12">
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border-2 border-gray-200 p-3 sm:p-8 md:p-12">
           {currentStep.id === 'resume_upload' && (
             <ResumeUploadStep onNext={handleNext} onSkip={handleSkip} />
           )}
