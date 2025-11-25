@@ -498,11 +498,13 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
       )}
 
       {/* Accelerate Plan Preview */}
-      <div className="mb-8 bg-white rounded-2xl border-2 border-purple-200 p-8 shadow-lg">
-        <div className="flex items-center gap-3 mb-6">
-          <Sparkles className="w-8 h-8 text-purple-600" />
-          <Rocket className="w-8 h-8 text-pink-600" />
-          <Zap className="w-8 h-8 text-orange-600" />
+      <div className="mb-8 bg-white rounded-2xl border-2 border-purple-200 p-4 md:p-8 shadow-lg">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-6">
+          <div className="flex items-center gap-3">
+            <Sparkles className="w-8 h-8 text-purple-600" />
+            <Rocket className="w-8 h-8 text-pink-600" />
+            <Zap className="w-8 h-8 text-orange-600" />
+          </div>
           <h3 className="text-2xl font-black text-gray-900">Accelerate Plan</h3>
         </div>
 
