@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 interface SignUpModalProps {
   isOpen: boolean
@@ -15,6 +16,14 @@ export const SignUpModal = ({
   title = "Create a Free Account",
   description = "Sign up to start watching courses and lessons. It's completely free!"
 }: SignUpModalProps) => {
+  const [mounted, setMounted] = useState(false)
+  const scrollPositionRef = useRef(0)
+
+  // Ensure we're on the client before using createPortal
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -23,17 +32,39 @@ export const SignUpModal = ({
     }
 
     if (isOpen) {
+      // Save current scroll position before locking
+      scrollPositionRef.current = window.scrollY
+      
       document.addEventListener('keydown', handleEscape)
+      
+      // Lock body scroll - use a more robust method for iOS Safari
       document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollPositionRef.current}px`
+      document.body.style.left = '0'
+      document.body.style.right = '0'
+      document.body.style.width = '100%'
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
+      
+      // Restore body scroll
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.left = ''
+      document.body.style.right = ''
+      document.body.style.width = ''
+      
+      // Restore scroll position
+      if (scrollPositionRef.current > 0) {
+        window.scrollTo(0, scrollPositionRef.current)
+      }
     }
   }, [isOpen, onClose])
 
-  if (!isOpen) return null
+  if (!isOpen || !mounted) return null
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -45,15 +76,39 @@ export const SignUpModal = ({
     window.location.href = '/auth/sign-up'
   }
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      className="z-[9999] bg-black/50 backdrop-blur-sm"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
+      style={{
+        // Use explicit positioning for iOS Safari compatibility
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1rem',
+        // Ensure it's above everything
+        zIndex: 9999,
+      }}
     >
-      <div className="relative w-full max-w-md rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 p-8">
+      <div 
+        className="relative w-full max-w-md rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 p-8"
+        style={{
+          // Prevent modal from being affected by parent transforms
+          transform: 'translateZ(0)',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+        }}
+      >
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -97,5 +152,9 @@ export const SignUpModal = ({
       </div>
     </div>
   )
+
+  // Use portal to render modal at document.body level
+  // This ensures fixed positioning works correctly on mobile
+  return createPortal(modalContent, document.body)
 }
 
