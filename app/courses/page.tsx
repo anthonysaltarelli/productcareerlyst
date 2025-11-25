@@ -379,19 +379,24 @@ export default function CoursesPage() {
                                   key={lesson.id}
                                   onClick={() => handleLessonClick(lesson.title, course.title, course.id)}
                                   className="p-3 rounded-[1rem] bg-white/80 hover:bg-white border-2 border-gray-200 cursor-pointer transition-all duration-200"
+                                  role="button"
+                                  tabIndex={0}
+                                  aria-label={`${lesson.prioritization}. ${lesson.title}${lesson.requires_subscription ? ' (Premium)' : ''}`}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      handleLessonClick(lesson.title, course.title, course.id)
+                                    }
+                                  }}
                                 >
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-sm font-medium text-gray-500 min-w-[2rem]">
-                                        {lesson.prioritization}
-                                      </span>
-                                      <span className="text-gray-900 font-medium">{lesson.title}</span>
-                                    </div>
+                                  <div className="flex flex-col items-start gap-1">
                                     {lesson.requires_subscription && (
-                                      <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold">
+                                      <span className="inline-block text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold">
                                         Premium
                                       </span>
                                     )}
+                                    <span className="text-gray-900 font-medium">
+                                      {lesson.prioritization}. {lesson.title}
+                                    </span>
                                   </div>
                                 </div>
                               ))}
