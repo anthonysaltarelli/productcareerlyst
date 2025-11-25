@@ -116,7 +116,20 @@ export const SignUpModal = ({
           aria-label="Close modal"
           tabIndex={0}
         >
-          <span className="text-2xl font-bold text-purple-600">×</span>
+          <svg 
+            className="w-5 h-5 text-purple-600" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2.5} 
+              d="M6 18L18 6M6 6l12 12" 
+            />
+          </svg>
         </button>
 
         {/* Content */}
