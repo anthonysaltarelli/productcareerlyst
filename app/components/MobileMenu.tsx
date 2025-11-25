@@ -82,6 +82,7 @@ export const MobileMenu = ({ user, isOnboardingComplete = true }: MobileMenuProp
                       'Link Type': 'Navigation Link',
                       'Link Text': 'Dashboard',
                     }}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Dashboard
                   </TrackedLink>
@@ -100,6 +101,7 @@ export const MobileMenu = ({ user, isOnboardingComplete = true }: MobileMenuProp
                     'Link Type': 'Navigation Link',
                     'Link Text': 'Courses',
                   }}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Courses
                 </TrackedLink>
@@ -148,6 +150,7 @@ export const MobileMenu = ({ user, isOnboardingComplete = true }: MobileMenuProp
                     'Link Type': 'Navigation Link',
                     'Link Text': 'Sign In',
                   }}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Sign In
                 </TrackedLink>
@@ -163,6 +166,7 @@ export const MobileMenu = ({ user, isOnboardingComplete = true }: MobileMenuProp
                     'Button Text': 'Get Access →',
                     'Button Context': 'Mobile menu, after Sign In link',
                   }}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Get Access →
                 </TrackedButton>
