@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { trackEvent, identifyUser } from '@/lib/amplitude/client'
 import { TrackedLink } from '@/app/components/TrackedLink'
+import { GoogleSignInButton } from '@/app/components/GoogleSignInButton'
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('')
@@ -77,170 +78,187 @@ export const LoginForm = () => {
                            error?.toLowerCase().includes('email not found')
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {error && (
-        <div className="p-4 rounded-[1rem] bg-gradient-to-br from-red-200 to-orange-200 border-2 border-red-300">
-          <p className="text-red-700 font-semibold mb-2">{error}</p>
-          {isAccountNotFound && (
-            <p className="text-sm text-gray-800 leading-relaxed">
-              <span className="font-semibold">Signed up before November 22, 2025?</span> We launched a new platform!{' '}
-              <TrackedLink 
-                href="/auth/sign-up" 
-                className="text-blue-600 hover:text-blue-800 font-semibold underline"
-                eventName="User Clicked Sign Up Link"
-                linkId="login-form-create-account-link"
-                eventProperties={{
-                  'Link Section': 'Login Form',
-                  'Link Position': 'Error message',
-                  'Link Type': 'Text Link',
-                  'Link Text': 'Create a new account',
-                  'Link Context': 'In account not found error message',
-                }}
-              >
-                Create a new account
-              </TrackedLink>
-              {' '}with the same email address. Questions? Reach out to{' '}
-              <TrackedLink 
-                href="mailto:team@productcareerlyst.com" 
-                className="text-blue-600 hover:text-blue-800 font-semibold underline"
-                eventName="User Clicked Support Email Link"
-                linkId="login-form-support-email-link"
-                eventProperties={{
-                  'Link Section': 'Login Form',
-                  'Link Position': 'Error message',
-                  'Link Type': 'Email Link',
-                  'Link Text': 'team@productcareerlyst.com',
-                  'Link Context': 'In account not found error message',
-                }}
-              >
-                team@productcareerlyst.com
-              </TrackedLink>
-            </p>
-          )}
+    <div className="space-y-6">
+      {/* Google Sign In */}
+      <GoogleSignInButton context="login" />
+
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t-2 border-purple-300" />
         </div>
-      )}
-
-      <div>
-        <label
-          htmlFor="email"
-          className="block text-sm font-bold text-gray-800 mb-2"
-        >
-          Email Address
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-3 rounded-[1rem] border-2 border-purple-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 font-medium bg-white"
-          placeholder="you@example.com"
-        />
+        <div className="relative flex justify-center text-sm">
+          <span className="px-4 bg-gradient-to-br from-purple-200 to-pink-200 font-semibold text-gray-600">
+            or continue with email
+          </span>
+        </div>
       </div>
 
-      <div>
-        <label
-          htmlFor="password"
-          className="block text-sm font-bold text-gray-800 mb-2"
-        >
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-4 py-3 rounded-[1rem] border-2 border-purple-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 font-medium bg-white"
-          placeholder="••••••••"
-        />
-      </div>
+      {/* Email/Password Form */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <div className="p-4 rounded-[1rem] bg-gradient-to-br from-red-200 to-orange-200 border-2 border-red-300">
+            <p className="text-red-700 font-semibold mb-2">{error}</p>
+            {isAccountNotFound && (
+              <p className="text-sm text-gray-800 leading-relaxed">
+                <span className="font-semibold">Signed up before November 22, 2025?</span> We launched a new platform!{' '}
+                <TrackedLink 
+                  href="/auth/sign-up" 
+                  className="text-blue-600 hover:text-blue-800 font-semibold underline"
+                  eventName="User Clicked Sign Up Link"
+                  linkId="login-form-create-account-link"
+                  eventProperties={{
+                    'Link Section': 'Login Form',
+                    'Link Position': 'Error message',
+                    'Link Type': 'Text Link',
+                    'Link Text': 'Create a new account',
+                    'Link Context': 'In account not found error message',
+                  }}
+                >
+                  Create a new account
+                </TrackedLink>
+                {' '}with the same email address. Questions? Reach out to{' '}
+                <TrackedLink 
+                  href="mailto:team@productcareerlyst.com" 
+                  className="text-blue-600 hover:text-blue-800 font-semibold underline"
+                  eventName="User Clicked Support Email Link"
+                  linkId="login-form-support-email-link"
+                  eventProperties={{
+                    'Link Section': 'Login Form',
+                    'Link Position': 'Error message',
+                    'Link Type': 'Email Link',
+                    'Link Text': 'team@productcareerlyst.com',
+                    'Link Context': 'In account not found error message',
+                  }}
+                >
+                  team@productcareerlyst.com
+                </TrackedLink>
+              </p>
+            )}
+          </div>
+        )}
 
-      <div className="flex items-center justify-between">
-        <TrackedLink
-          href="/auth/forgot-password"
-          className="text-sm font-bold text-purple-600 hover:text-purple-700 transition-colors"
-          eventName="User Clicked Forgot Password Link"
-          linkId="login-form-forgot-password-link"
-          eventProperties={{
-            'Link Section': 'Login Form',
-            'Link Position': 'Above submit button',
-            'Link Type': 'Text Link',
-            'Link Text': 'Forgot password?',
-            'Link Context': 'Below password input field',
-          }}
-        >
-          Forgot password?
-        </TrackedLink>
-      </div>
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-bold text-gray-800 mb-2"
+          >
+            Email Address
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-3 rounded-[1rem] border-2 border-purple-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 font-medium bg-white"
+            placeholder="you@example.com"
+          />
+        </div>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[0_8px_0_0_rgba(147,51,234,0.6)]"
-      >
-        {loading ? 'Signing in...' : 'Sign In →'}
-      </button>
+        <div>
+          <label
+            htmlFor="password"
+            className="block text-sm font-bold text-gray-800 mb-2"
+          >
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-3 rounded-[1rem] border-2 border-purple-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 font-medium bg-white"
+            placeholder="••••••••"
+          />
+        </div>
 
-      <p className="text-center text-xs text-gray-500">
-        By continuing, you agree to our{' '}
-        <TrackedLink
-          href="/terms"
-          linkId="login-form-terms-link"
-          eventName="User Clicked Terms Link"
-          eventProperties={{
-            'Link Section': 'Login Form',
-            'Link Position': 'Below Sign In Button',
-            'Link Text': 'Terms',
-            'Link Type': 'Legal Link',
-            'Link Context': 'Terms and Privacy Policy disclaimer',
-          }}
-          className="underline hover:text-purple-600 transition-colors"
-        >
-          Terms
-        </TrackedLink>
-        {' '}and{' '}
-        <TrackedLink
-          href="/privacy"
-          linkId="login-form-privacy-link"
-          eventName="User Clicked Privacy Policy Link"
-          eventProperties={{
-            'Link Section': 'Login Form',
-            'Link Position': 'Below Sign In Button',
-            'Link Text': 'Privacy Policy',
-            'Link Type': 'Legal Link',
-            'Link Context': 'Terms and Privacy Policy disclaimer',
-          }}
-          className="underline hover:text-purple-600 transition-colors"
-        >
-          Privacy Policy
-        </TrackedLink>
-        .
-      </p>
+        <div className="flex items-center justify-between">
+          <TrackedLink
+            href="/auth/forgot-password"
+            className="text-sm font-bold text-purple-600 hover:text-purple-700 transition-colors"
+            eventName="User Clicked Forgot Password Link"
+            linkId="login-form-forgot-password-link"
+            eventProperties={{
+              'Link Section': 'Login Form',
+              'Link Position': 'Above submit button',
+              'Link Type': 'Text Link',
+              'Link Text': 'Forgot password?',
+              'Link Context': 'Below password input field',
+            }}
+          >
+            Forgot password?
+          </TrackedLink>
+        </div>
 
-      <p className="text-center text-sm text-gray-600 font-medium">
-        Don&apos;t have an account?{' '}
-        <TrackedLink
-          href="/auth/sign-up"
-          className="font-bold text-purple-600 hover:text-purple-700 transition-colors"
-          eventName="User Clicked Sign Up Link"
-          linkId="login-form-sign-up-link"
-          eventProperties={{
-            'Link Section': 'Login Form',
-            'Link Position': 'Bottom of form',
-            'Link Type': 'Text Link',
-            'Link Text': 'Sign up',
-            'Link Context': 'Below submit button',
-          }}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[0_8px_0_0_rgba(147,51,234,0.6)]"
         >
-          Sign up
-        </TrackedLink>
-      </p>
-    </form>
+          {loading ? 'Signing in...' : 'Sign In →'}
+        </button>
+
+        <p className="text-center text-xs text-gray-500">
+          By continuing, you agree to our{' '}
+          <TrackedLink
+            href="/terms"
+            linkId="login-form-terms-link"
+            eventName="User Clicked Terms Link"
+            eventProperties={{
+              'Link Section': 'Login Form',
+              'Link Position': 'Below Sign In Button',
+              'Link Text': 'Terms',
+              'Link Type': 'Legal Link',
+              'Link Context': 'Terms and Privacy Policy disclaimer',
+            }}
+            className="underline hover:text-purple-600 transition-colors"
+          >
+            Terms
+          </TrackedLink>
+          {' '}and{' '}
+          <TrackedLink
+            href="/privacy"
+            linkId="login-form-privacy-link"
+            eventName="User Clicked Privacy Policy Link"
+            eventProperties={{
+              'Link Section': 'Login Form',
+              'Link Position': 'Below Sign In Button',
+              'Link Text': 'Privacy Policy',
+              'Link Type': 'Legal Link',
+              'Link Context': 'Terms and Privacy Policy disclaimer',
+            }}
+            className="underline hover:text-purple-600 transition-colors"
+          >
+            Privacy Policy
+          </TrackedLink>
+          .
+        </p>
+
+        <p className="text-center text-sm text-gray-600 font-medium">
+          Don&apos;t have an account?{' '}
+          <TrackedLink
+            href="/auth/sign-up"
+            className="font-bold text-purple-600 hover:text-purple-700 transition-colors"
+            eventName="User Clicked Sign Up Link"
+            linkId="login-form-sign-up-link"
+            eventProperties={{
+              'Link Section': 'Login Form',
+              'Link Position': 'Bottom of form',
+              'Link Type': 'Text Link',
+              'Link Text': 'Sign up',
+              'Link Context': 'Below submit button',
+            }}
+          >
+            Sign up
+          </TrackedLink>
+        </p>
+      </form>
+    </div>
   )
 }
-

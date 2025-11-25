@@ -172,13 +172,33 @@ export const useOnboardingProgress = (): UseOnboardingProgressReturn => {
     await updateProgress({ current_step: step });
   }, [updateProgress]);
 
-  // Mark onboarding as complete
+  // Mark onboarding as complete (uses direct API call, not debounced, for reliability)
   const markComplete = useCallback(async () => {
-    await updateProgress({
-      is_complete: true,
-      completed_at: new Date().toISOString(),
-    });
-  }, [updateProgress]);
+    try {
+      // Use direct API call to ensure immediate save (not debounced)
+      // This is critical - we must save before navigating away
+      const response = await fetch('/api/onboarding/progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          is_complete: true,
+          completed_at: new Date().toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to mark onboarding complete');
+      }
+
+      const data = await response.json();
+      setProgress(data.progress);
+    } catch (err) {
+      console.error('Error marking onboarding complete:', err);
+      throw err;
+    }
+  }, []);
 
   // Refresh progress from server
   const refresh = useCallback(async () => {

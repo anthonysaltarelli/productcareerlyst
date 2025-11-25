@@ -47,9 +47,11 @@ export const AccountInformation = ({
   const [emailSectionViewed, setEmailSectionViewed] = useState(false)
   const [passwordFormFocused, setPasswordFormFocused] = useState(false)
   const [passwordFormStartTime, setPasswordFormStartTime] = useState<number | null>(null)
+  const [isOAuthUser, setIsOAuthUser] = useState(false)
+  const [oauthProvider, setOauthProvider] = useState<string | null>(null)
 
   useEffect(() => {
-    const loadEmail = async () => {
+    const loadUserData = async () => {
       try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -57,14 +59,32 @@ export const AccountInformation = ({
         if (user?.email) {
           setEmail(user.email)
         }
+
+        // Check if user signed up with OAuth (Google, etc.)
+        // OAuth users have identities with a provider other than 'email'
+        if (user?.identities && user.identities.length > 0) {
+          const oauthIdentity = user.identities.find(
+            (identity) => identity.provider !== 'email'
+          )
+          if (oauthIdentity) {
+            setIsOAuthUser(true)
+            setOauthProvider(oauthIdentity.provider)
+          }
+        }
+
+        // Alternative check: app_metadata.provider
+        if (user?.app_metadata?.provider && user.app_metadata.provider !== 'email') {
+          setIsOAuthUser(true)
+          setOauthProvider(user.app_metadata.provider)
+        }
       } catch (error) {
-        console.error('Error loading email:', error)
+        console.error('Error loading user data:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    loadEmail()
+    loadUserData()
   }, [])
 
   // Track email section view
@@ -241,7 +261,10 @@ export const AccountInformation = ({
         Account Information
       </h2>
       <p className="text-gray-700 font-semibold mb-8">
-        Manage your email address and password
+        {isOAuthUser 
+          ? 'View your account details' 
+          : 'Manage your email address and password'
+        }
       </p>
 
       {message && (
@@ -280,72 +303,110 @@ export const AccountInformation = ({
           </div>
         </div>
 
-        {/* Password Section */}
-        <div>
-          <h3 className="text-xl font-black text-gray-900 mb-4">Change Password</h3>
-          <form onSubmit={handlePasswordUpdate} className="space-y-6">
-            <div>
-              <label
-                htmlFor="newPassword"
-                className="block text-sm font-bold text-gray-700 mb-2"
-              >
-                New Password
-              </label>
-              <input
-                type="password"
-                id="newPassword"
-                value={passwordData.newPassword}
-                onChange={handlePasswordChange('newPassword')}
-                onFocus={handlePasswordFormFocus}
-                className="w-full px-4 py-3 rounded-[1rem] border-2 border-gray-300 focus:border-purple-500 focus:outline-none font-semibold"
-                placeholder="Enter new password"
-                required
-                minLength={6}
-              />
+        {/* Password Section - Only show for non-OAuth users */}
+        {isOAuthUser ? (
+          <div>
+            <h3 className="text-xl font-black text-gray-900 mb-4">Password</h3>
+            <div className="bg-gray-50 rounded-[1rem] p-6 border-2 border-gray-200">
+              <div className="flex items-center gap-3 mb-3">
+                {oauthProvider === 'google' && (
+                  <svg className="h-6 w-6" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      fill="#4285F4"
+                    />
+                    <path
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      fill="#34A853"
+                    />
+                    <path
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                      fill="#FBBC05"
+                    />
+                    <path
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                      fill="#EA4335"
+                    />
+                  </svg>
+                )}
+                <span className="text-gray-800 font-bold">
+                  Signed in with {oauthProvider === 'google' ? 'Google' : oauthProvider}
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 font-semibold">
+                You signed up using your {oauthProvider === 'google' ? 'Google' : oauthProvider} account. 
+                Your password is managed by {oauthProvider === 'google' ? 'Google' : oauthProvider}, 
+                so there&apos;s no separate password to change here.
+              </p>
             </div>
+          </div>
+        ) : (
+          <div>
+            <h3 className="text-xl font-black text-gray-900 mb-4">Change Password</h3>
+            <form onSubmit={handlePasswordUpdate} className="space-y-6">
+              <div>
+                <label
+                  htmlFor="newPassword"
+                  className="block text-sm font-bold text-gray-700 mb-2"
+                >
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  value={passwordData.newPassword}
+                  onChange={handlePasswordChange('newPassword')}
+                  onFocus={handlePasswordFormFocus}
+                  className="w-full px-4 py-3 rounded-[1rem] border-2 border-gray-300 focus:border-purple-500 focus:outline-none font-semibold"
+                  placeholder="Enter new password"
+                  required
+                  minLength={6}
+                />
+              </div>
 
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-bold text-gray-700 mb-2"
+              <div>
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-bold text-gray-700 mb-2"
+                >
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  value={passwordData.confirmPassword}
+                  onChange={handlePasswordChange('confirmPassword')}
+                  onFocus={handlePasswordFormFocus}
+                  className="w-full px-4 py-3 rounded-[1rem] border-2 border-gray-300 focus:border-purple-500 focus:outline-none font-semibold"
+                  placeholder="Confirm new password"
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              <TrackedButton
+                type="submit"
+                disabled={updatingPassword}
+                className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[0_6px_0_0_rgba(147,51,234,0.6)]"
+                eventName="User Clicked Update Password Button"
+                buttonId="settings-account-update-password-button"
+                eventProperties={{
+                  'Button Section': 'Account Information Section',
+                  'Button Position': 'Bottom of Password Change Form',
+                  'Button Text': updatingPassword ? 'Updating Password...' : 'Update Password',
+                  'Button Type': 'Primary Form Submit',
+                  'Button Context': 'Below password input fields',
+                  'Form Has Validation Errors': hasValidationErrors,
+                  'Active Tab': 'account',
+                  'Page Route': '/dashboard/settings',
+                  ...getUserStateContext(),
+                }}
               >
-                Confirm New Password
-              </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                value={passwordData.confirmPassword}
-                onChange={handlePasswordChange('confirmPassword')}
-                onFocus={handlePasswordFormFocus}
-                className="w-full px-4 py-3 rounded-[1rem] border-2 border-gray-300 focus:border-purple-500 focus:outline-none font-semibold"
-                placeholder="Confirm new password"
-                required
-                minLength={6}
-              />
-            </div>
-
-            <TrackedButton
-              type="submit"
-              disabled={updatingPassword}
-              className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[0_6px_0_0_rgba(147,51,234,0.6)]"
-              eventName="User Clicked Update Password Button"
-              buttonId="settings-account-update-password-button"
-              eventProperties={{
-                'Button Section': 'Account Information Section',
-                'Button Position': 'Bottom of Password Change Form',
-                'Button Text': updatingPassword ? 'Updating Password...' : 'Update Password',
-                'Button Type': 'Primary Form Submit',
-                'Button Context': 'Below password input fields',
-                'Form Has Validation Errors': hasValidationErrors,
-                'Active Tab': 'account',
-                'Page Route': '/dashboard/settings',
-                ...getUserStateContext(),
-              }}
-            >
-              {updatingPassword ? 'Updating Password...' : 'Update Password'}
-            </TrackedButton>
-          </form>
-        </div>
+                {updatingPassword ? 'Updating Password...' : 'Update Password'}
+              </TrackedButton>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   )

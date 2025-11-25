@@ -782,7 +782,7 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
                 Try for Free
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   // Track trial skipped after confirmation (non-blocking)
                   setTimeout(() => {
                     try {
@@ -803,8 +803,18 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
                   }, 0);
                   
                   setShowSkipConfirmModal(false);
-                  markComplete();
+                  
+                  // CRITICAL: Must await markComplete before navigating
+                  // Otherwise the is_complete flag won't be saved to the database
+                  try {
+                    await markComplete();
+                  } catch (error) {
+                    console.error('Error marking onboarding complete:', error);
+                    // Continue to dashboard even if this fails
+                  }
+                  
                   router.push('/dashboard');
+                  router.refresh();
                 }}
                 className="w-full px-6 py-3 text-gray-600 font-bold hover:text-gray-800 transition-colors"
               >

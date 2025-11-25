@@ -64,6 +64,44 @@ export async function GET(request: NextRequest) {
         console.error('Error transferring Bubble subscription:', transferError);
       }
 
+      // Create profile for new email users (only on signup confirmation, not password recovery)
+      if (type === 'email') {
+        try {
+          const firstName = user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || null;
+          const lastName = user.user_metadata?.last_name || 
+            (user.user_metadata?.full_name ? user.user_metadata.full_name.split(' ').slice(1).join(' ') : null) || 
+            null;
+          
+          // Check if profile exists
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+          if (!existingProfile) {
+            // No profile exists - create one
+            const { error: insertError } = await supabase
+              .from('profiles')
+              .insert({
+                user_id: user.id,
+                first_name: firstName,
+                last_name: lastName,
+              });
+            
+            if (insertError) {
+              console.error('[Email Confirm] Error creating profile:', insertError);
+            } else {
+              console.log(`[Email Confirm] Profile created for user ${user.id}`);
+            }
+          }
+          // If profile exists, don't update - user may have already set their name
+        } catch (profileError) {
+          // Don't block user if profile creation fails
+          console.error('[Email Confirm] Error creating profile:', profileError);
+        }
+      }
+
       // Add user to ConvertKit form and sequence (only on signup confirmation, not password recovery)
       if (type === 'email') {
         try {
