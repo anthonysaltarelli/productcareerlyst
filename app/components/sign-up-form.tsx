@@ -5,6 +5,7 @@ import { getSiteUrl } from '@/lib/utils/site-url'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { trackEvent, identifyUser } from '@/lib/amplitude/client'
+import { TrackedLink } from '@/app/components/TrackedLink'
 
 export const SignUpForm = () => {
   const [email, setEmail] = useState('')
@@ -178,6 +179,42 @@ export const SignUpForm = () => {
       >
         {loading ? 'Creating account...' : 'Create Account →'}
       </button>
+
+      <p className="text-center text-xs text-gray-500">
+        By continuing, you agree to our{' '}
+        <TrackedLink
+          href="/terms"
+          linkId="signup-form-terms-link"
+          eventName="User Clicked Terms Link"
+          eventProperties={{
+            'Link Section': 'Sign Up Form',
+            'Link Position': 'Below Sign Up Button',
+            'Link Text': 'Terms',
+            'Link Type': 'Legal Link',
+            'Link Context': 'Terms and Privacy Policy disclaimer',
+          }}
+          className="underline hover:text-purple-600 transition-colors"
+        >
+          Terms
+        </TrackedLink>
+        {' '}and{' '}
+        <TrackedLink
+          href="/privacy"
+          linkId="signup-form-privacy-link"
+          eventName="User Clicked Privacy Policy Link"
+          eventProperties={{
+            'Link Section': 'Sign Up Form',
+            'Link Position': 'Below Sign Up Button',
+            'Link Text': 'Privacy Policy',
+            'Link Type': 'Legal Link',
+            'Link Context': 'Terms and Privacy Policy disclaimer',
+          }}
+          className="underline hover:text-purple-600 transition-colors"
+        >
+          Privacy Policy
+        </TrackedLink>
+        .
+      </p>
 
       <p className="text-center text-sm text-gray-600 font-medium">
         Already have an account?{' '}

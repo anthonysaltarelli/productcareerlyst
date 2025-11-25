@@ -1,0 +1,1047 @@
+{
+  "timestamp": "2025-11-25T11:21:17.046Z",
+  "pdfFile": "/Users/anthonysaltarelli/Desktop/Projects/productcareerlyst/public/Files/Anthony+Saltarelli+Resume copy.pdf",
+  "extraction": [
+    {
+      "model": "gpt-5.1",
+      "success": true,
+      "timing": {
+        "fileUploadMs": 471,
+        "apiCallMs": 16168,
+        "pollingMs": 0,
+        "totalMs": 16169,
+        "pollAttempts": 0
+      },
+      "data": {
+        "contactInfo": {
+          "full_name": "Anthony Saltarelli",
+          "email": "anth.saltarelli@gmail.com",
+          "phone": "(203) 722 - 3285",
+          "location": "New York, NY",
+          "linkedin": null,
+          "portfolio": "anthonysaltarelli.com"
+        },
+        "summary": null,
+        "experiences": [
+          {
+            "title": "Lead Product Manager",
+            "company": "SageSpot",
+            "location": "New York, NY",
+            "start_date": "March 2022",
+            "end_date": "Present",
+            "bullets": [
+              "Defined, executed, and iterated product strategy in collaboration with CEO, CTO, and broader team",
+              "Launched several key Creator tools including Subscriptions, Livestreams, Libraries, and Engage Forums",
+              "Increased member account creation rate by 44% and subscription rate by 60%",
+              "De-risked new feature work by creating dozens of wireframes and prototypes to test with user panel",
+              "Decreased time to production for new features by 2-3x by religiously prioritizing MVP functionality",
+              "Built out analytics eventing and dashboards to track user behavior, KPIs, and inform product decisions",
+              "Created automated re-engagement email campaigns, leading to a 38% increase in users posting content",
+              "Interviewed users to explore problem & opportunity spaces, leading to more impactful product solutions",
+              "Delivered monthly product roadmap report citing metric changes, wins, and new problems to tackle"
+            ]
+          },
+          {
+            "title": "Senior Product Manager, Commerce",
+            "company": "Squarespace",
+            "location": "New York, NY",
+            "start_date": "September 2021",
+            "end_date": "March 2022",
+            "bullets": [
+              "Launched and executed our product strategy for Squarespace Scheduling, the first standalone product offering on SQSP outside of their flagship Website product, after SQSP acquired Acuity Scheduling",
+              "Increased YoY trial to subscription rate of Scheduling by 47% by A/B testing multiple UX improvements",
+              "Expanded the Squarespace Scheduling product offering by introducing Invoicing functionality",
+              "Updated Payment Settings, leading to 130% increase in Payment Processor connections & $1.2MM+ ARR",
+              "Conducted user research to better understand user problems, validate, and de-risk product solutions",
+              "Built out Enterprise Scheduling, leading to 15+ new Enterprise contracts, increased Enterprise ARR by 5x",
+              "Maintained strategic partner relationships with Meta, Twilio, Square, and other vendors"
+            ]
+          },
+          {
+            "title": "Product Manager, Commerce",
+            "company": "Squarespace",
+            "location": "New York, NY",
+            "start_date": "June 2020",
+            "end_date": "September 2021",
+            "bullets": [
+              "Launched and executed our product strategy for Squarespace Scheduling, the first standalone product offering on SQSP outside of their flagship Website product, after SQSP acquired Acuity Scheduling",
+              "Increased YoY trial to subscription rate of Scheduling by 47% by A/B testing multiple UX improvements",
+              "Expanded the Squarespace Scheduling product offering by introducing Invoicing functionality",
+              "Updated Payment Settings, leading to 130% increase in Payment Processor connections & $1.2MM+ ARR",
+              "Conducted user research to better understand user problems, validate, and de-risk product solutions",
+              "Built out Enterprise Scheduling, leading to 15+ new Enterprise contracts, increased Enterprise ARR by 5x",
+              "Maintained strategic partner relationships with Meta, Twilio, Square, and other vendors"
+            ]
+          },
+          {
+            "title": "Associate Product Manager, Mobile",
+            "company": "SeatGeek",
+            "location": "New York, NY",
+            "start_date": "June 2018",
+            "end_date": "April 2020",
+            "bullets": [
+              "Led planning and development of various features and experiments in the iOS and Android apps focused on event discovery, core shopping funnel, and checkout that increased checkout conversion by 19% YoY",
+              "Created and managed the mobile product roadmap in collaboration with engineering leads",
+              "Defined and built out a native sharing strategy that increased event shares by 132% YoY",
+              "Introduced in-app rating feature that increased SeatGeek’s Android Play Store rating from 3.7 to 4.6 stars",
+              "Reduced mobile customer support inquires by 44% by shipping native customer support workflow",
+              "Defined KPIs and set up various analytics dashboards to track overall product health and feature usage",
+              "Designed wireframes and created prototypes for 40+ consumer and enterprise features"
+            ]
+          },
+          {
+            "title": "Founder & Engineer",
+            "company": "Stand Up Tech, LLC",
+            "location": null,
+            "start_date": "February 2015",
+            "end_date": "May 2018",
+            "bullets": [
+              "Developed Stand Up For Change, an iOS App to empower users to engage in political process and The Networking Assistant, a CRM platform to organize contacts and interactions, acquired 4,000+ users",
+              "Developed Chin Up!, a positive social media iOS App which had 6,000+ downloads & 45,000+ user posts"
+            ]
+          }
+        ],
+        "education": [
+          {
+            "school": "College of the Holy Cross",
+            "degree": "Bachelor of Arts",
+            "field": "Computer Science",
+            "location": "Worcester, MA",
+            "start_date": null,
+            "end_date": null,
+            "gpa": "3.25",
+            "achievements": [
+              "Student Government",
+              "Campus Activities Board",
+              "Resident Assistant",
+              "Orientation Leader"
+            ]
+          }
+        ],
+        "skills": {
+          "technical": [
+            "Figma",
+            "Sketch",
+            "Invision",
+            "Amplitude",
+            "Google Analytics",
+            "Maze",
+            "UserTesting",
+            "Jira",
+            "Github",
+            "Airtable",
+            "A/B Testing & Analysis",
+            "SQL",
+            "Python"
+          ],
+          "product": [
+            "A/B Testing & Analysis",
+            "User research",
+            "Product strategy",
+            "Roadmapping",
+            "Wireframing",
+            "Prototyping",
+            "Analytics dashboards",
+            "Experimentation"
+          ],
+          "soft": [
+            "Collaboration with executives",
+            "Cross-functional collaboration",
+            "User interviewing",
+            "Strategic partner management",
+            "Roadmap communication",
+            "Prioritization",
+            "Leadership"
+          ]
+        }
+      }
+    },
+    {
+      "model": "gpt-5-mini",
+      "success": true,
+      "timing": {
+        "fileUploadMs": 471,
+        "apiCallMs": 36048,
+        "pollingMs": 0,
+        "totalMs": 36048,
+        "pollAttempts": 0
+      },
+      "data": {
+        "contactInfo": {
+          "full_name": "Anthony Saltarelli",
+          "email": "anth.saltarelli@gmail.com",
+          "phone": "(203) 722 - 3285",
+          "location": "New York, NY",
+          "linkedin": null,
+          "portfolio": "anthonysaltarelli.com"
+        },
+        "summary": null,
+        "experiences": [
+          {
+            "title": "Lead Product Manager",
+            "company": "SageSpot",
+            "location": "New York, NY",
+            "start_date": "March 2022",
+            "end_date": "Present",
+            "bullets": [
+              "Defined, executed, and iterated product strategy in collaboration with CEO, CTO, and broader team",
+              "Launched several key Creator tools including Subscriptions, Livestreams, Libraries, and Engage Forums",
+              "Increased member account creation rate by 44% and subscription rate by 60%",
+              "De-risked new feature work by creating dozens of wireframes and prototypes to test with user panel",
+              "Decreased time to production for new features by 2-3x by religiously prioritizing MVP functionality",
+              "Built out analytics eventing and dashboards to track user behavior, KPIs, and inform product decisions",
+              "Created automated re-engagement email campaigns, leading to a 38% increase in users posting content",
+              "Interviewed users to explore problem & opportunity spaces, leading to more impactful product solutions",
+              "Delivered monthly product roadmap report citing metric changes, wins, and new problems to tackle"
+            ]
+          },
+          {
+            "title": "Senior Product Manager, Commerce",
+            "company": "Squarespace",
+            "location": "New York, NY",
+            "start_date": "September 2021",
+            "end_date": "March 2022",
+            "bullets": [
+              "Updated Payment Settings, leading to 130% increase in Payment Processor connections & $1.2MM+ ARR",
+              "Built out Enterprise Scheduling, leading to 15+ new Enterprise contracts, increased Enterprise ARR by 5x",
+              "Maintained strategic partner relationships with Meta, Twilio, Square, and other vendors"
+            ]
+          },
+          {
+            "title": "Product Manager, Commerce",
+            "company": "Squarespace",
+            "location": "New York, NY",
+            "start_date": "June 2020",
+            "end_date": "September 2021",
+            "bullets": [
+              "Launched and executed our product strategy for Squarespace Scheduling, the first standalone product offering on SQSP outside of their flagship Website product, after SQSP acquired Acuity Scheduling",
+              "Increased YoY trial to subscription rate of Scheduling by 47% by A/B testing multiple UX improvements",
+              "Expanded the Squarespace Scheduling product offering by introducing Invoicing functionality",
+              "Conducted user research to better understand user problems, validate, and de-risk product solutions"
+            ]
+          },
+          {
+            "title": "Associate Product Manager, Mobile",
+            "company": "SeatGeek",
+            "location": "New York, NY",
+            "start_date": "June 2018",
+            "end_date": "April 2020",
+            "bullets": [
+              "Led planning and development of various features and experiments in the iOS and Android apps focused on event discovery, core shopping funnel, and checkout that increased checkout conversion by 19% YoY",
+              "Created and managed the mobile product roadmap in collaboration with engineering leads",
+              "Defined and built out a native sharing strategy that increased event shares by 132% YoY",
+              "Introduced in-app rating feature that increased SeatGeek’s Android Play Store rating from 3.7 to 4.6 stars",
+              "Reduced mobile customer support inquires by 44% by shipping native customer support workflow",
+              "Defined KPIs and set up various analytics dashboards to track overall product health and feature usage",
+              "Designed wireframes and created prototypes for 40+ consumer and enterprise features"
+            ]
+          },
+          {
+            "title": "Founder & Engineer",
+            "company": "Stand Up Tech, LLC",
+            "location": null,
+            "start_date": "February 2015",
+            "end_date": "May 2018",
+            "bullets": [
+              "Developed Stand Up For Change, an iOS App to empower users to engage in political process and The Networking Assistant, a CRM platform to organize contacts and interactions, acquired 4,000+ users",
+              "Developed Chin Up!, a positive social media iOS App which had 6,000+ downloads & 45,000+ user posts"
+            ]
+          }
+        ],
+        "education": [
+          {
+            "school": "College of the Holy Cross",
+            "degree": "Bachelor of Arts",
+            "field": "Computer Science",
+            "location": "Worcester, MA",
+            "start_date": null,
+            "end_date": null,
+            "gpa": "3.25",
+            "achievements": [
+              "Student Government",
+              "Campus Activities Board",
+              "Resident Assistant",
+              "Orientation Leader"
+            ]
+          }
+        ],
+        "skills": {
+          "technical": [
+            "Figma",
+            "Sketch",
+            "Invision",
+            "Amplitude",
+            "Google Analytics",
+            "Maze",
+            "UserTesting",
+            "Jira",
+            "Github",
+            "Airtable",
+            "SQL",
+            "Python"
+          ],
+          "product": [
+            "A/B Testing & Analysis"
+          ],
+          "soft": [
+            "User research",
+            "Prototyping & wireframing",
+            "Roadmapping",
+            "Stakeholder management",
+            "Prioritization",
+            "Cross-functional collaboration",
+            "Communication"
+          ]
+        }
+      }
+    },
+    {
+      "model": "gpt-5-nano",
+      "success": true,
+      "timing": {
+        "fileUploadMs": 471,
+        "apiCallMs": 46009,
+        "pollingMs": 0,
+        "totalMs": 46009,
+        "pollAttempts": 0
+      },
+      "data": {
+        "contactInfo": {
+          "full_name": "Anthony Saltarelli",
+          "email": "anth.saltarelli@gmail.com",
+          "phone": "(203) 722 - 3285",
+          "location": "New York, NY",
+          "linkedin": null,
+          "portfolio": "anthonysaltarelli.com"
+        },
+        "summary": null,
+        "experiences": [
+          {
+            "title": "Lead Product Manager",
+            "company": "SageSpot",
+            "location": "New York, NY",
+            "start_date": "March 2022",
+            "end_date": "Present",
+            "bullets": [
+              "Defined, executed, and iterated product strategy in collaboration with CEO, CTO, and broader team",
+              "Launched several key Creator tools including Subscriptions, Livestreams, Libraries, and Engage Forums",
+              "Increased member account creation rate by 44% and subscription rate by 60%",
+              "De-risked new feature work by creating dozens of wireframes and prototypes to test with user panel",
+              "Decreased time to production for new features by 2-3x by religiously prioritizing MVP functionality",
+              "Built out analytics eventing and dashboards to track user behavior, KPIs, and inform product decisions",
+              "Created automated re-engagement email campaigns, leading to a 38% increase in users posting content",
+              "Interviewed users to explore problem & opportunity spaces, leading to more impactful product solutions",
+              "Delivered monthly product roadmap report citing metric changes, wins, and new problems to tackle"
+            ]
+          },
+          {
+            "title": "Senior Product Manager, Commerce",
+            "company": "Squarespace",
+            "location": "New York, NY",
+            "start_date": "September 2021",
+            "end_date": "March 2022",
+            "bullets": [
+              "Launched and executed our product strategy for Squarespace Scheduling, the first standalone product offering on SQSP outside of their flagship Website product, after SQSP acquired Acuity Scheduling",
+              "Increased YoY trial to subscription rate of Scheduling by 47% by A/B testing multiple UX improvements ",
+              "Expanded the Squarespace Scheduling product offering by introducing Invoicing functionality",
+              "Updated Payment Settings, leading to 130% increase in Payment Processor connections & $1.2MM+ ARR",
+              "Conducted user research to better understand user problems, validate, and de-risk product solutions",
+              "Built out Enterprise Scheduling, leading to 15+ new Enterprise contracts, increased Enterprise ARR by 5x ",
+              "Maintained strategic partner relationships with Meta, Twilio, Square, and other vendors"
+            ]
+          },
+          {
+            "title": "Product Manager, Commerce",
+            "company": "Squarespace",
+            "location": "New York, NY",
+            "start_date": "June 2020",
+            "end_date": "September 2021",
+            "bullets": [
+              "Launched and executed our product strategy for Squarespace Scheduling, the first standalone product offering on SQSP outside of their flagship Website product, after SQSP acquired Acuity Scheduling",
+              "Increased YoY trial to subscription rate of Scheduling by 47% by A/B testing multiple UX improvements",
+              "Expanded the Squarespace Scheduling product offering by introducing Invoicing functionality",
+              "Updated Payment Settings, leading to 130% increase in Payment Processor connections & $1.2MM+ ARR",
+              "Conducted user research to better understand user problems, validate, and de-risk product solutions",
+              "Built out Enterprise Scheduling, leading to 15+ new Enterprise contracts, increased Enterprise ARR by 5x ",
+              "Maintained strategic partner relationships with Meta, Twilio, Square, and other vendors"
+            ]
+          },
+          {
+            "title": "Associate Product Manager, Mobile",
+            "company": "SeatGeek",
+            "location": "New York, NY",
+            "start_date": "June 2018",
+            "end_date": "April 2020",
+            "bullets": [
+              "Led planning and development of various features and experiments in the iOS and Android apps focused on event discovery, core shopping funnel, and checkout that increased checkout conversion by 19% YoY",
+              "Created and managed the mobile product roadmap in collaboration with engineering leads ",
+              "Defined a native sharing strategy that increased event shares by 132% YoY",
+              "Introduced in-app rating feature that increased SeatGeek’s Android Play Store rating from 3.7 to 4.6 stars",
+              "Reduced mobile customer support inquires by 44% by shipping native customer support workflow",
+              "Defined KPIs and set up various analytics dashboards to track overall product health and feature usage",
+              "Designed wireframes and created prototypes for 40+ consumer and enterprise features"
+            ]
+          },
+          {
+            "title": "Founder & Engineer",
+            "company": "Stand Up Tech, LLC",
+            "location": null,
+            "start_date": "February 2015",
+            "end_date": "May 2018",
+            "bullets": [
+              "Developed Stand Up For Change, an iOS App to empower users to engage in political process and The Networking Assistant, a CRM platform to organize contacts and interactions, acquired 4,000+ users",
+              "Developed Chin Up!, a positive social media iOS App which had 6,000+ downloads & 45,000+ user posts"
+            ]
+          }
+        ],
+        "education": [
+          {
+            "school": "College of the Holy Cross, Worcester, MA",
+            "degree": "Bachelor of Arts",
+            "field": "Computer Science",
+            "location": "Worcester, MA",
+            "start_date": null,
+            "end_date": null,
+            "gpa": "3.25",
+            "achievements": [
+              "Student Government",
+              "Campus Activities Board",
+              "Resident Assistant",
+              "Orientation Leader"
+            ]
+          }
+        ],
+        "skills": {
+          "technical": [
+            "Figma",
+            "Sketch",
+            "Invision",
+            "Amplitude",
+            "Google Analytics",
+            "Maze",
+            "UserTesting",
+            "Jira",
+            "Github",
+            "Airtable",
+            "SQL",
+            "Python"
+          ],
+          "product": [
+            "A/B Testing & Analysis"
+          ],
+          "soft": []
+        }
+      }
+    }
+  ],
+  "analysis": [
+    {
+      "model": "gpt-5.1",
+      "success": true,
+      "timing": {
+        "apiCallMs": 69771,
+        "pollingMs": 0,
+        "totalMs": 69772,
+        "pollAttempts": 0
+      },
+      "data": {
+        "overallScore": 93,
+        "categoryScores": {
+          "actionVerbs": 92,
+          "accomplishments": 96,
+          "quantification": 95,
+          "impact": 95,
+          "conciseness": 85
+        },
+        "keywordAnalysis": {
+          "present": [
+            {
+              "keyword": "strategy",
+              "count": 3
+            },
+            {
+              "keyword": "roadmap",
+              "count": 2
+            },
+            {
+              "keyword": "stakeholder",
+              "count": 0
+            },
+            {
+              "keyword": "metrics",
+              "count": 0
+            },
+            {
+              "keyword": "okrs",
+              "count": 0
+            },
+            {
+              "keyword": "kpis",
+              "count": 2
+            },
+            {
+              "keyword": "user research",
+              "count": 2
+            },
+            {
+              "keyword": "a/b testing",
+              "count": 2
+            },
+            {
+              "keyword": "product launch",
+              "count": 0
+            },
+            {
+              "keyword": "go-to-market",
+              "count": 0
+            },
+            {
+              "keyword": "product-market fit",
+              "count": 0
+            },
+            {
+              "keyword": "user experience",
+              "count": 0
+            },
+            {
+              "keyword": "ux",
+              "count": 1
+            },
+            {
+              "keyword": "data-driven",
+              "count": 0
+            },
+            {
+              "keyword": "agile",
+              "count": 0
+            },
+            {
+              "keyword": "scrum",
+              "count": 0
+            },
+            {
+              "keyword": "sprint",
+              "count": 0
+            },
+            {
+              "keyword": "backlog",
+              "count": 0
+            },
+            {
+              "keyword": "prioritization",
+              "count": 1
+            },
+            {
+              "keyword": "analytics",
+              "count": 3
+            },
+            {
+              "keyword": "experimentation",
+              "count": 1
+            },
+            {
+              "keyword": "wireframe",
+              "count": 2
+            },
+            {
+              "keyword": "prototype",
+              "count": 2
+            },
+            {
+              "keyword": "dashboard",
+              "count": 2
+            },
+            {
+              "keyword": "user interviewing",
+              "count": 1
+            },
+            {
+              "keyword": "product",
+              "count": 19
+            },
+            {
+              "keyword": "launch",
+              "count": 3
+            },
+            {
+              "keyword": "user",
+              "count": 11
+            },
+            {
+              "keyword": "customers",
+              "count": 1
+            },
+            {
+              "keyword": "conversion",
+              "count": 1
+            },
+            {
+              "keyword": "funnel",
+              "count": 1
+            },
+            {
+              "keyword": "roadmapping",
+              "count": 1
+            },
+            {
+              "keyword": "go to market",
+              "count": 0
+            },
+            {
+              "keyword": "cross-functional",
+              "count": 1
+            },
+            {
+              "keyword": "collaboration",
+              "count": 2
+            },
+            {
+              "keyword": "leadership",
+              "count": 1
+            },
+            {
+              "keyword": "partner",
+              "count": 1
+            }
+          ],
+          "missing": [
+            {
+              "keyword": "stakeholder management",
+              "priority": "high"
+            },
+            {
+              "keyword": "product discovery",
+              "priority": "high"
+            },
+            {
+              "keyword": "go-to-market strategy",
+              "priority": "high"
+            },
+            {
+              "keyword": "product requirements (PRD / specs)",
+              "priority": "high"
+            },
+            {
+              "keyword": "agile / scrum / sprints",
+              "priority": "medium"
+            },
+            {
+              "keyword": "backlog management",
+              "priority": "medium"
+            },
+            {
+              "keyword": "prioritization frameworks (RICE, MoSCoW, etc.)",
+              "priority": "medium"
+            },
+            {
+              "keyword": "OKRs / goals",
+              "priority": "medium"
+            },
+            {
+              "keyword": "product roadmap ownership",
+              "priority": "medium"
+            },
+            {
+              "keyword": "customer journey mapping",
+              "priority": "medium"
+            },
+            {
+              "keyword": "experiments / testing frameworks",
+              "priority": "medium"
+            },
+            {
+              "keyword": "product-market fit",
+              "priority": "low"
+            },
+            {
+              "keyword": "competitive analysis / market research",
+              "priority": "low"
+            },
+            {
+              "keyword": "go-to-market collaboration with marketing / sales",
+              "priority": "low"
+            },
+            {
+              "keyword": "NPS / retention / engagement metrics",
+              "priority": "low"
+            }
+          ],
+          "density": 11.11
+        },
+        "atsCompatibility": "Good",
+        "atsExplanation": "The resume uses clear section headers (Work Experience, Education, Skills) and a linear, text-based structure that ATS systems parse well. Bullet points are standard and there are no tables, columns, or images mentioned that would confuse parsing. The only watch-outs are minor: bullets beginning with decorative dots instead of standard hyphens can sometimes mis-parse in older ATS, and repeating identical bullets across roles may reduce the perceived differentiation between positions. Overall, keyword usage is strong for PM roles, especially around analytics, A/B testing, and roadmap/strategy, which further supports ATS performance.",
+        "recommendations": [
+          {
+            "priority": 1,
+            "title": "Add explicit stakeholder management and cross-functional leadership language",
+            "description": "You clearly collaborate with executives and partners, but the bullets rarely use the word \"stakeholder\" or explicitly describe cross-functional leadership (e.g., design, engineering, marketing, sales). Add or tweak bullets to say things like: \"Partnered with design, engineering, and marketing stakeholders to define and deliver X,\" or \"Aligned executive stakeholders on roadmap tradeoffs and investment decisions.\" This better matches enterprise PM job descriptions and ATS keyword scans.",
+            "impact": "high"
+          },
+          {
+            "priority": 2,
+            "title": "Call out product discovery and requirements ownership more explicitly",
+            "description": "You show user research and prototyping, but most bullets emphasize delivery and outcomes. Add 1–2 bullets that explicitly reference discovery and requirements, such as: \"Led end-to-end product discovery (user interviews, problem framing, solution ideation) to define PRDs for Creator tools\" or \"Authored detailed product requirements and PRDs to align engineering and design on scope and success metrics.\" This makes your ownership of the full product lifecycle crystal clear.",
+            "impact": "high"
+          },
+          {
+            "priority": 3,
+            "title": "Introduce more explicit product process terminology (agile, backlog, sprints, prioritization frameworks)",
+            "description": "Hiring managers and ATS often look for terms like \"agile,\" \"sprints,\" \"backlog,\" and \"prioritization frameworks\" even if your experience already implies them. For example, update one bullet to: \"Owned and prioritized the product backlog using an MVP-first approach and lightweight scoring framework (e.g., RICE) to deliver features 2–3x faster.\" Another: \"Collaborated with engineering leads in agile ceremonies (planning, standups, retros) to refine scope and unblock delivery.\" This adds familiarity and makes your process skills easier to match to job specs.",
+            "impact": "high"
+          },
+          {
+            "priority": 4,
+            "title": "Differentiate the two Squarespace roles and reduce repeated bullets",
+            "description": "Your Senior PM and PM roles at Squarespace currently have identical bullets, which weakens the narrative of progression. Keep the strongest quantified achievements once (ideally under the Senior PM role) and then adjust the other role to highlight different aspects: earlier ownership scope, specific features you led as PM vs. strategic expansions as Senior PM (e.g., \"Owned Scheduling onboarding funnel as PM,\" vs. \"Drove expansion to Enterprise Scheduling as Senior PM\"). This clarifies your growth and avoids redundancy.",
+            "impact": "high"
+          },
+          {
+            "priority": 5,
+            "title": "Add a brief 2–3 line professional summary tailored to senior PM / Group PM roles",
+            "description": "You already have a strong body of work; a short summary at the top can quickly position you for the roles you want. For example: \"Lead Product Manager with 7+ years building and scaling B2B2C and consumer products across commerce, creator tools, and mobile. Proven track record of driving double-digit conversion lifts, ARR growth, and enterprise expansion through data-driven experimentation and user-centered discovery.\" This orients recruiters immediately and frames the rest of the resume.",
+            "impact": "medium"
+          },
+          {
+            "priority": 6,
+            "title": "Make business impact and scale even more explicit in a few bullets",
+            "description": "Your impact is already very strong; you can heighten it further by adding business context (users, revenue, segments). For example: \"Increased member account creation rate by 44% across a user base of X, directly expanding top-of-funnel for creator subscriptions\" or \"Grew Enterprise ARR 5x, contributing $X in annual revenue and strengthening Squarespace’s upmarket positioning.\" This helps hiring managers grasp the magnitude of your contributions instantly.",
+            "impact": "medium"
+          },
+          {
+            "priority": 7,
+            "title": "Slightly tighten and normalize bullet phrasing for maximum scannability",
+            "description": "Most bullets are concise, but a few are long or start with softer verbs like \"Created\" or \"Built out.\" Where possible, simplify and use higher-impact verbs: \"Owned analytics eventing and dashboards...\" instead of \"Built out analytics eventing...\" and \"Drove automated re-engagement campaigns that increased user posting by 38%\" instead of \"Created automated re-engagement...\" This makes every line punchy and easy to scan quickly.",
+            "impact": "low"
+          }
+        ],
+        "categoryDescriptions": {
+          "actionVerbs": "You use strong, ownership-oriented verbs throughout: \"Defined,\" \"Launched,\" \"Increased,\" \"Decreased,\" \"Built out,\" \"Delivered,\" \"Led,\" and \"Developed\" all convey initiative and leadership. There’s some opportunity to slightly upgrade softer openings like \"Created\" or \"Built out\" to more strategic verbs (e.g., \"Drove,\" \"Owned,\" \"Orchestrated\") and to vary language between similar bullets, but overall the verb quality is excellent.",
+          "accomplishments": "The resume is heavily accomplishment-driven, with nearly every bullet tying to an outcome: increased conversion, ARR, enterprise contracts, app ratings, or user behaviors. You clearly frame launches and changes in terms of what they achieved, not just what you did, which is ideal for PM roles. A minor enhancement would be to more clearly distinguish accomplishments by level (APM vs PM vs Lead PM) to better showcase career progression.",
+          "quantification": "Your quantification is outstanding: 44% increase in account creation, 60% subscription rate lift, 38% more users posting content, 47% trial-to-subscription lift, 130% increase in payment connections, $1.2MM+ ARR, 5x Enterprise ARR, 19% checkout conversion lift, 132% more event shares, 44% fewer support inquiries, and concrete user counts. Almost every bullet has a number. You could layer in a few more scale metrics (e.g., size of user base or revenue segment) to give even more context, but the baseline is already very strong.",
+          "impact": "Business and user impact is clearly and consistently demonstrated: you tie features to revenue, conversion, enterprise growth, user engagement, and support cost reduction. You show impact across multiple dimensions—ARR, contracts, ratings, behavioral changes—which paints you as a high-leverage PM. Clarifying the strategic significance of a few wins (e.g., first standalone product, enterprise move, creator economy positioning) would further reinforce your ability to drive company-level outcomes.",
+          "conciseness": "Bullets are generally concise, direct, and free of filler, making the resume very scannable for a senior PM. There is some repetition between roles (especially the duplicated Squarespace sections) and a few longer bullets that could be split or tightened slightly. With minor pruning and differentiation between roles, you could raise conciseness further without losing any substance."
+        }
+      }
+    },
+    {
+      "model": "gpt-5-mini",
+      "success": true,
+      "timing": {
+        "apiCallMs": 153160,
+        "pollingMs": 0,
+        "totalMs": 153160,
+        "pollAttempts": 0
+      },
+      "data": {
+        "overallScore": 82,
+        "categoryScores": {
+          "actionVerbs": 85,
+          "accomplishments": 82,
+          "quantification": 80,
+          "impact": 84,
+          "conciseness": 76
+        },
+        "keywordAnalysis": {
+          "present": [
+            {
+              "keyword": "roadmap / roadmapping",
+              "count": 4
+            },
+            {
+              "keyword": "strategy / product strategy",
+              "count": 4
+            },
+            {
+              "keyword": "metrics / metric",
+              "count": 1
+            },
+            {
+              "keyword": "KPIs",
+              "count": 2
+            },
+            {
+              "keyword": "user research",
+              "count": 3
+            },
+            {
+              "keyword": "A/B testing",
+              "count": 4
+            },
+            {
+              "keyword": "launch / launched",
+              "count": 3
+            },
+            {
+              "keyword": "UX / user experience",
+              "count": 2
+            },
+            {
+              "keyword": "prioritization / prioritizing",
+              "count": 2
+            },
+            {
+              "keyword": "user interviewing / interviewed",
+              "count": 2
+            },
+            {
+              "keyword": "wireframes / wireframing",
+              "count": 3
+            },
+            {
+              "keyword": "prototyping / prototypes",
+              "count": 3
+            },
+            {
+              "keyword": "analytics / dashboards",
+              "count": 7
+            },
+            {
+              "keyword": "experimentation / experiments",
+              "count": 2
+            }
+          ],
+          "missing": [
+            {
+              "keyword": "stakeholder / stakeholders",
+              "priority": "high"
+            },
+            {
+              "keyword": "OKRs",
+              "priority": "high"
+            },
+            {
+              "keyword": "go-to-market / GTM",
+              "priority": "high"
+            },
+            {
+              "keyword": "product-market fit",
+              "priority": "medium"
+            },
+            {
+              "keyword": "agile / scrum / sprint",
+              "priority": "medium"
+            },
+            {
+              "keyword": "backlog",
+              "priority": "medium"
+            },
+            {
+              "keyword": "data-driven",
+              "priority": "medium"
+            }
+          ],
+          "density": 6.325301204819277
+        },
+        "atsCompatibility": "Good",
+        "atsExplanation": "The resume uses standard section headings (Work Experience, Education, Skills), common job titles, and many industry keywords — all good for ATS parsing. Bulleted accomplishments and plain text percentages and dollar amounts will be parsed. Potential parsing issues: repeated/duplicated content (Squarespace entries are nearly identical), use of symbols (&, •) and punctuation in some places, and some multi-word skills appearing in different formats (e.g., 'A/B Testing & Analysis' appears multiple times). Consolidating duplicate role text, using consistent keyword phrasing, and placing Skills in a single, comma-separated list will improve ATS reliability.",
+        "recommendations": [
+          {
+            "priority": 1,
+            "title": "Consolidate duplicate Squarespace entries",
+            "description": "Combine the two Squarespace roles (Senior Product Manager, Commerce and Product Manager, Commerce) into one chronological entry that highlights progression (title change or promotions) and unique accomplishments per time period. Avoid repeating identical bullets — instead, show what changed between the roles (scope, responsibilities, ownership, or impact).",
+            "impact": "high"
+          },
+          {
+            "priority": 2,
+            "title": "Add contextual baselines and stronger dollar/user metrics",
+            "description": "Where you list percentage improvements (e.g., +47% trial->sub, +130% payment connections), add baseline numbers or absolute values where possible (e.g., 'increased trial->subscription from X% to Y% (47% relative increase)', 'added $1.2M ARR on $Z base'). For user-facing metrics, add total user counts or MAUs if available to give scale to percentage changes.",
+            "impact": "high"
+          },
+          {
+            "priority": 3,
+            "title": "Call out stakeholder, team and leadership scope",
+            "description": "Explicitly name stakeholders (e.g., product marketing, sales, engineering leads), team size (engineers, designers, PMs) and level of cross-functional leadership. Add one or two bullets like 'Owned roadmap for X product, led a cross-functional team of N engineers and M designers, partnered with Sales and Marketing to ...' — this signals leadership and stakeholder management.",
+            "impact": "high"
+          },
+          {
+            "priority": 4,
+            "title": "Fill strategic keyword gaps (OKRs, GTM, agile/backlog)",
+            "description": "Add language around OKRs or goal-setting (if you used them), go-to-market planning for launches, and agile delivery practices (scrum, sprints, backlog grooming). E.g., 'Owned product OKRs and prioritized backlog to hit quarterly targets' or 'Led GTM for feature X with marketing and sales, resulting in Y adoption.'",
+            "impact": "medium"
+          },
+          {
+            "priority": 5,
+            "title": "Tighten and prioritize bullets for conciseness",
+            "description": "Shorten long sentences and lead each bullet with a strong action verb, then the metric and the method. Example structure: 'Verb + metric + outcome + how.' Convert weaker verbs (e.g., 'Maintained', 'Conducted') into higher-impact verbs where appropriate (e.g., 'Cultivated key partnerships that...'). Remove lower-impact responsibility lines or move them into a single 'Additional responsibilities' bullet.",
+            "impact": "medium"
+          },
+          {
+            "priority": 6,
+            "title": "Standardize and centralize Skills for ATS & recruiters",
+            "description": "Create a single Skills section with comma-separated keywords and groupings (Product, Analytics, Design, Engineering) and remove duplicate skill phrases. Ensure consistent capitalization and exact phrases employers use (e.g., 'A/B testing', 'SQL', 'Figma', 'OKRs', 'Go-to-market').",
+            "impact": "medium"
+          },
+          {
+            "priority": 7,
+            "title": "Add a concise header bullet summarizing product focus and strengths",
+            "description": "Add a 1–2 line profile/summary under your contact info stating your product domain, primary strengths and top metrics (e.g., 'Lead PM with 7+ years building consumer & commerce products; grew conversion and ARR through experimentation, analytics-driven roadmap, and enterprise GTM'). This gives recruiters an immediate frame.",
+            "impact": "low"
+          }
+        ],
+        "categoryDescriptions": {
+          "actionVerbs": "The resume uses many strong verbs (Launched, Built, Created, De-risked, Delivered, Led) that convey ownership and leadership. A few bullets use weaker terms (Maintained, Conducted); tightening these to higher-impact verbs would raise the score further.",
+          "accomplishments": "Most bullets are achievement-focused and include outcomes (conversion %, ARR, number of contracts). There is some repetition (Squarespace) and a few responsibility-like statements that could be converted into measurable accomplishments with added context.",
+          "quantification": "The resume makes good use of percentages, ARR and user counts (e.g., 44%, $1.2MM+, 4,000+ users), which strengthens credibility. It would improve by adding baselines, absolute numbers, timeframes and per-period context to make the gains clearer.",
+          "impact": "Business impact is clear in multiple places (increased subscriptions, enterprise ARR, conversion uplift). To maximize impact, call out scope (team, user base) and link feature work to business outcomes or strategic priorities (OKRs, revenue targets).",
+          "conciseness": "Overall concise and scannable with bullet points and focused lines. However, duplicated content and a few long, multi-clause bullets reduce efficiency. Consolidating repetition and tightening phrasing will make the resume easier to scan."
+        }
+      }
+    },
+    {
+      "model": "gpt-5-nano",
+      "success": true,
+      "timing": {
+        "apiCallMs": 84883,
+        "pollingMs": 0,
+        "totalMs": 84883,
+        "pollAttempts": 0
+      },
+      "data": {
+        "overallScore": 85,
+        "categoryScores": {
+          "actionVerbs": 78,
+          "accomplishments": 90,
+          "quantification": 92,
+          "impact": 86,
+          "conciseness": 68
+        },
+        "keywordAnalysis": {
+          "present": [
+            {
+              "keyword": "roadmap",
+              "count": 2
+            },
+            {
+              "keyword": "roadmapping",
+              "count": 1
+            },
+            {
+              "keyword": "strategy",
+              "count": 3
+            },
+            {
+              "keyword": "MVP",
+              "count": 1
+            },
+            {
+              "keyword": "A/B Testing",
+              "count": 2
+            },
+            {
+              "keyword": "user research",
+              "count": 2
+            },
+            {
+              "keyword": "KPIs",
+              "count": 2
+            }
+          ],
+          "missing": [
+            {
+              "keyword": "stakeholders",
+              "priority": "high"
+            },
+            {
+              "keyword": "OKRs",
+              "priority": "high"
+            },
+            {
+              "keyword": "go-to-market",
+              "priority": "high"
+            },
+            {
+              "keyword": "product launch",
+              "priority": "high"
+            },
+            {
+              "keyword": "product-market fit",
+              "priority": "high"
+            },
+            {
+              "keyword": "user experience",
+              "priority": "medium"
+            },
+            {
+              "keyword": "data-driven",
+              "priority": "low"
+            },
+            {
+              "keyword": "agile",
+              "priority": "low"
+            },
+            {
+              "keyword": "scrum",
+              "priority": "low"
+            },
+            {
+              "keyword": "sprint",
+              "priority": "low"
+            },
+            {
+              "keyword": "backlog",
+              "priority": "low"
+            },
+            {
+              "keyword": "prioritization",
+              "priority": "low"
+            }
+          ],
+          "density": 2.4
+        },
+        "atsCompatibility": "Good",
+        "atsExplanation": "Formatting is generally ATS-friendly (clear headings, bullet points, standard sections). Minor drawbacks: unusual header decorations, duplicate bullets in Squarespace sections, and some bullets are lengthy. Clean, standardize date formats and convert to a clean DOCX/PDF for parsing reliability.",
+        "recommendations": [
+          {
+            "priority": 1,
+            "title": "Eliminate duplicate Squarespace bullets",
+            "description": "Remove the repeated Squarespace bullet block that appears in both the Senior Product Manager and Product Manager entries. Keep the stronger, unique bullets to avoid redundancy and improve readability.",
+            "impact": "high"
+          },
+          {
+            "priority": 1,
+            "title": "Add a concise executive summary at top",
+            "description": "Include 2-3 lines at the top highlighting key PM impact (growth, ARR, engagement, cross-functional leadership) to grab attention before dives into bullets.",
+            "impact": "high"
+          },
+          {
+            "priority": 2,
+            "title": "Increase bullets with quantified outcomes",
+            "description": "Aim to attach a numeric outcome to every major initiative (e.g., retention, activation, revenue, time-to-market). This strengthens Accomplishments and Quantification scores.",
+            "impact": "high"
+          },
+          {
+            "priority": 2,
+            "title": "Incorporate missing PM keywords strategically",
+            "description": "Add exact mentions of stakeholders, OKRs, go-to-market, product launch, and product-market fit where relevant to improve ATS and keyword density.",
+            "impact": "high"
+          },
+          {
+            "priority": 3,
+            "title": "Tighten and streamline bullets for conciseness",
+            "description": "Trim verbose phrases, combine related bullets, and ensure each line conveys impact in a single, tight sentence.",
+            "impact": "medium"
+          },
+          {
+            "priority": 3,
+            "title": "Improve user-impact framing per feature",
+            "description": "For major launches (Subscriptions, Livestreams, Scheduling, etc.), include a short note on user adoption, satisfaction, or retention impact.",
+            "impact": "medium"
+          },
+          {
+            "priority": 4,
+            "title": "ATS-friendly formatting and file type",
+            "description": "Use consistent date formats (Month Year – Month Year), avoid special characters, and provide a clean Word/PDF version optimized for ATS.",
+            "impact": "low"
+          }
+        ],
+        "categoryDescriptions": {
+          "actionVerbs": "The resume uses many strong verbs (launched, defined, increased, built, informed). A few bullets could benefit from more varied verbs to avoid repetition and demonstrate leadership at scale.",
+          "accomplishments": "Clear outcomes are demonstrated (ARR, conversion, engagement). Some bullets are activity-heavy; strengthening the link between actions and business/user outcomes will elevate the Accomplishments score.",
+          "quantification": "Excellent overall quantification, with multiple percentages and ARR figures. Aiming to attach outcomes to every bullet will push this even higher.",
+          "impact": "Impact is well shown in business metrics and user signals. A few bullets could more directly connect activity to value (e.g., who benefited, magnitude of business/user impact).",
+          "conciseness": "Some bullets are long and repetitive, especially the Squarespace sections. Shorter, outcome-focused lines will improve scanning and ATS parsing."
+        }
+      }
+    }
+  ]
+}

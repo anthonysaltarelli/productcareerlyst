@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { CheckCircle, Loader2, AlertCircle, Sparkles, Rocket, Zap } from 'lucide-react';
+import { CheckCircle, Loader2, AlertCircle, Sparkles, Rocket, Zap, X } from 'lucide-react';
 import { useOnboardingProgress } from '@/lib/hooks/useOnboardingProgress';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/amplitude/client';
@@ -143,7 +143,7 @@ const PaymentFormContent = ({
 
 export const TrialStep = ({ onBack }: TrialStepProps) => {
   const router = useRouter();
-  const { progress, markComplete } = useOnboardingProgress();
+  const { progress, markComplete, refresh } = useOnboardingProgress();
   const [selectedBilling, setSelectedBilling] = useState<'monthly' | 'quarterly' | 'yearly'>('yearly');
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [hasTrackedBillingSelection, setHasTrackedBillingSelection] = useState(false);
@@ -152,8 +152,26 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
   const [analysisData, setAnalysisData] = useState<any>(null);
   const [analysisStatus, setAnalysisStatus] = useState<'pending' | 'processing' | 'completed' | 'failed' | null>(null);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
+  const [showSkipConfirmModal, setShowSkipConfirmModal] = useState(false);
 
   const resumeData = progress?.progress_data?.resume_upload;
+
+  // Refresh progress when component mounts to get latest resume data
+  useEffect(() => {
+    console.log('[TrialStep] Refreshing progress on mount');
+    refresh();
+  }, [refresh]);
+
+  // Debug log to track resumeData
+  useEffect(() => {
+    console.log('[TrialStep] resumeData:', {
+      hasProgress: !!progress,
+      hasProgressData: !!progress?.progress_data,
+      hasResumeUpload: !!resumeData,
+      versionId: resumeData?.versionId,
+      analysisStatus: resumeData?.analysisStatus,
+    });
+  }, [progress, resumeData]);
 
   // Track billing cadence selection (non-blocking) - only once per selection
   useEffect(() => {
@@ -378,28 +396,28 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
   const overallScore = analysisData?.overallScore || 0;
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <div className="mb-8">
-        <h2 className="text-3xl font-black text-gray-900 mb-4">
+    <div className="max-w-4xl mx-auto p-4 md:p-8">
+      <div className="mb-6 md:mb-8">
+        <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-3 md:mb-4">
           Try Accelerate for Free
         </h2>
-        <p className="text-lg text-gray-700 font-semibold">
+        <p className="text-base md:text-lg text-gray-700 font-semibold">
           Get 7 days free to explore all of our premium, AI-enabled features. Cancel anytime.
         </p>
       </div>
 
       {/* Resume Analysis Results */}
       {resumeData?.versionId && (
-        <div className="mb-8">
+        <div className="mb-6 md:mb-8">
           {isLoadingAnalysis || analysisStatus === 'processing' || analysisStatus === 'pending' ? (
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-2xl p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-2xl p-4 md:p-6">
+              <div className="flex items-center gap-3 md:gap-4 mb-4">
+                <Loader2 className="w-6 h-6 md:w-8 md:h-8 text-blue-600 animate-spin flex-shrink-0" />
                 <div>
-                  <h3 className="text-xl font-black text-gray-900 mb-1">
+                  <h3 className="text-lg md:text-xl font-black text-gray-900 mb-1">
                     Analyzing Your Resume...
                   </h3>
-                  <p className="text-sm text-gray-700 font-semibold">
+                  <p className="text-xs md:text-sm text-gray-700 font-semibold">
                     This may take a few moments. We'll show your results here when ready.
                   </p>
                 </div>
@@ -409,41 +427,49 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
               </div>
             </div>
           ) : analysisStatus === 'failed' ? (
-            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl p-6">
-              <div className="flex items-center gap-4">
-                <AlertCircle className="w-8 h-8 text-yellow-600" />
+            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl p-4 md:p-6">
+              <div className="flex items-center gap-3 md:gap-4">
+                <AlertCircle className="w-6 h-6 md:w-8 md:h-8 text-yellow-600 flex-shrink-0" />
                 <div>
-                  <h3 className="text-xl font-black text-gray-900 mb-1">
+                  <h3 className="text-lg md:text-xl font-black text-gray-900 mb-1">
                     Analysis Unavailable
                   </h3>
-                  <p className="text-sm text-gray-700 font-semibold">
+                  <p className="text-xs md:text-sm text-gray-700 font-semibold">
                     We couldn't analyze your resume at this time. You can still start your free trial!
                   </p>
                 </div>
               </div>
             </div>
           ) : analysisData ? (
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-6">
-              <h3 className="text-xl font-black text-gray-900 mb-4">
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-3 sm:p-4 md:p-6">
+              <h3 className="text-lg md:text-xl font-black text-gray-900 mb-3 md:mb-4">
                 Your Resume Analysis Results
               </h3>
               
               {/* Overall Score and Missing Keywords */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-white rounded-xl p-4 border-2 border-gray-200">
-                  <div className="text-3xl font-black text-purple-600 mb-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-6">
+                <div className="bg-white rounded-lg p-3 md:p-4 border-2 border-gray-200">
+                  <div className="flex items-center justify-between mb-2 md:mb-3">
+                    <span className="text-sm md:text-base font-bold text-gray-700">Overall Score</span>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded border ${getGradeColor(scoreToGrade(overallScore))}`}>
+                      {scoreToGrade(overallScore)}
+                    </span>
+                  </div>
+                  <div className="text-2xl md:text-3xl font-black text-purple-600 mb-2">
                     {overallScore}
                   </div>
-                  <div className="text-sm text-gray-600 font-semibold mb-2">Overall Score</div>
-                  <div className={`text-xs font-bold px-2 py-1 rounded border inline-block ${getGradeColor(scoreToGrade(overallScore))}`}>
-                    {scoreToGrade(overallScore)}
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div
+                      className="bg-purple-500 h-1.5 rounded-full transition-all"
+                      style={{ width: `${overallScore}%` }}
+                    />
                   </div>
                 </div>
-                <div className="bg-white rounded-xl p-4 border-2 border-gray-200">
-                  <div className="text-3xl font-black text-orange-600 mb-1">
+                <div className="bg-white rounded-xl p-3 md:p-4 border-2 border-gray-200">
+                  <div className="text-2xl md:text-3xl font-black text-orange-600 mb-1">
                     {missingKeywordsCount}
                   </div>
-                  <div className="text-sm text-gray-600 font-semibold">Missing Keywords</div>
+                  <div className="text-xs md:text-sm text-gray-600 font-semibold">Missing Keywords</div>
                   {missingKeywordsCount > 0 && (
                     <div className="text-xs text-orange-600 font-semibold mt-1">
                       Add these to boost your score!
@@ -454,23 +480,23 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
 
               {/* All Category Scores */}
               {analysisData.categoryScores && (
-                <div className="mb-6">
-                  <h4 className="text-lg font-black text-gray-900 mb-3">Category Breakdown</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="mb-4 md:mb-6">
+                  <h4 className="text-base md:text-lg font-black text-gray-900 mb-2 md:mb-3">Category Breakdown</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
                     {Object.entries(analysisData.categoryScores).map(([key, score]) => {
                       const categoryGrade = scoreToGrade(score as number);
                       const categoryColor = getGradeColor(categoryGrade);
                       const categoryName = formatCategoryName(key);
                       
                       return (
-                        <div key={key} className="bg-white rounded-lg p-3 border-2 border-gray-200">
-                          <div className="flex items-center justify-between mb-2">
+                        <div key={key} className="bg-white rounded-lg p-2.5 md:p-3 border-2 border-gray-200">
+                          <div className="flex items-center justify-between mb-1.5 md:mb-2">
                             <span className="text-xs font-bold text-gray-700">{categoryName}</span>
                             <span className={`text-xs font-bold px-2 py-0.5 rounded border ${categoryColor}`}>
                               {categoryGrade}
                             </span>
                           </div>
-                          <div className="text-xl font-black text-purple-600 mb-1">
+                          <div className="text-lg md:text-xl font-black text-purple-600 mb-1">
                             {score as number}
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -487,8 +513,8 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
               )}
 
               {/* Encouraging Message */}
-              <div className="bg-white rounded-xl p-4 border-2 border-purple-300">
-                <p className="text-sm text-gray-800 font-semibold leading-relaxed">
+              <div className="bg-white rounded-xl p-3 md:p-4 border-2 border-purple-300">
+                <p className="text-xs md:text-sm text-gray-800 font-semibold leading-relaxed">
                   {getEncouragingMessage(overallScore)}
                 </p>
               </div>
@@ -498,63 +524,63 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
       )}
 
       {/* Accelerate Plan Preview */}
-      <div className="mb-8 md:bg-white md:rounded-2xl md:border-2 md:border-purple-200 md:p-8 md:shadow-lg">
-        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-6">
-          <div className="flex items-center gap-3">
-            <Sparkles className="w-8 h-8 text-purple-600" />
-            <Rocket className="w-8 h-8 text-pink-600" />
-            <Zap className="w-8 h-8 text-orange-600" />
+      <div className="mb-6 md:mb-8 md:bg-white md:rounded-2xl md:border-2 md:border-purple-200 md:p-8 md:shadow-lg">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-4 md:mb-6">
+          <div className="flex items-center gap-2 md:gap-3">
+            <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-purple-600" />
+            <Rocket className="w-6 h-6 md:w-8 md:h-8 text-pink-600" />
+            <Zap className="w-6 h-6 md:w-8 md:h-8 text-orange-600" />
           </div>
-          <h3 className="text-2xl font-black text-gray-900">Accelerate Plan</h3>
+          <h3 className="text-xl md:text-2xl font-black text-gray-900">Free 7 Day Accelerate Trial</h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
           <div>
-            <h4 className="font-black text-gray-900 mb-3">Features:</h4>
-            <ul className="space-y-2 text-gray-700 font-semibold">
+            <h4 className="font-black text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Popular Features:</h4>
+            <ul className="space-y-1.5 md:space-y-2 text-gray-700 font-semibold text-sm md:text-base">
               <li className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+                <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0" />
                 Unlimited resume optimizations
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+                <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0" />
                 AI-powered resume analysis
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+                <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0" />
                 Contact discovery & outreach
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+                <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0" />
                 Company research & insights
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+                <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0" />
                 Custom interview questions
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+                <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0" />
                 Product portfolio templates
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="font-black text-gray-900 mb-3">Pricing:</h4>
-            <div className="space-y-3">
+            <h4 className="font-black text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Pricing:</h4>
+            <div className="space-y-2 md:space-y-3">
               {(['monthly', 'quarterly', 'yearly'] as const).map((cadence) => (
                 <label
                   key={cadence}
-                  className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                  className={`flex items-center justify-between p-3 md:p-4 rounded-xl border-2 cursor-pointer transition-all ${
                     selectedBilling === cadence
                       ? 'border-purple-500 bg-purple-50'
                       : 'border-gray-200 bg-white hover:border-purple-300'
                   }`}
                 >
                   <div>
-                    <div className="font-bold text-gray-900">
+                    <div className="font-bold text-gray-900 text-sm md:text-base">
                       {billingLabels[cadence]}
                     </div>
-                    <div className="text-sm text-gray-600 font-semibold">
+                    <div className="text-xs md:text-sm text-gray-600 font-semibold">
                       ${ACCELERATE_PLAN[cadence].price}
                       {'savings' in ACCELERATE_PLAN[cadence] && (
                         <span className="text-green-600 ml-2">
@@ -614,13 +640,8 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
           </div>
         </div>
 
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
-          <p className="text-blue-800 font-semibold">
-            <strong>Important:</strong> Free 7 day trials can only be started from this screen. After you continue, you'll need to upgrade to access premium AI-enabled features.
-          </p>
-        </div>
-
         {!showPaymentForm ? (
+          <>
           <button
             onClick={() => {
               // Track payment form shown (non-blocking)
@@ -647,10 +668,14 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
               
               setShowPaymentForm(true);
             }}
-            className="w-full px-8 py-4 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all"
+            className="w-full px-6 md:px-8 py-3 md:py-4 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all text-sm md:text-base"
           >
             Start 7-Day Free Trial
           </button>
+          <p className="text-xs md:text-sm text-gray-500 mt-2 text-center">
+            Cancel any time before {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.
+          </p>
+        </>
         ) : (
           <div className="space-y-4">
             {loadingClientSecret ? (
@@ -679,44 +704,122 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
       </div>
 
       {/* Skip Option */}
-      {!showPaymentForm && (
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => {
-              // Track trial skipped (non-blocking)
-              setTimeout(() => {
-                try {
-                  trackEvent('User Skipped Free Trial', {
-                    'Page Route': '/onboarding',
-                    'Step': 'trial',
-                    'Billing Cadence': selectedBilling,
-                    'Plan': 'accelerate',
-                    'Resume Analysis Available': !!analysisData,
-                    'Resume Score': analysisData?.overallScore || null,
-                    'Payment Form Shown': showPaymentForm,
-                  });
-                } catch (error) {
-                  if (process.env.NODE_ENV === 'development') {
-                    console.warn('⚠️ Tracking error (non-blocking):', error);
-                  }
-                }
-              }, 0);
-              
-              markComplete();
-              router.push('/dashboard');
-            }}
-            className="px-6 py-3 text-gray-600 font-bold hover:text-gray-800 transition-colors underline"
-          >
-            I don't want a free trial of the Accelerate plan
-          </button>
+      <div className="mt-4 md:mt-6 text-center">
+        <button
+          onClick={() => setShowSkipConfirmModal(true)}
+          className="px-4 md:px-6 py-2 md:py-3 text-gray-500 font-medium hover:text-gray-700 transition-colors underline text-sm md:text-base"
+        >
+          I don't want a free trial of the Accelerate plan
+        </button>
+      </div>
+
+      {/* Skip Confirmation Modal */}
+      {showSkipConfirmModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-in fade-in zoom-in duration-200">
+            {/* Close button */}
+            <button
+              onClick={() => setShowSkipConfirmModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close modal"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {/* Modal content */}
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full mb-4">
+                <AlertCircle className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 mb-3">
+                Are you sure?
+              </h3>
+              <p className="text-gray-700 font-semibold mb-4">
+                You can only start a free trial from this screen.
+              </p>
+              <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 text-left">
+                <p className="text-purple-900 font-semibold text-sm">
+                  With the free trial, you get <strong>full access</strong> to all AI-enabled features on the Accelerate plan until{' '}
+                  <strong>
+                    {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </strong>
+                  .
+                </p>
+              </div>
+            </div>
+
+            {/* Modal actions */}
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setShowSkipConfirmModal(false);
+                  setShowPaymentForm(true);
+                  
+                  // Track user chose to try free trial from modal (non-blocking)
+                  setTimeout(() => {
+                    try {
+                      trackEvent('User Chose Free Trial From Modal', {
+                        'Page Route': '/onboarding',
+                        'Step': 'trial',
+                        'Billing Cadence': selectedBilling,
+                        'Plan': 'accelerate',
+                        'Resume Analysis Available': !!analysisData,
+                        'Resume Score': analysisData?.overallScore || null,
+                      });
+                    } catch (error) {
+                      if (process.env.NODE_ENV === 'development') {
+                        console.warn('⚠️ Tracking error (non-blocking):', error);
+                      }
+                    }
+                  }, 0);
+                }}
+                className="w-full px-6 py-4 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg"
+              >
+                Try for Free
+              </button>
+              <button
+                onClick={() => {
+                  // Track trial skipped after confirmation (non-blocking)
+                  setTimeout(() => {
+                    try {
+                      trackEvent('User Skipped Free Trial', {
+                        'Page Route': '/onboarding',
+                        'Step': 'trial',
+                        'Billing Cadence': selectedBilling,
+                        'Plan': 'accelerate',
+                        'Resume Analysis Available': !!analysisData,
+                        'Resume Score': analysisData?.overallScore || null,
+                        'Confirmed Skip': true,
+                      });
+                    } catch (error) {
+                      if (process.env.NODE_ENV === 'development') {
+                        console.warn('⚠️ Tracking error (non-blocking):', error);
+                      }
+                    }
+                  }, 0);
+                  
+                  setShowSkipConfirmModal(false);
+                  markComplete();
+                  router.push('/dashboard');
+                }}
+                className="w-full px-6 py-3 text-gray-600 font-bold hover:text-gray-800 transition-colors"
+              >
+                I don't want a free trial
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Navigation */}
-      <div className="mt-8 flex items-center justify-between">
+      <div className="mt-6 md:mt-8 flex items-center justify-between">
         <button
           onClick={onBack}
-          className="px-6 py-3 text-gray-600 font-bold hover:text-gray-800 transition-colors"
+          className="px-4 md:px-6 py-2 md:py-3 text-gray-600 font-bold hover:text-gray-800 transition-colors text-sm md:text-base"
         >
           ← Back
         </button>

@@ -1,0 +1,369 @@
+{
+  "timestamp": "2025-11-25T11:41:45.232Z",
+  "model": "gpt-5.1",
+  "full": {
+    "success": true,
+    "durationMs": 36146,
+    "inputTokens": 2028,
+    "outputTokens": 2005,
+    "promptLength": 7925,
+    "data": {
+      "overallScore": 91,
+      "categoryScores": {
+        "actionVerbs": 93,
+        "accomplishments": 95,
+        "quantification": 98,
+        "impact": 95,
+        "conciseness": 85
+      },
+      "keywordAnalysis": {
+        "present": [
+          {
+            "keyword": "product strategy",
+            "count": 3
+          },
+          {
+            "keyword": "strategy",
+            "count": 5
+          },
+          {
+            "keyword": "roadmap",
+            "count": 3
+          },
+          {
+            "keyword": "roadmapping",
+            "count": 1
+          },
+          {
+            "keyword": "stakeholder",
+            "count": 0
+          },
+          {
+            "keyword": "metrics",
+            "count": 1
+          },
+          {
+            "keyword": "kpi",
+            "count": 1
+          },
+          {
+            "keyword": "user research",
+            "count": 2
+          },
+          {
+            "keyword": "user interviewing",
+            "count": 1
+          },
+          {
+            "keyword": "a/b testing",
+            "count": 3
+          },
+          {
+            "keyword": "product launch / launched",
+            "count": 6
+          },
+          {
+            "keyword": "go-to-market",
+            "count": 0
+          },
+          {
+            "keyword": "product-market fit",
+            "count": 0
+          },
+          {
+            "keyword": "user experience / ux",
+            "count": 1
+          },
+          {
+            "keyword": "data-driven / analytics",
+            "count": 6
+          },
+          {
+            "keyword": "agile",
+            "count": 0
+          },
+          {
+            "keyword": "scrum",
+            "count": 0
+          },
+          {
+            "keyword": "sprint",
+            "count": 0
+          },
+          {
+            "keyword": "backlog",
+            "count": 0
+          },
+          {
+            "keyword": "prioritization / prioritized",
+            "count": 2
+          },
+          {
+            "keyword": "experimentation",
+            "count": 2
+          },
+          {
+            "keyword": "wireframe / wireframing",
+            "count": 2
+          },
+          {
+            "keyword": "prototype / prototyping",
+            "count": 2
+          },
+          {
+            "keyword": "dashboard / analytics dashboards",
+            "count": 3
+          },
+          {
+            "keyword": "kpi / kpis",
+            "count": 2
+          },
+          {
+            "keyword": "collaboration / cross-functional",
+            "count": 3
+          },
+          {
+            "keyword": "partner / partnerships",
+            "count": 2
+          },
+          {
+            "keyword": "product roadmap",
+            "count": 2
+          },
+          {
+            "keyword": "user",
+            "count": 18
+          },
+          {
+            "keyword": "conversion",
+            "count": 1
+          },
+          {
+            "keyword": "subscription rate / trial to subscription",
+            "count": 3
+          },
+          {
+            "keyword": "engagement",
+            "count": 2
+          }
+        ],
+        "missing": [
+          {
+            "keyword": "stakeholders",
+            "priority": "high"
+          },
+          {
+            "keyword": "agile",
+            "priority": "high"
+          },
+          {
+            "keyword": "scrum",
+            "priority": "medium"
+          },
+          {
+            "keyword": "sprints",
+            "priority": "medium"
+          },
+          {
+            "keyword": "backlog",
+            "priority": "medium"
+          },
+          {
+            "keyword": "okrs",
+            "priority": "medium"
+          },
+          {
+            "keyword": "go-to-market",
+            "priority": "high"
+          },
+          {
+            "keyword": "product discovery",
+            "priority": "medium"
+          },
+          {
+            "keyword": "competitive analysis",
+            "priority": "medium"
+          },
+          {
+            "keyword": "segmentation",
+            "priority": "medium"
+          },
+          {
+            "keyword": "positioning",
+            "priority": "medium"
+          },
+          {
+            "keyword": "product requirements document / prd",
+            "priority": "medium"
+          },
+          {
+            "keyword": "roadmap prioritization frameworks (rice, kano, etc.)",
+            "priority": "medium"
+          },
+          {
+            "keyword": "north star metric",
+            "priority": "low"
+          },
+          {
+            "keyword": "product-market fit",
+            "priority": "medium"
+          },
+          {
+            "keyword": "cohort analysis",
+            "priority": "low"
+          },
+          {
+            "keyword": "experimentation framework",
+            "priority": "medium"
+          },
+          {
+            "keyword": "usability testing",
+            "priority": "medium"
+          },
+          {
+            "keyword": "user stories",
+            "priority": "medium"
+          },
+          {
+            "keyword": "acceptance criteria",
+            "priority": "low"
+          },
+          {
+            "keyword": "cross-functional stakeholders",
+            "priority": "high"
+          },
+          {
+            "keyword": "goals / hypotheses",
+            "priority": "medium"
+          },
+          {
+            "keyword": "retention",
+            "priority": "medium"
+          }
+        ],
+        "density": 10.2
+      },
+      "atsCompatibility": "Good",
+      "atsExplanation": "The resume is in a clean, linear text format with clear section headers (Work Experience, Education, Skills) and standard job title/date/location structure. Bullet points are straightforward and should parse well in most ATS systems. You use common PM titles and many relevant keywords. Minor improvements would be adding a clear one-line title under your name and ensuring there are no unusual characters or table-based layouts in the actual document file, but based on the provided text, ATS compatibility is strong.",
+      "recommendations": [
+        {
+          "priority": 1,
+          "title": "Add a concise summary focused on senior PM / Group PM scope and domains",
+          "description": "Add a 2–3 line professional summary under your name that crisply states your level (e.g., Lead/Senior PM), key domains (creator economy, commerce, mobile), and core strengths (data-driven experimentation, 0→1, monetization, growth). For example: “Lead Product Manager with 7+ years owning 0→1 and growth products across creator tools, commerce, and mobile apps; drives double-digit conversion and revenue lifts through data-driven experimentation and strong cross-functional leadership.” This immediately orients recruiters and aligns you with senior PM/lead roles.",
+          "impact": "high"
+        },
+        {
+          "priority": 2,
+          "title": "Reduce duplication between the two Squarespace roles and show progression",
+          "description": "The Senior PM and PM roles at Squarespace currently repeat almost identical bullets. Collapse them into a single \"Product Manager → Senior Product Manager, Commerce\" entry with one date range and a short line indicating promotion timing. Then group the achievements once, and add 1–2 bullets explicitly highlighting scope growth (e.g., larger revenue responsibility, bigger customer segments, or more strategic ownership) to reinforce career progression.",
+          "impact": "high"
+        },
+        {
+          "priority": 3,
+          "title": "Explicitly highlight frameworks and delivery methods (Agile, backlog, OKRs, prioritization frameworks)",
+          "description": "You clearly *do* these things, but they’re not keyworded. Add phrases like “drove Agile delivery with prioritized backlog across design and engineering,” “used A/B testing and prioritization frameworks (e.g., RICE) to sequence roadmap,” and “aligned roadmap to OKRs and KPIs.” This will improve searchability for senior PM roles and make your process more legible to hiring managers without changing the underlying story.",
+          "impact": "high"
+        },
+        {
+          "priority": 4,
+          "title": "Tighten wording in a few bullets to maximize impact per line",
+          "description": "Most bullets are strong, but you can sharpen some by trimming setup and foregrounding outcome. For example, “Defined, executed, and iterated product strategy in collaboration with CEO, CTO, and broader team” could become “Owned end-to-end product strategy in partnership with CEO/CTO, driving X% growth in [key metric if available].” Similarly, where you have “Created automated re-engagement email campaigns, leading to a 38% increase…” you might shorten to “Drove 38% lift in creator posting via automated re-engagement email campaigns.” This keeps the resume highly scannable and impact-first.",
+          "impact": "medium"
+        },
+        {
+          "priority": 5,
+          "title": "Add a brief line of company / product context for newer or less-known organizations",
+          "description": "For SageSpot and Stand Up Tech, add a short descriptor under the company name (e.g., “Seed-stage creator monetization platform” or “Early-stage startup building consumer social and CRM apps”). This helps recruiters immediately understand the domain, stage, and scale, and better interpret the impact of your metrics and responsibilities.",
+          "impact": "medium"
+        },
+        {
+          "priority": 6,
+          "title": "Amplify leadership and cross-functional ownership explicitly",
+          "description": "You clearly collaborate with executives and partners; make leadership more explicit in a few bullets. Add phrases like “led X-person cross-functional squad,” “influenced executive decisions on pricing/positioning,” or “owned partner roadmap with Meta/Twilio/Square” to show scope of leadership beyond individual contribution. This is especially important as a Lead PM seeking higher-level roles.",
+          "impact": "medium"
+        },
+        {
+          "priority": 7,
+          "title": "Broaden product-thinking language beyond growth to include discovery and strategy artifacts",
+          "description": "Your resume skews (in a good way) toward growth and experimentation. Complement this by explicitly referencing discovery activities and artifacts: e.g., “drove product discovery via user interviews, usability testing, and prototype validation,” “authored PRDs / specs aligning design and engineering,” or “defined product vision and multi-quarter roadmap for [area].” This reassures hiring managers you cover the full PM spectrum: discovery, delivery, and iteration.",
+          "impact": "medium"
+        }
+      ],
+      "categoryDescriptions": {
+        "actionVerbs": "Action verbs are strong, varied, and PM-appropriate: you use \"Defined,\" \"Executed,\" \"Launched,\" \"Increased,\" \"De-risked,\" \"Built,\" \"Created,\" \"Led,\" and \"Introduced,\" among others. They consistently portray ownership and leadership rather than passivity. There’s minor room to add even more senior-leaning verbs like “orchestrated,” “owned,” and “drove” in a few places, but overall this is a standout area.",
+        "accomplishments": "The resume is heavily accomplishment-focused, with nearly every bullet tied to a tangible outcome (conversion lifts, subscriptions, ARR, ratings, contracts). You avoid responsibility-only bullets and consistently show what changed because of your work. There is still potential to tie a few strategy or process bullets to explicit outcomes (e.g., impact of strategy ownership or roadmap reports), but the baseline is excellent.",
+        "quantification": "This is one of the strongest aspects of your resume. You quantify conversion increases, subscription rates, YoY lifts, ARR impact, user counts, rating changes, and more. Very few PM resumes have this density and variety of metrics. The only incremental improvement would be to add scale context where missing (e.g., approximate MAUs or revenue bands for certain products) to further ground the numbers.",
+        "impact": "Impact is clearly and repeatedly demonstrated: increased subscription rates by 47–60%, 130% more payment processor connections leading to $1.2M+ ARR, 5x Enterprise ARR, 19% checkout conversion lift, 44% reduction in support inquiries, etc. The business/user outcomes are front and center. You could further strengthen this by occasionally tying outcomes to broader company goals (e.g., retention, LTV, or strategic expansions), but overall impact signaling is very strong.",
+        "conciseness": "Your bullets are generally concise, direct, and scannable, with minimal filler. You stay focused on outcomes per line and avoid narrative fluff. Some sections (notably the duplicated Squarespace roles) can be consolidated, and a few bullets can be made even more punchy by front-loading the results and trimming setup language, which would further improve readability, especially for senior roles being skimmed quickly."
+      }
+    }
+  },
+  "slim": {
+    "success": true,
+    "durationMs": 2785,
+    "inputTokens": 1361,
+    "outputTokens": 118,
+    "promptLength": 5657,
+    "data": {
+      "overallScore": 94,
+      "categoryScores": {
+        "actionVerbs": 90,
+        "accomplishments": 100,
+        "quantification": 100,
+        "impact": 95,
+        "conciseness": 85
+      },
+      "missingKeywords": [
+        "stakeholders",
+        "OKRs",
+        "KPIs (as a keyword in skills)",
+        "go-to-market",
+        "agile",
+        "scrum",
+        "backlog",
+        "user stories",
+        "requirements",
+        "PRD",
+        "market research",
+        "competitive analysis",
+        "prioritization frameworks (e.g., RICE)",
+        "launch strategy",
+        "experimentation framework"
+      ]
+    }
+  },
+  "critical": {
+    "success": true,
+    "durationMs": 3374,
+    "inputTokens": 1728,
+    "outputTokens": 136,
+    "promptLength": 7008,
+    "data": {
+      "overallScore": 88,
+      "categoryScores": {
+        "actionVerbs": 88,
+        "accomplishments": 92,
+        "quantification": 95,
+        "impact": 92,
+        "conciseness": 78
+      },
+      "missingKeywords": [
+        "stakeholders",
+        "OKRs",
+        "KPIs (explicitly as OKRs / goal-setting framework)",
+        "go-to-market",
+        "agile",
+        "scrum",
+        "backlog",
+        "prioritization framework (RICE, MoSCoW, etc.)",
+        "product-market fit",
+        "user stories",
+        "epics",
+        "competitive analysis",
+        "roadmap ownership (explicit phrase)",
+        "sprint",
+        "customer journey / user journey mapping"
+      ]
+    }
+  }
+}

@@ -479,10 +479,10 @@ export const ResumeUploadStep = ({ onNext, onSkip }: ResumeUploadStepProps) => {
     <div className="max-w-2xl mx-auto p-8">
       <div className="mb-8">
         <h2 className="text-3xl font-black text-gray-900 mb-4">
-          Upload Your Resume
+          Get a Free PM Resume Analysis
         </h2>
         <p className="text-lg text-gray-700 font-semibold">
-          We'll analyze your resume and provide insights to help you improve it.
+          Upload your resume to import your experiences and set a baseline.
         </p>
       </div>
 

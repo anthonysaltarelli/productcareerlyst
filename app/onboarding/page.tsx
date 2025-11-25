@@ -22,7 +22,7 @@ const ALL_STEPS = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { progress, loading, setCurrentStep, markComplete } = useOnboardingProgress();
+  const { progress, loading, setCurrentStep, markComplete, refresh } = useOnboardingProgress();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean | null>(null);
   const [checkingSubscription, setCheckingSubscription] = useState(true);
@@ -119,6 +119,9 @@ export default function OnboardingPage() {
       const nextIndex = currentStepIndex + 1;
       const currentStep = STEPS[currentStepIndex];
       const nextStep = STEPS[nextIndex];
+      
+      // Refresh progress to get latest completed_steps (e.g., from background uploads)
+      refresh();
       
       setCurrentStepIndex(nextIndex);
       setCurrentStep(STEPS[nextIndex].id);

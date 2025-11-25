@@ -31,18 +31,19 @@ type AnalysisData = {
     present: KeywordItem[];
     missing: KeywordItem[];
     density: number;
-  };
-  atsCompatibility: 'Good' | 'Fair' | 'Poor';
-  atsExplanation: string;
-  recommendations: Recommendation[];
+  } | null;
+  atsCompatibility: 'Good' | 'Fair' | 'Poor' | null;
+  atsExplanation: string | null;
+  recommendations: Recommendation[] | null;
   categoryDescriptions: {
     actionVerbs: string;
     accomplishments: string;
     quantification: string;
     impact: string;
     conciseness: string;
-  };
+  } | null;
   createdAt?: string;
+  analysisType?: 'full' | 'onboarding';
 };
 
 type Props = {
@@ -226,9 +227,39 @@ export default function ResumeAnalysisContent({
 
   const grade = scoreToGrade(analysis.overallScore);
   const gradeColor = getGradeColor(grade);
+  const isOnboardingAnalysis = analysis.analysisType === 'onboarding';
 
   return (
     <div className="space-y-6">
+      {/* Onboarding Analysis Banner - Show if this is a limited analysis */}
+      {isOnboardingAnalysis && (
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-6 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Quick Analysis Preview</h3>
+              <p className="text-sm text-gray-700 mb-3">
+                This is a quick analysis from onboarding. Run a full analysis to get detailed recommendations, 
+                ATS compatibility scores, category explanations, and more.
+              </p>
+              {onReAnalyze && userPlan === 'accelerate' && (
+                <button
+                  onClick={onReAnalyze}
+                  disabled={isAnalyzing || usageRemaining === 0}
+                  className="px-4 py-2 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold text-sm rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isAnalyzing ? 'Analyzing...' : 'Run Full Analysis'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
         <div className="flex items-center justify-between mb-6">
@@ -284,7 +315,7 @@ export default function ResumeAnalysisContent({
           {Object.entries(analysis.categoryScores).map(([key, score]) => {
             const categoryGrade = scoreToGrade(score);
             const categoryColor = getGradeColor(categoryGrade);
-            const description = analysis.categoryDescriptions[key as keyof typeof analysis.categoryDescriptions];
+            const description = analysis.categoryDescriptions?.[key as keyof typeof analysis.categoryDescriptions];
             const categoryName = key
               .replace(/([A-Z])/g, ' $1')
               .replace(/^./, str => str.toUpperCase())
@@ -310,7 +341,11 @@ export default function ResumeAnalysisContent({
                     style={{ width: `${score}%` }}
                   />
                 </div>
-                <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
+                {description ? (
+                  <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
+                ) : isOnboardingAnalysis ? (
+                  <p className="text-sm text-gray-400 italic">Run full analysis for detailed explanation</p>
+                ) : null}
               </div>
             );
           })}
@@ -318,156 +353,219 @@ export default function ResumeAnalysisContent({
       </div>
 
       {/* Keyword Analysis */}
-      <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Keyword Analysis</h3>
-        
-        <div className="mb-6 p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-slate-200">
-          {(() => {
-            const presentKeywords = analysis.keywordAnalysis.present.filter(item => (item.count || 0) > 0).length;
-            const totalExpected = presentKeywords + analysis.keywordAnalysis.missing.length;
-            const coverage = totalExpected > 0 ? Math.round((presentKeywords / totalExpected) * 100) : 0;
-            
-            return (
-              <div>
-                <span className="text-sm font-bold text-gray-700">PM Keywords Found</span>
-                <p className="text-lg font-bold text-gray-900 mt-2">
-                  {presentKeywords} of {totalExpected} expected keywords ({coverage}% coverage)
-                </p>
-              </div>
-            );
-          })()}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Present Keywords */}
-          <div>
-            <h4 className="text-sm font-bold text-gray-700 mb-3">Present Keywords</h4>
-            <div className="flex flex-wrap gap-2">
-              {analysis.keywordAnalysis.present.filter(item => (item.count || 0) > 0).length > 0 ? (
-                analysis.keywordAnalysis.present
-                  .filter(item => (item.count || 0) > 0)
-                  .sort((a, b) => (b.count || 0) - (a.count || 0))
-                  .map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 text-green-700 rounded-lg text-xs font-medium shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      <span className="font-semibold">{item.keyword}</span>
-                      {item.count !== undefined && (
-                        <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded font-bold text-[10px]">
-                          {item.count}
-                        </span>
-                      )}
-                    </div>
-                  ))
-              ) : (
-                <p className="text-sm text-gray-500">No keywords found</p>
-              )}
+      {analysis.keywordAnalysis && (
+        <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
+          <h3 className="text-xl font-bold text-gray-900 mb-6">Keyword Analysis</h3>
+          
+          {/* Show summary only if we have present keywords data (full analysis) */}
+          {!isOnboardingAnalysis && analysis.keywordAnalysis.present && (
+            <div className="mb-6 p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-slate-200">
+              {(() => {
+                const presentKeywords = analysis.keywordAnalysis.present.filter(item => (item.count || 0) > 0).length;
+                const totalExpected = presentKeywords + analysis.keywordAnalysis.missing.length;
+                const coverage = totalExpected > 0 ? Math.round((presentKeywords / totalExpected) * 100) : 0;
+                
+                return (
+                  <div>
+                    <span className="text-sm font-bold text-gray-700">PM Keywords Found</span>
+                    <p className="text-lg font-bold text-gray-900 mt-2">
+                      {presentKeywords} of {totalExpected} expected keywords ({coverage}% coverage)
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
-          </div>
+          )}
 
-          {/* Missing Keywords */}
-          <div>
-            <h4 className="text-sm font-bold text-gray-700 mb-3">Missing Keywords</h4>
-            <div className="flex flex-wrap gap-2">
-              {analysis.keywordAnalysis.missing.length > 0 ? (
-                analysis.keywordAnalysis.missing
-                  .sort((a, b) => {
-                    const priorityOrder = { high: 0, medium: 1, low: 2 };
-                    return priorityOrder[a.priority || 'low'] - priorityOrder[b.priority || 'low'];
-                  })
-                  .map((item, idx) => (
+          {/* For onboarding analysis, show only missing keywords */}
+          {isOnboardingAnalysis ? (
+            <div>
+              <h4 className="text-sm font-bold text-gray-700 mb-3">Missing Keywords</h4>
+              <p className="text-sm text-gray-600 mb-4">
+                Add these keywords to strengthen your resume for PM roles:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {analysis.keywordAnalysis.missing.length > 0 ? (
+                  analysis.keywordAnalysis.missing.map((item, idx) => (
                     <div
                       key={idx}
-                      className={`inline-flex items-center px-3 py-1.5 border rounded-lg text-xs font-medium shadow-sm hover:shadow-md transition-shadow ${getPriorityColor(item.priority || 'low')}`}
+                      className={`inline-flex items-center px-3 py-1.5 border rounded-lg text-xs font-medium shadow-sm hover:shadow-md transition-shadow ${getPriorityColor(item.priority || 'medium')}`}
                     >
                       {item.keyword}
                     </div>
                   ))
-              ) : (
-                <p className="text-sm text-gray-500">All expected keywords present!</p>
-              )}
+                ) : (
+                  <p className="text-sm text-gray-500">All expected keywords present!</p>
+                )}
+              </div>
+              <p className="text-sm text-gray-400 italic mt-4">
+                Run full analysis to see which keywords are already present in your resume.
+              </p>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ATS Compatibility */}
-      <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">ATS Compatibility</h3>
-        <div className="flex items-center gap-3 mb-4">
-          <span className={`text-sm font-bold px-3 py-1.5 rounded border ${getATSColor(analysis.atsCompatibility)}`}>
-            {analysis.atsCompatibility}
-          </span>
-        </div>
-        <p className="text-sm text-gray-600 leading-relaxed">{analysis.atsExplanation}</p>
-      </div>
-
-      {/* Recommendations */}
-      <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Recommendations</h3>
-        <div className="space-y-3">
-          {analysis.recommendations
-            .sort((a, b) => a.priority - b.priority)
-            .map((rec, index) => {
-              const isExpanded = expandedRecommendations.has(rec.priority);
-              return (
-                <div
-                  key={rec.priority}
-                  className="border-2 border-slate-200 rounded-xl overflow-hidden bg-gradient-to-br from-white to-slate-50 hover:border-blue-300 hover:shadow-md transition-all duration-200 animate-fade-in-up"
-                  style={{
-                    animationDelay: `${index * 100}ms`,
-                  }}
-                >
-                  <button
-                    onClick={() => toggleRecommendation(rec.priority)}
-                    className="w-full p-5 text-left transition-all flex items-start justify-between group"
-                  >
-                    <div className="flex items-start gap-4 flex-1 min-w-0">
-                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-xl flex items-center justify-center font-bold text-base shadow-sm">
-                        {rec.priority}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-3 mb-2">
-                          <h4 className="text-base font-bold text-gray-900 leading-snug pr-2">{rec.title}</h4>
-                          <span className={`text-xs font-bold px-3 py-1 rounded-lg border flex-shrink-0 flex items-center justify-center mr-3 ${getImpactColor(rec.impact)}`}>
-                            {rec.impact.charAt(0).toUpperCase() + rec.impact.slice(1)}
-                          </span>
-                        </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Present Keywords */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-700 mb-3">Present Keywords</h4>
+                <div className="flex flex-wrap gap-2">
+                  {analysis.keywordAnalysis.present && analysis.keywordAnalysis.present.filter(item => (item.count || 0) > 0).length > 0 ? (
+                    analysis.keywordAnalysis.present
+                      .filter(item => (item.count || 0) > 0)
+                      .sort((a, b) => (b.count || 0) - (a.count || 0))
+                      .map((item, idx) => (
                         <div
-                          className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                            isExpanded ? 'max-h-0 opacity-0' : 'max-h-20 opacity-100'
-                          }`}
+                          key={idx}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 text-green-700 rounded-lg text-xs font-medium shadow-sm hover:shadow-md transition-shadow"
                         >
-                          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">{rec.description}</p>
+                          <span className="font-semibold">{item.keyword}</span>
+                          {item.count !== undefined && (
+                            <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded font-bold text-[10px]">
+                              {item.count}
+                            </span>
+                          )}
+                        </div>
+                      ))
+                  ) : (
+                    <p className="text-sm text-gray-500">No keywords found</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Missing Keywords */}
+              <div>
+                <h4 className="text-sm font-bold text-gray-700 mb-3">Missing Keywords</h4>
+                <div className="flex flex-wrap gap-2">
+                  {analysis.keywordAnalysis.missing.length > 0 ? (
+                    analysis.keywordAnalysis.missing
+                      .sort((a, b) => {
+                        const priorityOrder = { high: 0, medium: 1, low: 2 };
+                        return priorityOrder[a.priority || 'low'] - priorityOrder[b.priority || 'low'];
+                      })
+                      .map((item, idx) => (
+                        <div
+                          key={idx}
+                          className={`inline-flex items-center px-3 py-1.5 border rounded-lg text-xs font-medium shadow-sm hover:shadow-md transition-shadow ${getPriorityColor(item.priority || 'low')}`}
+                        >
+                          {item.keyword}
+                        </div>
+                      ))
+                  ) : (
+                    <p className="text-sm text-gray-500">All expected keywords present!</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ATS Compatibility - Only show for full analysis */}
+      {analysis.atsCompatibility && (
+        <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">ATS Compatibility</h3>
+          <div className="flex items-center gap-3 mb-4">
+            <span className={`text-sm font-bold px-3 py-1.5 rounded border ${getATSColor(analysis.atsCompatibility)}`}>
+              {analysis.atsCompatibility}
+            </span>
+          </div>
+          <p className="text-sm text-gray-600 leading-relaxed">{analysis.atsExplanation}</p>
+        </div>
+      )}
+
+      {/* Recommendations - Only show for full analysis */}
+      {analysis.recommendations && analysis.recommendations.length > 0 && (
+        <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
+          <h3 className="text-xl font-bold text-gray-900 mb-6">Recommendations</h3>
+          <div className="space-y-3">
+            {analysis.recommendations
+              .sort((a, b) => a.priority - b.priority)
+              .map((rec, index) => {
+                const isExpanded = expandedRecommendations.has(rec.priority);
+                return (
+                  <div
+                    key={rec.priority}
+                    className="border-2 border-slate-200 rounded-xl overflow-hidden bg-gradient-to-br from-white to-slate-50 hover:border-blue-300 hover:shadow-md transition-all duration-200 animate-fade-in-up"
+                    style={{
+                      animationDelay: `${index * 100}ms`,
+                    }}
+                  >
+                    <button
+                      onClick={() => toggleRecommendation(rec.priority)}
+                      className="w-full p-5 text-left transition-all flex items-start justify-between group"
+                    >
+                      <div className="flex items-start gap-4 flex-1 min-w-0">
+                        <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-xl flex items-center justify-center font-bold text-base shadow-sm">
+                          {rec.priority}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <h4 className="text-base font-bold text-gray-900 leading-snug pr-2">{rec.title}</h4>
+                            <span className={`text-xs font-bold px-3 py-1 rounded-lg border flex-shrink-0 flex items-center justify-center mr-3 ${getImpactColor(rec.impact)}`}>
+                              {rec.impact.charAt(0).toUpperCase() + rec.impact.slice(1)}
+                            </span>
+                          </div>
+                          <div
+                            className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                              isExpanded ? 'max-h-0 opacity-0' : 'max-h-20 opacity-100'
+                            }`}
+                          >
+                            <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">{rec.description}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <svg
-                      className={`w-5 h-5 text-gray-400 transition-all duration-300 flex-shrink-0 mt-1 group-hover:text-gray-600 ${
-                        isExpanded ? 'rotate-180' : ''
+                      <svg
+                        className={`w-5 h-5 text-gray-400 transition-all duration-300 flex-shrink-0 mt-1 group-hover:text-gray-600 ${
+                          isExpanded ? 'rotate-180' : ''
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                        isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
                       }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  <div
-                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                      isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
-                    }`}
-                  >
-                    <div className="px-5 pb-5 pt-0 border-t border-slate-100">
-                      <p className="text-sm text-gray-600 leading-relaxed pt-4">{rec.description}</p>
+                      <div className="px-5 pb-5 pt-0 border-t border-slate-100">
+                        <p className="text-sm text-gray-600 leading-relaxed pt-4">{rec.description}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* For onboarding analysis, show upgrade prompt at the bottom */}
+      {isOnboardingAnalysis && (
+        <div className="bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div className="text-center">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Want More Insights?</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Run a full analysis to unlock ATS compatibility scores, personalized recommendations, 
+              detailed category explanations, and keyword density metrics.
+            </p>
+            {onReAnalyze && userPlan === 'accelerate' && (
+              <button
+                onClick={onReAnalyze}
+                disabled={isAnalyzing || usageRemaining === 0}
+                className="px-6 py-3 bg-gradient-to-br from-purple-500 to-blue-500 text-white font-bold rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isAnalyzing ? 'Analyzing...' : 'Run Full Analysis'}
+              </button>
+            )}
+            {userPlan !== 'accelerate' && (
+              <p className="text-sm text-purple-700 font-semibold mt-2">
+                Upgrade to Accelerate to access full analysis features
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -80,19 +80,21 @@ export const GET = async (
       });
     }
 
-    const analysisData = analysis.analysis_data;
+    const storedAnalysisData = analysis.analysis_data;
+    const isOnboardingAnalysis = storedAnalysisData.analysisType === 'onboarding';
 
     return NextResponse.json({
       analysis: {
         id: analysis.id,
         overallScore: analysis.overall_score,
-        categoryScores: analysisData.categoryScores,
-        keywordAnalysis: analysisData.keywordAnalysis,
-        atsCompatibility: analysisData.atsCompatibility,
-        atsExplanation: analysisData.atsExplanation,
-        recommendations: analysisData.recommendations,
-        categoryDescriptions: analysisData.categoryDescriptions,
+        categoryScores: storedAnalysisData.categoryScores,
+        keywordAnalysis: storedAnalysisData.keywordAnalysis,
+        atsCompatibility: storedAnalysisData.atsCompatibility,
+        atsExplanation: storedAnalysisData.atsExplanation,
+        recommendations: storedAnalysisData.recommendations,
+        categoryDescriptions: storedAnalysisData.categoryDescriptions,
         createdAt: analysis.created_at,
+        analysisType: isOnboardingAnalysis ? 'onboarding' : 'full',
       },
       usage: {
         count: usageCount,
@@ -111,7 +113,7 @@ export const GET = async (
   }
 };
 
-// JSON Schema for structured output
+// JSON Schema for FULL structured output (regular analysis)
 const RESUME_ANALYSIS_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -210,6 +212,38 @@ const RESUME_ANALYSIS_SCHEMA = {
     'recommendations',
     'categoryDescriptions',
   ],
+};
+
+// JSON Schema for ONBOARDING analysis (faster, critical evaluation)
+const ONBOARDING_ANALYSIS_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    overallScore: {
+      type: 'integer',
+      minimum: 0,
+      maximum: 100,
+    },
+    categoryScores: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        actionVerbs: { type: 'integer', minimum: 0, maximum: 100 },
+        accomplishments: { type: 'integer', minimum: 0, maximum: 100 },
+        quantification: { type: 'integer', minimum: 0, maximum: 100 },
+        impact: { type: 'integer', minimum: 0, maximum: 100 },
+        conciseness: { type: 'integer', minimum: 0, maximum: 100 },
+      },
+      required: ['actionVerbs', 'accomplishments', 'quantification', 'impact', 'conciseness'],
+    },
+    missingKeywords: {
+      type: 'array',
+      items: { type: 'string' },
+      minItems: 10,
+      maxItems: 15,
+    },
+  },
+  required: ['overallScore', 'categoryScores', 'missingKeywords'],
 };
 
 // Format resume data into text for analysis
@@ -354,6 +388,53 @@ ${resumeText}
 - Be honest but encouraging`;
 };
 
+// Create CRITICAL onboarding prompt (faster, stricter evaluation to drive conversions)
+const createOnboardingPrompt = (resumeText: string): string => {
+  return `You are a STRICT expert PM resume reviewer. Evaluate this resume critically - most resumes score 70-85, only exceptional ones reach 90+.
+
+**Score STRICTLY (0-100):**
+
+1. **Action Verbs (0-100):**
+   - 90+: Every bullet starts with powerful, varied verbs (Spearheaded, Orchestrated, Drove, Transformed)
+   - 80-89: Strong verbs but some repetition or occasional weak verbs
+   - 70-79: Mix of strong and generic verbs (Created, Managed, Worked on)
+   - Below 70: Mostly weak/passive verbs
+
+2. **Accomplishments (0-100):**
+   - 90+: Every bullet shows measurable business outcomes, not just activities
+   - 80-89: Most bullets show results, a few are activity-focused
+   - 70-79: Some results, but many bullets describe duties without outcomes
+   - Below 70: Mostly responsibilities, few concrete achievements
+
+3. **Quantification (0-100):**
+   - 90+: 80%+ of bullets have specific numbers, percentages, or metrics
+   - 80-89: 60-80% quantified, some bullets lack data
+   - 70-79: 40-60% quantified, many opportunities missed
+   - Below 70: Under 40% quantified
+
+4. **Impact (0-100):**
+   - 90+: Clear business/user/revenue impact in every role, shows scale
+   - 80-89: Good impact shown but missing context (team size, user base, revenue)
+   - 70-79: Some impact but often vague or lacks business connection
+   - Below 70: Activities described without showing why they mattered
+
+5. **Conciseness (0-100):**
+   - 90+: Every word serves a purpose, no redundancy, highly scannable
+   - 80-89: Generally tight but some wordy bullets or duplicated content
+   - 70-79: Several long bullets, some redundancy across roles
+   - Below 70: Verbose, hard to scan, significant redundancy
+
+**Overall Score:** Calculate weighted average: Action Verbs 20%, Accomplishments 25%, Quantification 20%, Impact 25%, Conciseness 10%. Round to integer.
+
+**Missing Keywords:** List 10-15 PM keywords NOT found in this resume. Include essential PM keywords like:
+stakeholders, OKRs, KPIs, go-to-market, agile, scrum, backlog, prioritization framework, product-market fit, user stories, competitive analysis, roadmap ownership, sprint, customer journey, data-driven, A/B testing, user research, product strategy, cross-functional, MVP, etc.
+
+**Resume:**
+${resumeText}
+
+Score RIGOROUSLY. Identify real gaps. Be honest about weaknesses - this helps users understand where they need to improve.`;
+};
+
 // Check and increment usage limit using subscription system
 const checkAndIncrementUsage = async (supabase: any, userId: string): Promise<{ allowed: boolean; count: number; resetDate: string; limit: number | null; requiresSubscription: boolean; requiresAccelerate: boolean }> => {
   const { canUseFeature, incrementFeatureUsage, getUserPlan } = await import('@/lib/utils/subscription');
@@ -441,13 +522,27 @@ export const POST = async (
     let onboardingAnalysisUsed = false;
     let allowOnboardingAnalysis = false;
 
+    console.log('[Analyze API] Onboarding check:', {
+      isOnboardingRequest,
+      versionId,
+      userId: user.id,
+    });
+
     if (isOnboardingRequest) {
       // Check onboarding progress to see if user is in onboarding and hasn't used analysis yet
-      const { data: onboardingProgress } = await supabase
+      const { data: onboardingProgress, error: progressError } = await supabase
         .from('onboarding_progress')
         .select('progress_data, is_complete')
         .eq('user_id', user.id)
         .maybeSingle();
+
+      console.log('[Analyze API] Onboarding progress result:', {
+        hasProgress: !!onboardingProgress,
+        progressError: progressError?.message,
+        isComplete: onboardingProgress?.is_complete,
+        progressData: onboardingProgress?.progress_data ? 'exists' : 'null',
+        resumeUploadData: onboardingProgress?.progress_data?.resume_upload ? 'exists' : 'null',
+      });
 
       if (onboardingProgress && !onboardingProgress.is_complete) {
         // User is in onboarding
@@ -455,18 +550,49 @@ export const POST = async (
         const onboardingVersionId = resumeUploadData?.versionId;
         onboardingAnalysisUsed = resumeUploadData?.onboardingAnalysisUsed === true;
         
+        console.log('[Analyze API] Onboarding analysis check:', {
+          onboardingVersionId,
+          requestVersionId: versionId,
+          versionIdsMatch: onboardingVersionId === versionId,
+          onboardingAnalysisUsed,
+        });
+        
         // Only allow if: user hasn't used it yet AND the versionId matches the one from onboarding
         if (!onboardingAnalysisUsed && onboardingVersionId === versionId) {
           // Allow one-time analysis during onboarding for this specific resume
           allowOnboardingAnalysis = true;
+          console.log('[Analyze API] ✓ Onboarding analysis ALLOWED (versionId match)');
+        } else if (!onboardingAnalysisUsed && !onboardingVersionId) {
+          // Fallback: If versionId not yet stored but analysis not used, allow it
+          // This handles race conditions where progress might not be synced yet
+          allowOnboardingAnalysis = true;
+          console.log('[Analyze API] ✓ Onboarding analysis ALLOWED (fallback - no stored versionId yet)');
+        } else {
+          console.log('[Analyze API] ✗ Onboarding analysis NOT allowed:', {
+            reason: onboardingAnalysisUsed ? 'already used' : 'versionId mismatch',
+          });
         }
+      } else if (!onboardingProgress) {
+        // No progress record exists yet - this is a new user
+        // Allow the free analysis since they clearly haven't used it
+        allowOnboardingAnalysis = true;
+        console.log('[Analyze API] ✓ Onboarding analysis ALLOWED (new user - no progress record)');
+      } else {
+        console.log('[Analyze API] ✗ Onboarding analysis NOT allowed:', {
+          reason: 'onboarding complete',
+        });
       }
     }
 
     // Check usage limit (skip if onboarding analysis is allowed)
     let usageCheck;
+    console.log('[Analyze API] Usage check:', { allowOnboardingAnalysis });
+    
     if (!allowOnboardingAnalysis) {
+      console.log('[Analyze API] Checking subscription/usage (onboarding not allowed)...');
       usageCheck = await checkAndIncrementUsage(supabase, user.id);
+      console.log('[Analyze API] Usage check result:', usageCheck);
+      
       if (!usageCheck.allowed) {
         // Check if Accelerate plan is required
         if (usageCheck.requiresAccelerate) {
@@ -676,7 +802,23 @@ export const POST = async (
     };
 
     const resumeText = formatResumeForAnalysis(resumeData);
-    const prompt = createAnalysisPrompt(resumeText);
+    
+    // Use different prompt and schema for onboarding (faster, critical evaluation)
+    const prompt = allowOnboardingAnalysis 
+      ? createOnboardingPrompt(resumeText) 
+      : createAnalysisPrompt(resumeText);
+    const schema = allowOnboardingAnalysis 
+      ? ONBOARDING_ANALYSIS_SCHEMA 
+      : RESUME_ANALYSIS_SCHEMA;
+    const schemaName = allowOnboardingAnalysis 
+      ? 'resume_analysis_onboarding' 
+      : 'resume_analysis';
+
+    console.log('[Analyze API] Starting OpenAI call:', {
+      allowOnboardingAnalysis,
+      schemaName,
+      promptLength: prompt.length,
+    });
 
     // Call OpenAI Responses API with structured output
     const requestPayload = {
@@ -696,8 +838,8 @@ export const POST = async (
       text: {
         format: {
           type: 'json_schema',
-          name: 'resume_analysis',
-          schema: RESUME_ANALYSIS_SCHEMA,
+          name: schemaName,
+          schema: schema,
           strict: true,
         },
       },
@@ -828,12 +970,35 @@ export const POST = async (
       );
     }
 
+    // Transform onboarding analysis to compatible format if needed
+    let analysisDataToStore = extractedData;
+    if (allowOnboardingAnalysis) {
+      // Transform missingKeywords array to keywordAnalysis format for consistency
+      analysisDataToStore = {
+        ...extractedData,
+        analysisType: 'onboarding', // Flag to indicate this is a slim analysis
+        keywordAnalysis: {
+          present: [], // Not analyzed in onboarding mode
+          missing: (extractedData.missingKeywords || []).map((keyword: string) => ({
+            keyword,
+            priority: 'medium' as const, // Default priority for onboarding
+          })),
+          density: 0, // Not calculated in onboarding mode
+        },
+        // Placeholder values for fields not in onboarding analysis
+        atsCompatibility: null,
+        atsExplanation: null,
+        recommendations: null,
+        categoryDescriptions: null,
+      };
+    }
+
     // Save analysis to database
     const analysisData = {
       resume_version_id: versionId,
       user_id: user.id,
       overall_score: extractedData.overallScore,
-      analysis_data: extractedData,
+      analysis_data: analysisDataToStore,
     };
 
     // Check if analysis exists
@@ -913,14 +1078,15 @@ export const POST = async (
       id: savedAnalysis.id,
       overallScore: extractedData.overallScore,
       categoryScores: extractedData.categoryScores,
-      keywordAnalysis: extractedData.keywordAnalysis,
-      atsCompatibility: extractedData.atsCompatibility,
-      atsExplanation: extractedData.atsExplanation,
-      recommendations: extractedData.recommendations,
-      categoryDescriptions: extractedData.categoryDescriptions,
+      keywordAnalysis: analysisDataToStore.keywordAnalysis,
+      atsCompatibility: analysisDataToStore.atsCompatibility,
+      atsExplanation: analysisDataToStore.atsExplanation,
+      recommendations: analysisDataToStore.recommendations,
+      categoryDescriptions: analysisDataToStore.categoryDescriptions,
       createdAt: savedAnalysis.created_at,
       usageCount: usageCheck?.count ?? 0,
       onboardingAnalysis: allowOnboardingAnalysis,
+      analysisType: allowOnboardingAnalysis ? 'onboarding' : 'full',
     });
   } catch (error) {
     console.error('Unexpected error:', error);
