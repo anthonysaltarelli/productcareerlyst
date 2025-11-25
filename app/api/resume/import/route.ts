@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { slugify, generateUniqueSlug } from '@/lib/utils/slugify';
+import mammoth from 'mammoth';
 
 // Maximum file size: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -10,6 +11,9 @@ const ALLOWED_MIME_TYPES = [
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
 ];
+
+// MIME type for DOCX files
+const DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 // JSON Schema for structured output
 // Note: additionalProperties must be false for all objects per OpenAI requirements
@@ -169,69 +173,120 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
-    // Step 1: Upload file to OpenAI
+    // Step 1: Handle file based on type
     const fileBuffer = await file.arrayBuffer();
-    const fileBlob = new Blob([fileBuffer], { type: file.type });
-
-    const uploadFormData = new FormData();
-    uploadFormData.append('file', fileBlob, file.name);
-    uploadFormData.append('purpose', 'assistants');
-
-    const uploadResponse = await fetch('https://api.openai.com/v1/files', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-      },
-      body: uploadFormData,
-    });
-
-    if (!uploadResponse.ok) {
-      const errorData = await uploadResponse.json().catch(() => ({}));
-      console.error('OpenAI file upload error:', errorData);
-      return NextResponse.json(
-        { error: 'Failed to upload file to OpenAI', details: errorData },
-        { status: 500 }
-      );
-    }
-
-    const uploadData = await uploadResponse.json();
-    openAIFileId = uploadData.id;
-
-    if (!openAIFileId) {
-      return NextResponse.json(
-        { error: 'Failed to get file ID from OpenAI' },
-        { status: 500 }
-      );
-    }
-
-    // Step 2: Call OpenAI Responses API with structured output
-    const requestPayload = {
-      model: 'gpt-5.1',
-      input: [
-        {
-          type: 'message',
-          role: 'user',
-          content: [
+    const isDocx = file.type === DOCX_MIME_TYPE;
+    
+    let requestPayload: any;
+    
+    if (isDocx) {
+      // For DOCX files: Extract text using mammoth (OpenAI doesn't support DOCX file uploads)
+      try {
+        const result = await mammoth.extractRawText({ buffer: Buffer.from(fileBuffer) });
+        const resumeText = result.value;
+        
+        if (!resumeText || resumeText.trim().length === 0) {
+          return NextResponse.json(
+            { error: 'Could not extract text from DOCX file. The file may be empty or corrupted.' },
+            { status: 400 }
+          );
+        }
+        
+        // Step 2a: Call OpenAI Responses API with text content directly
+        requestPayload = {
+          model: 'gpt-5.1',
+          input: [
             {
-              type: 'input_text',
-              text: EXTRACTION_PROMPT,
-            },
-            {
-              type: 'input_file',
-              file_id: openAIFileId,
+              type: 'message',
+              role: 'user',
+              content: [
+                {
+                  type: 'input_text',
+                  text: `${EXTRACTION_PROMPT}\n\n---\n\nRESUME CONTENT:\n\n${resumeText}`,
+                },
+              ],
             },
           ],
+          text: {
+            format: {
+              type: 'json_schema',
+              name: 'resume_data',
+              schema: RESUME_EXTRACTION_SCHEMA,
+              strict: true,
+            },
+          },
+        };
+      } catch (mammothError) {
+        console.error('Mammoth extraction error:', mammothError);
+        return NextResponse.json(
+          { error: 'Failed to extract text from DOCX file. The file may be corrupted or in an unsupported format.' },
+          { status: 400 }
+        );
+      }
+    } else {
+      // For PDF files: Upload to OpenAI and use file reference
+      const fileBlob = new Blob([fileBuffer], { type: file.type });
+
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', fileBlob, file.name);
+      uploadFormData.append('purpose', 'assistants');
+
+      const uploadResponse = await fetch('https://api.openai.com/v1/files', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
         },
-      ],
-      text: {
-        format: {
-          type: 'json_schema',
-          name: 'resume_data',
-          schema: RESUME_EXTRACTION_SCHEMA,
-          strict: true,
+        body: uploadFormData,
+      });
+
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json().catch(() => ({}));
+        console.error('OpenAI file upload error:', errorData);
+        return NextResponse.json(
+          { error: 'Failed to upload file to OpenAI', details: errorData },
+          { status: 500 }
+        );
+      }
+
+      const uploadData = await uploadResponse.json();
+      openAIFileId = uploadData.id;
+
+      if (!openAIFileId) {
+        return NextResponse.json(
+          { error: 'Failed to get file ID from OpenAI' },
+          { status: 500 }
+        );
+      }
+
+      // Step 2b: Call OpenAI Responses API with file reference
+      requestPayload = {
+        model: 'gpt-5.1',
+        input: [
+          {
+            type: 'message',
+            role: 'user',
+            content: [
+              {
+                type: 'input_text',
+                text: EXTRACTION_PROMPT,
+              },
+              {
+                type: 'input_file',
+                file_id: openAIFileId,
+              },
+            ],
+          },
+        ],
+        text: {
+          format: {
+            type: 'json_schema',
+            name: 'resume_data',
+            schema: RESUME_EXTRACTION_SCHEMA,
+            strict: true,
+          },
         },
-      },
-    };
+      };
+    }
 
     const responseResponse = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
