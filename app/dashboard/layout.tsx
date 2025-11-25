@@ -36,7 +36,8 @@ export default async function DashboardLayout({
       </aside>
 
       {/* Main Content Area - Scrollable - Full width on mobile */}
-      <main className="flex-1 h-screen overflow-y-auto md:overflow-y-auto overflow-hidden w-full">
+      {/* Only this element should scroll - body/html scrolling is prevented on mobile */}
+      <main className="flex-1 h-screen overflow-y-auto w-full overscroll-none">
         {children}
       </main>
     </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { DashboardNavigation } from '@/app/components/DashboardNavigation'
 import { Menu, X } from 'lucide-react'
 
@@ -11,6 +11,41 @@ interface DashboardHomeContentProps {
 
 export const DashboardHomeContent = ({ desktopContent, firstName }: DashboardHomeContentProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [headerHeight, setHeaderHeight] = useState(64) // Default to 64px
+  const headerRef = useRef<HTMLElement>(null)
+
+  // Measure header height and prevent body scrolling on mobile
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (headerRef.current) {
+        const height = headerRef.current.offsetHeight
+        setHeaderHeight(height)
+      }
+    }
+
+    // Measure on mount and resize
+    updateHeaderHeight()
+    window.addEventListener('resize', updateHeaderHeight)
+
+    // Prevent body/html scrolling on mobile - only main element should scroll
+    const isMobile = window.innerWidth < 768
+    if (isMobile) {
+      // Prevent scrolling on html and body - main element will handle scrolling
+      document.documentElement.style.overflow = 'hidden'
+      document.documentElement.style.height = '100%'
+      document.body.style.overflow = 'hidden'
+      document.body.style.height = '100%'
+    }
+
+    return () => {
+      window.removeEventListener('resize', updateHeaderHeight)
+      // Restore body scrolling when component unmounts
+      document.documentElement.style.overflow = ''
+      document.documentElement.style.height = ''
+      document.body.style.overflow = ''
+      document.body.style.height = ''
+    }
+  }, [])
 
   return (
     <>
@@ -42,7 +77,10 @@ export const DashboardHomeContent = ({ desktopContent, firstName }: DashboardHom
       )}
 
       {/* Mobile Header with Menu Button */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-slate-800 to-slate-900 border-b-2 border-slate-700 px-4 py-3">
+      <header 
+        ref={headerRef}
+        className="md:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-slate-800 to-slate-900 border-b-2 border-slate-700 px-4 py-3"
+      >
         <div className="flex items-center justify-between">
           <button
             onClick={() => setIsMobileMenuOpen(true)}
@@ -58,8 +96,12 @@ export const DashboardHomeContent = ({ desktopContent, firstName }: DashboardHom
         </div>
       </header>
 
-      {/* Mobile Content - Show dashboard content on mobile with header offset */}
-      <div className="md:hidden pt-16">
+      {/* Mobile Content - Show dashboard content on mobile with proper header offset */}
+      {/* Dynamic padding-top matches the actual fixed header height */}
+      <div 
+        className="md:hidden min-h-full"
+        style={{ paddingTop: `${headerHeight}px` }}
+      >
         {desktopContent}
       </div>
 
