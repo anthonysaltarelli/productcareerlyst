@@ -172,7 +172,7 @@ export const GoalsStep = ({ onNext, onBack, onSkip }: GoalsStepProps) => {
           <label className="block text-lg font-bold text-gray-900 mb-4">
             What's your timeline? *
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {TIMELINES.map((t) => (
               <label
                 key={t.value}
