@@ -135,7 +135,7 @@ export const LoginForm = () => {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-3 rounded-[1rem] border-2 border-purple-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 font-medium"
+          className="w-full px-4 py-3 rounded-[1rem] border-2 border-purple-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 font-medium bg-white"
           placeholder="you@example.com"
         />
       </div>
@@ -155,7 +155,7 @@ export const LoginForm = () => {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-4 py-3 rounded-[1rem] border-2 border-purple-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 font-medium"
+          className="w-full px-4 py-3 rounded-[1rem] border-2 border-purple-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 font-medium bg-white"
           placeholder="••••••••"
         />
       </div>
@@ -186,8 +186,44 @@ export const LoginForm = () => {
         {loading ? 'Signing in...' : 'Sign In →'}
       </button>
 
+      <p className="text-center text-xs text-gray-500">
+        By continuing, you agree to our{' '}
+        <TrackedLink
+          href="/terms"
+          linkId="login-form-terms-link"
+          eventName="User Clicked Terms Link"
+          eventProperties={{
+            'Link Section': 'Login Form',
+            'Link Position': 'Below Sign In Button',
+            'Link Text': 'Terms',
+            'Link Type': 'Legal Link',
+            'Link Context': 'Terms and Privacy Policy disclaimer',
+          }}
+          className="underline hover:text-purple-600 transition-colors"
+        >
+          Terms
+        </TrackedLink>
+        {' '}and{' '}
+        <TrackedLink
+          href="/privacy"
+          linkId="login-form-privacy-link"
+          eventName="User Clicked Privacy Policy Link"
+          eventProperties={{
+            'Link Section': 'Login Form',
+            'Link Position': 'Below Sign In Button',
+            'Link Text': 'Privacy Policy',
+            'Link Type': 'Legal Link',
+            'Link Context': 'Terms and Privacy Policy disclaimer',
+          }}
+          className="underline hover:text-purple-600 transition-colors"
+        >
+          Privacy Policy
+        </TrackedLink>
+        .
+      </p>
+
       <p className="text-center text-sm text-gray-600 font-medium">
-        Don't have an account?{' '}
+        Don&apos;t have an account?{' '}
         <TrackedLink
           href="/auth/sign-up"
           className="font-bold text-purple-600 hover:text-purple-700 transition-colors"
