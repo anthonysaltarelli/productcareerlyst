@@ -10,6 +10,7 @@ import UnsavedChangesModal from "@/app/components/resume/UnsavedChangesModal";
 import AddExperienceModal from "@/app/components/resume/AddExperienceModal";
 import AddEducationModal from "@/app/components/resume/AddEducationModal";
 import AcceleratePlanRequiredModal from "@/app/components/resume/AcceleratePlanRequiredModal";
+import BulletComparisonModal from "@/app/components/resume/BulletComparisonModal";
 import { defaultResumeStyles, ResumeStyles, ResumeData } from "@/app/components/resume/mockData";
 import { createResumeDocument, downloadDocx } from "@/lib/utils/exportResume";
 import { useResumeData } from "@/lib/hooks/useResumeData";
@@ -231,6 +232,7 @@ export default function ResumeEditorPage({ params }: Props) {
   const [userPlan, setUserPlan] = useState<'learn' | 'accelerate' | null>(null);
   const [showAccelerateModal, setShowAccelerateModal] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showBulletComparisonModal, setShowBulletComparisonModal] = useState(false);
   const pageViewTracked = useRef(false);
   const viewModeStartTime = useRef<number>(Date.now());
 
@@ -2317,6 +2319,35 @@ export default function ResumeEditorPage({ params }: Props) {
 
         {/* Center Panel - Editor & Preview */}
         <div className="flex-1 overflow-y-auto">
+          {/* AI Customization Banner */}
+          {currentResume?.version?.customization_summary && (
+            <div className="mx-6 mt-4 p-4 rounded-[1.5rem] bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 border-2 border-purple-300 shadow-[0_4px_0_0_rgba(147,51,234,0.2)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-[0.75rem] bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-[0_2px_0_0_rgba(147,51,234,0.4)]">
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-black text-gray-900 text-sm">AI Customized Resume</h3>
+                    <p className="text-xs text-gray-600 font-semibold">
+                      {currentResume.version.customization_summary.bulletsOptimized || 0} bullets optimized • {currentResume.version.customization_summary.bulletsReordered || 0} reordered • {currentResume.version.customization_summary.skillsAdded || 0} skills added
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowBulletComparisonModal(true)}
+                  className="px-4 py-2 rounded-[1rem] bg-white border-2 border-purple-400 text-purple-700 font-bold text-sm hover:bg-purple-50 transition-colors flex items-center gap-2 shadow-[0_2px_0_0_rgba(147,51,234,0.3)]"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  View Changes
+                </button>
+              </div>
+            </div>
+          )}
           <ResumeEditor
             selectedVersion={versionId}
             selectedSection={selectedSection}
@@ -2473,6 +2504,13 @@ export default function ResumeEditorPage({ params }: Props) {
         isAdding={isAddingEducation}
         mode={editingEducation ? 'edit' : 'add'}
         initialData={editingEducation?.data || null}
+      />
+
+      {/* Bullet Comparison Modal for AI Customized Resumes */}
+      <BulletComparisonModal
+        isOpen={showBulletComparisonModal}
+        onClose={() => setShowBulletComparisonModal(false)}
+        customizationSummary={currentResume?.version?.customization_summary || null}
       />
 
     </>

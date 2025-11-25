@@ -13,6 +13,7 @@ import { WizaRequestHistory } from '@/app/components/jobs/WizaRequestHistory';
 import { CompanyResearch } from '@/app/components/jobs/CompanyResearch';
 import PremiumFeatureGateModal from '@/app/components/resume/PremiumFeatureGateModal';
 import DeleteConfirmationModal from '@/app/components/resume/DeleteConfirmationModal';
+import DocumentsTab from '@/app/components/jobs/DocumentsTab';
 import { getUserPlanClient } from '@/lib/utils/resume-tracking';
 
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
@@ -55,9 +56,9 @@ export default function JobDetailPage() {
   const { contacts, refetch: refetchContacts } = useContacts(undefined, jobId);
 
   // Initialize activeTab from query params, default to 'overview'
-  const tabFromQuery = searchParams.get('tab') as 'overview' | 'interviews' | 'contacts' | 'research' | null;
-  const [activeTab, setActiveTab] = useState<'overview' | 'interviews' | 'contacts' | 'research'>(
-    (tabFromQuery && ['overview', 'interviews', 'contacts', 'research'].includes(tabFromQuery)) 
+  const tabFromQuery = searchParams.get('tab') as 'overview' | 'interviews' | 'contacts' | 'documents' | 'research' | null;
+  const [activeTab, setActiveTab] = useState<'overview' | 'interviews' | 'contacts' | 'documents' | 'research'>(
+    (tabFromQuery && ['overview', 'interviews', 'contacts', 'documents', 'research'].includes(tabFromQuery)) 
       ? tabFromQuery 
       : 'overview'
   );
@@ -85,8 +86,8 @@ export default function JobDetailPage() {
 
   // Update activeTab when query param changes (e.g., browser back/forward)
   useEffect(() => {
-    const tabFromQuery = searchParams.get('tab') as 'overview' | 'interviews' | 'contacts' | 'research' | null;
-    if (tabFromQuery && ['overview', 'interviews', 'contacts', 'research'].includes(tabFromQuery)) {
+    const tabFromQuery = searchParams.get('tab') as 'overview' | 'interviews' | 'contacts' | 'documents' | 'research' | null;
+    if (tabFromQuery && ['overview', 'interviews', 'contacts', 'documents', 'research'].includes(tabFromQuery)) {
       setActiveTab(tabFromQuery);
     } else if (!tabFromQuery) {
       setActiveTab('overview');
@@ -94,7 +95,7 @@ export default function JobDetailPage() {
   }, [searchParams]);
 
   // Function to update tab and query param
-  const handleTabChange = (tab: 'overview' | 'interviews' | 'contacts' | 'research') => {
+  const handleTabChange = (tab: 'overview' | 'interviews' | 'contacts' | 'documents' | 'research') => {
     setActiveTab(tab);
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', tab);
@@ -438,6 +439,7 @@ export default function JobDetailPage() {
     { id: 'overview', label: 'Overview', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
     { id: 'interviews', label: 'Interviews', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', count: interviews.length },
     { id: 'contacts', label: 'Contacts', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', count: contacts.length },
+    { id: 'documents', label: 'Documents', icon: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z M12 3v6a2 2 0 002 2h6' },
     { id: 'research', label: 'Research', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
   ];
 
@@ -1129,6 +1131,15 @@ export default function JobDetailPage() {
               </div>
             )}
           </div>
+        )}
+
+        {/* Documents Tab */}
+        {activeTab === 'documents' && application && (
+          <DocumentsTab
+            applicationId={application.id}
+            jobTitle={application.title}
+            companyName={application.company?.name || 'Unknown Company'}
+          />
         )}
 
         {/* Research Tab */}

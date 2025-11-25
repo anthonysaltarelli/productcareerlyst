@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 // GET /api/resume/versions - Get all resume versions for current user
+// Query params:
+//   - applicationId: Filter by job application ID
 export const GET = async (request: NextRequest) => {
   try {
     const supabase = await createClient();
@@ -15,11 +17,21 @@ export const GET = async (request: NextRequest) => {
       );
     }
 
-    const { data, error } = await supabase
+    const searchParams = request.nextUrl.searchParams;
+    const applicationId = searchParams.get('applicationId');
+
+    let query = supabase
       .from('resume_versions')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
+
+    // Filter by application_id if provided
+    if (applicationId) {
+      query = query.eq('application_id', applicationId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching resume versions:', error);
