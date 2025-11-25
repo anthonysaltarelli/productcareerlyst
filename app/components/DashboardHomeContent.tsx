@@ -76,11 +76,12 @@ export const DashboardHomeContent = ({ desktopContent, firstName }: DashboardHom
         </div>
       )}
 
-      {/* Mobile Header with Menu Button */}
-      <header 
-        ref={headerRef}
-        className="md:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-slate-800 to-slate-900 border-b-2 border-slate-700 px-4 py-3"
-      >
+      {/* Mobile Header with Menu Button - Hidden when navigation menu is open */}
+      {!isMobileMenuOpen && (
+        <header 
+          ref={headerRef}
+          className="md:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-slate-800 to-slate-900 border-b-2 border-slate-700 px-4 py-3"
+        >
         <div className="flex items-center justify-between">
           <button
             onClick={() => setIsMobileMenuOpen(true)}
@@ -95,6 +96,7 @@ export const DashboardHomeContent = ({ desktopContent, firstName }: DashboardHom
           <div className="w-10" />
         </div>
       </header>
+      )}
 
       {/* Mobile Content - Show dashboard content on mobile with proper header offset */}
       {/* Dynamic padding-top matches the actual fixed header height */}
