@@ -240,8 +240,9 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-4 sm:gap-6">
             <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_8px_0_0_rgba(99,102,241,0.3)] md:shadow-[0_12px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300">
               <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-[1rem] sm:rounded-[1.5rem] bg-gradient-to-br from-indigo-400 to-purple-400 shadow-[0_4px_0_0_rgba(99,102,241,0.4)] sm:shadow-[0_6px_0_0_rgba(99,102,241,0.4)] border-2 border-indigo-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl sm:text-3xl">📚</span>
+                <span className="text-3xl sm:hidden">📚</span>
+                <div className="hidden sm:flex w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-indigo-400 to-purple-400 shadow-[0_6px_0_0_rgba(99,102,241,0.4)] border-2 border-indigo-500 items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">📚</span>
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">PM Courses</h3>
@@ -285,8 +286,9 @@ export default function Home() {
 
             <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-pink-200 to-rose-200 shadow-[0_8px_0_0_rgba(236,72,153,0.3)] md:shadow-[0_12px_0_0_rgba(236,72,153,0.3)] border-2 border-pink-300">
               <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-[1rem] sm:rounded-[1.5rem] bg-gradient-to-br from-pink-400 to-rose-400 shadow-[0_4px_0_0_rgba(236,72,153,0.4)] sm:shadow-[0_6px_0_0_rgba(236,72,153,0.4)] border-2 border-pink-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl sm:text-3xl">⚡</span>
+                <span className="text-3xl sm:hidden">⚡</span>
+                <div className="hidden sm:flex w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-pink-400 to-rose-400 shadow-[0_6px_0_0_rgba(236,72,153,0.4)] border-2 border-pink-500 items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">⚡</span>
                 </div>
                 <div>
                   <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">PM Templates & Resources</h3>
@@ -313,8 +315,9 @@ export default function Home() {
 
             <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-teal-200 to-cyan-200 shadow-[0_8px_0_0_rgba(20,184,166,0.3)] md:shadow-[0_12px_0_0_rgba(20,184,166,0.3)] border-2 border-teal-300">
               <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-[1rem] sm:rounded-[1.5rem] bg-gradient-to-br from-teal-400 to-cyan-400 shadow-[0_4px_0_0_rgba(20,184,166,0.4)] sm:shadow-[0_6px_0_0_rgba(20,184,166,0.4)] border-2 border-teal-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl sm:text-3xl">💼</span>
+                <span className="text-3xl sm:hidden">💼</span>
+                <div className="hidden sm:flex w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-teal-400 to-cyan-400 shadow-[0_6px_0_0_rgba(20,184,166,0.4)] border-2 border-teal-500 items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">💼</span>
                 </div>
                 <div>
                   <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">Job Center</h3>
@@ -341,8 +344,9 @@ export default function Home() {
 
             <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_8px_0_0_rgba(37,99,235,0.3)] md:shadow-[0_12px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300">
               <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-[1rem] sm:rounded-[1.5rem] bg-gradient-to-br from-blue-400 to-cyan-400 shadow-[0_4px_0_0_rgba(37,99,235,0.4)] sm:shadow-[0_6px_0_0_rgba(37,99,235,0.4)] border-2 border-blue-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl sm:text-3xl">📄</span>
+                <span className="text-3xl sm:hidden">📄</span>
+                <div className="hidden sm:flex w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-blue-400 to-cyan-400 shadow-[0_6px_0_0_rgba(37,99,235,0.4)] border-2 border-blue-500 items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">📄</span>
                 </div>
                 <div>
                   <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">Resume Editor</h3>
@@ -369,8 +373,9 @@ export default function Home() {
 
             <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_8px_0_0_rgba(22,163,74,0.3)] md:shadow-[0_12px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300">
               <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-[1rem] sm:rounded-[1.5rem] bg-gradient-to-br from-green-400 to-emerald-400 shadow-[0_4px_0_0_rgba(22,163,74,0.4)] sm:shadow-[0_6px_0_0_rgba(22,163,74,0.4)] border-2 border-green-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl sm:text-3xl">🎨</span>
+                <span className="text-3xl sm:hidden">🎨</span>
+                <div className="hidden sm:flex w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-green-400 to-emerald-400 shadow-[0_6px_0_0_rgba(22,163,74,0.4)] border-2 border-green-500 items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">🎨</span>
                 </div>
                 <div>
                   <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">Portfolio Hub</h3>
@@ -537,7 +542,7 @@ export default function Home() {
           </p>
           <TrackedButton
             href="/auth/sign-up"
-            className="inline-block px-6 py-5 sm:px-10 sm:py-6 md:px-16 md:py-8 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.7)] sm:shadow-[0_10px_0_0_rgba(147,51,234,0.7)] md:shadow-[0_12px_0_0_rgba(147,51,234,0.7)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.7)] sm:hover:shadow-[0_6px_0_0_rgba(147,51,234,0.7)] md:hover:shadow-[0_8px_0_0_rgba(147,51,234,0.7)] text-lg sm:text-xl md:text-2xl font-black text-white transition-all duration-200 mb-4 sm:mb-6"
+            className="inline-block px-8 py-4 sm:px-10 sm:py-5 md:px-14 md:py-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.7)] sm:shadow-[0_8px_0_0_rgba(147,51,234,0.7)] md:shadow-[0_10px_0_0_rgba(147,51,234,0.7)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.7)] sm:hover:shadow-[0_4px_0_0_rgba(147,51,234,0.7)] md:hover:shadow-[0_6px_0_0_rgba(147,51,234,0.7)] text-base sm:text-lg md:text-xl font-black text-white transition-all duration-200 mb-4 sm:mb-6"
             eventName="User Clicked Sign Up Button"
             buttonId="homepage-final-cta-large-button"
             eventProperties={{

@@ -518,11 +518,11 @@ const SalaryProgressionChart = ({ className = "" }: SalaryProgressionChartProps)
           <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-6">
             <div className="flex items-center justify-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-white/60 backdrop-blur-sm border-2 border-gray-300">
               <div className="w-5 sm:w-6 h-1 bg-gray-400" style={{ borderTop: '2px dashed #9ca3af' }}></div>
-              <span className="text-[10px] sm:text-xs font-bold text-gray-700">Without Product Careerlyst</span>
+              <span className="text-xs sm:text-sm font-bold text-gray-700">Without Product Careerlyst</span>
             </div>
             <div className="flex items-center justify-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-white/60 backdrop-blur-sm border-2 border-purple-300">
               <div className="w-5 sm:w-6 h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
-              <span className="text-[10px] sm:text-xs font-bold text-gray-700">With Product Careerlyst</span>
+              <span className="text-xs sm:text-sm font-bold text-gray-700">With Product Careerlyst</span>
             </div>
           </div>
         </div>
