@@ -82,7 +82,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body className={`${plusJakartaSans.variable} ${inter.variable} ${lato.variable} ${roboto.variable} ${openSans.variable} ${sourceSans.variable} ${ptSerif.variable} ${crimsonText.variable} antialiased`}>
         <Toaster position="top-right" richColors />
         <LaunchDarklyProvider>
