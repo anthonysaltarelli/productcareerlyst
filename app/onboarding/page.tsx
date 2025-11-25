@@ -205,7 +205,7 @@ export default function OnboardingPage() {
   const skippedSteps = progress?.skipped_steps || [];
 
   return (
-    <div className="min-h-screen pt-6 pb-2 sm:py-12 px-4">
+    <div className="min-h-screen pt-6 pb-8 sm:py-12 px-4">
       <PageTracking pageName="Onboarding" />
       <div className="max-w-6xl mx-auto">
         {/* Header */}
@@ -277,7 +277,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Step Content */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border-2 border-gray-200 p-3 sm:p-8 md:p-12">
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border-2 border-gray-200 p-[3px] sm:p-8 md:p-12">
           {currentStep.id === 'resume_upload' && (
             <ResumeUploadStep onNext={handleNext} onSkip={handleSkip} />
           )}
