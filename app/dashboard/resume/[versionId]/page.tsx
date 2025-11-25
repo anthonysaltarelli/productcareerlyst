@@ -2321,7 +2321,7 @@ export default function ResumeEditorPage({ params }: Props) {
         <div className="flex-1 overflow-y-auto">
           {/* AI Customization Banner */}
           {currentResume?.version?.customization_summary && (
-            <div className="mx-6 mt-4 p-4 rounded-[1.5rem] bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 border-2 border-purple-300 shadow-[0_4px_0_0_rgba(147,51,234,0.2)]">
+            <div className="mx-6 mt-4 mb-4 p-4 rounded-[1.5rem] bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 border-2 border-purple-300 shadow-[0_4px_0_0_rgba(147,51,234,0.2)]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-[0.75rem] bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-[0_2px_0_0_rgba(147,51,234,0.4)]">

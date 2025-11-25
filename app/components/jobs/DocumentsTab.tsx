@@ -232,7 +232,7 @@ export default function DocumentsTab({ applicationId, jobTitle, companyName }: P
                           aria-label="View AI customization summary"
                         >
                           <Sparkles className="w-3 h-3" />
-                          AI Customized
+                          View AI Customizations
                         </button>
                       )}
                     </div>
