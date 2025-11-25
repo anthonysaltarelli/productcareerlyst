@@ -3,10 +3,10 @@ import { PageTracking } from '@/app/components/PageTracking'
 
 export default function SignUpPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 flex items-start sm:items-center justify-center p-4">
+    <div className="sm:min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 flex items-start justify-center p-4 pb-8 sm:pt-16">
       <PageTracking pageName="Sign Up" />
       <div className="w-full max-w-md">
-        <div className="p-6 sm:p-10 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
+        <div className="p-8 sm:p-10 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
           <div className="text-center mb-8">
             <div className="hidden sm:inline-block px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm font-bold mb-4">
               🚀 GET STARTED
