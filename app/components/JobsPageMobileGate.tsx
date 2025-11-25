@@ -54,3 +54,4 @@ export const JobsPageMobileGate = ({ children }: JobsPageMobileGateProps) => {
   return <>{children}</>
 }
 
+

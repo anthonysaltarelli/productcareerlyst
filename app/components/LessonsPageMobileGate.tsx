@@ -55,3 +55,4 @@ export const LessonsPageMobileGate = ({ children, lessonTitle }: LessonsPageMobi
   return <>{children}</>
 }
 
+
