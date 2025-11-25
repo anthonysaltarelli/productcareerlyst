@@ -1,9 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
-import { redirect } from 'next/navigation'
 import { type NextRequest } from 'next/server'
-import { isOnboardingComplete } from '@/lib/utils/onboarding'
-import { addSubscriberToFormAndSequence } from '@/lib/utils/convertkit'
+import { cookies } from 'next/headers'
 
 // Helper function to extract first and last name from user metadata
 function extractNameFromMetadata(userMetadata: any): { firstName: string | null; lastName: string | null } {
@@ -36,30 +34,61 @@ function extractNameFromMetadata(userMetadata: any): { firstName: string | null;
 }
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/dashboard'
   const error = searchParams.get('error')
   const errorDescription = searchParams.get('error_description')
 
+  // Build redirect URL using request.nextUrl for proper URL handling
+  const redirectTo = request.nextUrl.clone()
+
   // Handle OAuth errors (e.g., user denied access)
   if (error) {
     console.error('[OAuth Callback] Error:', error, errorDescription)
-    return NextResponse.redirect(
-      `${origin}/auth/error?error=${encodeURIComponent(errorDescription || error)}`
-    )
+    redirectTo.pathname = '/auth/error'
+    redirectTo.searchParams.set('error', errorDescription || error)
+    return NextResponse.redirect(redirectTo)
   }
 
   if (code) {
-    const supabase = await createClient()
+    const cookieStore = await cookies()
+    
+    // Create a Supabase client that properly handles cookies for Route Handlers
+    // This is the key fix - we need to track cookies that will be set
+    const cookiesToSet: { name: string; value: string; options: any }[] = []
+    
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookies) {
+            // Store cookies to be set on the redirect response
+            cookies.forEach((cookie) => {
+              cookiesToSet.push(cookie)
+              // Also try to set on cookieStore for subsequent operations in this request
+              try {
+                cookieStore.set(cookie.name, cookie.value, cookie.options)
+              } catch {
+                // Ignore errors - we'll set on the response
+              }
+            })
+          },
+        },
+      }
+    )
     
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
     
     if (exchangeError) {
       console.error('[OAuth Callback] Exchange error:', exchangeError)
-      return NextResponse.redirect(
-        `${origin}/auth/error?error=${encodeURIComponent(exchangeError.message)}`
-      )
+      redirectTo.pathname = '/auth/error'
+      redirectTo.searchParams.set('error', exchangeError.message)
+      return NextResponse.redirect(redirectTo)
     }
 
     if (data?.user) {
@@ -122,47 +151,63 @@ export async function GET(request: NextRequest) {
         console.error('[OAuth Callback] Error with profile:', profileError)
       }
 
-      // Add new OAuth users to ConvertKit
+      // Add new OAuth users to ConvertKit (non-blocking, fire and forget)
       if (isNewUser && user.email) {
-        try {
-          await addSubscriberToFormAndSequence(
+        // Import dynamically to avoid blocking
+        import('@/lib/utils/convertkit').then(({ addSubscriberToFormAndSequence }) => {
+          addSubscriberToFormAndSequence(
             7348426, // Form ID
             2100454, // Sequence ID
-            user.email,
+            user.email!,
             firstName || undefined
-          )
-          console.log(`[ConvertKit] Successfully added OAuth user ${user.email} to form and sequence`)
-        } catch (convertkitError) {
-          // Don't block user if ConvertKit fails
-          console.error('[ConvertKit] Error adding OAuth subscriber:', convertkitError)
-        }
+          ).then(() => {
+            console.log(`[ConvertKit] Successfully added OAuth user ${user.email} to form and sequence`)
+          }).catch((convertkitError) => {
+            console.error('[ConvertKit] Error adding OAuth subscriber:', convertkitError)
+          })
+        }).catch(() => {})
       }
 
       // Check onboarding status for new users or users who haven't completed it
-      let shouldRedirectToOnboarding = false
+      let finalRedirectPath = next
       try {
-        const onboardingComplete = await isOnboardingComplete(user.id)
-        if (!onboardingComplete) {
-          shouldRedirectToOnboarding = true
+        // Import dynamically to ensure we're using the authenticated supabase client
+        const { data: onboardingData } = await supabase
+          .from('onboarding_progress')
+          .select('is_complete')
+          .eq('user_id', user.id)
+          .maybeSingle()
+
+        if (!onboardingData?.is_complete) {
+          finalRedirectPath = '/onboarding'
         }
       } catch (onboardingError) {
         console.error('[OAuth Callback] Error checking onboarding:', onboardingError)
         // Continue to dashboard if onboarding check fails
       }
 
-      // Use redirect() from next/navigation to ensure auth cookies are properly set
-      // Note: redirect() throws internally, so this must be outside try-catch
-      if (shouldRedirectToOnboarding) {
-        redirect('/onboarding')
-      }
+      // Build the final redirect URL
+      redirectTo.pathname = finalRedirectPath
+      redirectTo.searchParams.delete('code')
+      redirectTo.searchParams.delete('next')
+
+      // Create redirect response and EXPLICITLY set all auth cookies on it
+      // This is the critical fix for production - cookies must be on the redirect response
+      const response = NextResponse.redirect(redirectTo)
       
-      redirect(next)
+      // Copy all cookies that Supabase auth set to the redirect response
+      cookiesToSet.forEach(({ name, value, options }) => {
+        response.cookies.set(name, value, options)
+      })
+
+      console.log(`[OAuth Callback] Redirecting to ${finalRedirectPath} with ${cookiesToSet.length} cookies`)
+      
+      return response
     }
   }
 
   // No code provided - redirect to error
-  return NextResponse.redirect(
-    `${origin}/auth/error?error=${encodeURIComponent('No authorization code provided')}`
-  )
+  redirectTo.pathname = '/auth/error'
+  redirectTo.searchParams.set('error', 'No authorization code provided')
+  return NextResponse.redirect(redirectTo)
 }
-
