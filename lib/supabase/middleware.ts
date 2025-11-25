@@ -54,6 +54,13 @@ export const updateSession = async (request: NextRequest) => {
     return NextResponse.redirect(url)
   }
 
+  // Protect /onboarding route
+  if (!user && request.nextUrl.pathname === '/onboarding') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/login'
+    return NextResponse.redirect(url)
+  }
+
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
   // creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:

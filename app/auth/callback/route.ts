@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { redirect, isRedirectError } from 'next/navigation'
 import { type NextRequest } from 'next/server'
 import { isOnboardingComplete } from '@/lib/utils/onboarding'
 import { addSubscriberToFormAndSequence } from '@/lib/utils/convertkit'
@@ -138,18 +139,28 @@ export async function GET(request: NextRequest) {
       }
 
       // Check onboarding status for new users or users who haven't completed it
+      let shouldRedirectToOnboarding = false
       try {
         const onboardingComplete = await isOnboardingComplete(user.id)
         if (!onboardingComplete) {
-          return NextResponse.redirect(`${origin}/onboarding`)
+          shouldRedirectToOnboarding = true
         }
       } catch (onboardingError) {
+        // Re-throw redirect errors (from next/navigation)
+        if (isRedirectError(onboardingError)) {
+          throw onboardingError
+        }
         console.error('[OAuth Callback] Error checking onboarding:', onboardingError)
         // Continue to dashboard if onboarding check fails
       }
 
-      // Redirect to the intended destination or dashboard
-      return NextResponse.redirect(`${origin}${next}`)
+      // Use redirect() from next/navigation to ensure auth cookies are properly set
+      // Note: redirect() throws internally, so this must be outside try-catch
+      if (shouldRedirectToOnboarding) {
+        redirect('/onboarding')
+      }
+      
+      redirect(next)
     }
   }
 
