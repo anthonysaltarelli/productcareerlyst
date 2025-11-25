@@ -9,6 +9,7 @@ import { TrackedLink } from '@/app/components/TrackedLink';
 import { PremiumLessonGate } from '@/app/components/PremiumLessonGate';
 import { getUserPlan } from '@/lib/utils/subscription';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
+import { LessonsPageMobileGate } from '@/app/components/LessonsPageMobileGate';
 
 interface Lesson {
   id: string;
@@ -184,7 +185,8 @@ export default async function LessonPage({
   const lessonPositionNumber = parseInt(lesson.prioritization.split('.')[0]) || currentIndex + 1;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100">
+    <LessonsPageMobileGate lessonTitle={lesson.title}>
+      <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100">
       <MobileDashboardHeader 
         title={lesson.title} 
         showBackButton 
@@ -258,8 +260,8 @@ export default async function LessonPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="lg:col-span-2 w-full">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full">
             {/* Show gate if premium lesson and no access, otherwise show video */}
             {shouldShowGate ? (
               <PremiumLessonGate
@@ -300,7 +302,7 @@ export default async function LessonPage({
               </div>
 
               {/* Navigation Bar with Completion Button */}
-              <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 pt-6 border-t border-gray-200">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-center gap-3 md:gap-4 pt-6 border-t border-gray-200">
                 {/* Completion Button - First on mobile, center on desktop */}
                 <div className="w-full md:w-auto md:flex-shrink-0 md:order-2">
                   <LessonContentWrapper 
@@ -330,7 +332,7 @@ export default async function LessonPage({
                       'Link Section': 'Lesson Navigation Bar',
                       'Link Position': 'Right side of Navigation Bar',
                     }}
-                    className="flex items-center justify-center gap-2 w-full md:w-auto md:flex-1 md:justify-end md:order-3 px-4 py-3 md:py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                    className="flex items-center justify-center gap-2 w-full md:w-auto md:max-w-[140px] md:order-3 px-4 py-3 md:py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
                   >
                     Next Lesson
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -352,7 +354,7 @@ export default async function LessonPage({
                       'Link Section': 'Lesson Navigation Bar',
                       'Link Position': 'Right side of Navigation Bar (when last lesson)',
                     }}
-                    className="flex items-center justify-center gap-2 w-full md:w-auto md:flex-1 md:justify-end md:order-3 px-4 py-3 md:py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                    className="flex items-center justify-center gap-2 w-full md:w-auto md:max-w-[160px] md:order-3 px-4 py-3 md:py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
                   >
                     Complete Course
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -378,7 +380,7 @@ export default async function LessonPage({
                       'Link Section': 'Lesson Navigation Bar',
                       'Link Position': 'Left side of Navigation Bar',
                     }}
-                    className="flex items-center justify-center gap-2 w-full md:w-auto md:flex-1 md:justify-start md:order-1 px-4 py-3 md:py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    className="flex items-center justify-center gap-2 w-full md:w-auto md:max-w-[120px] md:order-1 px-4 py-3 md:py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -405,6 +407,7 @@ export default async function LessonPage({
         </div>
       </div>
     </div>
+    </LessonsPageMobileGate>
   );
 }
 

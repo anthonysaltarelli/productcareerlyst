@@ -8,6 +8,7 @@ import { ApplicationStatus, JobApplicationWithCompany } from '@/lib/types/jobs';
 import { AddJobModal } from '@/app/components/jobs/AddJobModal';
 import { EditJobModal } from '@/app/components/jobs/EditJobModal';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
+import { JobsPageMobileGate } from '@/app/components/JobsPageMobileGate';
 
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
   wishlist: { label: 'Wishlist', color: 'text-gray-700', bgColor: 'bg-gray-50' },
@@ -77,7 +78,7 @@ export default function JobsPage() {
 
   if (loading) {
     return (
-      <>
+      <JobsPageMobileGate>
         <MobileDashboardHeader title="Job Applications" />
         <div className="min-h-screen p-6 pt-20 md:p-12 md:pt-12 flex items-center justify-center">
           <div className="text-center">
@@ -85,13 +86,13 @@ export default function JobsPage() {
             <p className="text-gray-700 font-semibold">Loading applications...</p>
           </div>
         </div>
-      </>
+      </JobsPageMobileGate>
     );
   }
 
   if (error) {
     return (
-      <>
+      <JobsPageMobileGate>
         <MobileDashboardHeader title="Job Applications" />
         <div className="min-h-screen p-6 pt-20 md:p-12 md:pt-12 flex items-center justify-center">
           <div className="text-center">
@@ -105,11 +106,12 @@ export default function JobsPage() {
             </button>
           </div>
         </div>
-      </>
+      </JobsPageMobileGate>
     );
   }
 
   return (
+    <JobsPageMobileGate>
     <>
       <MobileDashboardHeader title="Job Applications" />
       <div className="min-h-screen p-6 pt-20 md:p-12 md:pt-12">
@@ -395,6 +397,7 @@ export default function JobsPage() {
       />
       </div>
     </>
+    </JobsPageMobileGate>
   );
 }
 

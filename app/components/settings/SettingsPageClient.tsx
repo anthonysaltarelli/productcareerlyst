@@ -136,97 +136,100 @@ export const SettingsPageClient = ({
     }
   }, [stats, subscription, coach, compensation, impactPortfolio, careerTracker, userCreatedAt, sessionStartTime, tabStartTime, tabsVisited, profileUpdated, passwordChanged])
 
+  const tabs = [
+    { id: 'profile' as SettingsTab, label: 'Profile Information', buttonId: 'settings-tab-profile-button' },
+    { id: 'account' as SettingsTab, label: 'Account Information', buttonId: 'settings-tab-account-button' },
+    { id: 'logout' as SettingsTab, label: 'Log Out', buttonId: 'settings-tab-logout-button' },
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-4 md:py-8 px-4">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-2">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-2">
             Settings
           </h1>
-          <p className="text-gray-700 font-semibold">
+          <p className="text-gray-700 font-semibold text-sm md:text-base">
             Manage your profile, account, and preferences
           </p>
         </div>
 
-        <div className="flex gap-6">
-          {/* Sub-left Navigation */}
-          <aside className="w-64 flex-shrink-0">
+        {/* Mobile: Horizontal Scrollable Carousel */}
+        <div className="mb-6 md:hidden">
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+            <div className="flex gap-3 min-w-max">
+              {tabs.map((tab, index) => (
+                <TrackedButton
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`flex-shrink-0 px-6 py-3 rounded-[1rem] font-semibold transition-all duration-200 whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? tab.id === 'logout'
+                        ? 'bg-gradient-to-br from-red-500 to-orange-500 text-white shadow-[0_4px_0_0_rgba(239,68,68,0.4)]'
+                        : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_4px_0_0_rgba(147,51,234,0.4)]'
+                      : 'bg-white/80 backdrop-blur-sm text-gray-700 border-2 border-gray-200'
+                  }`}
+                  eventName="User Switched Settings Tab"
+                  buttonId={tab.buttonId}
+                  eventProperties={{
+                    'Button Section': 'Settings Navigation',
+                    'Button Position': index === 0 ? 'First Tab Button' : index === 1 ? 'Second Tab Button' : 'Third Tab Button',
+                    'Button Text': tab.label,
+                    'Button Type': 'Tab Navigation',
+                    'Button Context': 'Horizontal carousel navigation',
+                    'From Tab': activeTab,
+                    'To Tab': tab.id,
+                  }}
+                  tabIndex={0}
+                  aria-label={tab.label}
+                >
+                  {tab.label}
+                </TrackedButton>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Desktop: Sub-left Navigation */}
+          <aside className="hidden md:block w-64 flex-shrink-0">
             <nav className="bg-white/80 backdrop-blur-sm rounded-[2rem] p-4 shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
-              <TrackedButton
-                onClick={() => handleTabChange('profile')}
-                className={`w-full text-left px-4 py-3 rounded-[1rem] font-semibold transition-all duration-200 mb-2 ${
-                  activeTab === 'profile'
-                    ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_4px_0_0_rgba(147,51,234,0.4)]'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-                eventName="User Switched Settings Tab"
-                buttonId="settings-tab-profile-button"
-                eventProperties={{
-                  'Button Section': 'Settings Navigation',
-                  'Button Position': 'First Tab Button',
-                  'Button Text': 'Profile Information',
-                  'Button Type': 'Tab Navigation',
-                  'Button Context': 'Left sidebar navigation',
-                  'From Tab': activeTab,
-                  'To Tab': 'profile',
-                }}
-                tabIndex={0}
-                aria-label="Profile Information"
-              >
-                Profile Information
-              </TrackedButton>
-              <TrackedButton
-                onClick={() => handleTabChange('account')}
-                className={`w-full text-left px-4 py-3 rounded-[1rem] font-semibold transition-all duration-200 mb-2 ${
-                  activeTab === 'account'
-                    ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_4px_0_0_rgba(147,51,234,0.4)]'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-                eventName="User Switched Settings Tab"
-                buttonId="settings-tab-account-button"
-                eventProperties={{
-                  'Button Section': 'Settings Navigation',
-                  'Button Position': 'Second Tab Button',
-                  'Button Text': 'Account Information',
-                  'Button Type': 'Tab Navigation',
-                  'Button Context': 'Left sidebar navigation',
-                  'From Tab': activeTab,
-                  'To Tab': 'account',
-                }}
-                tabIndex={0}
-                aria-label="Account Information"
-              >
-                Account Information
-              </TrackedButton>
-              <TrackedButton
-                onClick={() => handleTabChange('logout')}
-                className={`w-full text-left px-4 py-3 rounded-[1rem] font-semibold transition-all duration-200 ${
-                  activeTab === 'logout'
-                    ? 'bg-gradient-to-br from-red-500 to-orange-500 text-white shadow-[0_4px_0_0_rgba(239,68,68,0.4)]'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-                eventName="User Switched Settings Tab"
-                buttonId="settings-tab-logout-button"
-                eventProperties={{
-                  'Button Section': 'Settings Navigation',
-                  'Button Position': 'Third Tab Button',
-                  'Button Text': 'Log Out',
-                  'Button Type': 'Tab Navigation',
-                  'Button Context': 'Left sidebar navigation',
-                  'From Tab': activeTab,
-                  'To Tab': 'logout',
-                }}
-                tabIndex={0}
-                aria-label="Log Out"
-              >
-                Log Out
-              </TrackedButton>
+              {tabs.map((tab, index) => (
+                <TrackedButton
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`w-full text-left px-4 py-3 rounded-[1rem] font-semibold transition-all duration-200 ${
+                    index < tabs.length - 1 ? 'mb-2' : ''
+                  } ${
+                    activeTab === tab.id
+                      ? tab.id === 'logout'
+                        ? 'bg-gradient-to-br from-red-500 to-orange-500 text-white shadow-[0_4px_0_0_rgba(239,68,68,0.4)]'
+                        : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_4px_0_0_rgba(147,51,234,0.4)]'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  eventName="User Switched Settings Tab"
+                  buttonId={tab.buttonId}
+                  eventProperties={{
+                    'Button Section': 'Settings Navigation',
+                    'Button Position': index === 0 ? 'First Tab Button' : index === 1 ? 'Second Tab Button' : 'Third Tab Button',
+                    'Button Text': tab.label,
+                    'Button Type': 'Tab Navigation',
+                    'Button Context': 'Left sidebar navigation',
+                    'From Tab': activeTab,
+                    'To Tab': tab.id,
+                  }}
+                  tabIndex={0}
+                  aria-label={tab.label}
+                >
+                  {tab.label}
+                </TrackedButton>
+              ))}
             </nav>
           </aside>
 
           {/* Content Area */}
-          <div className="flex-1">
-            <div className="bg-white/80 backdrop-blur-sm rounded-[2rem] p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
+          <div className="flex-1 w-full">
+            <div className="bg-white/80 backdrop-blur-sm rounded-[2rem] p-4 md:p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
               {activeTab === 'profile' && (
                 <ProfileInformation
                   stats={stats}
