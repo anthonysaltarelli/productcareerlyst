@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Sparkles, Copy, Loader2, Wand2, AlertCircle, FileText } from 'lucide-react';
+import { X, Sparkles, Copy, Loader2, Wand2, AlertCircle, FileText, Lock } from 'lucide-react';
 import { ResumeVersion } from '@/lib/hooks/useResumeData';
 import CustomizationSummaryModal from '@/app/components/resume/CustomizationSummaryModal';
+import PremiumFeatureGateModal from '@/app/components/resume/PremiumFeatureGateModal';
 import { useRouter } from 'next/navigation';
+import { getUserPlanClient } from '@/lib/utils/resume-tracking';
 
 type CustomizationSummary = {
   overallDescription?: string;
@@ -62,18 +64,40 @@ const CreateJobResumeModal = ({
   // Customization result state
   const [customizationResult, setCustomizationResult] = useState<CustomizationResult | null>(null);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
+  
+  // Premium feature gate state
+  const [userPlan, setUserPlan] = useState<'learn' | 'accelerate' | null>(null);
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
+  const [isLoadingPlan, setIsLoadingPlan] = useState(false);
 
   // Check if job has description
   const jobHasDescription = existingJobDescription && existingJobDescription.trim().length > 0;
+  
+  // Check if user can access AI customization (Accelerate plan only)
+  const canAccessAICustomization = userPlan === 'accelerate';
 
-  // Fetch master resumes when modal opens
+  // Fetch master resumes and user plan when modal opens
   useEffect(() => {
     if (isOpen) {
       fetchMasterResumes();
+      fetchUserPlan();
       // Auto-generate resume name
       setResumeName(`${companyName} - ${jobTitle}`);
     }
   }, [isOpen, companyName, jobTitle]);
+
+  // Fetch user subscription plan
+  const fetchUserPlan = async () => {
+    setIsLoadingPlan(true);
+    try {
+      const plan = await getUserPlanClient();
+      setUserPlan(plan);
+    } catch (error) {
+      console.error('Error fetching user plan:', error);
+    } finally {
+      setIsLoadingPlan(false);
+    }
+  };
 
   // Auto-select master if there's only one
   useEffect(() => {
@@ -112,6 +136,12 @@ const CreateJobResumeModal = ({
 
     // Validate for customize mode
     if (customizationMode === 'customize') {
+      // Check if user has Accelerate plan for AI customization
+      if (!canAccessAICustomization) {
+        setShowPremiumGate(true);
+        return;
+      }
+      
       if (!jobHasDescription && !jobDescription.trim()) {
         setError('Please enter a job description so AI can customize your resume.');
         return;
@@ -382,6 +412,12 @@ const CreateJobResumeModal = ({
                         <span className="px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">
                           RECOMMENDED
                         </span>
+                        {!canAccessAICustomization && (
+                          <span className="px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center gap-1">
+                            <Lock className="w-3 h-3" />
+                            ACCELERATE
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">
                         AI analyzes the job description and automatically <strong>reorders bullets</strong> by relevance, 
@@ -536,6 +572,16 @@ const CreateJobResumeModal = ({
           companyName={companyName}
         />
       )}
+
+      {/* Premium Feature Gate Modal for AI Customization */}
+      <PremiumFeatureGateModal
+        isOpen={showPremiumGate}
+        onClose={() => setShowPremiumGate(false)}
+        featureName="AI Resume Customization"
+        featureDescription="AI-powered resume customization is available exclusively for Accelerate plan subscribers. Upgrade to automatically tailor your resume to any job description."
+        currentPlan={userPlan}
+        requiresAccelerate={true}
+      />
     </>
   );
 };

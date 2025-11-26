@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Sparkles, Copy, Loader2 } from 'lucide-react';
+import { X, Sparkles, Copy, Loader2, Lock } from 'lucide-react';
 import { ResumeVersion } from '@/lib/hooks/useResumeData';
 import CustomizationSummaryModal from './CustomizationSummaryModal';
+import PremiumFeatureGateModal from './PremiumFeatureGateModal';
 import { useRouter } from 'next/navigation';
+import { getUserPlanClient } from '@/lib/utils/resume-tracking';
 
 type JobApplication = {
   id: string;
@@ -62,6 +64,13 @@ export default function CreateFromMasterModal({
   // Customization result state
   const [customizationResult, setCustomizationResult] = useState<CustomizationResult | null>(null);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
+  
+  // Premium feature gate state
+  const [userPlan, setUserPlan] = useState<'learn' | 'accelerate' | null>(null);
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
+  
+  // Check if user can access AI customization (Accelerate plan only)
+  const canAccessAICustomization = userPlan === 'accelerate';
 
   // Get selected job details
   const selectedJob = jobApplications.find(job => job.id === selectedJobId);
@@ -76,12 +85,23 @@ export default function CreateFromMasterModal({
     }
   }, [isOpen, masterResumes]);
 
-  // Fetch job applications when modal opens
+  // Fetch job applications and user plan when modal opens
   useEffect(() => {
     if (isOpen) {
       fetchJobApplications();
+      fetchUserPlan();
     }
   }, [isOpen]);
+
+  // Fetch user subscription plan
+  const fetchUserPlan = async () => {
+    try {
+      const plan = await getUserPlanClient();
+      setUserPlan(plan);
+    } catch (error) {
+      console.error('Error fetching user plan:', error);
+    }
+  };
 
   // Reset customization mode when job changes
   useEffect(() => {
@@ -124,6 +144,12 @@ export default function CreateFromMasterModal({
 
     // Validate for customize mode
     if (customizationMode === 'customize') {
+      // Check if user has Accelerate plan for AI customization
+      if (!canAccessAICustomization) {
+        setShowPremiumGate(true);
+        return;
+      }
+      
       if (!selectedJobId) {
         setError('Please select a job application to customize for.');
         return;
@@ -373,6 +399,8 @@ export default function CreateFromMasterModal({
                         ? 'border-purple-400 bg-gradient-to-br from-purple-50 to-pink-50' 
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && setCustomizationMode('customize')}
                   >
                     <input
                       type="radio"
@@ -384,12 +412,18 @@ export default function CreateFromMasterModal({
                       className="mt-1 w-4 h-4 text-purple-600 focus:ring-purple-500"
                     />
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Sparkles className="w-4 h-4 text-purple-600" />
                         <span className="font-bold text-gray-900">Customize with AI</span>
                         <span className="px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full">
                           NEW
                         </span>
+                        {!canAccessAICustomization && (
+                          <span className="px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full flex items-center gap-1">
+                            <Lock className="w-3 h-3" />
+                            ACCELERATE
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm text-gray-600 mt-1">
                         AI will reorder bullets, optimize language, and add relevant keywords based on the job description.
@@ -505,6 +539,16 @@ export default function CreateFromMasterModal({
           companyName={selectedJob.company?.name || 'Unknown Company'}
         />
       )}
+
+      {/* Premium Feature Gate Modal for AI Customization */}
+      <PremiumFeatureGateModal
+        isOpen={showPremiumGate}
+        onClose={() => setShowPremiumGate(false)}
+        featureName="AI Resume Customization"
+        featureDescription="AI-powered resume customization is available exclusively for Accelerate plan subscribers. Upgrade to automatically tailor your resume to any job description."
+        currentPlan={userPlan}
+        requiresAccelerate={true}
+      />
     </>
   );
 }
