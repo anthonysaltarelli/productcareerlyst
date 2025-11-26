@@ -465,10 +465,11 @@ const FeaturedPageCard = ({
   return (
     <Link
       href={`/p/${portfolioSlug}/${page.slug}${previewSuffix}`}
-      className="group relative overflow-hidden rounded-[24px] shadow-sm ring-1 ring-gray-100 transition-[transform,box-shadow] duration-300 ease-out will-change-transform hover:-translate-y-1 hover:shadow-xl md:rounded-[32px]"
+      className="group relative overflow-hidden rounded-2xl shadow-sm ring-1 ring-gray-100 transition-[transform,box-shadow] duration-300 ease-out will-change-transform hover:-translate-y-1 hover:shadow-xl sm:rounded-[24px] md:rounded-[32px]"
     >
       {/* Cover Image with Overlays */}
-      <div className="relative aspect-[2/1] w-full overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
+      {/* Mobile: taller aspect ratio for better content visibility, Desktop: 2:1 */}
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 sm:aspect-[2/1]">
         {page.cover_image_url ? (
           <img
             src={page.cover_image_url}
@@ -476,22 +477,22 @@ const FeaturedPageCard = ({
             className="h-full w-full object-cover transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.03]"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 text-5xl">
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 text-4xl sm:text-5xl">
             📄
           </div>
         )}
         
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        {/* Gradient overlay - stronger on mobile for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent sm:from-black/80 sm:via-black/30" />
         
         {/* Featured & Draft badges - top left */}
-        <div className="absolute left-4 top-4 flex items-center gap-2 md:left-5 md:top-5">
-          <span className="rounded-lg border border-white/20 bg-white/95 px-3 py-1 text-xs font-semibold text-gray-900 backdrop-blur-sm">
+        <div className="absolute left-3 top-3 flex items-center gap-1.5 sm:left-4 sm:top-4 sm:gap-2 md:left-5 md:top-5">
+          <span className="rounded-md border border-white/20 bg-white/95 px-2 py-0.5 text-[10px] font-semibold text-gray-900 backdrop-blur-sm sm:rounded-lg sm:px-3 sm:py-1 sm:text-xs">
             Featured
           </span>
           {isPreviewMode && !page.is_published && (
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/90 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+            <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/90 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm sm:gap-1.5 sm:rounded-lg sm:px-3 sm:py-1 sm:text-xs">
+              <span className="h-1 w-1 rounded-full bg-white sm:h-1.5 sm:w-1.5" />
               Draft
             </span>
           )}
@@ -499,11 +500,11 @@ const FeaturedPageCard = ({
         
         {/* Tags - top right (matching detail page style) */}
         {page.tags.length > 0 && (
-          <div className="absolute right-4 top-4 flex flex-wrap justify-end gap-1.5 md:right-5 md:top-5">
+          <div className="absolute right-3 top-3 flex max-w-[50%] flex-wrap justify-end gap-1 sm:right-4 sm:top-4 sm:max-w-none sm:gap-1.5 md:right-5 md:top-5">
             {page.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="rounded-lg border border-white/30 bg-black/50 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm md:px-3 md:py-1 md:text-xs"
+                className="rounded-md border border-white/30 bg-black/50 px-1.5 py-0.5 text-[9px] font-medium text-white backdrop-blur-sm sm:rounded-lg sm:px-2 sm:text-[10px] md:px-3 md:py-1 md:text-xs"
               >
                 {tag}
               </span>
@@ -512,20 +513,20 @@ const FeaturedPageCard = ({
         )}
         
         {/* Title & Description overlay - bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
-          <h3 className="text-xl font-bold text-white transition-colors duration-200 ease-out md:text-2xl">
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 md:p-6">
+          <h3 className="text-lg font-bold text-white transition-colors duration-200 ease-out sm:text-xl md:text-2xl">
             {page.title}
           </h3>
           {page.description && (
-            <p className="mt-2 line-clamp-2 text-sm text-white/80 md:text-base">
+            <p className="mt-1.5 line-clamp-2 text-xs text-white/80 sm:mt-2 sm:text-sm md:text-base">
               {page.description}
             </p>
           )}
         </div>
         
-        {/* Arrow */}
-        <div className="absolute bottom-5 right-5 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/60 opacity-0 backdrop-blur-sm transition-[opacity,background-color,color] duration-200 ease-out group-hover:bg-white group-hover:text-gray-900 group-hover:opacity-100 md:bottom-6 md:right-6">
-          <ChevronRight className="h-5 w-5" />
+        {/* Arrow - hidden on mobile, shown on hover for desktop */}
+        <div className="absolute bottom-4 right-4 hidden h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/60 opacity-0 backdrop-blur-sm transition-[opacity,background-color,color] duration-200 ease-out group-hover:bg-white group-hover:text-gray-900 group-hover:opacity-100 sm:flex sm:h-10 sm:w-10 md:bottom-6 md:right-6">
+          <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
         </div>
       </div>
     </Link>
@@ -546,10 +547,11 @@ const PageCard = ({
   return (
     <Link
       href={`/p/${portfolioSlug}/${page.slug}${previewSuffix}`}
-      className="group w-full max-w-3xl overflow-hidden rounded-[24px] shadow-sm ring-1 ring-gray-100 transition-[transform,box-shadow] duration-300 ease-out will-change-transform hover:-translate-y-1 hover:shadow-xl md:rounded-[32px]"
+      className="group w-full max-w-3xl overflow-hidden rounded-2xl shadow-sm ring-1 ring-gray-100 transition-[transform,box-shadow] duration-300 ease-out will-change-transform hover:-translate-y-1 hover:shadow-xl sm:rounded-[24px] md:rounded-[32px]"
     >
       {/* Cover Image with Title, Description & Tags Overlay */}
-      <div className="relative aspect-[2/1] w-full overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
+      {/* Mobile: taller aspect ratio for better content visibility, Desktop: 2:1 */}
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 sm:aspect-[2/1]">
         {page.cover_image_url ? (
           <img
             src={page.cover_image_url}
@@ -559,16 +561,16 @@ const PageCard = ({
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-gray-800 to-gray-900" />
         )}
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+        {/* Gradient overlay - stronger on mobile for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent sm:from-black/70 sm:via-black/30" />
         
         {/* Title & Description overlay - bottom left */}
-        <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
-          <h3 className="text-xl font-bold text-white md:text-2xl">
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 md:p-6">
+          <h3 className="text-lg font-bold text-white sm:text-xl md:text-2xl">
             {page.title}
           </h3>
           {page.description && (
-            <p className="mt-2 line-clamp-2 text-sm text-white/80 md:text-base">
+            <p className="mt-1.5 line-clamp-2 text-xs text-white/80 sm:mt-2 sm:text-sm md:text-base">
               {page.description}
             </p>
           )}
@@ -576,17 +578,17 @@ const PageCard = ({
         
         {/* Tags overlay - top right (matching detail page style) */}
         {page.tags.length > 0 && (
-          <div className="absolute right-4 top-4 flex flex-wrap justify-end gap-1.5 md:right-5 md:top-5 md:gap-2">
+          <div className="absolute right-3 top-3 flex max-w-[60%] flex-wrap justify-end gap-1 sm:right-4 sm:top-4 sm:max-w-none sm:gap-1.5 md:right-5 md:top-5 md:gap-2">
             {page.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="rounded-lg border border-white/30 bg-black/50 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm md:px-3 md:py-1 md:text-xs"
+                className="rounded-md border border-white/30 bg-black/50 px-1.5 py-0.5 text-[9px] font-medium text-white backdrop-blur-sm sm:rounded-lg sm:px-2 sm:text-[10px] md:px-3 md:py-1 md:text-xs"
               >
                 {tag}
               </span>
             ))}
             {page.tags.length > 3 && (
-              <span className="rounded-lg border border-white/30 bg-black/50 px-2 py-0.5 text-[10px] font-medium text-white/70 backdrop-blur-sm md:px-3 md:py-1 md:text-xs">
+              <span className="rounded-md border border-white/30 bg-black/50 px-1.5 py-0.5 text-[9px] font-medium text-white/70 backdrop-blur-sm sm:rounded-lg sm:px-2 sm:text-[10px] md:px-3 md:py-1 md:text-xs">
                 +{page.tags.length - 3}
               </span>
             )}
@@ -595,9 +597,9 @@ const PageCard = ({
         
         {/* Draft badge overlay in preview mode */}
         {isPreviewMode && !page.is_published && (
-          <div className="absolute left-4 top-4">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/90 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+          <div className="absolute left-3 top-3 sm:left-4 sm:top-4">
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/90 px-2 py-1 text-[10px] font-medium text-white backdrop-blur-sm sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-xs">
+              <span className="h-1 w-1 rounded-full bg-white sm:h-1.5 sm:w-1.5" />
               Draft
             </span>
           </div>
