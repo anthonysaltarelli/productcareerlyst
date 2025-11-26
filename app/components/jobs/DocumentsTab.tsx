@@ -13,7 +13,7 @@ type BulletChange = {
   wasReordered: boolean;
   originalOrder: number;
   newOrder: number;
-  changeReason: string | null;
+  changeReason?: string | null;
 };
 
 type ExperienceChange = {
@@ -24,9 +24,9 @@ type ExperienceChange = {
 };
 
 type CustomizationSummary = {
-  overallDescription: string;
-  keyChanges: string[];
-  keywordsInjected: string[];
+  overallDescription?: string;
+  keyChanges?: string[];
+  keywordsInjected?: string[];
   bulletsReordered: number;
   bulletsOptimized: number;
   skillsAdded: number;

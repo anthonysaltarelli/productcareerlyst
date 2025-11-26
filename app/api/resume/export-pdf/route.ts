@@ -256,16 +256,15 @@ const generateResumeHTML = (data: ResumeData): string => {
       margin-bottom: 0;
     }
 
-    /* Experience header must stay together and with first bullet */
+    /* Experience header (company/title/dates) must stay together */
     .resume-experience-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 0.03in;
       break-inside: avoid;
-      break-after: avoid;
       page-break-inside: avoid;
-      page-break-after: avoid;
+      /* Removed break-after: avoid - let wrapper handle grouping with first content */
     }
 
     /* Wrapper to keep header + first bullet together */
@@ -274,10 +273,15 @@ const generateResumeHTML = (data: ResumeData): string => {
       page-break-inside: avoid;
     }
 
-    /* Role title within grouped experiences */
+    /* Add spacing after the first bullet's list in header group */
+    .resume-experience-header-group .resume-bullets {
+      margin-bottom: 0.06in;
+    }
+
+    /* Role title within grouped experiences - allow natural breaks */
     .resume-role-header {
-      break-after: avoid;
-      page-break-after: avoid;
+      /* Removed break-after: avoid to allow more natural page flow */
+      /* Role titles can appear at top of page if needed */
     }
 
     .resume-experience-title-group {
@@ -361,6 +365,11 @@ const generateResumeHTML = (data: ResumeData): string => {
     .resume-education-header-group {
       break-inside: avoid;
       page-break-inside: avoid;
+    }
+
+    /* Add spacing after the first bullet's list in education header group */
+    .resume-education-header-group .resume-bullets {
+      margin-bottom: 0.06in;
     }
 
     /* Skills Styles */

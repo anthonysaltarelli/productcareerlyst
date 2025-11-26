@@ -3,9 +3,9 @@
 import { X, Check, ArrowRight, Sparkles, Tag, MoveVertical, Pencil } from 'lucide-react';
 
 type CustomizationSummary = {
-  overallDescription: string;
-  keyChanges: string[];
-  keywordsInjected: string[];
+  overallDescription?: string;
+  keyChanges?: string[];
+  keywordsInjected?: string[];
   bulletsReordered: number;
   bulletsOptimized: number;
   skillsAdded: number;
@@ -102,7 +102,7 @@ const CustomizationSummaryModal = ({
         </div>
 
         {/* Key Changes */}
-        {summary.keyChanges.length > 0 && (
+        {summary.keyChanges && summary.keyChanges.length > 0 && (
           <div className="mb-6">
             <h3 className="text-lg font-black text-gray-900 mb-3 flex items-center gap-2">
               <Check className="w-5 h-5 text-green-600" />
@@ -125,7 +125,7 @@ const CustomizationSummaryModal = ({
         )}
 
         {/* Keywords Injected */}
-        {summary.keywordsInjected.length > 0 && (
+        {summary.keywordsInjected && summary.keywordsInjected.length > 0 && (
           <div className="mb-6">
             <h3 className="text-lg font-black text-gray-900 mb-3 flex items-center gap-2">
               <Tag className="w-5 h-5 text-blue-600" />

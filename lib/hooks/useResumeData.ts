@@ -11,7 +11,7 @@ export type BulletChange = {
   wasReordered: boolean;
   originalOrder: number;
   newOrder: number;
-  changeReason?: string;
+  changeReason?: string | null;
 };
 
 export type ExperienceBulletChanges = {
@@ -22,6 +22,9 @@ export type ExperienceBulletChanges = {
 };
 
 export type CustomizationSummary = {
+  overallDescription?: string;
+  keyChanges?: string[];
+  keywordsInjected?: string[];
   bulletsOptimized: number;
   bulletsReordered: number;
   skillsAdded: number;
@@ -29,6 +32,11 @@ export type CustomizationSummary = {
   optimizedSummary?: string | null;
   summaryChangeReason?: string | null;
   bulletChanges?: ExperienceBulletChanges[];
+  suggestedSkills?: Array<{
+    category: string;
+    skillName: string;
+    reason: string;
+  }>;
 };
 
 export type ResumeVersion = {

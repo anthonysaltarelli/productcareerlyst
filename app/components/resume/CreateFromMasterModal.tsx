@@ -16,9 +16,9 @@ type JobApplication = {
 };
 
 type CustomizationSummary = {
-  overallDescription: string;
-  keyChanges: string[];
-  keywordsInjected: string[];
+  overallDescription?: string;
+  keyChanges?: string[];
+  keywordsInjected?: string[];
   bulletsReordered: number;
   bulletsOptimized: number;
   skillsAdded: number;
