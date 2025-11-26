@@ -768,7 +768,7 @@ const InlineProfileEditor = ({
     }
   }, [editingField]);
 
-  const handleSave = async (field: string, value: string | Record<string, string>) => {
+  const handleSave = async (field: string, value: string | Record<string, string | undefined>) => {
     setIsSaving(true);
     try {
       const response = await fetch('/api/portfolio/manage', {

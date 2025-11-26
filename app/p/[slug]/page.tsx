@@ -63,7 +63,7 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
   // Fetch published pages only
   const { data: pages } = await supabase
     .from('portfolio_pages')
-    .select('id, portfolio_id, category_id, title, slug, description, cover_image_url, tags, display_order, is_published, is_featured, created_at, updated_at, published_at')
+    .select('*')
     .eq('portfolio_id', portfolio.id)
     .eq('is_published', true)
     .order('display_order', { ascending: true });
