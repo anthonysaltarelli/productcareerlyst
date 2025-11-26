@@ -38,6 +38,7 @@ export interface ResizableImageProps
 /**
  * Static Unsplash attribution component
  * This is non-editable and renders below the caption
+ * Styled to match the cover photo attribution (gray text with darker gray links)
  */
 const UnsplashAttributionBadge = ({
   photographerName,
@@ -57,9 +58,8 @@ const UnsplashAttributionBadge = ({
       contentEditable={false}
       style={{
         fontSize: '12px',
-        color: '#6b7280',
-        marginTop: '4px',
-        padding: '4px 0',
+        color: '#6b7280', // text-gray-500
+        marginTop: '2px',
         userSelect: isEditable ? 'none' : 'text',
         pointerEvents: isEditable ? 'none' : 'auto',
       }}
@@ -70,11 +70,14 @@ const UnsplashAttributionBadge = ({
         target="_blank"
         rel="noopener noreferrer"
         style={{
-          color: '#7c3aed',
+          color: '#374151', // text-gray-700 - matches cover photo attribution
+          fontWeight: 500,
           textDecoration: 'none',
           pointerEvents: 'auto',
         }}
         onClick={(e) => e.stopPropagation()}
+        onMouseEnter={(e) => (e.currentTarget.style.color = '#111827')} // hover:text-gray-900
+        onMouseLeave={(e) => (e.currentTarget.style.color = '#374151')}
       >
         {photographerName}
       </a>
@@ -84,11 +87,14 @@ const UnsplashAttributionBadge = ({
         target="_blank"
         rel="noopener noreferrer"
         style={{
-          color: '#7c3aed',
+          color: '#374151', // text-gray-700 - matches cover photo attribution
+          fontWeight: 500,
           textDecoration: 'none',
           pointerEvents: 'auto',
         }}
         onClick={(e) => e.stopPropagation()}
+        onMouseEnter={(e) => (e.currentTarget.style.color = '#111827')} // hover:text-gray-900
+        onMouseLeave={(e) => (e.currentTarget.style.color = '#374151')}
       >
         Unsplash
       </a>

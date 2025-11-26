@@ -409,29 +409,69 @@ const ImageUploadPreview: React.FC<ImageUploadPreviewProps> = ({
   )
 }
 
-const DropZoneContent: React.FC<{ maxSize: number; limit: number }> = ({
-  maxSize,
-  limit,
-}) => (
-  <>
-    <div className="tiptap-image-upload-dropzone">
-      <FileIcon />
-      <FileCornerIcon />
-      <div className="tiptap-image-upload-icon-container">
-        <CloudUploadIcon />
+const SearchIcon: React.FC = () => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.3-4.3" />
+  </svg>
+)
+
+const UploadIcon: React.FC = () => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17,8 12,3 7,8" />
+    <line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+)
+
+const DropZoneContent: React.FC<{ maxSize: number; limit: number }> = () => (
+  <div className="tiptap-image-picker-prompt">
+    {/* Main prompt */}
+    <div className="tiptap-image-picker-header">
+      <div className="tiptap-image-picker-icon-group">
+        <div className="tiptap-image-picker-icon tiptap-image-picker-icon-search">
+          <SearchIcon />
+        </div>
+        <div className="tiptap-image-picker-icon-divider">or</div>
+        <div className="tiptap-image-picker-icon tiptap-image-picker-icon-upload">
+          <UploadIcon />
+        </div>
       </div>
     </div>
-
-    <div className="tiptap-image-upload-content">
-      <span className="tiptap-image-upload-text">
-        <em>Click to upload</em> or drag and drop
+    
+    {/* Text content */}
+    <div className="tiptap-image-picker-content">
+      <span className="tiptap-image-picker-title">
+        Add an image
       </span>
-      <span className="tiptap-image-upload-subtext">
-        Maximum {limit} file{limit === 1 ? "" : "s"}, {maxSize / 1024 / 1024}MB
-        each.
+      <span className="tiptap-image-picker-subtitle">
+        Search <strong>Unsplash</strong> for free photos or upload your own
       </span>
     </div>
-  </>
+    
+    {/* Click prompt */}
+    <div className="tiptap-image-picker-cta">
+      Click to browse options
+    </div>
+  </div>
 )
 
 export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {

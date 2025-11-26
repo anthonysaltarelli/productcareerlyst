@@ -274,7 +274,7 @@ export const TipTapReadOnly = ({ content, className = '' }: TipTapReadOnlyProps)
           flex-direction: column;
           align-items: center;
           width: 100%;
-          margin-top: 0.5rem;
+          margin-top: 0.25rem;
         }
         
         /* Image captions */
@@ -284,21 +284,22 @@ export const TipTapReadOnly = ({ content, className = '' }: TipTapReadOnlyProps)
           color: #4b5563;
         }
         
-        /* Unsplash attribution badge */
+        /* Unsplash attribution badge - matches cover photo styling */
         .tiptap-readonly-wrapper .tiptap-image-unsplash-attribution {
           text-align: center;
           font-size: 12px;
           color: #6b7280;
-          margin-top: 4px;
+          margin-top: 2px;
         }
         
         .tiptap-readonly-wrapper .tiptap-image-unsplash-attribution a {
-          color: #7c3aed;
+          color: #374151;
+          font-weight: 500;
           text-decoration: none;
         }
         
         .tiptap-readonly-wrapper .tiptap-image-unsplash-attribution a:hover {
-          text-decoration: underline;
+          color: #111827;
         }
         
         /* Style inline code */

@@ -224,6 +224,112 @@
   }
 }
 
+// === New Image Picker Prompt Styles ===
+.tiptap-image-picker-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  user-select: none;
+}
+
+.tiptap-image-picker-header {
+  display: flex;
+  justify-content: center;
+}
+
+.tiptap-image-picker-icon-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tiptap-image-picker-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+.tiptap-image-picker-icon-search {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+.tiptap-image-picker-icon-upload {
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.tiptap-image-picker-icon-divider {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tiptap-image-picker-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.tiptap-image-picker-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--tiptap-image-upload-text-color, #374151);
+}
+
+.tiptap-image-picker-subtitle {
+  font-size: 0.875rem;
+  color: var(--tiptap-image-upload-subtext-color, #6b7280);
+  
+  strong {
+    color: #7c3aed;
+    font-weight: 600;
+  }
+}
+
+.tiptap-image-picker-cta {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #9ca3af;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  background: rgba(156, 163, 175, 0.1);
+  transition: all 0.2s ease;
+}
+
+// Hover effects on the drag area
+.tiptap-image-upload-drag-area:hover {
+  .tiptap-image-picker-icon-search {
+    transform: scale(1.05);
+  }
+  
+  .tiptap-image-picker-icon-upload {
+    transform: scale(1.05);
+  }
+  
+  .tiptap-image-picker-cta {
+    background: rgba(124, 58, 237, 0.1);
+    color: #7c3aed;
+  }
+}
+
 .tiptap.ProseMirror.ProseMirror-focused {
   .ProseMirror-selectednode .tiptap-image-upload-drag-area {
     border-color: var(--tiptap-image-upload-active);
@@ -245,5 +351,32 @@
     .tiptap-image-upload-preview-content {
       padding: 0.75rem;
     }
+  }
+  
+  .tiptap-image-picker-prompt {
+    gap: 0.75rem;
+  }
+  
+  .tiptap-image-picker-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    
+    svg {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+  
+  .tiptap-image-picker-icon-group {
+    gap: 0.5rem;
+  }
+  
+  .tiptap-image-picker-title {
+    font-size: 0.9375rem;
+  }
+  
+  .tiptap-image-picker-subtitle {
+    font-size: 0.8125rem;
+    padding: 0 0.5rem;
   }
 }
