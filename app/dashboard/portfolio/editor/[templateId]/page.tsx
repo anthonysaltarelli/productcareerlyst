@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { use, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, 
@@ -14,11 +14,17 @@ import {
   X,
   Check,
   Pencil,
+  Save,
+  RotateCcw,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import type { JSONContent } from '@tiptap/react';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
-import { NotionEditor } from '@/components/tiptap-templates/notion-like/notion-like-editor';
-import { PortfolioPage } from '@/lib/types/portfolio';
+import { 
+  NotionEditorStandalone, 
+  NotionEditorStandaloneRef 
+} from '@/components/tiptap-templates/notion-like/notion-like-editor-standalone';
+import { PortfolioPage, TipTapContent } from '@/lib/types/portfolio';
 
 interface PageProps {
   params: Promise<{ templateId: string }>;
@@ -29,6 +35,8 @@ interface PageProps {
  * 
  * Full-featured page editor with TipTap Notion-like editor,
  * cover image, tags, and metadata management.
+ * 
+ * Content is stored in Supabase with manual save/discard.
  */
 
 export default function PortfolioPageEditorPage({ params }: PageProps) {
@@ -37,7 +45,15 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
   const [page, setPage] = useState<PortfolioPage | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingContent, setIsSavingContent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Content state
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [initialContent, setInitialContent] = useState<JSONContent | undefined>(undefined);
+  
+  // Editor ref for triggering save/discard from parent
+  const editorRef = useRef<NotionEditorStandaloneRef>(null);
   
   // Metadata editing states
   const [showMetadataEditor, setShowMetadataEditor] = useState(false);
@@ -62,6 +78,18 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
         }
         const data = await response.json();
         setPage(data.page);
+        
+        // Set initial content from database
+        const content = data.page.content as TipTapContent;
+        if (content && content.type === 'doc') {
+          setInitialContent(content as JSONContent);
+        } else {
+          // Default empty document
+          setInitialContent({
+            type: 'doc',
+            content: [{ type: 'paragraph' }],
+          });
+        }
       } catch (err) {
         console.error('Error fetching page:', err);
         setError('Failed to load page');
@@ -73,12 +101,57 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
     fetchPage();
   }, [pageId]);
 
+  // Handle content save
+  const handleSaveContent = useCallback(async (content: JSONContent) => {
+    setIsSavingContent(true);
+    try {
+      const response = await fetch(`/api/portfolio/pages/${pageId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
 
-  // Note: Content is now saved automatically via TipTap Cloud collaboration
-  // The room ID (portfolio-page-{pageId}) ensures each page has its own document
+      if (!response.ok) {
+        throw new Error('Failed to save content');
+      }
+
+      // Update initial content reference
+      setInitialContent(content);
+      setHasUnsavedChanges(false);
+      toast.success('Content saved!');
+    } catch (err) {
+      console.error('Error saving content:', err);
+      toast.error('Failed to save content');
+      throw err;
+    } finally {
+      setIsSavingContent(false);
+    }
+  }, [pageId]);
+
+  // Handle content discard
+  const handleDiscardContent = useCallback(() => {
+    setHasUnsavedChanges(false);
+    toast.info('Changes discarded');
+  }, []);
+
+  // Handle content change tracking
+  const handleContentChange = useCallback((hasChanges: boolean) => {
+    setHasUnsavedChanges(hasChanges);
+  }, []);
 
   const handlePublishToggle = async () => {
     if (!page) return;
+
+    // Warn about unsaved changes
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm(
+        'You have unsaved changes. Do you want to save them before publishing?'
+      );
+      if (confirmed) {
+        toast.info('Please save your content first, then try publishing again.');
+        return;
+      }
+    }
 
     setIsSaving(true);
     try {
@@ -177,6 +250,17 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
     }
   };
 
+  // Handle navigation with unsaved changes warning
+  const handleBackClick = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm(
+        'You have unsaved changes. Are you sure you want to leave?'
+      );
+      if (!confirmed) return;
+    }
+    router.push('/dashboard/portfolio/editor');
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -199,7 +283,7 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
             {error || 'Page not found'}
           </h1>
           <p className="mb-6 text-gray-600">
-            The page you're looking for doesn't exist or you don't have access to it.
+            The page you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.
           </p>
           <button
             onClick={() => router.push('/dashboard/portfolio/editor')}
@@ -224,7 +308,7 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <button
-                  onClick={() => router.push('/dashboard/portfolio/editor')}
+                  onClick={handleBackClick}
                   className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
                   type="button"
                 >
@@ -246,12 +330,45 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
                         Draft
                       </span>
                     )}
-                    <span className="text-green-600">• Auto-saved</span>
+                    {hasUnsavedChanges ? (
+                      <span className="text-amber-600">• Unsaved changes</span>
+                    ) : (
+                      <span className="text-green-600">• Saved</span>
+                    )}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
+                {/* Save/Discard Buttons */}
+                {hasUnsavedChanges && (
+                  <>
+                    <button
+                      onClick={() => editorRef.current?.discard()}
+                      className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
+                      type="button"
+                      title="Discard changes"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      <span className="hidden md:inline">Discard</span>
+                    </button>
+                    <button
+                      onClick={() => editorRef.current?.save()}
+                      disabled={isSavingContent}
+                      className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-purple-700 disabled:opacity-50"
+                      type="button"
+                      title="Save changes"
+                    >
+                      {isSavingContent ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Save className="h-4 w-4" />
+                      )}
+                      <span className="hidden md:inline">Save</span>
+                    </button>
+                  </>
+                )}
+
                 {/* Settings Toggle */}
                 <button
                   onClick={() => setShowMetadataEditor(!showMetadataEditor)}
@@ -362,11 +479,17 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
                 </div>
               )}
 
-              {/* TipTap Editor - Uses TipTap Cloud for real-time collaboration */}
-              <NotionEditor
-                room={`portfolio-page-${page.id}`}
-                placeholder="Start writing your case study..."
-              />
+              {/* TipTap Editor - Standalone (No TipTap Cloud) */}
+              {initialContent && (
+                <NotionEditorStandalone
+                  editorRef={editorRef}
+                  initialContent={initialContent}
+                  placeholder="Start writing your case study..."
+                  onSave={handleSaveContent}
+                  onDiscard={handleDiscardContent}
+                  onContentChange={handleContentChange}
+                />
+              )}
             </div>
 
             {/* Metadata Sidebar */}
