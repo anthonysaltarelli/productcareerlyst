@@ -176,7 +176,7 @@ export default async function PublicPageDetailPage({ params, searchParams }: Pag
 
       {/* Draft Badge for unpublished pages in preview mode */}
       {showUnpublished && !page.is_published && (
-        <div className="mx-auto max-w-5xl px-4 py-2 sm:px-6">
+        <div className="mx-auto max-w-3xl px-4 py-2 sm:px-6">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
             Draft - Not yet published
@@ -186,7 +186,7 @@ export default async function PublicPageDetailPage({ params, searchParams }: Pag
 
       {/* Navigation */}
       <nav className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-3 sm:px-6 sm:pb-6 sm:pt-[30px]">
+        <div className="mx-auto max-w-3xl px-4 py-3 sm:px-6 sm:pb-6 sm:pt-[30px]">
           <Link
             href={backLink}
             className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
@@ -201,7 +201,7 @@ export default async function PublicPageDetailPage({ params, searchParams }: Pag
       {page.cover_image_url ? (
         <>
           {/* Mobile Layout - title inside cover, description below */}
-          <div className="mx-auto max-w-5xl px-4 sm:hidden">
+          <div className="mx-auto max-w-3xl px-4 sm:hidden">
             <div className="relative aspect-[2/1] w-full overflow-hidden rounded-xl bg-gray-100">
               <img
                 src={page.cover_image_url}
@@ -247,7 +247,7 @@ export default async function PublicPageDetailPage({ params, searchParams }: Pag
           </div>
 
           {/* Desktop Layout - title overlaid on image */}
-          <div className="mx-auto hidden max-w-5xl px-6 sm:block">
+          <div className="mx-auto hidden max-w-3xl px-6 sm:block">
             <div className="relative aspect-[3/1] w-full overflow-hidden rounded-[20px] bg-gray-100">
               <img
                 src={page.cover_image_url}
@@ -293,7 +293,7 @@ export default async function PublicPageDetailPage({ params, searchParams }: Pag
         </>
       ) : (
         /* Header without cover image */
-        <header className="mx-auto max-w-5xl px-4 pt-8 sm:px-6 sm:pt-12">
+        <header className="mx-auto max-w-3xl px-4 pt-8 sm:px-6 sm:pt-12">
           <h1 className="mb-4 text-xl font-bold tracking-tight text-gray-900 sm:text-2xl md:text-3xl">
             {page.title}
           </h1>
@@ -323,7 +323,7 @@ export default async function PublicPageDetailPage({ params, searchParams }: Pag
 
       {/* Tags - Mobile only when NO cover image (with cover image, tags are inside the image) */}
       {page.tags && page.tags.length > 0 && !page.cover_image_url && (
-        <div className="mx-auto max-w-5xl px-4 pt-4 sm:hidden">
+        <div className="mx-auto max-w-3xl px-4 pt-4 sm:hidden">
           <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
             <Tag className="h-4 w-4" />
             <div className="flex flex-wrap gap-1.5">
@@ -342,7 +342,7 @@ export default async function PublicPageDetailPage({ params, searchParams }: Pag
 
       {/* Content */}
       <main className="py-8 sm:py-12">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
           {hasContent ? (
             <TipTapReadOnlyWrapper content={page.content as JSONContent} />
           ) : (
@@ -361,7 +361,7 @@ export default async function PublicPageDetailPage({ params, searchParams }: Pag
 
       {/* Footer */}
       <footer className="border-t border-gray-100 bg-gray-50 py-6 sm:py-8">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <Link
               href={backLink}
