@@ -194,8 +194,8 @@ export default function PublicPortfolioView({
         )}
 
         {/* Hero Content */}
-        <div className="max-w-5xl">
-          <h1 className="text-4xl leading-tight tracking-tight text-gray-900 sm:text-5xl md:text-6xl lg:text-7xl">
+        <div className="max-w-5xl px-2">
+          <h1 className="text-5xl leading-[1.1] tracking-tight text-gray-900 sm:text-6xl md:text-7xl lg:text-8xl">
             <span className="font-bold">{portfolio.display_name}</span>
             {portfolio.subtitle && (
               <span className="font-normal text-gray-900">
