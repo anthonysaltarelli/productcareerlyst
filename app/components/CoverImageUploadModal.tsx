@@ -15,15 +15,25 @@ import {
   ImageIcon,
   LayoutGrid,
   Check,
+  Search,
+  Trash2,
 } from 'lucide-react';
+import { UnsplashPhoto } from '@/lib/types/unsplash';
 
 // ============================================================================
 // Types
 // ============================================================================
 
+interface UnsplashData {
+  photoId: string;
+  photographerName: string;
+  photographerUsername: string;
+  downloadLocation: string;
+}
+
 interface CoverImageUploadModalProps {
   currentUrl?: string;
-  onSave: (url: string) => void;
+  onSave: (url: string, unsplashData?: UnsplashData) => void;
   onClose: () => void;
 }
 
@@ -41,7 +51,7 @@ interface TemplatePhoto {
   filename: string;
 }
 
-type TabType = 'upload' | 'templates';
+type TabType = 'upload' | 'templates' | 'unsplash';
 
 // ============================================================================
 // Constants
@@ -55,9 +65,6 @@ const ASPECT_RATIO = 3 / 1; // 3:1 aspect ratio for cover images
 // Utility Functions
 // ============================================================================
 
-/**
- * Creates a cropped image blob from the original image and crop area
- */
 const createCroppedImage = async (
   imageSrc: string,
   pixelCrop: CroppedAreaPixels,
@@ -72,27 +79,20 @@ const createCroppedImage = async (
   }
 
   const rotRad = getRadianAngle(rotation);
-
-  // Calculate bounding box of the rotated image
   const { width: bBoxWidth, height: bBoxHeight } = rotateSize(
     image.width,
     image.height,
     rotation
   );
 
-  // Set canvas size to match the bounding box
   canvas.width = bBoxWidth;
   canvas.height = bBoxHeight;
 
-  // Translate canvas to center and rotate
   ctx.translate(bBoxWidth / 2, bBoxHeight / 2);
   ctx.rotate(rotRad);
   ctx.translate(-image.width / 2, -image.height / 2);
-
-  // Draw rotated image
   ctx.drawImage(image, 0, 0);
 
-  // Create a new canvas for the cropped result
   const croppedCanvas = document.createElement('canvas');
   const croppedCtx = croppedCanvas.getContext('2d');
 
@@ -100,11 +100,9 @@ const createCroppedImage = async (
     throw new Error('Could not get cropped canvas context');
   }
 
-  // Set the size of the cropped canvas
   croppedCanvas.width = pixelCrop.width;
   croppedCanvas.height = pixelCrop.height;
 
-  // Draw the cropped image
   croppedCtx.drawImage(
     canvas,
     pixelCrop.x,
@@ -117,7 +115,6 @@ const createCroppedImage = async (
     pixelCrop.height
   );
 
-  // Return as blob
   return new Promise((resolve, reject) => {
     croppedCanvas.toBlob(
       (blob) => {
@@ -133,9 +130,6 @@ const createCroppedImage = async (
   });
 };
 
-/**
- * Creates an HTMLImageElement from a source URL
- */
 const createImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const image = new Image();
@@ -145,23 +139,16 @@ const createImage = (url: string): Promise<HTMLImageElement> =>
     image.src = url;
   });
 
-/**
- * Converts degrees to radians
- */
 const getRadianAngle = (degreeValue: number): number => {
   return (degreeValue * Math.PI) / 180;
 };
 
-/**
- * Calculates the new bounding box dimensions after rotation
- */
 const rotateSize = (
   width: number,
   height: number,
   rotation: number
 ): { width: number; height: number } => {
   const rotRad = getRadianAngle(rotation);
-
   return {
     width:
       Math.abs(Math.cos(rotRad) * width) + Math.abs(Math.sin(rotRad) * height),
@@ -198,29 +185,41 @@ const CoverImageUploadModal = ({
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
+  // Unsplash state
+  const [unsplashQuery, setUnsplashQuery] = useState('');
+  const [unsplashPhotos, setUnsplashPhotos] = useState<UnsplashPhoto[]>([]);
+  const [isSearchingUnsplash, setIsSearchingUnsplash] = useState(false);
+  const [selectedUnsplash, setSelectedUnsplash] = useState<UnsplashPhoto | null>(null);
+  const [unsplashPage, setUnsplashPage] = useState(1);
+  const [unsplashTotalPages, setUnsplashTotalPages] = useState(0);
+  const [hasSearched, setHasSearched] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [mounted, setMounted] = useState(false);
 
-  // Mount state for portal (needed for SSR)
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
   }, []);
 
-  // Fetch templates when tab switches to templates
   useEffect(() => {
     if (activeTab === 'templates' && templates.length === 0) {
       fetchTemplates();
     }
   }, [activeTab, templates.length]);
 
+  useEffect(() => {
+    if (activeTab === 'unsplash' && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [activeTab]);
+
   const fetchTemplates = async () => {
     setIsLoadingTemplates(true);
     try {
       const response = await fetch('/api/portfolio/cover-templates');
-      if (!response.ok) {
-        throw new Error('Failed to fetch templates');
-      }
+      if (!response.ok) throw new Error('Failed to fetch templates');
       const data = await response.json();
       setTemplates(data.templates || []);
     } catch (err) {
@@ -231,7 +230,59 @@ const CoverImageUploadModal = ({
     }
   };
 
-  // Handlers
+  const handleUnsplashSearch = useCallback(async (page: number = 1) => {
+    if (!unsplashQuery.trim()) return;
+
+    setIsSearchingUnsplash(true);
+    setError(null);
+    setHasSearched(true);
+
+    try {
+      const params = new URLSearchParams({
+        query: unsplashQuery.trim(),
+        page: page.toString(),
+        per_page: '18',
+        orientation: 'landscape',
+      });
+
+      const response = await fetch(`/api/unsplash/search?${params}`);
+      if (!response.ok) throw new Error('Failed to search Unsplash');
+
+      const data = await response.json();
+      
+      if (page === 1) {
+        setUnsplashPhotos(data.photos);
+      } else {
+        setUnsplashPhotos(prev => {
+          const existingIds = new Set(prev.map((p: UnsplashPhoto) => p.id));
+          const newPhotos = data.photos.filter((p: UnsplashPhoto) => !existingIds.has(p.id));
+          return [...prev, ...newPhotos];
+        });
+      }
+      
+      setUnsplashPage(page);
+      setUnsplashTotalPages(data.totalPages);
+    } catch (err) {
+      console.error('Error searching Unsplash:', err);
+      setError('Failed to search Unsplash. Please try again.');
+    } finally {
+      setIsSearchingUnsplash(false);
+    }
+  }, [unsplashQuery]);
+
+  const handleLoadMoreUnsplash = useCallback(() => {
+    if (unsplashPage < unsplashTotalPages && !isSearchingUnsplash) {
+      handleUnsplashSearch(unsplashPage + 1);
+    }
+  }, [unsplashPage, unsplashTotalPages, isSearchingUnsplash, handleUnsplashSearch]);
+
+  const handleSelectUnsplash = useCallback((photo: UnsplashPhoto) => {
+    setSelectedUnsplash(photo);
+    setSelectedImage(null);
+    setSelectedTemplate(null);
+    setError(null);
+  }, []);
+
   const handleCropComplete = useCallback(
     (_croppedArea: Area, croppedAreaPixels: Area) => {
       setCroppedAreaPixels(croppedAreaPixels);
@@ -258,10 +309,10 @@ const CoverImageUploadModal = ({
 
     setError(null);
     setSelectedTemplate(null);
+    setSelectedUnsplash(null);
     const reader = new FileReader();
     reader.onload = () => {
       setSelectedImage(reader.result as string);
-      // Reset crop settings for new image
       setCrop({ x: 0, y: 0 });
       setZoom(1);
       setRotation(0);
@@ -273,11 +324,8 @@ const CoverImageUploadModal = ({
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       setIsDragging(false);
-
       const file = e.dataTransfer.files[0];
-      if (file) {
-        handleFileSelect(file);
-      }
+      if (file) handleFileSelect(file);
     },
     [handleFileSelect]
   );
@@ -295,9 +343,7 @@ const CoverImageUploadModal = ({
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file) {
-        handleFileSelect(file);
-      }
+      if (file) handleFileSelect(file);
     },
     [handleFileSelect]
   );
@@ -325,35 +371,51 @@ const CoverImageUploadModal = ({
   const handleSelectTemplate = useCallback((templateUrl: string) => {
     setSelectedTemplate(templateUrl);
     setSelectedImage(null);
+    setSelectedUnsplash(null);
     setError(null);
   }, []);
 
   const handleSave = useCallback(async () => {
-    // If a template is selected, save it directly
+    if (selectedUnsplash) {
+      try {
+        await fetch('/api/unsplash/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ downloadLocation: selectedUnsplash.downloadLocation }),
+        });
+      } catch (err) {
+        console.warn('Failed to track Unsplash download:', err);
+      }
+
+      onSave(selectedUnsplash.urls.cover, {
+        photoId: selectedUnsplash.id,
+        photographerName: selectedUnsplash.photographer.name,
+        photographerUsername: selectedUnsplash.photographer.username,
+        downloadLocation: selectedUnsplash.downloadLocation,
+      });
+      return;
+    }
+
     if (selectedTemplate) {
       onSave(selectedTemplate);
       return;
     }
 
-    // Otherwise, crop and upload the custom image
     if (!selectedImage || !croppedAreaPixels) return;
 
     setIsUploading(true);
     setError(null);
 
     try {
-      // Create cropped image blob
       const croppedBlob = await createCroppedImage(
         selectedImage,
         croppedAreaPixels,
         rotation
       );
 
-      // Create form data for upload
       const formData = new FormData();
       formData.append('file', croppedBlob, 'cover-image.jpg');
 
-      // Upload to API
       const response = await fetch('/api/portfolio/images/upload', {
         method: 'POST',
         body: formData,
@@ -372,11 +434,12 @@ const CoverImageUploadModal = ({
     } finally {
       setIsUploading(false);
     }
-  }, [selectedImage, selectedTemplate, croppedAreaPixels, rotation, onSave]);
+  }, [selectedImage, selectedTemplate, selectedUnsplash, croppedAreaPixels, rotation, onSave]);
 
   const handleReset = useCallback(() => {
     setSelectedImage(null);
     setSelectedTemplate(null);
+    setSelectedUnsplash(null);
     setCrop({ x: 0, y: 0 });
     setZoom(1);
     setRotation(0);
@@ -387,17 +450,31 @@ const CoverImageUploadModal = ({
     }
   }, []);
 
-  // Render - use portal to escape parent container constraints
+  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleUnsplashSearch(1);
+    }
+  }, [handleUnsplashSearch]);
+
+  const handleTabChange = useCallback((tab: TabType) => {
+    setActiveTab(tab);
+    setSelectedTemplate(null);
+    setSelectedUnsplash(null);
+    setSelectedImage(null);
+    setError(null);
+  }, []);
+
   if (!mounted) return null;
 
-  const canSave = selectedTemplate || (selectedImage && croppedAreaPixels);
+  const canSave = selectedUnsplash || selectedTemplate || (selectedImage && croppedAreaPixels);
 
   const modalContent = (
     <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
     >
-      {/* Backdrop click handler */}
+      {/* Backdrop */}
       <div
         className="absolute inset-0"
         onClick={onClose}
@@ -407,36 +484,25 @@ const CoverImageUploadModal = ({
         aria-label="Close modal"
       />
 
-      {/* Modal */}
-      <div className="relative z-10 mx-4 w-full max-w-2xl rounded-2xl bg-white shadow-2xl">
-        {/* Header with Tabs */}
-        <div className="border-b border-gray-200">
-          <div className="flex items-center justify-between px-5 py-3">
-            <h2 className="font-semibold text-gray-900">
-              {selectedImage ? 'Edit Cover Image' : 'Choose Cover Image'}
-            </h2>
-            <button
-              onClick={onClose}
-              className="rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-              type="button"
-              aria-label="Close"
-            >
-              <X className="h-5 w-5" />
-            </button>
+      {/* Modal - Larger with sidebar layout */}
+      <div className="relative z-10 flex h-[600px] w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+        {/* Left Sidebar */}
+        <div className="flex w-48 flex-shrink-0 flex-col border-r border-gray-200 bg-gray-50">
+          {/* Header */}
+          <div className="border-b border-gray-200 px-4 py-4">
+            <h2 className="font-semibold text-gray-900">Cover Image</h2>
+            <p className="mt-0.5 text-xs text-gray-500">Choose a cover photo</p>
           </div>
 
-          {/* Tab Navigation - only show when not editing */}
-          {!selectedImage && (
-            <div className="flex gap-1 px-5 pb-2">
+          {/* Navigation */}
+          <nav className="flex-1 p-3">
+            <div className="space-y-1">
               <button
-                onClick={() => {
-                  setActiveTab('upload');
-                  setSelectedTemplate(null);
-                }}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                onClick={() => handleTabChange('upload')}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors ${
                   activeTab === 'upload'
                     ? 'bg-purple-100 text-purple-700'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    : 'text-gray-700 hover:bg-gray-100'
                 }`}
                 type="button"
               >
@@ -444,269 +510,414 @@ const CoverImageUploadModal = ({
                 Upload
               </button>
               <button
-                onClick={() => {
-                  setActiveTab('templates');
-                  setSelectedImage(null);
-                }}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                onClick={() => handleTabChange('templates')}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors ${
                   activeTab === 'templates'
                     ? 'bg-purple-100 text-purple-700'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    : 'text-gray-700 hover:bg-gray-100'
                 }`}
                 type="button"
               >
                 <LayoutGrid className="h-4 w-4" />
                 Templates
               </button>
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="px-5 pb-4 pt-3">
-          {/* Upload Tab */}
-          {activeTab === 'upload' && !selectedImage && (
-            <div
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              className={`relative flex h-[180px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all ${
-                isDragging
-                  ? 'border-purple-500 bg-purple-50'
-                  : 'border-gray-300 bg-gray-50 hover:border-purple-400 hover:bg-purple-50/50'
-              }`}
-              onClick={handleBrowseClick}
-              onKeyDown={(e) => e.key === 'Enter' && handleBrowseClick()}
-              role="button"
-              tabIndex={0}
-              aria-label="Upload image"
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp"
-                onChange={handleInputChange}
-                className="hidden"
-                aria-label="Select image file"
-              />
-
-              <div
-                className={`mb-3 rounded-full p-3 ${
-                  isDragging ? 'bg-purple-100' : 'bg-gray-100'
+              <button
+                onClick={() => handleTabChange('unsplash')}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors ${
+                  activeTab === 'unsplash'
+                    ? 'bg-purple-100 text-purple-700'
+                    : 'text-gray-700 hover:bg-gray-100'
                 }`}
+                type="button"
               >
-                {isDragging ? (
-                  <Upload className="h-8 w-8 text-purple-500" />
-                ) : (
-                  <ImageIcon className="h-8 w-8 text-gray-400" />
-                )}
-              </div>
-
-              <p className="mb-1 text-center text-sm font-medium text-gray-700">
-                {isDragging ? 'Drop your image here' : 'Drag & drop your cover image'}
-              </p>
-              <p className="text-center text-xs text-gray-500">
-                or click to browse • JPEG, PNG, GIF, WebP • Max 10MB
-              </p>
+                <Search className="h-4 w-4" />
+                Unsplash
+              </button>
             </div>
-          )}
+          </nav>
 
-          {/* Templates Tab */}
-          {activeTab === 'templates' && !selectedImage && (
-            <div className="min-h-[180px]">
-              {isLoadingTemplates ? (
-                <div className="flex h-[180px] items-center justify-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-                </div>
-              ) : templates.length === 0 ? (
-                <div className="flex h-[180px] flex-col items-center justify-center text-gray-500">
-                  <ImageIcon className="mb-2 h-10 w-10 text-gray-300" />
-                  <p className="text-sm">No templates available</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  {templates.map((template) => (
-                    <button
-                      key={template.id}
-                      onClick={() => handleSelectTemplate(template.url)}
-                      className={`group relative aspect-[3/1] overflow-hidden rounded-lg transition-all ${
-                        selectedTemplate === template.url
-                          ? 'ring-2 ring-purple-500 ring-offset-2'
-                          : 'hover:ring-2 hover:ring-purple-300 hover:ring-offset-1'
-                      }`}
-                      type="button"
-                      aria-label={`Select ${template.name} template`}
-                    >
-                      <img
-                        src={template.url}
-                        alt={template.name}
-                        className="h-full w-full object-cover"
-                      />
-                      {selectedTemplate === template.url && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-purple-500/20">
-                          <div className="rounded-full bg-purple-500 p-1">
-                            <Check className="h-4 w-4 text-white" />
-                          </div>
-                        </div>
-                      )}
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-1.5 opacity-0 transition-opacity group-hover:opacity-100">
-                        <p className="truncate text-xs text-white">{template.name}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Crop Interface - when image is selected */}
-          {selectedImage && (
-            <div className="space-y-3">
-              {/* Cropper */}
-              <div className="relative h-[220px] overflow-hidden rounded-xl bg-gray-900">
-                <Cropper
-                  image={selectedImage}
-                  crop={crop}
-                  zoom={zoom}
-                  rotation={rotation}
-                  aspect={ASPECT_RATIO}
-                  cropShape="rect"
-                  showGrid={true}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onCropComplete={handleCropComplete}
-                />
-              </div>
-
-              {/* Preview indicator */}
-              <p className="text-center text-xs text-gray-500">
-                Drag to reposition • Scroll to zoom • 3:1 ratio
-              </p>
-
-              {/* Controls */}
-              <div className="flex items-center gap-4">
-                {/* Zoom Control */}
-                <div className="flex flex-1 items-center gap-2">
-                  <button
-                    onClick={handleZoomOut}
-                    className="rounded-md p-1.5 text-gray-500 transition-colors hover:bg-gray-100"
-                    type="button"
-                    aria-label="Zoom out"
-                    disabled={zoom <= 1}
-                  >
-                    <ZoomOut className="h-4 w-4" />
-                  </button>
-                  <input
-                    type="range"
-                    min={1}
-                    max={3}
-                    step={0.01}
-                    value={zoom}
-                    onChange={(e) => setZoom(Number(e.target.value))}
-                    className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-purple-500"
-                    aria-label="Zoom level"
-                  />
-                  <button
-                    onClick={handleZoomIn}
-                    className="rounded-md p-1.5 text-gray-500 transition-colors hover:bg-gray-100"
-                    type="button"
-                    aria-label="Zoom in"
-                    disabled={zoom >= 3}
-                  >
-                    <ZoomIn className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <div className="h-6 w-px bg-gray-200" />
-
-                {/* Rotation Control */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleRotateLeft}
-                    className="rounded-md p-1.5 text-gray-500 transition-colors hover:bg-gray-100"
-                    type="button"
-                    aria-label="Rotate left"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                  </button>
-                  <span className="min-w-[2.5rem] text-center text-xs text-gray-500">
-                    {rotation}°
-                  </span>
-                  <button
-                    onClick={handleRotateRight}
-                    className="rounded-md p-1.5 text-gray-500 transition-colors hover:bg-gray-100"
-                    type="button"
-                    aria-label="Rotate right"
-                  >
-                    <RotateCw className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <div className="h-6 w-px bg-gray-200" />
-
-                {/* Change Image Button */}
-                <button
-                  onClick={handleReset}
-                  className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100"
-                  type="button"
-                >
-                  <ImageIcon className="h-3.5 w-3.5" />
-                  Change
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Current Image Preview - only show in upload zone */}
-          {!selectedImage && !selectedTemplate && currentUrl && (
-            <div className="mt-4">
-              <p className="mb-1.5 text-center text-xs text-gray-500">Current cover:</p>
-              <div className="h-[60px] overflow-hidden rounded-lg">
+          {/* Current Image Preview & Remove Option */}
+          {currentUrl && !selectedImage && !selectedTemplate && !selectedUnsplash && (
+            <div className="border-t border-gray-200 p-3">
+              <p className="mb-2 text-xs font-medium text-gray-500">Current</p>
+              <div className="aspect-[3/1] overflow-hidden rounded-lg">
                 <img
                   src={currentUrl}
                   alt="Current cover"
                   className="h-full w-full object-cover"
                 />
               </div>
-            </div>
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
-              {error}
+              <button
+                onClick={() => onSave('')}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-100"
+                type="button"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Remove cover
+              </button>
             </div>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex gap-3 border-t border-gray-200 px-5 py-3">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-            type="button"
-            disabled={isUploading}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={!canSave || isUploading}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 px-4 py-2 text-sm font-medium text-white transition-all hover:from-purple-600 hover:to-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
-            type="button"
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                Save
-              </>
+        {/* Right Content Area */}
+        <div className="flex flex-1 flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {activeTab === 'upload' && (selectedImage ? 'Crop Image' : 'Upload Image')}
+              {activeTab === 'templates' && 'Choose Template'}
+              {activeTab === 'unsplash' && 'Search Unsplash'}
+            </h3>
+            <button
+              onClick={onClose}
+              className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+              type="button"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {/* Upload Tab */}
+            {activeTab === 'upload' && !selectedImage && (
+              <div
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                className={`flex h-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all ${
+                  isDragging
+                    ? 'border-purple-500 bg-purple-50'
+                    : 'border-gray-300 bg-gray-50 hover:border-purple-400 hover:bg-purple-50/50'
+                }`}
+                onClick={handleBrowseClick}
+                onKeyDown={(e) => e.key === 'Enter' && handleBrowseClick()}
+                role="button"
+                tabIndex={0}
+                aria-label="Upload image"
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  onChange={handleInputChange}
+                  className="hidden"
+                  aria-label="Select image file"
+                />
+
+                <div className={`mb-4 rounded-full p-4 ${isDragging ? 'bg-purple-100' : 'bg-gray-100'}`}>
+                  {isDragging ? (
+                    <Upload className="h-10 w-10 text-purple-500" />
+                  ) : (
+                    <ImageIcon className="h-10 w-10 text-gray-400" />
+                  )}
+                </div>
+
+                <p className="mb-2 text-center text-base font-medium text-gray-700">
+                  {isDragging ? 'Drop your image here' : 'Drag & drop your cover image'}
+                </p>
+                <p className="text-center text-sm text-gray-500">
+                  or click to browse
+                </p>
+                <p className="mt-4 text-center text-xs text-gray-400">
+                  JPEG, PNG, GIF, WebP • Max 10MB • 3:1 aspect ratio
+                </p>
+              </div>
             )}
-          </button>
+
+            {/* Crop Interface */}
+            {activeTab === 'upload' && selectedImage && (
+              <div className="flex h-full flex-col">
+                <div className="relative flex-1 overflow-hidden rounded-xl bg-gray-900">
+                  <Cropper
+                    image={selectedImage}
+                    crop={crop}
+                    zoom={zoom}
+                    rotation={rotation}
+                    aspect={ASPECT_RATIO}
+                    cropShape="rect"
+                    showGrid={true}
+                    onCropChange={setCrop}
+                    onZoomChange={setZoom}
+                    onCropComplete={handleCropComplete}
+                  />
+                </div>
+
+                <div className="mt-4 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleZoomOut}
+                      className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100"
+                      type="button"
+                      aria-label="Zoom out"
+                      disabled={zoom <= 1}
+                    >
+                      <ZoomOut className="h-5 w-5" />
+                    </button>
+                    <input
+                      type="range"
+                      min={1}
+                      max={3}
+                      step={0.01}
+                      value={zoom}
+                      onChange={(e) => setZoom(Number(e.target.value))}
+                      className="h-2 w-32 cursor-pointer appearance-none rounded-full bg-gray-200 accent-purple-500"
+                      aria-label="Zoom level"
+                    />
+                    <button
+                      onClick={handleZoomIn}
+                      className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100"
+                      type="button"
+                      aria-label="Zoom in"
+                      disabled={zoom >= 3}
+                    >
+                      <ZoomIn className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleRotateLeft}
+                      className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100"
+                      type="button"
+                      aria-label="Rotate left"
+                    >
+                      <RotateCcw className="h-5 w-5" />
+                    </button>
+                    <span className="min-w-[3rem] text-center text-sm text-gray-500">
+                      {rotation}°
+                    </span>
+                    <button
+                      onClick={handleRotateRight}
+                      className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100"
+                      type="button"
+                      aria-label="Rotate right"
+                    >
+                      <RotateCw className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={handleReset}
+                    className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                    type="button"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                    Change Image
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Templates Tab */}
+            {activeTab === 'templates' && (
+              <div className="h-full">
+                {isLoadingTemplates ? (
+                  <div className="flex h-full items-center justify-center">
+                    <Loader2 className="h-10 w-10 animate-spin text-purple-500" />
+                  </div>
+                ) : templates.length === 0 ? (
+                  <div className="flex h-full flex-col items-center justify-center text-gray-500">
+                    <ImageIcon className="mb-3 h-12 w-12 text-gray-300" />
+                    <p className="text-sm">No templates available</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                    {templates.map((template) => (
+                      <button
+                        key={template.id}
+                        onClick={() => handleSelectTemplate(template.url)}
+                        className={`group relative aspect-[3/1] overflow-hidden rounded-xl transition-all ${
+                          selectedTemplate === template.url
+                            ? 'ring-3 ring-purple-500 ring-offset-2'
+                            : 'hover:ring-2 hover:ring-purple-300 hover:ring-offset-2'
+                        }`}
+                        type="button"
+                        aria-label={`Select ${template.name} template`}
+                      >
+                        <img
+                          src={template.url}
+                          alt={template.name}
+                          className="h-full w-full object-cover"
+                        />
+                        {selectedTemplate === template.url && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-purple-500/20">
+                            <div className="rounded-full bg-purple-500 p-1.5">
+                              <Check className="h-5 w-5 text-white" />
+                            </div>
+                          </div>
+                        )}
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 transition-opacity group-hover:opacity-100">
+                          <p className="truncate text-sm text-white">{template.name}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Unsplash Tab */}
+            {activeTab === 'unsplash' && (
+              <div className="flex h-full flex-col">
+                {/* Search Bar */}
+                <div className="mb-4 flex gap-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={unsplashQuery}
+                      onChange={(e) => setUnsplashQuery(e.target.value)}
+                      onKeyDown={handleSearchKeyDown}
+                      placeholder="Search for photos (e.g., office, technology, nature)"
+                      className="w-full rounded-xl border border-gray-300 py-3 pl-12 pr-4 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100"
+                      aria-label="Search Unsplash photos"
+                    />
+                  </div>
+                  <button
+                    onClick={() => handleUnsplashSearch(1)}
+                    disabled={!unsplashQuery.trim() || isSearchingUnsplash}
+                    className="flex items-center gap-2 rounded-xl bg-purple-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    type="button"
+                  >
+                    {isSearchingUnsplash ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Search className="h-5 w-5" />
+                    )}
+                    Search
+                  </button>
+                </div>
+
+                {/* Results */}
+                <div className="flex-1 overflow-y-auto">
+                  {!hasSearched ? (
+                    <div className="flex h-full flex-col items-center justify-center text-gray-500">
+                      <Search className="mb-3 h-12 w-12 text-gray-300" />
+                      <p className="text-sm font-medium">Search for free high-quality photos</p>
+                      <p className="mt-1 text-xs text-gray-400">Photos provided by Unsplash</p>
+                    </div>
+                  ) : isSearchingUnsplash && unsplashPhotos.length === 0 ? (
+                    <div className="flex h-full items-center justify-center">
+                      <Loader2 className="h-10 w-10 animate-spin text-purple-500" />
+                    </div>
+                  ) : unsplashPhotos.length === 0 ? (
+                    <div className="flex h-full flex-col items-center justify-center text-gray-500">
+                      <ImageIcon className="mb-3 h-12 w-12 text-gray-300" />
+                      <p className="text-sm">No photos found for &quot;{unsplashQuery}&quot;</p>
+                      <p className="mt-1 text-xs text-gray-400">Try different keywords</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                        {unsplashPhotos.map((photo) => (
+                          <button
+                            key={photo.id}
+                            onClick={() => handleSelectUnsplash(photo)}
+                            className={`group relative aspect-[3/2] overflow-hidden rounded-xl transition-all ${
+                              selectedUnsplash?.id === photo.id
+                                ? 'ring-3 ring-purple-500 ring-offset-2'
+                                : 'hover:ring-2 hover:ring-purple-300 hover:ring-offset-2'
+                            }`}
+                            type="button"
+                            aria-label={`Select photo by ${photo.photographer.name}`}
+                          >
+                            <img
+                              src={photo.urls.small}
+                              alt={photo.description}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                            {selectedUnsplash?.id === photo.id && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-purple-500/20">
+                                <div className="rounded-full bg-purple-500 p-1.5">
+                                  <Check className="h-5 w-5 text-white" />
+                                </div>
+                              </div>
+                            )}
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 opacity-0 transition-opacity group-hover:opacity-100">
+                              <div className="flex items-center gap-2">
+                                <img
+                                  src={photo.photographer.profileImage}
+                                  alt={photo.photographer.name}
+                                  className="h-5 w-5 rounded-full"
+                                />
+                                <p className="truncate text-sm text-white">{photo.photographer.name}</p>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                      
+                      {unsplashPage < unsplashTotalPages && (
+                        <div className="mt-6 text-center">
+                          <button
+                            onClick={handleLoadMoreUnsplash}
+                            disabled={isSearchingUnsplash}
+                            className="rounded-lg border border-gray-300 px-6 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                            type="button"
+                          >
+                            {isSearchingUnsplash ? 'Loading...' : 'Load more photos'}
+                          </button>
+                        </div>
+                      )}
+
+                      <p className="mt-4 text-center text-xs text-gray-400">
+                        Photos by{' '}
+                        <a
+                          href="https://unsplash.com/?utm_source=productcareerlyst&utm_medium=referral"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-500 underline hover:text-gray-600"
+                        >
+                          Unsplash
+                        </a>
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {error && (
+              <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+                {error}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex gap-3 border-t border-gray-200 px-6 py-4">
+            <button
+              onClick={onClose}
+              className="flex-1 rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              type="button"
+              disabled={isUploading}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!canSave || isUploading}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 px-4 py-2.5 text-sm font-medium text-white transition-all hover:from-purple-600 hover:to-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
+              type="button"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save Cover
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

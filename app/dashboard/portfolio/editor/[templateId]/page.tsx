@@ -278,9 +278,76 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
   };
 
   // Handle cover image save from modal
-  const handleCoverImageSave = (url: string) => {
-    handleUpdateMetadata('cover_image_url', url || null);
-    setShowCoverImageModal(false);
+  interface UnsplashData {
+    photoId: string;
+    photographerName: string;
+    photographerUsername: string;
+    downloadLocation: string;
+  }
+
+  const handleCoverImageSave = async (url: string, unsplashData?: UnsplashData) => {
+    if (!page) return;
+
+    setIsSaving(true);
+    try {
+      // Build the update payload
+      const updatePayload: Record<string, string | null> = {
+        cover_image_url: url || null,
+      };
+
+      // If it's an Unsplash photo, include attribution data
+      if (unsplashData) {
+        updatePayload.cover_image_source = 'unsplash';
+        updatePayload.unsplash_photo_id = unsplashData.photoId;
+        updatePayload.unsplash_photographer_name = unsplashData.photographerName;
+        updatePayload.unsplash_photographer_username = unsplashData.photographerUsername;
+        updatePayload.unsplash_download_location = unsplashData.downloadLocation;
+      } else if (url) {
+        // It's either a template or uploaded image
+        // Check if it's from our templates (they come from our storage)
+        const isTemplate = url.includes('cover-templates') || url.includes('supabase.co');
+        updatePayload.cover_image_source = isTemplate ? 'template' : 'upload';
+        // Clear Unsplash attribution if not an Unsplash photo
+        updatePayload.unsplash_photo_id = null;
+        updatePayload.unsplash_photographer_name = null;
+        updatePayload.unsplash_photographer_username = null;
+        updatePayload.unsplash_download_location = null;
+      } else {
+        // No image - clear everything
+        updatePayload.cover_image_source = null;
+        updatePayload.unsplash_photo_id = null;
+        updatePayload.unsplash_photographer_name = null;
+        updatePayload.unsplash_photographer_username = null;
+        updatePayload.unsplash_download_location = null;
+      }
+
+      const response = await fetch(`/api/portfolio/pages/${pageId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatePayload),
+      });
+
+      if (!response.ok) throw new Error('Failed to update');
+
+      // Update local state
+      setPage((prev) => prev ? { 
+        ...prev, 
+        cover_image_url: url || undefined,
+        cover_image_source: updatePayload.cover_image_source as 'upload' | 'template' | 'unsplash' | undefined,
+        unsplash_photo_id: updatePayload.unsplash_photo_id || undefined,
+        unsplash_photographer_name: updatePayload.unsplash_photographer_name || undefined,
+        unsplash_photographer_username: updatePayload.unsplash_photographer_username || undefined,
+        unsplash_download_location: updatePayload.unsplash_download_location || undefined,
+      } : null);
+      
+      toast.success('Cover image updated!');
+    } catch (err) {
+      console.error('Error updating cover image:', err);
+      toast.error('Failed to update cover image');
+    } finally {
+      setIsSaving(false);
+      setShowCoverImageModal(false);
+    }
   };
 
   const handleCancelEdit = () => {

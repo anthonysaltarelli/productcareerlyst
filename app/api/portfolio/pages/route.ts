@@ -114,6 +114,12 @@ export const POST = async (request: NextRequest) => {
         is_featured: body.is_featured ?? false,
         meta_title: body.meta_title || null,
         meta_description: body.meta_description || null,
+        // Unsplash attribution fields
+        cover_image_source: body.cover_image_source || null,
+        unsplash_photo_id: body.unsplash_photo_id || null,
+        unsplash_photographer_name: body.unsplash_photographer_name || null,
+        unsplash_photographer_username: body.unsplash_photographer_username || null,
+        unsplash_download_location: body.unsplash_download_location || null,
       })
       .select()
       .single();

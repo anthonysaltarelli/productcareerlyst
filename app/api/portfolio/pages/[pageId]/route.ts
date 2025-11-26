@@ -91,6 +91,12 @@ export const PUT = async (request: NextRequest, context: RouteContext) => {
     if (body.is_featured !== undefined) updateData.is_featured = body.is_featured;
     if (body.meta_title !== undefined) updateData.meta_title = body.meta_title;
     if (body.meta_description !== undefined) updateData.meta_description = body.meta_description;
+    // Unsplash attribution fields
+    if (body.cover_image_source !== undefined) updateData.cover_image_source = body.cover_image_source;
+    if (body.unsplash_photo_id !== undefined) updateData.unsplash_photo_id = body.unsplash_photo_id;
+    if (body.unsplash_photographer_name !== undefined) updateData.unsplash_photographer_name = body.unsplash_photographer_name;
+    if (body.unsplash_photographer_username !== undefined) updateData.unsplash_photographer_username = body.unsplash_photographer_username;
+    if (body.unsplash_download_location !== undefined) updateData.unsplash_download_location = body.unsplash_download_location;
 
     // Update page
     const { data: page, error: updateError } = await supabase

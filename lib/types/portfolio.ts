@@ -134,6 +134,12 @@ export interface PortfolioPage {
   created_at: string;
   updated_at: string;
   published_at?: string;
+  // Unsplash attribution fields
+  cover_image_source?: 'upload' | 'template' | 'unsplash';
+  unsplash_photo_id?: string;
+  unsplash_photographer_name?: string;
+  unsplash_photographer_username?: string;
+  unsplash_download_location?: string;
 }
 
 export interface PortfolioPageCreateInput {
@@ -150,6 +156,12 @@ export interface PortfolioPageCreateInput {
   is_featured?: boolean;
   meta_title?: string;
   meta_description?: string;
+  // Unsplash attribution fields
+  cover_image_source?: 'upload' | 'template' | 'unsplash';
+  unsplash_photo_id?: string;
+  unsplash_photographer_name?: string;
+  unsplash_photographer_username?: string;
+  unsplash_download_location?: string;
 }
 
 export interface PortfolioPageUpdateInput {
@@ -165,6 +177,12 @@ export interface PortfolioPageUpdateInput {
   is_featured?: boolean;
   meta_title?: string;
   meta_description?: string;
+  // Unsplash attribution fields
+  cover_image_source?: 'upload' | 'template' | 'unsplash';
+  unsplash_photo_id?: string;
+  unsplash_photographer_name?: string;
+  unsplash_photographer_username?: string;
+  unsplash_download_location?: string;
 }
 
 // ============================================================================

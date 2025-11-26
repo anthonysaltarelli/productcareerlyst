@@ -31,7 +31,6 @@ import {
   Portfolio,
   PortfolioCategoryWithPages,
   PortfolioPage,
-  PortfolioWorkExperience,
 } from '@/lib/types/portfolio';
 
 interface PublicPortfolioViewProps {

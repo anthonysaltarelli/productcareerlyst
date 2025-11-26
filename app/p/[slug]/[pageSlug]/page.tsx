@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import type { JSONContent } from '@tiptap/react';
 import { TipTapReadOnlyWrapper } from '@/app/components/TipTapReadOnlyWrapper';
 import PreviewBanner from '@/app/components/PreviewBanner';
+import UnsplashAttribution from '@/app/components/UnsplashAttribution';
 
 interface PageProps {
   params: Promise<{ slug: string; pageSlug: string }>;
@@ -229,6 +230,14 @@ export default async function PublicPageDetailPage({ params, searchParams }: Pag
                 </div>
               )}
             </div>
+            {/* Unsplash Attribution - Mobile */}
+            {page.cover_image_source === 'unsplash' && page.unsplash_photographer_name && page.unsplash_photographer_username && (
+              <UnsplashAttribution
+                photographerName={page.unsplash_photographer_name}
+                photographerUsername={page.unsplash_photographer_username}
+                position="below"
+              />
+            )}
             {/* Description below cover image */}
             {page.description && (
               <p className="mt-3 text-sm text-gray-600">
@@ -272,6 +281,14 @@ export default async function PublicPageDetailPage({ params, searchParams }: Pag
                 </div>
               )}
             </div>
+            {/* Unsplash Attribution - Desktop (below image, right-aligned) */}
+            {page.cover_image_source === 'unsplash' && page.unsplash_photographer_name && page.unsplash_photographer_username && (
+              <UnsplashAttribution
+                photographerName={page.unsplash_photographer_name}
+                photographerUsername={page.unsplash_photographer_username}
+                position="below"
+              />
+            )}
           </div>
         </>
       ) : (
