@@ -40,13 +40,13 @@ interface PublicPortfolioViewProps {
   isPreviewMode?: boolean;
 }
 
-// Easing function for smooth scroll (easeInOutCubic)
-const easeInOutCubic = (t: number): number => {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+// Easing function for smooth scroll (easeOutQuart - starts fast, decelerates smoothly)
+const easeOutQuart = (t: number): number => {
+  return 1 - Math.pow(1 - t, 4);
 };
 
 // Custom smooth scroll with easing
-const smoothScrollTo = (targetId: string, duration: number = 1200) => {
+const smoothScrollTo = (targetId: string, duration: number = 800) => {
   const target = document.getElementById(targetId);
   if (!target) return;
 
@@ -59,7 +59,7 @@ const smoothScrollTo = (targetId: string, duration: number = 1200) => {
     if (startTime === null) startTime = currentTime;
     const timeElapsed = currentTime - startTime;
     const progress = Math.min(timeElapsed / duration, 1);
-    const easedProgress = easeInOutCubic(progress);
+    const easedProgress = easeOutQuart(progress);
     
     window.scrollTo(0, startPosition + distance * easedProgress);
 
