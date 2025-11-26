@@ -1,8 +1,10 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, Tag } from 'lucide-react';
+import { ArrowLeft, Tag } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import type { JSONContent } from '@tiptap/react';
+import { TipTapReadOnlyWrapper } from '@/app/components/TipTapReadOnlyWrapper';
 
 interface PageProps {
   params: Promise<{ slug: string; pageSlug: string }>;
@@ -28,7 +30,7 @@ export const generateMetadata = async ({ params }: PageProps): Promise<Metadata>
   // Get page
   const { data: page } = await supabase
     .from('portfolio_pages')
-    .select('title, description, meta_title, meta_description')
+    .select('title, description, meta_title, meta_description, cover_image_url')
     .eq('portfolio_id', portfolio.id)
     .eq('slug', pageSlug.toLowerCase())
     .eq('is_published', true)
@@ -48,6 +50,13 @@ export const generateMetadata = async ({ params }: PageProps): Promise<Metadata>
       title,
       description,
       type: 'article',
+      images: page.cover_image_url ? [{ url: page.cover_image_url }] : undefined,
+    },
+    twitter: {
+      card: page.cover_image_url ? 'summary_large_image' : 'summary',
+      title,
+      description,
+      images: page.cover_image_url ? [page.cover_image_url] : undefined,
     },
   };
 };
@@ -81,133 +90,136 @@ export default async function PublicPageDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Get category name
-  let categoryName = null;
-  if (page.category_id) {
-    const { data: category } = await supabase
-      .from('portfolio_categories')
-      .select('name')
-      .eq('id', page.category_id)
-      .maybeSingle();
-    categoryName = category?.name;
-  }
 
-  const publishedDate = page.published_at
-    ? new Date(page.published_at).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    : null;
+  // Check if content exists and is valid
+  const hasContent = page.content && 
+    typeof page.content === 'object' && 
+    page.content.type === 'doc' &&
+    Array.isArray(page.content.content) &&
+    page.content.content.length > 0;
 
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="sticky top-0 z-10 border-b border-gray-100 bg-white/80 backdrop-blur-sm">
-        <div className="mx-auto max-w-4xl px-6 py-4">
+      <nav className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-3 sm:px-6 sm:pb-6 sm:pt-[30px]">
           <Link
             href={`/p/${slug}`}
-            className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+            className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to {portfolio.display_name}'s Portfolio
+            Back
           </Link>
         </div>
       </nav>
 
-      {/* Hero */}
-      <header className="border-b border-gray-100 bg-gradient-to-b from-gray-50 to-white">
-        <div className="mx-auto max-w-4xl px-6 py-12">
-          {/* Breadcrumb */}
-          <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-gray-500">
-            <Link href={`/p/${slug}`} className="hover:text-purple-600">
-              {portfolio.display_name}
-            </Link>
-            {categoryName && (
-              <>
-                <span>/</span>
-                <span>{categoryName}</span>
-              </>
-            )}
+      {/* Cover Image with Title/Description */}
+      {page.cover_image_url ? (
+        <>
+          {/* Mobile Layout - image then title below */}
+          <div className="mx-auto max-w-5xl px-4 sm:hidden">
+            <div className="aspect-[2/1] w-full overflow-hidden rounded-xl bg-gray-100">
+              <img
+                src={page.cover_image_url}
+                alt={page.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="pt-4">
+              <h1 className="text-xl font-bold text-gray-900">
+                {page.title}
+              </h1>
+              {page.description && (
+                <p className="mt-2 text-gray-600">
+                  {page.description}
+                </p>
+              )}
+            </div>
           </div>
 
-          {/* Title */}
-          <h1 className="mb-4 text-4xl font-bold text-gray-900 md:text-5xl">
+          {/* Desktop Layout - title overlaid on image */}
+          <div className="mx-auto hidden max-w-5xl px-6 sm:block">
+            <div className="relative aspect-[3/1] w-full overflow-hidden rounded-[20px] bg-gray-100">
+              <img
+                src={page.cover_image_url}
+                alt={page.title}
+                className="h-full w-full object-cover"
+              />
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              {/* Title and Description overlay */}
+              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+                <h1 className="text-2xl font-bold text-white md:text-3xl">
+                  {page.title}
+                </h1>
+                {page.description && (
+                  <p className="mt-2 text-white/80 md:text-lg">
+                    {page.description}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        /* Header without cover image */
+        <header className="mx-auto max-w-5xl px-4 pt-8 sm:px-6 sm:pt-12">
+          <h1 className="mb-4 text-xl font-bold tracking-tight text-gray-900 sm:text-2xl md:text-3xl">
             {page.title}
           </h1>
-
-          {/* Description */}
           {page.description && (
-            <p className="mb-6 text-xl text-gray-600">{page.description}</p>
+            <p className="mb-6 text-base text-gray-600 sm:text-lg">
+              {page.description}
+            </p>
           )}
+        </header>
+      )}
 
-          {/* Meta */}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-            {publishedDate && (
-              <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                {publishedDate}
-              </div>
-            )}
-            {page.tags.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Tag className="h-4 w-4" />
-                <div className="flex flex-wrap gap-1">
-                  {page.tags.map((tag: string) => (
-                    <span
-                      key={tag}
-                      className="rounded bg-purple-100 px-2 py-0.5 text-xs text-purple-700"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+      {/* Tags */}
+      {page.tags && page.tags.length > 0 && (
+        <div className="mx-auto max-w-5xl px-4 pt-4 sm:px-6 sm:pt-6">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+            <Tag className="h-4 w-4" />
+            <div className="flex flex-wrap gap-1.5">
+              {page.tags.map((tag: string) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
-
-        {/* Cover Image */}
-        {page.cover_image_url && (
-          <div className="mx-auto max-w-5xl px-6 pb-12">
-            <img
-              src={page.cover_image_url}
-              alt={page.title}
-              className="w-full rounded-2xl shadow-2xl"
-            />
-          </div>
-        )}
-      </header>
+      )}
 
       {/* Content */}
-      <main className="py-12">
-        <div className="mx-auto max-w-4xl px-6">
-          {/* TipTap Content Placeholder */}
-          <div className="prose prose-lg max-w-none">
-            {page.content && Object.keys(page.content).length > 0 ? (
-              <TipTapContentRenderer content={page.content} />
-            ) : (
-              <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 p-12 text-center">
-                <div className="mb-4 text-4xl">📝</div>
-                <h3 className="mb-2 text-lg font-semibold text-gray-700">
-                  Content Coming Soon
-                </h3>
-                <p className="text-gray-500">
-                  This case study is being written. Check back soon!
-                </p>
-              </div>
-            )}
-          </div>
+      <main className="py-8 sm:py-12">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          {hasContent ? (
+            <TipTapReadOnlyWrapper content={page.content as JSONContent} />
+          ) : (
+            <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 p-12 text-center">
+              <div className="mb-4 text-4xl">📝</div>
+              <h3 className="mb-2 text-lg font-semibold text-gray-700">
+                Content Coming Soon
+              </h3>
+              <p className="text-gray-500">
+                This case study is being written. Check back soon!
+              </p>
+            </div>
+          )}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 bg-gray-50 py-8">
-        <div className="mx-auto max-w-4xl px-6">
+      <footer className="border-t border-gray-100 bg-gray-50 py-6 sm:py-8">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <Link
               href={`/p/${slug}`}
-              className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-purple-600"
+              className="flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-purple-600"
             >
               <ArrowLeft className="h-4 w-4" />
               View more from {portfolio.display_name}
@@ -216,7 +228,7 @@ export default async function PublicPageDetailPage({ params }: PageProps) {
               Built with{' '}
               <a
                 href="https://productcareerlyst.com"
-                className="text-purple-600 hover:underline"
+                className="text-purple-600 transition-colors hover:underline"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -229,33 +241,3 @@ export default async function PublicPageDetailPage({ params }: PageProps) {
     </div>
   );
 }
-
-// Simple TipTap content renderer (placeholder)
-// This will be enhanced when TipTap is fully integrated
-const TipTapContentRenderer = ({ content }: { content: Record<string, unknown> }) => {
-  // For now, just show a placeholder
-  // This will render TipTap JSON content when the editor is integrated
-  if (!content || !content.content || !Array.isArray(content.content)) {
-    return null;
-  }
-
-  // Basic rendering for simple content
-  return (
-    <div className="space-y-4">
-      {(content.content as Array<{ type: string; content?: Array<{ text?: string }> }>).map((node, index) => {
-        if (node.type === 'paragraph' && node.content) {
-          const text = node.content.map((c) => c.text || '').join('');
-          if (!text) return null;
-          return <p key={index}>{text}</p>;
-        }
-        if (node.type === 'heading' && node.content) {
-          const text = node.content.map((c) => c.text || '').join('');
-          if (!text) return null;
-          return <h2 key={index} className="text-2xl font-bold">{text}</h2>;
-        }
-        return null;
-      })}
-    </div>
-  );
-};
-

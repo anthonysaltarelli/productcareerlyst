@@ -16,6 +16,7 @@ import {
   Pencil,
   Save,
   RotateCcw,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { JSONContent } from '@tiptap/react';
@@ -63,11 +64,15 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
   const [tempDescription, setTempDescription] = useState('');
   const [tempCoverImage, setTempCoverImage] = useState('');
   const [tempTags, setTempTags] = useState('');
+  const [tempSlug, setTempSlug] = useState('');
+  const [portfolioSlug, setPortfolioSlug] = useState<string | null>(null);
+  const [slugError, setSlugError] = useState<string | null>(null);
 
-  // Fetch page data
+  // Fetch page data and portfolio slug
   useEffect(() => {
     const fetchPage = async () => {
       try {
+        // Fetch page data
         const response = await fetch(`/api/portfolio/pages/${pageId}`);
         if (!response.ok) {
           if (response.status === 404) {
@@ -79,6 +84,15 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
         }
         const data = await response.json();
         setPage(data.page);
+        
+        // Fetch portfolio slug for preview URL
+        const portfolioResponse = await fetch('/api/portfolio/manage');
+        if (portfolioResponse.ok) {
+          const portfolioData = await portfolioResponse.json();
+          if (portfolioData.portfolio?.slug) {
+            setPortfolioSlug(portfolioData.portfolio.slug);
+          }
+        }
         
         // Set initial content from database
         const content = data.page.content as TipTapContent;
@@ -202,6 +216,7 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
     if (!page) return;
     
     setEditingField(field);
+    setSlugError(null);
     switch (field) {
       case 'title':
         setTempTitle(page.title);
@@ -215,7 +230,27 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
       case 'tags':
         setTempTags(page.tags.join(', '));
         break;
+      case 'slug':
+        setTempSlug(page.slug);
+        break;
     }
+  };
+
+  // Validate slug format: lowercase, alphanumeric, hyphens only
+  const validateSlug = (slug: string): string | null => {
+    if (!slug.trim()) {
+      return 'Slug cannot be empty';
+    }
+    if (!/^[a-z0-9-]+$/.test(slug)) {
+      return 'Slug can only contain lowercase letters, numbers, and hyphens';
+    }
+    if (slug.startsWith('-') || slug.endsWith('-')) {
+      return 'Slug cannot start or end with a hyphen';
+    }
+    if (slug.includes('--')) {
+      return 'Slug cannot contain consecutive hyphens';
+    }
+    return null;
   };
 
   const handleSaveField = (field: string) => {
@@ -235,11 +270,22 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
         const tagsArray = tempTags.split(',').map((t) => t.trim()).filter(Boolean);
         handleUpdateMetadata('tags', tagsArray);
         break;
+      case 'slug':
+        const normalizedSlug = tempSlug.trim().toLowerCase();
+        const slugValidationError = validateSlug(normalizedSlug);
+        if (slugValidationError) {
+          setSlugError(slugValidationError);
+          return;
+        }
+        setSlugError(null);
+        handleUpdateMetadata('slug', normalizedSlug);
+        break;
     }
   };
 
   const handleCancelEdit = () => {
     setEditingField(null);
+    setSlugError(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, field: string) => {
@@ -408,9 +454,9 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
                 </button>
 
                 {/* Preview */}
-                {page.is_published && (
+                {page.is_published && portfolioSlug && (
                   <a
-                    href={`/p/${page.slug || page.id}`}
+                    href={`/p/${portfolioSlug}/${page.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
@@ -588,6 +634,67 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
                             {page.description || 'Add a description...'}
                           </span>
                           <Pencil className="ml-2 mt-0.5 h-3 w-3 flex-shrink-0 text-gray-400 opacity-0 group-hover:opacity-100" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Page URL / Slug */}
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">
+                        Page URL
+                      </label>
+                      {editingField === 'slug' ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center rounded-lg border border-gray-300 bg-gray-50 text-sm">
+                            <span className="px-3 py-2 text-gray-500">
+                              /p/{portfolioSlug || '...'}/
+                            </span>
+                            <input
+                              type="text"
+                              value={tempSlug}
+                              onChange={(e) => {
+                                setTempSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'));
+                                setSlugError(null);
+                              }}
+                              onKeyDown={(e) => handleKeyDown(e, 'slug')}
+                              placeholder="page-slug"
+                              className="flex-1 border-l border-gray-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                              autoFocus
+                            />
+                          </div>
+                          {slugError && (
+                            <p className="text-xs text-red-500">{slugError}</p>
+                          )}
+                          <p className="text-xs text-gray-500">
+                            Use lowercase letters, numbers, and hyphens only
+                          </p>
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={handleCancelEdit}
+                              className="rounded-lg px-3 py-1 text-sm text-gray-600 hover:bg-gray-100"
+                              type="button"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleSaveField('slug')}
+                              className="rounded-lg bg-purple-600 px-3 py-1 text-sm text-white hover:bg-purple-700"
+                              type="button"
+                            >
+                              Save
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleStartEditField('slug')}
+                          className="group flex w-full items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-left text-sm hover:border-purple-300"
+                          type="button"
+                        >
+                          <span className="truncate text-gray-700">
+                            /p/{portfolioSlug || '...'}/{page.slug}
+                          </span>
+                          <LinkIcon className="ml-2 h-3 w-3 flex-shrink-0 text-gray-400 opacity-0 group-hover:opacity-100" />
                         </button>
                       )}
                     </div>
