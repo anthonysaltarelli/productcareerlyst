@@ -40,35 +40,12 @@ interface PublicPortfolioViewProps {
   isPreviewMode?: boolean;
 }
 
-// Easing function for smooth scroll (easeOutQuart - starts fast, decelerates smoothly)
-const easeOutQuart = (t: number): number => {
-  return 1 - Math.pow(1 - t, 4);
-};
-
-// Custom smooth scroll with easing
-const smoothScrollTo = (targetId: string, duration: number = 800) => {
+// Smooth scroll to target element
+const smoothScrollTo = (targetId: string) => {
   const target = document.getElementById(targetId);
   if (!target) return;
 
-  const startPosition = window.pageYOffset;
-  const targetPosition = target.getBoundingClientRect().top + startPosition - 80; // 80px offset for nav
-  const distance = targetPosition - startPosition;
-  let startTime: number | null = null;
-
-  const animation = (currentTime: number) => {
-    if (startTime === null) startTime = currentTime;
-    const timeElapsed = currentTime - startTime;
-    const progress = Math.min(timeElapsed / duration, 1);
-    const easedProgress = easeOutQuart(progress);
-    
-    window.scrollTo(0, startPosition + distance * easedProgress);
-
-    if (timeElapsed < duration) {
-      requestAnimationFrame(animation);
-    }
-  };
-
-  requestAnimationFrame(animation);
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 export default function PublicPortfolioView({
@@ -218,7 +195,7 @@ export default function PublicPortfolioView({
       </section>
 
       {/* About Section */}
-      <section id="about" className="border-t border-gray-100 bg-gray-50/50 py-20 md:py-28">
+      <section id="about" className="scroll-mt-20 border-t border-gray-100 bg-gray-50/50 py-20 md:py-28">
         <div className="mx-auto max-w-5xl px-6 md:px-8">
           <div className="grid gap-12 md:grid-cols-3 md:gap-16">
             {/* Profile Image */}
@@ -298,7 +275,7 @@ export default function PublicPortfolioView({
 
       {/* Featured Section */}
       {featuredPages.length > 0 && (
-        <section id="featured" className="border-t border-gray-100 py-20 md:py-28">
+        <section id="featured" className="scroll-mt-20 border-t border-gray-100 py-20 md:py-28">
           <div className="mx-auto max-w-5xl px-6 md:px-8">
             <h2 className="mb-10 text-sm font-semibold uppercase tracking-wider text-gray-500">
               Featured Work
@@ -333,15 +310,24 @@ export default function PublicPortfolioView({
           <section 
             key={category.id} 
             id={`category-${category.id}`}
-            className={`border-t border-gray-100 py-20 md:py-28 ${
+            className={`scroll-mt-20 border-t border-gray-100 py-20 md:py-28 ${
               index % 2 === 1 ? 'bg-gray-50/50' : ''
             }`}
           >
             <div className="mx-auto max-w-5xl px-6 md:px-8">
-              <h2 className="mb-10 text-sm font-semibold uppercase tracking-wider text-gray-500">
-                {category.name}
-              </h2>
-              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {/* Category Header */}
+              <div className="mb-16 text-center md:mb-20">
+                <h2 className="text-4xl font-bold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl md:text-6xl lg:text-7xl">
+                  {category.name}
+                </h2>
+                {category.description && (
+                  <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 md:text-xl">
+                    {category.description}
+                  </p>
+                )}
+              </div>
+              {/* Pages Grid - Centered */}
+              <div className="flex flex-wrap justify-center gap-8">
                 {category.pages.map((page) => (
                   <PageCard 
                     key={page.id} 
@@ -487,10 +473,10 @@ const PageCard = ({
   return (
     <Link
       href={`/p/${portfolioSlug}/${page.slug}${previewSuffix}`}
-      className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
+      className="group w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
     >
-      {/* Cover Image */}
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50">
+      {/* Cover Image with Title Overlay */}
+      <div className="relative aspect-[3/1] w-full overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
         {page.cover_image_url ? (
           <img
             src={page.cover_image_url}
@@ -498,14 +484,20 @@ const PageCard = ({
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-200 to-gray-100 text-4xl text-gray-400">
-            📄
-          </div>
+          <div className="h-full w-full bg-gradient-to-br from-gray-800 to-gray-900" />
         )}
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        {/* Title overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-6">
+          <h3 className="text-xl font-bold text-white md:text-2xl">
+            {page.title}
+          </h3>
+        </div>
         {/* Draft badge overlay in preview mode */}
         {isPreviewMode && !page.is_published && (
-          <div className="absolute left-3 top-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/90 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+          <div className="absolute left-4 top-4">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/90 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-white" />
               Draft
             </span>
@@ -513,32 +505,31 @@ const PageCard = ({
         )}
       </div>
 
-      {/* Content */}
-      <div className="p-5">
-        <h3 className="mb-2 text-lg font-bold text-gray-900 transition-colors duration-300 group-hover:text-gray-600">
-          {page.title}
-        </h3>
-        {page.description && (
-          <p className="mb-4 line-clamp-2 text-sm text-gray-600">{page.description}</p>
-        )}
-        {page.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {page.tags.slice(0, 2).map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600"
-              >
-                {tag}
-              </span>
-            ))}
-            {page.tags.length > 2 && (
-              <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500">
-                +{page.tags.length - 2}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
+      {/* Description & Tags Below */}
+      {(page.description || page.tags.length > 0) && (
+        <div className="p-6">
+          {page.description && (
+            <p className="mb-4 line-clamp-2 text-base text-gray-600">{page.description}</p>
+          )}
+          {page.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {page.tags.slice(0, 3).map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-600"
+                >
+                  {tag}
+                </span>
+              ))}
+              {page.tags.length > 3 && (
+                <span className="rounded-full bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-500">
+                  +{page.tags.length - 3}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </Link>
   );
 };
