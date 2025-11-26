@@ -20,6 +20,7 @@ import {
 import { toast } from 'sonner';
 import type { JSONContent } from '@tiptap/react';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
+import CoverImageUploadModal from '@/app/components/CoverImageUploadModal';
 import { 
   NotionEditorStandalone, 
   NotionEditorStandaloneRef 
@@ -430,11 +431,11 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
             <div className="flex-1">
               {/* Cover Image Header */}
               {page.cover_image_url ? (
-                <div className="group relative mb-6 overflow-hidden rounded-2xl">
+                <div className="group relative mb-6 aspect-[3/1] overflow-hidden rounded-2xl">
                   <img
                     src={page.cover_image_url}
                     alt={page.title}
-                    className="h-48 w-full object-cover md:h-64"
+                    className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -455,7 +456,7 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
               ) : (
                 <button
                   onClick={() => handleStartEditField('cover_image_url')}
-                  className="mb-6 flex h-32 w-full items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 text-gray-400 transition-colors hover:border-purple-400 hover:text-purple-500"
+                  className="mb-6 flex aspect-[3/1] w-full items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 text-gray-400 transition-colors hover:border-purple-400 hover:text-purple-500"
                   type="button"
                 >
                   <div className="flex items-center gap-2">
@@ -742,6 +743,17 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
           </div>
         </div>
       </div>
+
+      {/* Cover Image Upload Modal */}
+      {editingField === 'cover_image_url' && (
+        <CoverImageUploadModal
+          currentUrl={page.cover_image_url || undefined}
+          onSave={(url) => {
+            handleUpdateMetadata('cover_image_url', url);
+          }}
+          onClose={() => setEditingField(null)}
+        />
+      )}
     </>
   );
 }
