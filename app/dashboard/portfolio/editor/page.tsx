@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
@@ -24,7 +24,25 @@ import {
   Save,
   X,
   Check,
+  Linkedin,
+  Twitter,
+  Github,
+  Camera,
+  Mail,
+  Youtube,
 } from 'lucide-react';
+
+// Custom Substack icon (lucide-react doesn't have one)
+const SubstackIcon = ({ className }: { className?: string }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={className}
+    aria-hidden="true"
+  >
+    <path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24L12 18.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z" />
+  </svg>
+);
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 import {
   Portfolio,
@@ -168,76 +186,14 @@ export default function PortfolioEditorPage() {
     <>
       <MobileDashboardHeader title="Portfolio Editor" />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 pt-16 md:pt-0">
-        {/* Header */}
-        <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur-sm">
-          <div className="mx-auto max-w-6xl px-4 py-4 md:px-8">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-2xl shadow-lg">
-                  🎨
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-800">
-                    {state.portfolio.display_name}
-                  </h1>
-                  <p className="text-sm text-gray-500">
-                    productcareerlyst.com/p/{state.portfolio.slug}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                {/* Publish Toggle */}
-                <button
-                  onClick={handlePublishToggle}
-                  className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-                    state.portfolio.is_published
-                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                  type="button"
-                  aria-label={state.portfolio.is_published ? 'Unpublish portfolio' : 'Publish portfolio'}
-                >
-                  {state.portfolio.is_published ? (
-                    <>
-                      <Eye className="h-4 w-4" />
-                      <span className="hidden md:inline">Published</span>
-                    </>
-                  ) : (
-                    <>
-                      <EyeOff className="h-4 w-4" />
-                      <span className="hidden md:inline">Draft</span>
-                    </>
-                  )}
-                </button>
-
-                {/* View Live */}
-                {state.portfolio.is_published && (
-                  <a
-                    href={`/p/${state.portfolio.slug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-lg bg-purple-100 px-4 py-2 text-sm font-medium text-purple-700 transition-all hover:bg-purple-200"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    <span className="hidden md:inline">View Live</span>
-                  </a>
-                )}
-
-                {/* Settings */}
-                <button
-                  onClick={() => setActiveModal({ type: 'settings' })}
-                  className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200"
-                  type="button"
-                  aria-label="Portfolio settings"
-                >
-                  <Settings className="h-4 w-4" />
-                  <span className="hidden md:inline">Settings</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Inline Profile Editor - Mimics Public Portfolio Header */}
+        <InlineProfileEditor
+          portfolio={state.portfolio}
+          onUpdate={fetchPortfolio}
+          isPublished={state.portfolio.is_published}
+          onPublishToggle={handlePublishToggle}
+          onOpenUrlSettings={() => setActiveModal({ type: 'settings' })}
+        />
 
         {/* Main Content */}
         <div className="mx-auto max-w-6xl px-4 py-8 md:px-8">
@@ -762,6 +718,513 @@ const PageRow = ({
 };
 
 // ============================================================================
+// Inline Profile Editor (Preview-Style)
+// ============================================================================
+
+interface InlineProfileEditorProps {
+  portfolio: Portfolio;
+  onUpdate: () => void;
+  isPublished: boolean;
+  onPublishToggle: () => void;
+  onOpenUrlSettings: () => void;
+}
+
+const InlineProfileEditor = ({
+  portfolio,
+  onUpdate,
+  isPublished,
+  onPublishToggle,
+  onOpenUrlSettings,
+}: InlineProfileEditorProps) => {
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    display_name: portfolio.display_name,
+    subtitle: portfolio.subtitle || '',
+    bio: portfolio.bio || '',
+    profile_image_url: portfolio.profile_image_url || '',
+    social_links: portfolio.social_links || {},
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
+
+  // Update local state when portfolio changes
+  useEffect(() => {
+    setFormData({
+      display_name: portfolio.display_name,
+      subtitle: portfolio.subtitle || '',
+      bio: portfolio.bio || '',
+      profile_image_url: portfolio.profile_image_url || '',
+      social_links: portfolio.social_links || {},
+    });
+  }, [portfolio]);
+
+  // Focus input when editing starts
+  useEffect(() => {
+    if (editingField && inputRef.current) {
+      inputRef.current.focus();
+      if ('select' in inputRef.current) {
+        inputRef.current.select();
+      }
+    }
+  }, [editingField]);
+
+  const handleSave = async (field: string, value: string | Record<string, string>) => {
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/portfolio/manage', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update');
+      }
+
+      toast.success('Saved!');
+      onUpdate();
+    } catch (error) {
+      console.error('Error saving:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save');
+      // Revert on error
+      setFormData((prev) => ({
+        ...prev,
+        [field]: portfolio[field as keyof Portfolio] || '',
+      }));
+    } finally {
+      setIsSaving(false);
+      setEditingField(null);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, field: string, value: string) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSave(field, value);
+    } else if (e.key === 'Escape') {
+      setEditingField(null);
+      setFormData((prev) => ({
+        ...prev,
+        [field]: portfolio[field as keyof Portfolio] || '',
+      }));
+    }
+  };
+
+  const handleSocialLinkSave = async (platform: string, value: string) => {
+    const newSocialLinks = { ...formData.social_links, [platform]: value };
+    setFormData((prev) => ({ ...prev, social_links: newSocialLinks }));
+    await handleSave('social_links', newSocialLinks);
+  };
+
+  const socialLinks = formData.social_links as Record<string, string>;
+
+  return (
+    <div className="border-b border-gray-100 bg-white/80 backdrop-blur-sm">
+      <div className="mx-auto max-w-5xl px-6 py-8 md:py-10">
+        {/* Top Actions Bar */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <button
+            onClick={onOpenUrlSettings}
+            className="group flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-gray-500 transition-all hover:bg-purple-50 hover:text-purple-600"
+            type="button"
+            aria-label="Edit portfolio URL"
+          >
+            <Globe className="h-4 w-4" />
+            <span className="group-hover:underline">productcareerlyst.com/p/{portfolio.slug}</span>
+            <Pencil className="h-3 w-3 text-gray-400 transition-colors group-hover:text-purple-600" />
+          </button>
+          
+          <div className="flex items-center gap-3">
+            {/* Publish Toggle */}
+            <button
+              onClick={onPublishToggle}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                isPublished
+                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              type="button"
+              aria-label={isPublished ? 'Unpublish portfolio' : 'Publish portfolio'}
+            >
+              {isPublished ? (
+                <>
+                  <Eye className="h-4 w-4" />
+                  <span>Published</span>
+                </>
+              ) : (
+                <>
+                  <EyeOff className="h-4 w-4" />
+                  <span>Draft</span>
+                </>
+              )}
+            </button>
+
+            {/* View Live */}
+            {isPublished && (
+              <a
+                href={`/p/${portfolio.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-lg bg-purple-100 px-4 py-2 text-sm font-medium text-purple-700 transition-all hover:bg-purple-200"
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span>View Live</span>
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Profile Preview Section - Mimics Public Portfolio */}
+        <div className="flex flex-col items-center text-center md:flex-row md:items-start md:text-left">
+          {/* Profile Image - Editable */}
+          <div className="group relative mb-6 md:mb-0 md:mr-8">
+            {formData.profile_image_url ? (
+              <img
+                src={formData.profile_image_url}
+                alt={formData.display_name}
+                className="h-28 w-28 rounded-full object-cover shadow-lg ring-4 ring-white"
+              />
+            ) : (
+              <div className="flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-4xl font-bold text-white shadow-lg ring-4 ring-white">
+                {formData.display_name.charAt(0).toUpperCase()}
+              </div>
+            )}
+            {/* Edit Overlay */}
+            <button
+              onClick={() => setEditingField('profile_image_url')}
+              className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
+              type="button"
+              aria-label="Change profile image"
+            >
+              <Camera className="h-6 w-6 text-white" />
+            </button>
+          </div>
+
+          {/* Info Section */}
+          <div className="flex-1 space-y-3">
+            {/* Display Name - Editable */}
+            {editingField === 'display_name' ? (
+              <input
+                ref={inputRef as React.RefObject<HTMLInputElement>}
+                type="text"
+                value={formData.display_name}
+                onChange={(e) => setFormData((prev) => ({ ...prev, display_name: e.target.value }))}
+                onBlur={() => handleSave('display_name', formData.display_name)}
+                onKeyDown={(e) => handleKeyDown(e, 'display_name', formData.display_name)}
+                className="w-full rounded-lg border-2 border-purple-400 bg-white px-3 py-2 text-3xl font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-200 md:text-4xl"
+                placeholder="Your Name"
+              />
+            ) : (
+              <button
+                onClick={() => setEditingField('display_name')}
+                className="group/name flex w-full items-center justify-center gap-2 text-left md:justify-start"
+                type="button"
+              >
+                <h1 className="text-3xl font-bold text-gray-900 md:text-4xl">
+                  {formData.display_name || 'Add your name'}
+                </h1>
+                <Pencil className="h-4 w-4 text-gray-300 opacity-0 transition-opacity group-hover/name:opacity-100" />
+              </button>
+            )}
+
+            {/* Subtitle - Editable */}
+            {editingField === 'subtitle' ? (
+              <input
+                ref={inputRef as React.RefObject<HTMLInputElement>}
+                type="text"
+                value={formData.subtitle}
+                onChange={(e) => setFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
+                onBlur={() => handleSave('subtitle', formData.subtitle)}
+                onKeyDown={(e) => handleKeyDown(e, 'subtitle', formData.subtitle)}
+                className="w-full rounded-lg border-2 border-purple-400 bg-white px-3 py-2 text-lg text-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                placeholder="Your title or company (e.g., Senior PM at Google)"
+              />
+            ) : (
+              <button
+                onClick={() => setEditingField('subtitle')}
+                className="group/subtitle flex w-full items-center justify-center gap-2 text-left md:justify-start"
+                type="button"
+              >
+                <p className={`text-lg ${formData.subtitle ? 'text-gray-600' : 'text-gray-400 italic'}`}>
+                  {formData.subtitle || 'Add a subtitle...'}
+                </p>
+                <Pencil className="h-3 w-3 text-gray-300 opacity-0 transition-opacity group-hover/subtitle:opacity-100" />
+              </button>
+            )}
+
+            {/* Bio - Editable */}
+            {editingField === 'bio' ? (
+              <textarea
+                ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+                value={formData.bio}
+                onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))}
+                onBlur={() => handleSave('bio', formData.bio)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setEditingField(null);
+                    setFormData((prev) => ({ ...prev, bio: portfolio.bio || '' }));
+                  }
+                }}
+                className="w-full rounded-lg border-2 border-purple-400 bg-white px-3 py-2 text-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                rows={3}
+                placeholder="Tell visitors about yourself..."
+              />
+            ) : (
+              <button
+                onClick={() => setEditingField('bio')}
+                className="group/bio flex w-full items-start justify-center gap-2 text-left md:justify-start"
+                type="button"
+              >
+                <p className={`max-w-2xl ${formData.bio ? 'text-gray-600' : 'text-gray-400 italic'}`}>
+                  {formData.bio || 'Add a bio...'}
+                </p>
+                <Pencil className="mt-1 h-3 w-3 flex-shrink-0 text-gray-300 opacity-0 transition-opacity group-hover/bio:opacity-100" />
+              </button>
+            )}
+
+            {/* Social Links - Inline Editable */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2 md:justify-start">
+              <SocialLinkEditor
+                platform="linkedin"
+                icon={<Linkedin className="h-5 w-5" />}
+                value={socialLinks.linkedin || ''}
+                onSave={(value) => handleSocialLinkSave('linkedin', value)}
+                placeholder="LinkedIn URL"
+              />
+              <SocialLinkEditor
+                platform="twitter"
+                icon={<Twitter className="h-5 w-5" />}
+                value={socialLinks.twitter || ''}
+                onSave={(value) => handleSocialLinkSave('twitter', value)}
+                placeholder="Twitter URL"
+              />
+              <SocialLinkEditor
+                platform="github"
+                icon={<Github className="h-5 w-5" />}
+                value={socialLinks.github || ''}
+                onSave={(value) => handleSocialLinkSave('github', value)}
+                placeholder="GitHub URL"
+              />
+              <SocialLinkEditor
+                platform="youtube"
+                icon={<Youtube className="h-5 w-5" />}
+                value={socialLinks.youtube || ''}
+                onSave={(value) => handleSocialLinkSave('youtube', value)}
+                placeholder="YouTube URL"
+              />
+              <SocialLinkEditor
+                platform="substack"
+                icon={<SubstackIcon className="h-5 w-5" />}
+                value={socialLinks.substack || ''}
+                onSave={(value) => handleSocialLinkSave('substack', value)}
+                placeholder="Substack URL"
+              />
+              <SocialLinkEditor
+                platform="website"
+                icon={<Globe className="h-5 w-5" />}
+                value={socialLinks.website || ''}
+                onSave={(value) => handleSocialLinkSave('website', value)}
+                placeholder="Website URL"
+              />
+              <SocialLinkEditor
+                platform="email"
+                icon={<Mail className="h-5 w-5" />}
+                value={socialLinks.email || ''}
+                onSave={(value) => handleSocialLinkSave('email', value)}
+                placeholder="Email address"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Image URL Modal */}
+        {editingField === 'profile_image_url' && (
+          <ProfileImageModal
+            currentUrl={formData.profile_image_url}
+            onSave={(url) => {
+              setFormData((prev) => ({ ...prev, profile_image_url: url }));
+              handleSave('profile_image_url', url);
+            }}
+            onClose={() => setEditingField(null)}
+          />
+        )}
+
+        {isSaving && (
+          <div className="fixed bottom-4 right-4 flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 text-sm text-white shadow-lg">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Saving...
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Social Link Editor Component
+const SocialLinkEditor = ({
+  platform,
+  icon,
+  value,
+  onSave,
+  placeholder,
+}: {
+  platform: string;
+  icon: React.ReactNode;
+  value: string;
+  onSave: (value: string) => void;
+  placeholder: string;
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [inputValue, setInputValue] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleSave = () => {
+    if (inputValue !== value) {
+      onSave(inputValue);
+    }
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSave();
+    } else if (e.key === 'Escape') {
+      setInputValue(value);
+      setIsEditing(false);
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-purple-600">{icon}</span>
+        <input
+          ref={inputRef}
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onBlur={handleSave}
+          onKeyDown={handleKeyDown}
+          className="w-48 rounded-lg border-2 border-purple-400 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200"
+          placeholder={placeholder}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setIsEditing(true)}
+      className={`flex h-10 w-10 items-center justify-center rounded-full transition-all ${
+        value
+          ? 'bg-gray-100 text-gray-600 hover:bg-purple-100 hover:text-purple-600'
+          : 'border-2 border-dashed border-gray-300 text-gray-400 hover:border-purple-400 hover:text-purple-500'
+      }`}
+      type="button"
+      aria-label={`${value ? 'Edit' : 'Add'} ${platform}`}
+      title={value ? `Edit ${platform}: ${value}` : `Add ${platform}`}
+    >
+      {icon}
+    </button>
+  );
+};
+
+// Profile Image URL Modal
+const ProfileImageModal = ({
+  currentUrl,
+  onSave,
+  onClose,
+}: {
+  currentUrl: string;
+  onSave: (url: string) => void;
+  onClose: () => void;
+}) => {
+  const [url, setUrl] = useState(currentUrl);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div
+        className="fixed inset-0"
+        onClick={onClose}
+        onKeyDown={(e) => e.key === 'Escape' && onClose()}
+        role="button"
+        tabIndex={-1}
+        aria-label="Close modal"
+      />
+      <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <h3 className="mb-4 text-lg font-semibold text-gray-800">Profile Image</h3>
+        
+        {/* Preview */}
+        <div className="mb-4 flex justify-center">
+          {url ? (
+            <img
+              src={url}
+              alt="Preview"
+              className="h-24 w-24 rounded-full object-cover ring-4 ring-gray-100"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+              <Camera className="h-8 w-8" />
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="profile_image_input" className="mb-1 block text-sm font-medium text-gray-700">
+            Image URL
+          </label>
+          <input
+            id="profile_image_input"
+            type="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://example.com/your-photo.jpg"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+            autoFocus
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Paste a URL to your profile image (JPG, PNG, or WebP)
+          </p>
+        </div>
+
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
+            type="button"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onSave(url)}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 px-4 py-2 font-medium text-white hover:from-purple-600 hover:to-pink-600"
+            type="button"
+          >
+            <Save className="h-4 w-4" />
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
 // Setup Portfolio Screen
 // ============================================================================
 
@@ -981,25 +1444,48 @@ const SettingsModal = ({
   onClose: () => void;
   onUpdate: () => void;
 }) => {
-  const [formData, setFormData] = useState({
-    display_name: portfolio.display_name,
-    slug: portfolio.slug,
-    subtitle: portfolio.subtitle || '',
-    bio: portfolio.bio || '',
-    profile_image_url: portfolio.profile_image_url || '',
-    social_links: portfolio.social_links || {},
-  });
+  const [slug, setSlug] = useState(portfolio.slug);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'same'>('same');
+
+  const checkSlug = async (newSlug: string) => {
+    if (!newSlug) {
+      setSlugStatus('idle');
+      return;
+    }
+    
+    if (newSlug === portfolio.slug) {
+      setSlugStatus('same');
+      return;
+    }
+
+    setSlugStatus('checking');
+    try {
+      const response = await fetch(`/api/portfolio/manage/check-slug?slug=${newSlug}`);
+      const data = await response.json();
+      setSlugStatus(data.available ? 'available' : 'taken');
+    } catch {
+      setSlugStatus('idle');
+    }
+  };
+
+  const handleSlugChange = (value: string) => {
+    const formatted = value.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+    setSlug(formatted);
+    checkSlug(formatted);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!slug || slugStatus === 'taken') return;
+    
     setIsSubmitting(true);
 
     try {
       const response = await fetch('/api/portfolio/manage', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ slug }),
       });
 
       if (!response.ok) {
@@ -1007,123 +1493,63 @@ const SettingsModal = ({
         throw new Error(error.error || 'Failed to update');
       }
 
-      toast.success('Settings saved!');
+      toast.success('URL updated!');
       onUpdate();
       onClose();
     } catch (error) {
       console.error('Error updating settings:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to save settings');
+      toast.error(error instanceof Error ? error.message : 'Failed to update URL');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <ModalWrapper title="Portfolio Settings" onClose={onClose}>
+    <ModalWrapper title="Portfolio URL" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="settings_display_name" className="mb-1 block text-sm font-medium text-gray-700">
-            Display Name
-          </label>
-          <input
-            id="settings_display_name"
-            type="text"
-            value={formData.display_name}
-            onChange={(e) => setFormData((prev) => ({ ...prev, display_name: e.target.value }))}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-            required
-          />
-        </div>
-
-        <div>
           <label htmlFor="settings_slug" className="mb-1 block text-sm font-medium text-gray-700">
-            URL Slug
+            Portfolio URL
           </label>
           <div className="flex items-center">
             <span className="rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500">
-              /p/
+              productcareerlyst.com/p/
             </span>
             <input
               id="settings_slug"
               type="text"
-              value={formData.slug}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  slug: e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, '-'),
-                }))
-              }
+              value={slug}
+              onChange={(e) => handleSlugChange(e.target.value)}
               className="w-full rounded-r-lg border border-gray-300 px-3 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
               required
             />
           </div>
-        </div>
-
-        <div>
-          <label htmlFor="settings_subtitle" className="mb-1 block text-sm font-medium text-gray-700">
-            Subtitle
-          </label>
-          <input
-            id="settings_subtitle"
-            type="text"
-            value={formData.subtitle}
-            onChange={(e) => setFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
-            placeholder="e.g., Senior PM at Google"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="settings_bio" className="mb-1 block text-sm font-medium text-gray-700">
-            Bio
-          </label>
-          <textarea
-            id="settings_bio"
-            value={formData.bio}
-            onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))}
-            placeholder="Tell visitors about yourself..."
-            rows={4}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="settings_profile_image" className="mb-1 block text-sm font-medium text-gray-700">
-            Profile Image URL
-          </label>
-          <input
-            id="settings_profile_image"
-            type="url"
-            value={formData.profile_image_url}
-            onChange={(e) => setFormData((prev) => ({ ...prev, profile_image_url: e.target.value }))}
-            placeholder="https://..."
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
-            Social Links
-          </label>
-          <div className="space-y-2">
-            {['linkedin', 'twitter', 'github', 'website'].map((platform) => (
-              <div key={platform} className="flex items-center gap-2">
-                <LinkIcon className="h-4 w-4 text-gray-400" />
-                <input
-                  type="url"
-                  value={(formData.social_links as Record<string, string>)[platform] || ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      social_links: { ...prev.social_links, [platform]: e.target.value },
-                    }))
-                  }
-                  placeholder={platform.charAt(0).toUpperCase() + platform.slice(1)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                />
-              </div>
-            ))}
+          <div className="mt-2 flex items-center gap-2 text-sm">
+            {slugStatus === 'checking' && (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                <span className="text-gray-500">Checking availability...</span>
+              </>
+            )}
+            {slugStatus === 'available' && (
+              <>
+                <Check className="h-4 w-4 text-green-500" />
+                <span className="text-green-600">Available!</span>
+              </>
+            )}
+            {slugStatus === 'taken' && (
+              <>
+                <X className="h-4 w-4 text-red-500" />
+                <span className="text-red-600">Already taken</span>
+              </>
+            )}
+            {slugStatus === 'same' && (
+              <span className="text-gray-500">Current URL</span>
+            )}
           </div>
+          <p className="mt-2 text-xs text-gray-500">
+            This is the unique URL for your portfolio. Changing it will update all links.
+          </p>
         </div>
 
         <div className="flex gap-3 pt-4">
@@ -1136,11 +1562,11 @@ const SettingsModal = ({
           </button>
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || slugStatus === 'taken' || slugStatus === 'same'}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 px-4 py-2 font-medium text-white hover:from-purple-600 hover:to-pink-600 disabled:opacity-50"
           >
             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            Save
+            Update URL
           </button>
         </div>
       </form>
