@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCompanies, createCompany } from '@/lib/hooks/useCompanies';
 import { createJobApplication } from '@/lib/hooks/useJobApplications';
+import { useOnClickOutside } from '@/hooks/use-on-click-outside';
 import { Company, ApplicationStatus, PriorityLevel, WorkMode } from '@/lib/types/jobs';
 
 interface AddJobModalProps {
@@ -36,6 +37,17 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
   const [error, setError] = useState<string | null>(null);
   const [brandfetchBrands, setBrandfetchBrands] = useState<BrandfetchBrand[]>([]);
   const [loadingBrandfetch, setLoadingBrandfetch] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+  // Ref for click outside detection on company search
+  const companySearchRef = useRef<HTMLDivElement>(null);
+  
+  // Close dropdown when clicking outside
+  useOnClickOutside(companySearchRef, () => {
+    if (isDropdownOpen) {
+      setIsDropdownOpen(false);
+    }
+  });
 
   // When searching, include all companies (approved and unapproved) to avoid suggesting duplicates
   // When not searching, only show approved companies
@@ -318,6 +330,34 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
     }
   };
 
+  // Quick create company with just the name (no form required)
+  const handleQuickCreateCompany = async (companyName: string) => {
+    if (!companyName.trim()) {
+      setError('Company name is required');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const result = await createCompany({
+        name: companyName.trim(),
+        industry: 'technology' as const,
+        size: '51-200' as const,
+      });
+
+      setSelectedCompany(result.company);
+      setSearchTerm('');
+      setIsDropdownOpen(false);
+      setBrandfetchBrands([]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create company');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSelectBrandfetchBrand = async (brand: BrandfetchBrand) => {
     if (!brand.name) {
       setError('Invalid brand data');
@@ -570,17 +610,45 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
                 </button>
               </div>
             ) : (
-              <div>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search for a company..."
-                  className="w-full px-5 py-3.5 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium"
-                />
+              <div ref={companySearchRef}>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setIsDropdownOpen(true);
+                    }}
+                    onFocus={() => setIsDropdownOpen(true)}
+                    placeholder="Search for a company..."
+                    className="w-full px-5 py-3.5 pr-12 border-2 border-gray-300 rounded-[1rem] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium"
+                    aria-label="Search for a company"
+                    aria-expanded={isDropdownOpen && searchTerm.length > 0}
+                    aria-controls="company-search-results"
+                  />
+                  {searchTerm && isDropdownOpen && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                      aria-label="Dismiss suggestions"
+                      tabIndex={0}
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
                 
-                {searchTerm && (
-                  <div className="mt-3 max-h-96 overflow-y-auto border-2 border-gray-300 rounded-[1rem] bg-white">
+                {searchTerm && isDropdownOpen && (
+                  <div 
+                    id="company-search-results"
+                    className="mt-3 max-h-96 overflow-y-auto border-2 border-gray-300 rounded-[1rem] bg-white"
+                    role="listbox"
+                  >
                     {(loadingCompanies || loadingBrandfetch) ? (
                       <div className="p-4 text-center text-gray-600 font-semibold">Searching...</div>
                     ) : (
@@ -590,9 +658,13 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
                           <button
                             key={company.id}
                             type="button"
-                            onClick={() => setSelectedCompany(company)}
+                            onClick={() => {
+                              setSelectedCompany(company);
+                              setIsDropdownOpen(false);
+                            }}
                             disabled={isSubmitting}
                             className="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors border-b border-gray-200 last:border-b-0 disabled:opacity-50"
+                            role="option"
                           >
                             <p className="font-bold text-gray-900">{company.name}</p>
                             {company.website && (
@@ -606,9 +678,13 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
                           <button
                             key={brand.brandId || `brandfetch-${index}`}
                             type="button"
-                            onClick={() => handleSelectBrandfetchBrand(brand)}
+                            onClick={() => {
+                              handleSelectBrandfetchBrand(brand);
+                              setIsDropdownOpen(false);
+                            }}
                             disabled={isSubmitting}
                             className="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors border-b border-gray-200 last:border-b-0 disabled:opacity-50 flex items-center gap-3"
+                            role="option"
                           >
                             {brand.icon && (
                               <img
@@ -640,14 +716,11 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
                             <p className="text-gray-600 font-semibold mb-3">No companies found</p>
                             <button
                               type="button"
-                              onClick={() => {
-                                setNewCompanyData({ ...newCompanyData, name: searchTerm });
-                                setShowCompanyForm(true);
-                              }}
+                              onClick={() => handleQuickCreateCompany(searchTerm)}
                               disabled={isSubmitting}
                               className="w-full px-4 py-2 rounded-[1rem] bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 transition-colors disabled:opacity-50"
                             >
-                              + Create "{searchTerm}"
+                              {isSubmitting ? 'Creating...' : `+ Create "${searchTerm}"`}
                             </button>
                           </div>
                         )}
