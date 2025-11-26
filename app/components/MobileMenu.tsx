@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { NavLink } from './NavLink'
 import { TrackedLink } from './TrackedLink'
 import { TrackedButton } from './TrackedButton'
 import { trackEvent } from '@/lib/amplitude/client'
@@ -105,40 +104,21 @@ export const MobileMenu = ({ user, isOnboardingComplete = true }: MobileMenuProp
                 >
                   Courses
                 </TrackedLink>
-                <NavLink
-                  href="#features"
+                <TrackedLink
+                  href="/portfolio"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
-                  tabIndex={0}
-                  ariaLabel="Features"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  eventName="User Clicked Features Link"
-                  linkId="mobile-menu-features-link"
+                  eventName="User Clicked Portfolio Link"
+                  linkId="mobile-menu-portfolio-link"
                   eventProperties={{
                     'Link Section': 'Mobile Menu',
                     'Link Position': 'Mobile menu',
-                    'Link Type': 'Anchor Link',
-                    'Link Text': 'Features',
+                    'Link Type': 'Navigation Link',
+                    'Link Text': 'Product Portfolio',
                   }}
-                >
-                  Features
-                </NavLink>
-                <NavLink
-                  href="#testimonials"
-                  className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
-                  tabIndex={0}
-                  ariaLabel="Testimonials"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  eventName="User Clicked Testimonials Link"
-                  linkId="mobile-menu-testimonials-link"
-                  eventProperties={{
-                    'Link Section': 'Mobile Menu',
-                    'Link Position': 'Mobile menu',
-                    'Link Type': 'Anchor Link',
-                    'Link Text': 'Testimonials',
-                  }}
                 >
-                  Testimonials
-                </NavLink>
+                  Product Portfolio
+                </TrackedLink>
                 <TrackedLink
                   href="/auth/login"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"

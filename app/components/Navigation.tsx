@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { MobileMenu } from './MobileMenu'
-import { NavLink } from './NavLink'
 import { TrackedLink } from './TrackedLink'
 import { TrackedButton } from './TrackedButton'
 import { isOnboardingComplete } from '@/lib/utils/onboarding'
@@ -78,38 +77,20 @@ export const Navigation = async () => {
                 >
                   Courses
                 </TrackedLink>
-                <NavLink
-                  href="#features"
+                <TrackedLink
+                  href="/portfolio"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"
-                  tabIndex={0}
-                  ariaLabel="Features"
-                  eventName="User Clicked Features Link"
-                  linkId="navigation-features-link"
+                  eventName="User Clicked Portfolio Link"
+                  linkId="navigation-portfolio-link"
                   eventProperties={{
                     'Link Section': 'Navigation',
                     'Link Position': 'Desktop navigation',
-                    'Link Type': 'Anchor Link',
-                    'Link Text': 'Features',
+                    'Link Type': 'Navigation Link',
+                    'Link Text': 'Product Portfolio',
                   }}
                 >
-                  Features
-                </NavLink>
-                <NavLink
-                  href="#testimonials"
-                  className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"
-                  tabIndex={0}
-                  ariaLabel="Testimonials"
-                  eventName="User Clicked Testimonials Link"
-                  linkId="navigation-testimonials-link"
-                  eventProperties={{
-                    'Link Section': 'Navigation',
-                    'Link Position': 'Desktop navigation',
-                    'Link Type': 'Anchor Link',
-                    'Link Text': 'Testimonials',
-                  }}
-                >
-                  Testimonials
-                </NavLink>
+                  Product Portfolio
+                </TrackedLink>
                 <TrackedLink
                   href="/auth/login"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"

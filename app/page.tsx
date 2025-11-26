@@ -377,25 +377,42 @@ export default function Home() {
                 <div className="hidden sm:flex w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-green-400 to-emerald-400 shadow-[0_6px_0_0_rgba(22,163,74,0.4)] border-2 border-green-500 items-center justify-center flex-shrink-0">
                   <span className="text-3xl">🎨</span>
                 </div>
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">Portfolio Hub</h3>
+                <div className="flex-1">
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">Portfolio Editor</h3>
                   <p className="text-sm sm:text-base text-gray-700 font-medium mb-2 sm:mb-3">
-                    Build standout product portfolio case studies. Learn the framework, generate AI-powered case study ideas, and showcase your PM skills.
+                    Build a stunning product portfolio website that showcases your strategic thinking. Stand out from 99% of PM candidates with professional case studies.
                   </p>
-                  <ul className="space-y-1.5 sm:space-y-2 text-sm sm:text-base text-gray-700 font-medium">
+                  <ul className="space-y-1.5 sm:space-y-2 text-sm sm:text-base text-gray-700 font-medium mb-3 sm:mb-4">
                     <li className="flex items-start sm:items-center gap-2">
                       <span className="text-green-600 font-black flex-shrink-0">✓</span>
-                      <span>Complete course on building product portfolios</span>
+                      <span>Rich text editor with Unsplash image integration</span>
                     </li>
                     <li className="flex items-start sm:items-center gap-2">
                       <span className="text-green-600 font-black flex-shrink-0">✓</span>
-                      <span>AI case study idea generator with specific problems and hypotheses</span>
+                      <span>Custom URL with your name (productcareerlyst.com/p/yourname)</span>
                     </li>
                     <li className="flex items-start sm:items-center gap-2">
                       <span className="text-green-600 font-black flex-shrink-0">✓</span>
-                      <span>Discover, Define, Develop, and Deliver framework</span>
+                      <span>Mobile-optimized, SEO-friendly portfolio website</span>
                     </li>
                   </ul>
+                  <TrackedLink
+                    href="/portfolio"
+                    className="inline-block px-5 py-2.5 sm:px-6 sm:py-3 rounded-[1rem] sm:rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-green-300 font-black text-sm sm:text-base text-green-700 transition-all duration-200"
+                    eventName="User Clicked Portfolio Link"
+                    linkId="homepage-features-portfolio-link"
+                    eventProperties={{
+                      'Link Section': 'Features Section',
+                      'Link Position': 'Portfolio Editor Feature Card',
+                      'Link Type': 'Feature Card CTA',
+                      'Link Text': 'Learn More →',
+                      'Feature Card': 'Portfolio Editor',
+                      'Card Color': 'Green to Emerald Gradient',
+                      'Card Position': 'Fifth Feature Card',
+                    }}
+                  >
+                    Learn More →
+                  </TrackedLink>
                 </div>
               </div>
             </div>
