@@ -2,6 +2,11 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { SlugAvailabilityResponse } from '@/lib/types/portfolio';
 
+// Type for the RPC function response
+interface SlugCheckResult {
+  available: boolean;
+}
+
 /**
  * GET /api/portfolio/manage/check-slug?slug=username
  * Check if a portfolio slug is available
@@ -51,12 +56,15 @@ export const GET = async (request: NextRequest) => {
 
     // Check if slug is already taken using the RLS-bypassing function
     // This ensures we check ALL portfolios, not just published ones or user's own
-    const { data: slugCheck, error: slugCheckError } = await supabase
+    const { data: slugCheckData, error: slugCheckError } = await supabase
       .rpc('check_portfolio_slug_available', {
         p_slug: normalizedSlug,
         p_user_id: user.id,
       })
       .single();
+
+    // Type cast the result
+    const slugCheck = slugCheckData as SlugCheckResult | null;
 
     if (slugCheckError) {
       console.error('Error checking slug availability:', slugCheckError);
@@ -77,7 +85,7 @@ export const GET = async (request: NextRequest) => {
     }
 
     // If slug is not available, generate a suggestion
-    if (!slugCheck.available) {
+    if (!slugCheck?.available) {
       return NextResponse.json<SlugAvailabilityResponse>({
         available: false,
         suggestion: await generateUniqueSuggestion(supabase, normalizedSlug),

@@ -81,8 +81,8 @@ export const PortfolioModule = () => {
   // Loading state
   if (state.isLoading || isPlanLoading) {
     return (
-      <div className="mb-8">
-        <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_15px_0_0_rgba(168,85,247,0.3)] border-2 border-purple-300">
+      <div className="mb-6 md:mb-8">
+        <div className="p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_10px_0_0_rgba(168,85,247,0.3)] md:shadow-[0_15px_0_0_rgba(168,85,247,0.3)] border-2 border-purple-300">
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
           </div>
@@ -136,31 +136,31 @@ const PortfolioOverview = ({ portfolio, categories }: PortfolioOverviewProps) =>
   const portfolioUrl = `/p/${portfolio.slug}`;
 
   return (
-    <div className="mb-8">
-      <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_15px_0_0_rgba(168,85,247,0.3)] border-2 border-purple-300">
-        <div className="flex items-start gap-6">
+    <div className="mb-6 md:mb-8">
+      <div className="p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_10px_0_0_rgba(168,85,247,0.3)] md:shadow-[0_15px_0_0_rgba(168,85,247,0.3)] border-2 border-purple-300">
+        <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6">
           {/* Icon */}
-          <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-purple-400 to-pink-400 shadow-[0_6px_0_0_rgba(168,85,247,0.4)] border-2 border-purple-500 flex items-center justify-center flex-shrink-0">
-            <span className="text-3xl">🎨</span>
+          <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[1.5rem] bg-gradient-to-br from-purple-400 to-pink-400 shadow-[0_4px_0_0_rgba(168,85,247,0.4)] md:shadow-[0_6px_0_0_rgba(168,85,247,0.4)] border-2 border-purple-500 flex items-center justify-center flex-shrink-0">
+            <span className="text-2xl md:text-3xl">🎨</span>
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
             {/* Header with status badge */}
-            <div className="flex items-start justify-between gap-4 mb-2">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-2">
               <div className="min-w-0">
-                <h2 className="text-2xl font-bold text-gray-800 truncate">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800 truncate">
                   {portfolio.display_name}
                 </h2>
                 {portfolio.subtitle && (
-                  <p className="text-gray-700 font-medium truncate">
+                  <p className="text-sm md:text-base text-gray-700 font-medium truncate">
                     {portfolio.subtitle}
                   </p>
                 )}
               </div>
               {/* Publish Status Badge */}
               <div
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold flex-shrink-0 ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-xs md:text-sm font-bold flex-shrink-0 w-fit ${
                   portfolio.is_published
                     ? 'bg-green-100 text-green-800 border-2 border-green-300'
                     : 'bg-amber-100 text-amber-800 border-2 border-amber-300'
@@ -168,12 +168,12 @@ const PortfolioOverview = ({ portfolio, categories }: PortfolioOverviewProps) =>
               >
                 {portfolio.is_published ? (
                   <>
-                    <Globe className="w-4 h-4" />
+                    <Globe className="w-3.5 h-3.5 md:w-4 md:h-4" />
                     Published
                   </>
                 ) : (
                   <>
-                    <Lock className="w-4 h-4" />
+                    <Lock className="w-3.5 h-3.5 md:w-4 md:h-4" />
                     Draft
                   </>
                 )}
@@ -181,19 +181,19 @@ const PortfolioOverview = ({ portfolio, categories }: PortfolioOverviewProps) =>
             </div>
 
             {/* Stats */}
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex items-center gap-1.5 text-sm text-gray-600 font-medium">
-                <FolderOpen className="w-4 h-4 text-purple-600" />
+            <div className="flex flex-wrap items-center gap-3 md:gap-4 mb-4">
+              <div className="flex items-center gap-1.5 text-xs md:text-sm text-gray-600 font-medium">
+                <FolderOpen className="w-3.5 h-3.5 md:w-4 md:h-4 text-purple-600" />
                 <span>{categoriesCount} {categoriesCount === 1 ? 'Category' : 'Categories'}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-sm text-gray-600 font-medium">
-                <FileText className="w-4 h-4 text-pink-600" />
+              <div className="flex items-center gap-1.5 text-xs md:text-sm text-gray-600 font-medium">
+                <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 text-pink-600" />
                 <span>{pagesCount} {pagesCount === 1 ? 'Page' : 'Pages'}</span>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 sm:gap-3">
               {/* View/Preview Button */}
               <TrackedLink
                 href={portfolio.is_published ? portfolioUrl : `${portfolioUrl}?preview=true`}
@@ -213,7 +213,7 @@ const PortfolioOverview = ({ portfolio, categories }: PortfolioOverviewProps) =>
                 }}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-purple-300 font-bold text-gray-800 transition-all duration-200"
+                className="inline-flex items-center justify-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-xl md:rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-purple-300 font-bold text-sm md:text-base text-gray-800 transition-all duration-200"
               >
                 {portfolio.is_published ? (
                   <>
@@ -247,7 +247,7 @@ const PortfolioOverview = ({ portfolio, categories }: PortfolioOverviewProps) =>
                   'Pages Count': pagesCount,
                   'Page Section': 'Above the fold',
                 }}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-2 border-purple-400 font-bold text-white transition-all duration-200 shadow-sm"
+                className="inline-flex items-center justify-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-xl md:rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-2 border-purple-400 font-bold text-sm md:text-base text-white transition-all duration-200 shadow-sm"
               >
                 <Edit className="w-4 h-4" />
                 Edit Portfolio
@@ -394,20 +394,20 @@ const CreatePortfolioCard = ({ userPlan, onComplete, onShowPremiumGate }: Create
   };
 
   return (
-    <div className="mb-8">
-      <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_15px_0_0_rgba(168,85,247,0.3)] border-2 border-purple-300">
-        <div className="flex items-start gap-6">
+    <div className="mb-6 md:mb-8">
+      <div className="p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_10px_0_0_rgba(168,85,247,0.3)] md:shadow-[0_15px_0_0_rgba(168,85,247,0.3)] border-2 border-purple-300">
+        <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6">
           {/* Icon */}
-          <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-purple-400 to-pink-400 shadow-[0_6px_0_0_rgba(168,85,247,0.4)] border-2 border-purple-500 flex items-center justify-center flex-shrink-0">
-            <span className="text-3xl">🎨</span>
+          <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[1.5rem] bg-gradient-to-br from-purple-400 to-pink-400 shadow-[0_4px_0_0_rgba(168,85,247,0.4)] md:shadow-[0_6px_0_0_rgba(168,85,247,0.4)] border-2 border-purple-500 flex items-center justify-center flex-shrink-0">
+            <span className="text-2xl md:text-3xl">🎨</span>
           </div>
 
           {/* Content */}
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
               Create a Product Portfolio
             </h2>
-            <p className="text-gray-700 font-medium mb-4">
+            <p className="text-sm md:text-base text-gray-700 font-medium mb-4">
               Stand out in the competitive market with a professional portfolio showcasing your experience and case studies.
             </p>
 
@@ -425,7 +425,7 @@ const CreatePortfolioCard = ({ userPlan, onComplete, onShowPremiumGate }: Create
                   'Page Section': 'Above the fold',
                   'User Plan': userPlan,
                 }}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-2 border-purple-400 font-black text-white transition-all duration-200 shadow-sm"
+                className="inline-flex items-center gap-2 px-5 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-2 border-purple-400 font-black text-sm md:text-base text-white transition-all duration-200 shadow-sm"
               >
                 Create Portfolio →
               </TrackedButton>
@@ -488,18 +488,18 @@ const CreatePortfolioForm = ({
     return (
       <div className="flex items-center gap-2 py-4">
         <Loader2 className="h-5 w-5 animate-spin text-purple-600" />
-        <span className="text-gray-600 font-medium">Loading your profile...</span>
+        <span className="text-gray-600 font-medium text-sm md:text-base">Loading your profile...</span>
       </div>
     );
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4 mt-4 bg-white/50 rounded-2xl p-5 border-2 border-purple-200">
+    <form onSubmit={onSubmit} className="space-y-3 md:space-y-4 mt-4 bg-white/50 rounded-xl md:rounded-2xl p-4 md:p-5 border-2 border-purple-200">
       {/* Live Preview */}
       {(formData.display_name || formData.subtitle) && (
-        <div className="rounded-xl bg-white/80 p-4 text-center border border-purple-200">
-          <p className="mb-1 text-xs font-medium uppercase tracking-wider text-gray-400">Preview</p>
-          <h3 className="text-lg leading-tight text-gray-900">
+        <div className="rounded-lg md:rounded-xl bg-white/80 p-3 md:p-4 text-center border border-purple-200">
+          <p className="mb-1 text-[10px] md:text-xs font-medium uppercase tracking-wider text-gray-400">Preview</p>
+          <h3 className="text-sm md:text-lg leading-tight text-gray-900">
             <span className="font-bold">{formData.display_name || 'Your Name'}</span>
             <span className="font-normal">
               {' '}is a {formData.subtitle || '...'}
@@ -511,7 +511,7 @@ const CreatePortfolioForm = ({
 
       {/* Display Name */}
       <div>
-        <label htmlFor="portfolio_display_name" className="mb-1 block text-sm font-bold text-gray-700">
+        <label htmlFor="portfolio_display_name" className="mb-1 block text-xs md:text-sm font-bold text-gray-700">
           Portfolio Title (Your Name) *
         </label>
         <input
@@ -520,7 +520,7 @@ const CreatePortfolioForm = ({
           value={formData.display_name}
           onChange={(e) => setFormData((prev) => ({ ...prev, display_name: e.target.value }))}
           placeholder="Enter your full name"
-          className="w-full rounded-xl border-2 border-purple-200 bg-white px-4 py-2.5 text-gray-800 font-medium focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+          className="w-full rounded-lg md:rounded-xl border-2 border-purple-200 bg-white px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base text-gray-800 font-medium focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
           required
           aria-required="true"
         />
@@ -528,10 +528,10 @@ const CreatePortfolioForm = ({
 
       {/* Subtitle */}
       <div>
-        <label htmlFor="portfolio_subtitle" className="mb-1 block text-sm font-bold text-gray-700">
+        <label htmlFor="portfolio_subtitle" className="mb-1 block text-xs md:text-sm font-bold text-gray-700">
           Subtitle *
         </label>
-        <p className="mb-1 text-xs text-gray-500">
+        <p className="mb-1 text-[10px] md:text-xs text-gray-500">
           Your portfolio will display: &quot;{formData.display_name || 'Your Name'} is a [subtitle]&quot;
         </p>
         <input
@@ -539,8 +539,8 @@ const CreatePortfolioForm = ({
           type="text"
           value={formData.subtitle}
           onChange={(e) => setFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
-          placeholder="Senior Product Manager in New York City"
-          className="w-full rounded-xl border-2 border-purple-200 bg-white px-4 py-2.5 text-gray-800 font-medium focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+          placeholder="Senior Product Manager"
+          className="w-full rounded-lg md:rounded-xl border-2 border-purple-200 bg-white px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base text-gray-800 font-medium focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
           required
           aria-required="true"
         />
@@ -548,16 +548,18 @@ const CreatePortfolioForm = ({
 
       {/* Slug */}
       <div>
-        <label htmlFor="portfolio_slug" className="mb-1 block text-sm font-bold text-gray-700">
+        <label htmlFor="portfolio_slug" className="mb-1 block text-xs md:text-sm font-bold text-gray-700">
           Portfolio URL *
         </label>
-        <div className="flex items-center">
-          <span className={`rounded-l-xl border-2 border-r-0 px-3 py-2.5 text-sm font-medium ${
+        {/* Mobile: stacked layout, Desktop: inline */}
+        <div className="flex flex-col md:flex-row md:items-center">
+          <span className={`rounded-t-lg md:rounded-t-none md:rounded-l-xl border-2 md:border-r-0 px-3 py-2 md:py-2.5 text-xs md:text-sm font-medium whitespace-nowrap ${
             slugError || slugStatus === 'taken'
               ? 'border-red-300 bg-red-50 text-red-500'
               : 'border-purple-200 bg-purple-50 text-gray-500'
           }`}>
-            productcareerlyst.com/p/
+            <span className="md:hidden">.../p/</span>
+            <span className="hidden md:inline">productcareerlyst.com/p/</span>
           </span>
           <input
             id="portfolio_slug"
@@ -565,7 +567,7 @@ const CreatePortfolioForm = ({
             value={formData.slug}
             onChange={(e) => onSlugChange(e.target.value)}
             placeholder="yourname"
-            className={`w-full rounded-r-xl border-2 bg-white px-4 py-2.5 text-gray-800 font-medium focus:outline-none focus:ring-2 ${
+            className={`w-full rounded-b-lg md:rounded-b-none md:rounded-r-xl border-2 border-t-0 md:border-t-2 bg-white px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base text-gray-800 font-medium focus:outline-none focus:ring-2 ${
               slugError || slugStatus === 'taken'
                 ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
                 : 'border-purple-200 focus:border-purple-500 focus:ring-purple-200'
@@ -579,24 +581,24 @@ const CreatePortfolioForm = ({
 
         {/* Slug error message */}
         {slugError && (
-          <div id="slug-error" className="mt-2 flex items-start gap-2 rounded-lg bg-red-50 p-3 border border-red-200">
+          <div id="slug-error" className="mt-2 flex items-start gap-2 rounded-lg bg-red-50 p-2.5 md:p-3 border border-red-200">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500" aria-hidden="true" />
-            <p className="text-sm text-red-700 font-medium">{slugError}</p>
+            <p className="text-xs md:text-sm text-red-700 font-medium">{slugError}</p>
           </div>
         )}
 
         {/* Slug status (only show if no error) */}
         {!slugError && (
-          <div className="mt-1.5 flex items-center gap-2 text-sm">
+          <div className="mt-1.5 flex items-center gap-2 text-xs md:text-sm">
             {slugStatus === 'checking' && (
               <>
-                <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                <span className="text-gray-500">Checking availability...</span>
+                <Loader2 className="h-3.5 w-3.5 md:h-4 md:w-4 animate-spin text-gray-400" />
+                <span className="text-gray-500">Checking...</span>
               </>
             )}
             {slugStatus === 'available' && (
               <>
-                <Check className="h-4 w-4 text-green-500" />
+                <Check className="h-3.5 w-3.5 md:h-4 md:w-4 text-green-500" />
                 <span className="text-green-600 font-medium">Available!</span>
               </>
             )}
@@ -611,7 +613,7 @@ const CreatePortfolioForm = ({
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-3 pt-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 pt-2">
         <TrackedButton
           type="submit"
           disabled={isSubmitting || !formData.display_name || !formData.slug || !formData.subtitle || slugStatus === 'taken' || !!slugError}
@@ -630,7 +632,7 @@ const CreatePortfolioForm = ({
             'Slug Status': slugStatus,
             'Has Slug Error': !!slugError,
           }}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-bold text-white transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center justify-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-bold text-sm md:text-base text-white transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
             <>
@@ -644,7 +646,7 @@ const CreatePortfolioForm = ({
         <button
           type="button"
           onClick={onCancel}
-          className="px-5 py-2.5 rounded-xl border-2 border-purple-200 bg-white font-bold text-gray-700 hover:bg-purple-50 transition-all duration-200"
+          className="px-4 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl border-2 border-purple-200 bg-white font-bold text-sm md:text-base text-gray-700 hover:bg-purple-50 transition-all duration-200"
         >
           Cancel
         </button>

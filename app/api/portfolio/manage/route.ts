@@ -8,6 +8,11 @@ import {
   PortfolioAPIResponse,
 } from '@/lib/types/portfolio';
 
+// Type for the RPC function response
+interface SlugCheckResult {
+  available: boolean;
+}
+
 /**
  * GET /api/portfolio/manage
  * Fetch the current user's portfolio with categories and pages
@@ -143,17 +148,20 @@ export const POST = async (request: NextRequest) => {
     }
 
     // Check if slug is available using the RLS-bypassing function
-    const { data: slugCheck, error: slugCheckError } = await supabase
+    const { data: slugCheckData, error: slugCheckError } = await supabase
       .rpc('check_portfolio_slug_available', {
         p_slug: body.slug.toLowerCase(),
         p_user_id: user.id,
       })
       .single();
 
+    // Type cast the result
+    const slugCheck = slugCheckData as SlugCheckResult | null;
+
     if (slugCheckError) {
       console.error('Error checking slug availability:', slugCheckError);
       // Continue with creation attempt - database constraint will catch duplicates
-    } else if (!slugCheck.available) {
+    } else if (slugCheck && !slugCheck.available) {
       return NextResponse.json(
         { error: 'This slug is already taken' },
         { status: 409 }

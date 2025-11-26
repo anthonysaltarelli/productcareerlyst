@@ -199,7 +199,7 @@ export default function PublicPortfolioView({
         <div className="mx-auto max-w-5xl px-6 md:px-8">
           <div className="grid gap-12 md:grid-cols-[224px_1fr] md:gap-16 lg:grid-cols-[256px_1fr]">
             {/* Profile Image & Work Experience */}
-            <div className="flex flex-col items-center gap-6 md:items-stretch">
+            <div className="flex flex-col items-start gap-6 md:items-stretch">
               {portfolio.profile_image_url ? (
                 <img
                   src={portfolio.profile_image_url}
