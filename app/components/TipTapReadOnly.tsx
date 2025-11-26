@@ -141,6 +141,20 @@ export const TipTapReadOnly = ({ content, className = '' }: TipTapReadOnlyProps)
       
       {/* Custom styles for read-only mode */}
       <style jsx global>{`
+        /* Use Plus Jakarta Sans for read-only content on public pages */
+        .tiptap-readonly-wrapper,
+        .tiptap-readonly-wrapper .notion-like-editor-content,
+        .tiptap-readonly-wrapper .tiptap.ProseMirror {
+          font-family: var(--font-plus-jakarta), -apple-system, BlinkMacSystemFont, sans-serif !important;
+        }
+        
+        /* Reduce list spacing for read-only mode */
+        .tiptap-readonly-wrapper .tiptap.ProseMirror ol,
+        .tiptap-readonly-wrapper .tiptap.ProseMirror ul {
+          margin-top: 0.75em;
+          margin-bottom: 0.75em;
+        }
+        
         /* Reset the notion-like-editor styles for read-only */
         .tiptap-readonly-wrapper .notion-like-editor-content {
           max-width: 100% !important;
@@ -245,51 +259,6 @@ export const TipTapReadOnly = ({ content, className = '' }: TipTapReadOnlyProps)
         .tiptap-readonly-wrapper hr {
           border: none;
           border-top: 2px solid #e5e7eb;
-          margin: 2rem 0;
-        }
-        
-        /* Style headings */
-        .tiptap-readonly-wrapper h1 {
-          font-size: 2.25rem;
-          font-weight: 700;
-          margin-top: 2rem;
-          margin-bottom: 1rem;
-          color: #111827;
-        }
-        
-        .tiptap-readonly-wrapper h2 {
-          font-size: 1.875rem;
-          font-weight: 700;
-          margin-top: 1.75rem;
-          margin-bottom: 0.75rem;
-          color: #111827;
-        }
-        
-        .tiptap-readonly-wrapper h3 {
-          font-size: 1.5rem;
-          font-weight: 600;
-          margin-top: 1.5rem;
-          margin-bottom: 0.5rem;
-          color: #111827;
-        }
-        
-        /* Style paragraphs */
-        .tiptap-readonly-wrapper p {
-          margin-bottom: 1rem;
-          line-height: 1.75;
-          color: #374151;
-        }
-        
-        /* Style lists */
-        .tiptap-readonly-wrapper ul,
-        .tiptap-readonly-wrapper ol {
-          margin-bottom: 1rem;
-          padding-left: 1.5rem;
-        }
-        
-        .tiptap-readonly-wrapper li {
-          margin-bottom: 0.25rem;
-          line-height: 1.75;
         }
         
         /* Style images */
@@ -297,7 +266,6 @@ export const TipTapReadOnly = ({ content, className = '' }: TipTapReadOnlyProps)
           max-width: 100%;
           height: auto;
           border-radius: 0.5rem;
-          margin: 1rem 0;
         }
         
         /* Style inline code */
