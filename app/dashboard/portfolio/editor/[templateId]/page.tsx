@@ -453,8 +453,8 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
                   </span>
                 </button>
 
-                {/* Preview (always visible) */}
-                {portfolioSlug && (
+                {/* Preview (only visible when unpublished) */}
+                {portfolioSlug && !page.is_published && (
                   <a
                     href={`/p/${portfolioSlug}/${page.slug}?preview=true`}
                     target="_blank"
@@ -711,14 +711,14 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
                     </div>
 
                     {/* Page URL / Slug */}
-                    <div>
+                    <div className="min-w-0">
                       <label className="mb-1 block text-sm font-medium text-gray-700">
                         Page URL
                       </label>
                       {editingField === 'slug' ? (
                         <div className="space-y-2">
-                          <div className="flex items-center rounded-lg border border-gray-300 bg-gray-50 text-sm">
-                            <span className="px-3 py-2 text-gray-500">
+                          <div className="flex min-w-0 items-center overflow-hidden rounded-lg border border-gray-300 bg-gray-50 text-sm">
+                            <span className="flex-shrink-0 truncate px-3 py-2 text-gray-500" title={`/p/${portfolioSlug || '...'}/`}>
                               /p/{portfolioSlug || '...'}/
                             </span>
                             <input
@@ -730,7 +730,7 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
                               }}
                               onKeyDown={(e) => handleKeyDown(e, 'slug')}
                               placeholder="page-slug"
-                              className="flex-1 border-l border-gray-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                              className="min-w-0 flex-1 border-l border-gray-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-200"
                               autoFocus
                             />
                           </div>

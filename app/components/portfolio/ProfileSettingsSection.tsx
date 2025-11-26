@@ -7,14 +7,13 @@ import {
   Globe,
   Eye,
   EyeOff,
-  ExternalLink,
   Copy,
   Check,
   Loader2,
   X,
   Save,
 } from 'lucide-react';
-import { Portfolio } from '@/lib/types/portfolio';
+import { Portfolio, PortfolioPage } from '@/lib/types/portfolio';
 
 // ============================================================================
 // Types
@@ -22,6 +21,7 @@ import { Portfolio } from '@/lib/types/portfolio';
 
 interface ProfileSettingsSectionProps {
   portfolio: Portfolio;
+  pages: PortfolioPage[];
   onUpdate: () => void;
 }
 
@@ -31,6 +31,7 @@ interface ProfileSettingsSectionProps {
 
 export const ProfileSettingsSection = ({
   portfolio,
+  pages,
   onUpdate,
 }: ProfileSettingsSectionProps) => {
   const [editingField, setEditingField] = useState<string | null>(null);
@@ -41,7 +42,7 @@ export const ProfileSettingsSection = ({
   });
   const [isSaving, setIsSaving] = useState(false);
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'same'>('same');
-  const [justCopied, setJustCopied] = useState(false);
+  const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Sync form data with portfolio prop
@@ -61,14 +62,12 @@ export const ProfileSettingsSection = ({
     }
   }, [editingField]);
 
-  const portfolioUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/p/${portfolio.slug}`;
-
-  const handleCopyLink = async () => {
+  const handleCopyPageLink = async (linkId: string, url: string) => {
     try {
-      await navigator.clipboard.writeText(portfolioUrl);
-      setJustCopied(true);
-      toast.success('Portfolio link copied!');
-      setTimeout(() => setJustCopied(false), 2000);
+      await navigator.clipboard.writeText(url);
+      setCopiedLinkId(linkId);
+      toast.success('Link copied!');
+      setTimeout(() => setCopiedLinkId(null), 2000);
     } catch (error) {
       console.error('Failed to copy:', error);
       toast.error('Failed to copy link');
@@ -305,7 +304,7 @@ export const ProfileSettingsSection = ({
 
       {/* URL Settings Card */}
       <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
-        <h3 className="mb-4 text-lg font-semibold text-gray-800">Portfolio URL</h3>
+        <h3 className="mb-4 text-lg font-semibold text-gray-800">Edit Portfolio URL</h3>
         
         {editingField === 'slug' ? (
           <div className="space-y-3">
@@ -372,36 +371,17 @@ export const ProfileSettingsSection = ({
             </div>
           </div>
         ) : (
-          <div className="space-y-3">
-            <button
-              onClick={() => setEditingField('slug')}
-              className="group flex w-full items-center justify-between rounded-lg bg-gray-50 px-4 py-3 text-left hover:bg-gray-100"
-              type="button"
-            >
-              <div className="flex items-center gap-2">
-                <Globe className="h-4 w-4 text-gray-400" />
-                <span className="text-gray-700">productcareerlyst.com/p/{portfolio.slug}</span>
-              </div>
-              <Pencil className="h-4 w-4 text-gray-400 opacity-0 transition-opacity group-hover:opacity-100" />
-            </button>
-            <button
-              onClick={handleCopyLink}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 py-3 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50"
-              type="button"
-            >
-              {justCopied ? (
-                <>
-                  <Check className="h-4 w-4 text-green-600" />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4" />
-                  Copy Portfolio Link
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            onClick={() => setEditingField('slug')}
+            className="group flex w-full items-center justify-between rounded-lg bg-gray-50 px-4 py-3 text-left hover:bg-gray-100"
+            type="button"
+          >
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4 text-gray-400" />
+              <span className="text-gray-700">productcareerlyst.com/p/{portfolio.slug}</span>
+            </div>
+            <Pencil className="h-4 w-4 text-gray-400 opacity-0 transition-opacity group-hover:opacity-100" />
+          </button>
         )}
       </div>
 
@@ -444,33 +424,59 @@ export const ProfileSettingsSection = ({
         </div>
       </div>
 
-      {/* Quick Links Card */}
+      {/* Share Portfolio Card */}
       <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
-        <h3 className="mb-4 text-lg font-semibold text-gray-800">Quick Actions</h3>
+        <h3 className="mb-4 text-lg font-semibold text-gray-800">Share Portfolio</h3>
         
-        <div className="grid gap-3 sm:grid-cols-2">
-          {!portfolio.is_published && (
-            <a
-              href={`/p/${portfolio.slug}?preview=true`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-xl bg-amber-100 px-4 py-4 font-medium text-amber-700 transition-all hover:bg-amber-200"
+        <div className="space-y-3">
+          {/* Homepage Link */}
+          <div className="flex items-center justify-between gap-3 rounded-lg bg-gray-50 px-4 py-3">
+            <div className="min-w-0 flex-1">
+              <p className="mb-1 text-xs font-medium text-gray-500">Homepage</p>
+              <p className="truncate text-sm text-gray-700">
+                productcareerlyst.com/p/{portfolio.slug}
+              </p>
+            </div>
+            <button
+              onClick={() => handleCopyPageLink('homepage', `${typeof window !== 'undefined' ? window.location.origin : ''}/p/${portfolio.slug}`)}
+              className="flex-shrink-0 rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600"
+              type="button"
+              aria-label="Copy homepage link"
             >
-              <Eye className="h-5 w-5" />
-              Preview Portfolio
-            </a>
-          )}
-          {portfolio.is_published && (
-            <a
-              href={`/p/${portfolio.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-xl bg-purple-100 px-4 py-4 font-medium text-purple-700 transition-all hover:bg-purple-200"
+              {copiedLinkId === 'homepage' ? (
+                <Check className="h-4 w-4 text-green-600" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+
+          {/* Page Links */}
+          {pages.map((page) => (
+            <div
+              key={page.id}
+              className="flex items-center justify-between gap-3 rounded-lg bg-gray-50 px-4 py-3"
             >
-              <ExternalLink className="h-5 w-5" />
-              View Live Site
-            </a>
-          )}
+              <div className="min-w-0 flex-1">
+                <p className="mb-1 text-xs font-medium text-gray-500">{page.title}</p>
+                <p className="truncate text-sm text-gray-700">
+                  productcareerlyst.com/p/{portfolio.slug}/{page.slug}
+                </p>
+              </div>
+              <button
+                onClick={() => handleCopyPageLink(page.id, `${typeof window !== 'undefined' ? window.location.origin : ''}/p/${portfolio.slug}/${page.slug}`)}
+                className="flex-shrink-0 rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600"
+                type="button"
+                aria-label={`Copy ${page.title} link`}
+              >
+                {copiedLinkId === page.id ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+          ))}
         </div>
       </div>
 

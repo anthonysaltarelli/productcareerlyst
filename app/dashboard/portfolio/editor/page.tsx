@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Loader2, Save, X, Trash2 } from 'lucide-react';
+import { Loader2, Save, X, Trash2, Link2, AlertCircle } from 'lucide-react';
 import { DesktopOnlyFallback } from '@/app/components/DesktopOnlyFallback';
 import PremiumFeatureGateModal from '@/app/components/resume/PremiumFeatureGateModal';
 import { getUserPlanClient } from '@/lib/utils/resume-tracking';
@@ -360,6 +360,7 @@ export default function PortfolioEditorPage() {
           {selectedSection === 'profile' && (
             <ProfileSettingsSection
               portfolio={state.portfolio}
+              pages={state.categories.flatMap((c) => c.pages)}
               onUpdate={fetchPortfolio}
             />
           )}
@@ -867,6 +868,19 @@ const CategoryModal = ({
   );
 };
 
+/**
+ * Generate a URL-friendly slug from a title
+ */
+const generateSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+    .slice(0, 100); // Limit length
+};
+
 const PageModal = ({
   page,
   categories,
@@ -882,6 +896,7 @@ const PageModal = ({
 }) => {
   const [formData, setFormData] = useState({
     title: page?.title || '',
+    slug: page?.slug || '',
     description: page?.description || '',
     category_id: page?.category_id || defaultCategoryId || '',
     cover_image_url: page?.cover_image_url || '',
@@ -889,11 +904,43 @@ const PageModal = ({
     is_featured: page?.is_featured || false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [slugError, setSlugError] = useState<string | null>(null);
+  const [slugTouched, setSlugTouched] = useState(!!page?.slug); // If editing, slug was already set
+
+  // Auto-generate slug from title when title changes (only if user hasn't manually edited slug)
+  const handleTitleChange = (newTitle: string) => {
+    setFormData((prev) => {
+      const updates: typeof prev = { ...prev, title: newTitle };
+      // Only auto-generate slug if user hasn't manually edited it
+      if (!slugTouched) {
+        updates.slug = generateSlug(newTitle);
+      }
+      return updates;
+    });
+    // Clear any existing slug error when title changes
+    if (slugError) setSlugError(null);
+  };
+
+  const handleSlugChange = (newSlug: string) => {
+    // Format the slug as user types
+    const formattedSlug = newSlug
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+    
+    setFormData((prev) => ({ ...prev, slug: formattedSlug }));
+    setSlugTouched(true);
+    // Clear error when user edits the slug
+    if (slugError) setSlugError(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) return;
 
+    // Clear previous errors
+    setSlugError(null);
     setIsSubmitting(true);
 
     try {
@@ -903,11 +950,15 @@ const PageModal = ({
         .map((t) => t.trim())
         .filter(Boolean);
 
+      // Use generated slug if none provided
+      const slugToSubmit = formData.slug.trim() || generateSlug(formData.title);
+
       const response = await fetch(url, {
         method: page ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: formData.title.trim(),
+          slug: slugToSubmit,
           description: formData.description.trim() || null,
           category_id: formData.category_id || null,
           cover_image_url: formData.cover_image_url.trim() || null,
@@ -917,8 +968,15 @@ const PageModal = ({
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to save');
+        const errorData = await response.json();
+        
+        // Handle duplicate slug error specifically
+        if (response.status === 409 || errorData.error?.includes('slug already exists')) {
+          setSlugError('A page with this URL slug already exists. Please choose a different slug.');
+          return;
+        }
+        
+        throw new Error(errorData.error || 'Failed to save');
       }
 
       toast.success(page ? 'Page updated!' : 'Page created!');
@@ -932,6 +990,9 @@ const PageModal = ({
     }
   };
 
+  // Computed preview slug
+  const previewSlug = formData.slug || generateSlug(formData.title) || 'your-page-slug';
+
   return (
     <ModalWrapper title={page ? 'Edit Page' : 'New Page'} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -943,12 +1004,53 @@ const PageModal = ({
             id="page_title"
             type="text"
             value={formData.title}
-            onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+            onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="e.g., E-commerce Checkout Redesign"
             className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
             required
             autoFocus
           />
+        </div>
+
+        {/* Slug field with URL preview */}
+        <div>
+          <label htmlFor="page_slug" className="mb-1 block text-sm font-medium text-gray-700">
+            URL Slug
+          </label>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <Link2 className="h-4 w-4 text-gray-400" aria-hidden="true" />
+            </div>
+            <input
+              id="page_slug"
+              type="text"
+              value={formData.slug}
+              onChange={(e) => handleSlugChange(e.target.value)}
+              placeholder={generateSlug(formData.title) || 'your-page-slug'}
+              className={`w-full rounded-lg border px-3 py-2 pl-10 focus:outline-none focus:ring-2 ${
+                slugError
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                  : 'border-gray-300 focus:border-purple-500 focus:ring-purple-200'
+              }`}
+              aria-invalid={!!slugError}
+              aria-describedby={slugError ? 'slug-error' : 'slug-preview'}
+            />
+          </div>
+          
+          {/* Inline error message */}
+          {slugError && (
+            <div id="slug-error" className="mt-2 flex items-start gap-2 rounded-md bg-red-50 p-2">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500" aria-hidden="true" />
+              <p className="text-sm text-red-700">{slugError}</p>
+            </div>
+          )}
+          
+          {/* URL preview */}
+          {!slugError && (
+            <p id="slug-preview" className="mt-1.5 text-xs text-gray-500">
+              Preview: <span className="font-mono text-gray-600">/p/{previewSlug}</span>
+            </p>
+          )}
         </div>
 
         <div>

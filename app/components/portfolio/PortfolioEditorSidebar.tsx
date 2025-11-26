@@ -37,7 +37,7 @@ const sections = [
     id: 'about' as const,
     label: 'About',
     icon: User,
-    description: 'Bio, social links, experience',
+    description: 'Bio, links, experience',
   },
   {
     id: 'content' as const,
@@ -180,34 +180,34 @@ export const PortfolioEditorSidebar = ({
                 onClick={() => onSectionChange(section.id)}
                 className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-all ${
                   isSelected
-                    ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg'
-                    : 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 hover:shadow-sm'
+                    ? 'bg-gradient-to-br from-blue-100 to-cyan-100 text-blue-700 shadow-sm border border-blue-200'
+                    : 'bg-white text-gray-700 hover:bg-slate-50 border border-transparent'
                 }`}
                 type="button"
               >
                 <div
                   className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${
-                    isSelected ? 'bg-white/20' : 'bg-gray-100'
+                    isSelected ? 'bg-blue-200/50' : 'bg-gray-100'
                   }`}
                 >
-                  <Icon className={`h-5 w-5 ${isSelected ? 'text-white' : 'text-gray-500'}`} />
+                  <Icon className={`h-5 w-5 ${isSelected ? 'text-blue-600' : 'text-gray-500'}`} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className={`font-semibold ${isSelected ? 'text-white' : 'text-gray-800'}`}>
+                    <span className={`font-semibold ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
                       {section.label}
                     </span>
                     {itemCount !== undefined && itemCount > 0 && (
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                          isSelected ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-700'
+                          isSelected ? 'bg-blue-200/50 text-blue-700' : 'bg-purple-100 text-purple-700'
                         }`}
                       >
                         {itemCount}
                       </span>
                     )}
                   </div>
-                  <span className={`text-sm ${isSelected ? 'text-white/80' : 'text-gray-500'}`}>
+                  <span className={`text-sm ${isSelected ? 'text-blue-600/80' : 'text-gray-500'}`}>
                     {section.description}
                   </span>
                 </div>

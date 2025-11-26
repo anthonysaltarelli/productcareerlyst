@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStripeClient } from '@/lib/stripe/client';
 import Stripe from 'stripe';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { tagSubscriber } from '@/lib/utils/convertkit';
 import { resolvePlanAndCadenceFromSubscription } from '@/lib/stripe/plan-utils';
 
@@ -20,6 +20,62 @@ const supabaseAdmin = createClient(
     },
   }
 );
+
+/**
+ * Helper function to unpublish a user's portfolio if they're not on the Accelerate plan
+ * or if their subscription is not active/trialing.
+ * 
+ * Portfolio feature requires an active Accelerate subscription - if the user downgrades
+ * or cancels, their portfolio should be unpublished to prevent public access.
+ */
+const unpublishUserPortfolioIfNotAccelerate = async (
+  client: SupabaseClient,
+  userId: string,
+  plan: string,
+  status: string
+): Promise<void> => {
+  // Only Accelerate plan users with active/trialing status can have published portfolios
+  const canHavePublishedPortfolio = plan === 'accelerate' && (status === 'active' || status === 'trialing');
+  
+  if (canHavePublishedPortfolio) {
+    return; // User is eligible, no action needed
+  }
+  
+  try {
+    // Check if user has a published portfolio
+    const { data: portfolio, error: fetchError } = await client
+      .from('portfolios')
+      .select('id, is_published, slug')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (fetchError) {
+      console.error('[Portfolio] Error checking portfolio for unpublish:', fetchError);
+      return;
+    }
+    
+    // If no portfolio or already unpublished, nothing to do
+    if (!portfolio || !portfolio.is_published) {
+      return;
+    }
+    
+    // Unpublish the portfolio
+    const { error: updateError } = await client
+      .from('portfolios')
+      .update({ is_published: false, updated_at: new Date().toISOString() })
+      .eq('id', portfolio.id);
+    
+    if (updateError) {
+      console.error('[Portfolio] Error unpublishing portfolio:', updateError);
+      return;
+    }
+    
+    console.log(`[Portfolio] Unpublished portfolio for user ${userId} (slug: ${portfolio.slug}) - reason: plan=${plan}, status=${status}`);
+  } catch (error) {
+    // Don't fail the subscription sync if portfolio unpublish fails - just log
+    console.error('[Portfolio] Unexpected error unpublishing portfolio:', error);
+  }
+};
 
 export const POST = async (request: NextRequest) => {
   const stripe = getStripeClient();
@@ -149,6 +205,9 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  const metadata = subscription.metadata;
+  const userId = metadata?.user_id;
+
   const { error } = await supabaseAdmin
     .from('subscriptions')
     .update({
@@ -159,6 +218,11 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   if (error) {
     console.error('Error updating canceled subscription:', error);
+  }
+
+  // Unpublish portfolio when subscription is deleted/canceled
+  if (userId) {
+    await unpublishUserPortfolioIfNotAccelerate(supabaseAdmin, userId, 'none', 'canceled');
   }
 }
 
@@ -176,6 +240,13 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   const subscriptionId = (invoice as any).subscription as string;
   if (!subscriptionId) return;
 
+  // Get the subscription to find the user_id before updating
+  const { data: subscriptionData } = await supabaseAdmin
+    .from('subscriptions')
+    .select('user_id, plan')
+    .eq('stripe_subscription_id', subscriptionId)
+    .maybeSingle();
+
   const { error } = await supabaseAdmin
     .from('subscriptions')
     .update({
@@ -185,6 +256,17 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 
   if (error) {
     console.error('Error updating subscription to past_due:', error);
+  }
+
+  // Unpublish portfolio when payment fails (past_due status)
+  // This ensures users with payment issues can't keep their public portfolio accessible
+  if (subscriptionData?.user_id) {
+    await unpublishUserPortfolioIfNotAccelerate(
+      supabaseAdmin, 
+      subscriptionData.user_id, 
+      subscriptionData.plan || 'none', 
+      'past_due'
+    );
   }
 }
 
@@ -350,5 +432,9 @@ async function syncSubscriptionToDatabase(
       console.error('[ConvertKit] Error tagging subscriber:', tagError);
     }
   }
+
+  // Unpublish portfolio if user is no longer on Accelerate plan with active/trialing status
+  // This ensures users who downgrade or cancel can't keep their public portfolio accessible
+  await unpublishUserPortfolioIfNotAccelerate(supabaseAdmin, userId, plan, status);
 }
 
