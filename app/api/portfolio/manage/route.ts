@@ -167,6 +167,7 @@ export const POST = async (request: NextRequest) => {
         bio: body.bio || null,
         profile_image_url: body.profile_image_url || null,
         social_links: body.social_links || {},
+        work_experience: body.work_experience || [],
         is_published: body.is_published ?? false,
         show_resume_download: body.show_resume_download ?? false,
         resume_url: body.resume_url || null,
@@ -268,6 +269,7 @@ export const PUT = async (request: NextRequest) => {
     if (body.bio !== undefined) updateData.bio = body.bio;
     if (body.profile_image_url !== undefined) updateData.profile_image_url = body.profile_image_url;
     if (body.social_links !== undefined) updateData.social_links = body.social_links;
+    if (body.work_experience !== undefined) updateData.work_experience = body.work_experience;
     if (body.is_published !== undefined) updateData.is_published = body.is_published;
     if (body.show_resume_download !== undefined) updateData.show_resume_download = body.show_resume_download;
     if (body.resume_url !== undefined) updateData.resume_url = body.resume_url;

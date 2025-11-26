@@ -31,6 +31,7 @@ import {
   Portfolio,
   PortfolioCategoryWithPages,
   PortfolioPage,
+  PortfolioWorkExperience,
 } from '@/lib/types/portfolio';
 
 interface PublicPortfolioViewProps {
@@ -273,6 +274,11 @@ export default function PublicPortfolioView({
         </div>
       </section>
 
+      {/* Work Experience Section */}
+      {portfolio.work_experience && portfolio.work_experience.length > 0 && (
+        <WorkExperienceSection workExperience={portfolio.work_experience} />
+      )}
+
       {/* Featured Section */}
       {featuredPages.length > 0 && (
         <section id="featured" className="scroll-mt-20 border-t border-gray-100 py-20 md:py-28">
@@ -384,6 +390,68 @@ const SocialLink = ({
   >
     {icon}
   </a>
+);
+
+const WorkExperienceSection = ({
+  workExperience,
+}: {
+  workExperience: PortfolioWorkExperience[];
+}) => {
+  const currentPositions = workExperience.filter((exp) => exp.is_current);
+  const previousPositions = workExperience.filter((exp) => !exp.is_current);
+
+  if (workExperience.length === 0) return null;
+
+  return (
+    <section className="scroll-mt-20 border-t border-gray-100 py-16 md:py-20">
+      <div className="mx-auto max-w-5xl px-6 md:px-8">
+        <div className="space-y-10">
+          {/* Current Position(s) */}
+          {currentPositions.length > 0 && (
+            <div>
+              <h3 className="mb-6 text-sm font-semibold uppercase tracking-wider text-gray-400">
+                Now
+              </h3>
+              <div className="space-y-4">
+                {currentPositions.map((exp, index) => (
+                  <ExperienceRow key={`current-${index}`} experience={exp} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Previous Position(s) */}
+          {previousPositions.length > 0 && (
+            <div>
+              <h3 className="mb-6 text-sm font-semibold uppercase tracking-wider text-gray-400">
+                Previously
+              </h3>
+              <div className="space-y-4">
+                {previousPositions.map((exp, index) => (
+                  <ExperienceRow key={`prev-${index}`} experience={exp} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const ExperienceRow = ({
+  experience,
+}: {
+  experience: PortfolioWorkExperience;
+}) => (
+  <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-8 md:gap-16">
+    <span className="min-w-0 flex-1 text-lg font-medium text-gray-900 sm:max-w-xs md:max-w-sm lg:max-w-md">
+      {experience.company}
+    </span>
+    <span className="text-base text-gray-500 sm:flex-1">
+      {experience.title}
+    </span>
+  </div>
 );
 
 const FeaturedPageCard = ({

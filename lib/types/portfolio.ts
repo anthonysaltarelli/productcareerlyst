@@ -6,6 +6,17 @@
  */
 
 // ============================================================================
+// Work Experience (Career History)
+// ============================================================================
+
+export interface PortfolioWorkExperience {
+  company: string;
+  title: string;
+  is_current: boolean;
+  display_order: number;
+}
+
+// ============================================================================
 // Social Links
 // ============================================================================
 
@@ -33,6 +44,7 @@ export interface Portfolio {
   bio?: string;
   profile_image_url?: string;
   social_links: PortfolioSocialLinks;
+  work_experience: PortfolioWorkExperience[];
   is_published: boolean;
   show_resume_download: boolean;
   resume_url?: string;
@@ -47,6 +59,7 @@ export interface PortfolioCreateInput {
   bio?: string;
   profile_image_url?: string;
   social_links?: PortfolioSocialLinks;
+  work_experience?: PortfolioWorkExperience[];
   is_published?: boolean;
   show_resume_download?: boolean;
   resume_url?: string;
@@ -59,6 +72,7 @@ export interface PortfolioUpdateInput {
   bio?: string;
   profile_image_url?: string;
   social_links?: PortfolioSocialLinks;
+  work_experience?: PortfolioWorkExperience[];
   is_published?: boolean;
   show_resume_download?: boolean;
   resume_url?: string;
