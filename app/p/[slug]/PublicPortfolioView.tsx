@@ -84,27 +84,27 @@ export default function PublicPortfolioView({
               {hasSocialLinks && (
                 <div className="flex flex-wrap justify-center gap-3 md:justify-start">
                   {socialLinks.linkedin && (
-                    <SocialLink href={socialLinks.linkedin} icon={<Linkedin />} label="LinkedIn" />
+                    <SocialLink href={socialLinks.linkedin} icon={<Linkedin className="h-5 w-5" />} label="LinkedIn" />
                   )}
                   {socialLinks.twitter && (
-                    <SocialLink href={socialLinks.twitter} icon={<Twitter />} label="Twitter" />
+                    <SocialLink href={socialLinks.twitter} icon={<Twitter className="h-5 w-5" />} label="Twitter" />
                   )}
                   {socialLinks.github && (
-                    <SocialLink href={socialLinks.github} icon={<Github />} label="GitHub" />
+                    <SocialLink href={socialLinks.github} icon={<Github className="h-5 w-5" />} label="GitHub" />
                   )}
                   {socialLinks.youtube && (
-                    <SocialLink href={socialLinks.youtube} icon={<Youtube />} label="YouTube" />
+                    <SocialLink href={socialLinks.youtube} icon={<Youtube className="h-5 w-5" />} label="YouTube" />
                   )}
                   {socialLinks.substack && (
                     <SocialLink href={socialLinks.substack} icon={<SubstackIcon className="h-5 w-5" />} label="Substack" />
                   )}
                   {socialLinks.website && (
-                    <SocialLink href={socialLinks.website} icon={<Globe />} label="Website" />
+                    <SocialLink href={socialLinks.website} icon={<Globe className="h-5 w-5" />} label="Website" />
                   )}
                   {socialLinks.email && (
                     <SocialLink
                       href={`mailto:${socialLinks.email}`}
-                      icon={<Mail />}
+                      icon={<Mail className="h-5 w-5" />}
                       label="Email"
                     />
                   )}
@@ -236,7 +236,7 @@ const SocialLink = ({
     className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-all hover:bg-purple-100 hover:text-purple-600"
     aria-label={label}
   >
-    <span className="h-5 w-5">{icon}</span>
+    {icon}
   </a>
 );
 

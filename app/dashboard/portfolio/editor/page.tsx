@@ -1235,7 +1235,44 @@ const SetupPortfolioScreen = ({ onComplete }: { onComplete: () => void }) => {
     subtitle: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+
+  // Load user profile to pre-fill form
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const response = await fetch('/api/user/profile');
+        if (response.ok) {
+          const data = await response.json();
+          const firstName = data.first_name || '';
+          const lastName = data.last_name || '';
+          
+          if (firstName || lastName) {
+            const fullName = [firstName, lastName].filter(Boolean).join(' ');
+            const suggestedSlug = fullName.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9-_]/g, '');
+            
+            setFormData({
+              display_name: fullName,
+              slug: suggestedSlug,
+              subtitle: '',
+            });
+            
+            // Check if the suggested slug is available
+            if (suggestedSlug) {
+              checkSlug(suggestedSlug);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    loadUserProfile();
+  }, []);
 
   const checkSlug = async (slug: string) => {
     if (!slug) {
@@ -1285,6 +1322,17 @@ const SetupPortfolioScreen = ({ onComplete }: { onComplete: () => void }) => {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoadingProfile) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+        <div className="text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-purple-500" />
+          <p className="mt-4 text-gray-600">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">

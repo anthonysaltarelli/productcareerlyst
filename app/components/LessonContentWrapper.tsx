@@ -1,6 +1,5 @@
 'use client';
 
-import { Toaster } from 'sonner';
 import LessonCompletionButton from './LessonCompletionButton';
 
 interface LessonContentWrapperProps {
@@ -27,17 +26,14 @@ const LessonContentWrapper = ({
   };
 
   return (
-    <>
-      <Toaster position="top-right" richColors />
-      <LessonCompletionButton 
-        lessonId={lessonId}
-        courseId={courseId}
-        lessonTitle={lessonTitle}
-        courseTitle={courseTitle}
-        initialCompleted={isCompleted}
-        onToggle={handleToggle}
-      />
-    </>
+    <LessonCompletionButton 
+      lessonId={lessonId}
+      courseId={courseId}
+      lessonTitle={lessonTitle}
+      courseTitle={courseTitle}
+      initialCompleted={isCompleted}
+      onToggle={handleToggle}
+    />
   );
 };
 
