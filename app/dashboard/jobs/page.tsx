@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useJobApplications } from '@/lib/hooks/useJobApplications';
 import { useInterviews } from '@/lib/hooks/useInterviews';
@@ -9,7 +9,9 @@ import { AddJobModal } from '@/app/components/jobs/AddJobModal';
 import { EditJobModal } from '@/app/components/jobs/EditJobModal';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 import { JobsPageMobileGate } from '@/app/components/JobsPageMobileGate';
+import { KanbanBoard } from '@/app/components/jobs/KanbanBoard';
 
+// Status config for list view only (kanban uses its own in KanbanColumn)
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
   wishlist: { label: 'Wishlist', color: 'text-gray-700', bgColor: 'bg-gray-50' },
   applied: { label: 'Applied', color: 'text-blue-700', bgColor: 'bg-blue-50' },
@@ -34,7 +36,7 @@ export default function JobsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingApplication, setEditingApplication] = useState<JobApplicationWithCompany | null>(null);
 
-  const columnOrder: ApplicationStatus[] = ['wishlist', 'applied', 'screening', 'interviewing', 'offer', 'rejected'];
+  // Column order is now managed by KanbanBoard component
 
   // Calculate metrics
   const totalApplications = applications.length;
@@ -199,118 +201,13 @@ export default function JobsPage() {
         </div>
       </div>
 
-      {/* Kanban Board - Hidden on mobile */}
+      {/* Kanban Board - Hidden on mobile, with drag and drop */}
       {viewMode === 'kanban' && (
-        <div className="hidden md:block">
-        <div className="overflow-x-auto">
-          <div className="flex gap-6 min-w-max pb-8">
-            {columnOrder.map((status) => {
-              const config = statusConfig[status];
-              const jobsInColumn = applications.filter(app => app.status === status);
-
-              return (
-                <div key={status} className="flex-shrink-0 w-80">
-                  {/* Column Header */}
-                  <div className={`${config.bgColor} rounded-t-[1.5rem] p-5 border-2 ${config.bgColor === 'bg-gray-50' ? 'border-gray-300' : config.bgColor === 'bg-blue-50' ? 'border-blue-300' : config.bgColor === 'bg-yellow-50' ? 'border-yellow-300' : config.bgColor === 'bg-purple-50' ? 'border-purple-300' : config.bgColor === 'bg-green-50' ? 'border-green-300' : 'border-red-300'}`}>
-                    <div className="flex items-center justify-between">
-                      <h3 className={`font-black text-lg ${config.color}`}>{config.label}</h3>
-                      <span className={`${config.color} text-sm font-black px-3 py-1 rounded-[0.75rem] bg-white/60 border-2 ${config.bgColor === 'bg-gray-50' ? 'border-gray-400' : config.bgColor === 'bg-blue-50' ? 'border-blue-400' : config.bgColor === 'bg-yellow-50' ? 'border-yellow-400' : config.bgColor === 'bg-purple-50' ? 'border-purple-400' : config.bgColor === 'bg-green-50' ? 'border-green-400' : 'border-red-400'}`}>
-                        {jobsInColumn.length}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Cards */}
-                  <div className={`space-y-4 p-4 bg-white/40 rounded-b-[1.5rem] min-h-[500px] border-x-2 border-b-2 ${config.bgColor === 'bg-gray-50' ? 'border-gray-300' : config.bgColor === 'bg-blue-50' ? 'border-blue-300' : config.bgColor === 'bg-yellow-50' ? 'border-yellow-300' : config.bgColor === 'bg-purple-50' ? 'border-purple-300' : config.bgColor === 'bg-green-50' ? 'border-green-300' : 'border-red-300'}`}>
-                    {jobsInColumn.map((job) => (
-                      <div
-                        key={job.id}
-                        className="bg-white rounded-[1.5rem] p-5 border-2 border-gray-300 shadow-[0_6px_0_0_rgba(0,0,0,0.1)] hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(0,0,0,0.1)] transition-all duration-200 cursor-pointer group"
-                      >
-                        {/* Company & Title */}
-                        <Link href={`/dashboard/jobs/${job.id}`}>
-                          <div className="flex items-start justify-between gap-2 mb-3">
-                            <div className="flex-1">
-                              <h4 className="font-bold text-gray-900 group-hover:text-purple-600 transition-colors line-clamp-1">
-                                {job.title}
-                              </h4>
-                              <p className="text-sm text-gray-700 font-semibold mt-0.5">{job.company?.name || 'Unknown Company'}</p>
-                            </div>
-                          {job.priority && (
-                            <span className={`text-xs font-black px-3 py-1 rounded-[0.75rem] border-2 ${priorityConfig[job.priority].bgColor} ${priorityConfig[job.priority].color} ${job.priority === 'high' ? 'border-red-400' : job.priority === 'medium' ? 'border-yellow-400' : 'border-gray-400'}`}>
-                              {priorityConfig[job.priority].label}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Location & Work Mode */}
-                        {(job.location || job.work_mode) && (
-                          <div className="flex items-center gap-2 text-xs text-gray-700 font-medium mb-3">
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            {job.location && <span className="line-clamp-1">{job.location}</span>}
-                            {job.location && job.work_mode && <span className="text-gray-400">•</span>}
-                            {job.work_mode && <span className="capitalize">{job.work_mode}</span>}
-                          </div>
-                        )}
-
-                        {/* Salary */}
-                        {(job.salary_min && job.salary_max) && (
-                          <div className="text-sm font-bold text-gray-800 mb-3">
-                            {handleFormatSalary(job)}
-                          </div>
-                        )}
-
-                        {/* Applied Date */}
-                        {job.applied_date && (
-                          <div className="text-xs text-gray-600 font-medium flex items-center gap-1">
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            Applied {handleFormatDate(job.applied_date)} • {handleCalculateDaysAgo(job.applied_date)}
-                          </div>
-                        )}
-
-                        {/* Deadline Warning */}
-                        {job.deadline && new Date(job.deadline) > new Date() && (
-                          <div className="mt-3 pt-3 border-t-2 border-gray-200">
-                            <div className="text-xs text-orange-600 font-bold flex items-center gap-1 bg-orange-100 px-3 py-2 rounded-[0.75rem] border-2 border-orange-300">
-                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              Deadline: {handleFormatDate(job.deadline)}
-                            </div>
-                          </div>
-                        )}
-                        </Link>
-                        
-                        {/* Edit Button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingApplication(job);
-                          }}
-                          className="mt-3 w-full px-4 py-2 rounded-[1rem] bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 transition-colors text-sm"
-                        >
-                          Edit Application
-                        </button>
-                      </div>
-                    ))}
-
-                    {jobsInColumn.length === 0 && (
-                      <div className="text-center py-8 text-gray-600 text-sm font-semibold">
-                        No jobs yet 🎯
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        </div>
+        <KanbanBoard
+          applications={applications}
+          onEdit={setEditingApplication}
+          onRefetch={refetch}
+        />
       )}
 
       {/* List View - Always shown on mobile, or when list view selected on desktop */}

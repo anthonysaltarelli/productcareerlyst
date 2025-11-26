@@ -263,8 +263,30 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedCompany) {
-      setError('Please select or create a company');
+    // If no company is selected but there's a search term, auto-create the company
+    let companyToUse = selectedCompany;
+    
+    if (!companyToUse && searchTerm.trim()) {
+      setIsSubmitting(true);
+      setError(null);
+      
+      try {
+        const result = await createCompany({
+          name: searchTerm.trim(),
+          industry: 'technology' as const,
+          size: '51-200' as const,
+        });
+        companyToUse = result.company;
+        setSelectedCompany(result.company);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to create company');
+        setIsSubmitting(false);
+        return;
+      }
+    }
+    
+    if (!companyToUse) {
+      setError('Please select or enter a company name');
       return;
     }
 
@@ -273,7 +295,7 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
 
     try {
       await createJobApplication({
-        company_id: selectedCompany.id,
+        company_id: companyToUse.id,
         title: formData.title,
         location: formData.location || undefined,
         work_mode: formData.work_mode || undefined,
@@ -643,6 +665,16 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
                   )}
                 </div>
                 
+                {/* Show indicator when user has typed a company name but dropdown is closed */}
+                {searchTerm.trim() && !isDropdownOpen && (
+                  <div className="mt-2 flex items-center gap-2 text-sm text-purple-600 font-medium">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <span>New company &ldquo;{searchTerm.trim()}&rdquo; will be created</span>
+                  </div>
+                )}
+                
                 {searchTerm && isDropdownOpen && (
                   <div 
                     id="company-search-results"
@@ -904,7 +936,7 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !selectedCompany || !formData.title}
+              disabled={isSubmitting || (!selectedCompany && !searchTerm.trim()) || !formData.title}
               className="flex-1 px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0"
             >
               {isSubmitting ? 'Adding...' : 'Add Application'}
