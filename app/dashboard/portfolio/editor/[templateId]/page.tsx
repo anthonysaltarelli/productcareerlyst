@@ -59,10 +59,10 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
   
   // Metadata editing states
   const [showMetadataEditor, setShowMetadataEditor] = useState(false);
+  const [showCoverImageModal, setShowCoverImageModal] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [tempTitle, setTempTitle] = useState('');
   const [tempDescription, setTempDescription] = useState('');
-  const [tempCoverImage, setTempCoverImage] = useState('');
   const [tempTags, setTempTags] = useState('');
   const [tempSlug, setTempSlug] = useState('');
   const [portfolioSlug, setPortfolioSlug] = useState<string | null>(null);
@@ -224,9 +224,6 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
       case 'description':
         setTempDescription(page.description || '');
         break;
-      case 'cover_image_url':
-        setTempCoverImage(page.cover_image_url || '');
-        break;
       case 'tags':
         setTempTags(page.tags.join(', '));
         break;
@@ -263,9 +260,6 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
       case 'description':
         handleUpdateMetadata('description', tempDescription.trim() || null);
         break;
-      case 'cover_image_url':
-        handleUpdateMetadata('cover_image_url', tempCoverImage.trim() || null);
-        break;
       case 'tags':
         const tagsArray = tempTags.split(',').map((t) => t.trim()).filter(Boolean);
         handleUpdateMetadata('tags', tagsArray);
@@ -281,6 +275,12 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
         handleUpdateMetadata('slug', normalizedSlug);
         break;
     }
+  };
+
+  // Handle cover image save from modal
+  const handleCoverImageSave = (url: string) => {
+    handleUpdateMetadata('cover_image_url', url || null);
+    setShowCoverImageModal(false);
   };
 
   const handleCancelEdit = () => {
@@ -477,31 +477,90 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
             <div className="flex-1">
               {/* Cover Image Header */}
               {page.cover_image_url ? (
-                <div className="group relative mb-6 aspect-[3/1] overflow-hidden rounded-2xl">
-                  <img
-                    src={page.cover_image_url}
-                    alt={page.title}
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <h2 className="text-2xl font-bold text-white md:text-3xl">{page.title}</h2>
+                <>
+                  {/* Mobile Layout - title inside, description below, tags top-right */}
+                  <div className="group relative mb-4 sm:hidden">
+                    <div className="relative aspect-[2/1] overflow-hidden rounded-xl">
+                      <img
+                        src={page.cover_image_url}
+                        alt={page.title}
+                        className="h-full w-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      {/* Title overlay - bottom left */}
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <h2 className="text-xl font-bold text-white">{page.title}</h2>
+                      </div>
+                      {/* Tags - top right */}
+                      {page.tags.length > 0 && (
+                        <div className="absolute right-3 top-3 flex flex-wrap justify-end gap-1.5">
+                          {page.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-lg border border-white/30 bg-black/50 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <button
+                        onClick={() => setShowCoverImageModal(true)}
+                        className="absolute right-3 top-3 rounded-lg bg-white/90 p-2 opacity-0 transition-opacity group-hover:opacity-100"
+                        type="button"
+                        aria-label="Change cover image"
+                      >
+                        <Pencil className="h-4 w-4 text-gray-700" />
+                      </button>
+                    </div>
+                    {/* Description below cover image */}
                     {page.description && (
-                      <p className="mt-2 text-white/80">{page.description}</p>
+                      <p className="mt-3 text-sm text-gray-600">{page.description}</p>
                     )}
                   </div>
-                  <button
-                    onClick={() => handleStartEditField('cover_image_url')}
-                    className="absolute right-4 top-4 rounded-lg bg-white/90 p-2 opacity-0 transition-opacity group-hover:opacity-100"
-                    type="button"
-                    aria-label="Change cover image"
-                  >
-                    <Pencil className="h-4 w-4 text-gray-700" />
-                  </button>
-                </div>
+
+                  {/* Desktop Layout - title + description inside, tags bottom-right */}
+                  <div className="group relative mb-6 hidden sm:block">
+                    <div className="relative aspect-[3/1] overflow-hidden rounded-2xl">
+                      <img
+                        src={page.cover_image_url}
+                        alt={page.title}
+                        className="h-full w-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+                        <h2 className="text-2xl font-bold text-white md:text-3xl">{page.title}</h2>
+                        {page.description && (
+                          <p className="mt-2 text-white/80">{page.description}</p>
+                        )}
+                      </div>
+                      {/* Tags inside cover image - bottom right */}
+                      {page.tags.length > 0 && (
+                        <div className="absolute bottom-6 right-6 flex flex-wrap justify-end gap-2 md:bottom-8 md:right-8">
+                          {page.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-lg border border-white/30 bg-black/50 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <button
+                        onClick={() => setShowCoverImageModal(true)}
+                        className="absolute right-4 top-4 rounded-lg bg-white/90 p-2 opacity-0 transition-opacity group-hover:opacity-100"
+                        type="button"
+                        aria-label="Change cover image"
+                      >
+                        <Pencil className="h-4 w-4 text-gray-700" />
+                      </button>
+                    </div>
+                  </div>
+                </>
               ) : (
                 <button
-                  onClick={() => handleStartEditField('cover_image_url')}
+                  onClick={() => setShowCoverImageModal(true)}
                   className="mb-6 flex aspect-[3/1] w-full items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 text-gray-400 transition-colors hover:border-purple-400 hover:text-purple-500"
                   type="button"
                 >
@@ -512,8 +571,8 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
                 </button>
               )}
 
-              {/* Tags */}
-              {page.tags.length > 0 && (
+              {/* Tags - Only show when no cover image */}
+              {page.tags.length > 0 && !page.cover_image_url && (
                 <div className="mb-6 flex flex-wrap gap-2">
                   {page.tags.map((tag) => (
                     <span
@@ -699,53 +758,6 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
                       )}
                     </div>
 
-                    {/* Cover Image */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-gray-700">
-                        Cover Image URL
-                      </label>
-                      {editingField === 'cover_image_url' ? (
-                        <div className="space-y-2">
-                          <input
-                            type="url"
-                            value={tempCoverImage}
-                            onChange={(e) => setTempCoverImage(e.target.value)}
-                            onKeyDown={(e) => handleKeyDown(e, 'cover_image_url')}
-                            placeholder="https://example.com/image.jpg"
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                            autoFocus
-                          />
-                          <div className="flex justify-end gap-2">
-                            <button
-                              onClick={handleCancelEdit}
-                              className="rounded-lg px-3 py-1 text-sm text-gray-600 hover:bg-gray-100"
-                              type="button"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              onClick={() => handleSaveField('cover_image_url')}
-                              className="rounded-lg bg-purple-600 px-3 py-1 text-sm text-white hover:bg-purple-700"
-                              type="button"
-                            >
-                              Save
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleStartEditField('cover_image_url')}
-                          className="group flex w-full items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-left text-sm hover:border-purple-300"
-                          type="button"
-                        >
-                          <span className={page.cover_image_url ? 'truncate text-gray-700' : 'text-gray-400 italic'}>
-                            {page.cover_image_url || 'Add cover image...'}
-                          </span>
-                          <ImageIcon className="ml-2 h-3 w-3 flex-shrink-0 text-gray-400 opacity-0 group-hover:opacity-100" />
-                        </button>
-                      )}
-                    </div>
-
                     {/* Tags */}
                     <div>
                       <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -852,13 +864,11 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
       </div>
 
       {/* Cover Image Upload Modal */}
-      {editingField === 'cover_image_url' && (
+      {showCoverImageModal && (
         <CoverImageUploadModal
           currentUrl={page.cover_image_url || undefined}
-          onSave={(url) => {
-            handleUpdateMetadata('cover_image_url', url);
-          }}
-          onClose={() => setEditingField(null)}
+          onSave={handleCoverImageSave}
+          onClose={() => setShowCoverImageModal(false)}
         />
       )}
     </>

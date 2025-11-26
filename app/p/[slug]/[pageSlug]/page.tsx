@@ -116,25 +116,42 @@ export default async function PublicPageDetailPage({ params }: PageProps) {
       {/* Cover Image with Title/Description */}
       {page.cover_image_url ? (
         <>
-          {/* Mobile Layout - image then title below */}
+          {/* Mobile Layout - title inside cover, description below */}
           <div className="mx-auto max-w-5xl px-4 sm:hidden">
-            <div className="aspect-[2/1] w-full overflow-hidden rounded-xl bg-gray-100">
+            <div className="relative aspect-[2/1] w-full overflow-hidden rounded-xl bg-gray-100">
               <img
                 src={page.cover_image_url}
                 alt={page.title}
                 className="h-full w-full object-cover"
               />
-            </div>
-            <div className="pt-4">
-              <h1 className="text-xl font-bold text-gray-900">
-                {page.title}
-              </h1>
-              {page.description && (
-                <p className="mt-2 text-gray-600">
-                  {page.description}
-                </p>
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              {/* Title overlay - bottom left */}
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <h1 className="text-xl font-bold text-white">
+                  {page.title}
+                </h1>
+              </div>
+              {/* Tags - top right */}
+              {page.tags && page.tags.length > 0 && (
+                <div className="absolute right-3 top-3 flex flex-wrap justify-end gap-1.5">
+                  {page.tags.map((tag: string) => (
+                    <span
+                      key={tag}
+                      className="rounded-lg border border-white/30 bg-black/50 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               )}
             </div>
+            {/* Description below cover image */}
+            {page.description && (
+              <p className="mt-3 text-sm text-gray-600">
+                {page.description}
+              </p>
+            )}
           </div>
 
           {/* Desktop Layout - title overlaid on image */}
@@ -158,6 +175,19 @@ export default async function PublicPageDetailPage({ params }: PageProps) {
                   </p>
                 )}
               </div>
+              {/* Tags inside cover image - desktop only */}
+              {page.tags && page.tags.length > 0 && (
+                <div className="absolute bottom-6 right-6 flex flex-wrap justify-end gap-2 md:bottom-8 md:right-8">
+                  {page.tags.map((tag: string) => (
+                    <span
+                      key={tag}
+                      className="rounded-lg border border-white/30 bg-black/50 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </>
@@ -172,12 +202,28 @@ export default async function PublicPageDetailPage({ params }: PageProps) {
               {page.description}
             </p>
           )}
+          {/* Tags - shown inline for no-cover-image layout on desktop */}
+          {page.tags && page.tags.length > 0 && (
+            <div className="hidden flex-wrap items-center gap-2 text-sm text-gray-500 sm:flex">
+              <Tag className="h-4 w-4" />
+              <div className="flex flex-wrap gap-1.5">
+                {page.tags.map((tag: string) => (
+                  <span
+                    key={tag}
+                    className="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </header>
       )}
 
-      {/* Tags */}
-      {page.tags && page.tags.length > 0 && (
-        <div className="mx-auto max-w-5xl px-4 pt-4 sm:px-6 sm:pt-6">
+      {/* Tags - Mobile only when NO cover image (with cover image, tags are inside the image) */}
+      {page.tags && page.tags.length > 0 && !page.cover_image_url && (
+        <div className="mx-auto max-w-5xl px-4 pt-4 sm:hidden">
           <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
             <Tag className="h-4 w-4" />
             <div className="flex flex-wrap gap-1.5">
