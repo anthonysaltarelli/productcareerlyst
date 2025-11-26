@@ -10,7 +10,6 @@ import { TrackedLink } from '@/app/components/TrackedLink';
 interface FeaturedPortfolio {
   name: string;
   slug: string;
-  subtitle: string;
 }
 
 // ============================================================================
@@ -21,7 +20,6 @@ const FEATURED_PORTFOLIOS: FeaturedPortfolio[] = [
   {
     name: 'Anthony Saltarelli',
     slug: 'anthonysaltarelli',
-    subtitle: 'Senior Product Manager',
   },
 ];
 
@@ -107,9 +105,6 @@ const FeaturedPortfolioCard = ({ portfolio }: FeaturedPortfolioCardProps) => {
             <h4 className="font-semibold text-gray-900 text-sm truncate group-hover:text-indigo-600 transition-colors">
               {portfolio.name}
             </h4>
-            <p className="text-xs text-gray-500 truncate">
-              {portfolio.subtitle}
-            </p>
           </div>
           <ExternalLink className="w-4 h-4 text-gray-300 group-hover:text-indigo-500 transition-colors flex-shrink-0" />
         </div>

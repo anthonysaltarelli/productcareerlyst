@@ -15,16 +15,16 @@ export default function ProductPortfolioPage() {
     <>
       <MobileDashboardHeader title="Product Portfolio" />
       <PortfolioPageTracking pageName="Product Portfolio" />
-      <div className="p-6 pt-20 md:p-12 md:pt-12">
+      <div className="p-4 pt-20 md:p-12 md:pt-12">
         {/* Two Column Layout */}
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Main Content - Left Column */}
           <div className="flex-1 min-w-0">
             {/* Portfolio Module - Create or Overview */}
             <PortfolioModule />
 
             {/* Generate Ideas Section */}
-            <div className="mb-8">
+            <div className="mb-6 md:mb-8">
               <TrackedLink
                 href="/dashboard/portfolio/generate"
                 linkId="portfolio-page-generate-ideas-link"
@@ -39,19 +39,19 @@ export default function ProductPortfolioPage() {
                   'Link Destination': '/dashboard/portfolio/generate',
                 }}
               >
-                <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-orange-200 to-yellow-200 shadow-[0_12px_0_0_rgba(249,115,22,0.3)] border-2 border-orange-300 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(249,115,22,0.3)] transition-all duration-200 cursor-pointer">
-                  <div className="flex items-start gap-6">
-                    <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-orange-400 to-yellow-400 shadow-[0_6px_0_0_rgba(249,115,22,0.4)] border-2 border-orange-500 flex items-center justify-center flex-shrink-0">
-                      <span className="text-3xl">✨</span>
+                <div className="p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] bg-gradient-to-br from-orange-200 to-yellow-200 shadow-[0_8px_0_0_rgba(249,115,22,0.3)] md:shadow-[0_12px_0_0_rgba(249,115,22,0.3)] border-2 border-orange-300 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(249,115,22,0.3)] md:hover:shadow-[0_8px_0_0_rgba(249,115,22,0.3)] transition-all duration-200 cursor-pointer">
+                  <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6">
+                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[1.5rem] bg-gradient-to-br from-orange-400 to-yellow-400 shadow-[0_4px_0_0_rgba(249,115,22,0.4)] md:shadow-[0_6px_0_0_rgba(249,115,22,0.4)] border-2 border-orange-500 flex items-center justify-center flex-shrink-0">
+                      <span className="text-2xl md:text-3xl">✨</span>
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                      <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
                         AI Case Study Idea Generator
                       </h2>
-                      <p className="text-gray-700 font-medium mb-4">
+                      <p className="text-sm md:text-base text-gray-700 font-medium mb-4">
                         Enter an industry or company name, and we&apos;ll generate 3 unique case study ideas with specific problems, hypotheses, and user segments to help you build your portfolio.
                       </p>
-                      <span className="inline-block px-6 py-3 rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-orange-300 font-black text-gray-800 transition-all duration-200">
+                      <span className="inline-block px-5 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-orange-300 font-black text-sm md:text-base text-gray-800 transition-all duration-200">
                         Generate Ideas →
                       </span>
                     </div>
@@ -61,17 +61,17 @@ export default function ProductPortfolioPage() {
             </div>
 
             {/* Learning Section */}
-            <div className="mb-8">
-              <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_12px_0_0_rgba(59,130,246,0.3)] border-2 border-blue-300">
-                <div className="flex items-start gap-6">
-                  <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-blue-400 to-cyan-400 shadow-[0_6px_0_0_rgba(59,130,246,0.4)] border-2 border-blue-500 flex items-center justify-center flex-shrink-0">
-                    <span className="text-3xl">📚</span>
+            <div className="mb-6 md:mb-8">
+              <div className="p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_8px_0_0_rgba(59,130,246,0.3)] md:shadow-[0_12px_0_0_rgba(59,130,246,0.3)] border-2 border-blue-300">
+                <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6">
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[1.5rem] bg-gradient-to-br from-blue-400 to-cyan-400 shadow-[0_4px_0_0_rgba(59,130,246,0.4)] md:shadow-[0_6px_0_0_rgba(59,130,246,0.4)] border-2 border-blue-500 flex items-center justify-center flex-shrink-0">
+                    <span className="text-2xl md:text-3xl">📚</span>
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
                       Learn About Product Portfolios
                     </h2>
-                    <p className="text-gray-700 font-medium mb-4">
+                    <p className="text-sm md:text-base text-gray-700 font-medium mb-4">
                       Master the art of creating compelling product portfolio case studies. Learn about the Discover, Define, Develop, and Deliver framework, and how to structure your case studies to stand out in the competitive PM job market.
                     </p>
                     <TrackedLink
@@ -89,7 +89,7 @@ export default function ProductPortfolioPage() {
                         'Course Slug': 'launch-product-portfolio',
                         'Course Name': 'Launch Product Portfolio',
                       }}
-                      className="inline-block px-6 py-3 rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-blue-300 font-black text-gray-800 transition-all duration-200"
+                      className="inline-block px-5 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-blue-300 font-black text-sm md:text-base text-gray-800 transition-all duration-200"
                     >
                       Start Course →
                     </TrackedLink>
@@ -106,8 +106,8 @@ export default function ProductPortfolioPage() {
             )}
           </div>
 
-          {/* Featured Portfolios - Right Sidebar */}
-          <div className="lg:w-72 xl:w-80 flex-shrink-0">
+          {/* Featured Portfolios - Right Sidebar on desktop, below content on mobile */}
+          <div className="w-full lg:w-64 xl:w-72 flex-shrink-0">
             <FeaturedPortfolioSection />
           </div>
         </div>
