@@ -164,9 +164,32 @@ const PortfolioLandingPage = () => {
             </p>
           </div>
 
-          <div className="p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] bg-white shadow-[0_10px_0_0_rgba(0,0,0,0.1)] md:shadow-[0_15px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
-            {/* Portfolio Preview - Hidden on mobile */}
-            <div className="hidden sm:block rounded-[1.5rem] overflow-hidden border-2 border-gray-200 mb-6">
+          {/* Mobile: Just the button */}
+          <div className="sm:hidden flex justify-center">
+            <TrackedLink
+              href="https://productcareerlyst.com/p/anthonysaltarelli"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-gray-800 to-gray-900 shadow-[0_6px_0_0_rgba(0,0,0,0.3)] border-2 border-gray-700 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(0,0,0,0.3)] font-bold text-white transition-all duration-200"
+              eventName="User Clicked View Live Portfolio Link"
+              linkId="portfolio-landing-view-live-portfolio-mobile"
+              eventProperties={{
+                'Link Section': 'Live Example Section',
+                'Link Position': 'Mobile view',
+                'Link Type': 'External Link',
+                'Link Text': 'View Live Portfolio',
+                'Portfolio URL': 'productcareerlyst.com/p/anthonysaltarelli',
+              }}
+            >
+              <ExternalLink className="w-5 h-5" />
+              View Live Portfolio
+            </TrackedLink>
+          </div>
+
+          {/* Desktop: Full preview with container */}
+          <div className="hidden sm:block p-8 rounded-[2.5rem] bg-white shadow-[0_10px_0_0_rgba(0,0,0,0.1)] md:shadow-[0_15px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
+            {/* Portfolio Preview */}
+            <div className="rounded-[1.5rem] overflow-hidden border-2 border-gray-200 mb-6">
               <div className="bg-gray-100 px-4 py-2 flex items-center gap-2 border-b border-gray-200">
                 <div className="flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-red-400"></div>
@@ -189,12 +212,12 @@ const PortfolioLandingPage = () => {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-row gap-4 justify-center">
               <TrackedLink
                 href="https://productcareerlyst.com/p/anthonysaltarelli"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-6 py-3 sm:px-8 sm:py-4 rounded-[1.5rem] bg-gradient-to-br from-gray-800 to-gray-900 shadow-[0_6px_0_0_rgba(0,0,0,0.3)] border-2 border-gray-700 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(0,0,0,0.3)] font-bold text-white transition-all duration-200"
+                className="flex items-center justify-center gap-2 px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-gray-800 to-gray-900 shadow-[0_6px_0_0_rgba(0,0,0,0.3)] border-2 border-gray-700 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(0,0,0,0.3)] font-bold text-white transition-all duration-200"
                 eventName="User Clicked View Live Portfolio Link"
                 linkId="portfolio-landing-view-live-portfolio"
                 eventProperties={{
@@ -210,7 +233,7 @@ const PortfolioLandingPage = () => {
               </TrackedLink>
               <TrackedButton
                 href="/auth/sign-up"
-                className="hidden sm:flex items-center justify-center gap-2 px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-emerald-500 to-teal-500 shadow-[0_6px_0_0_rgba(16,185,129,0.6)] border-2 border-emerald-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(16,185,129,0.6)] font-bold text-white transition-all duration-200"
+                className="flex items-center justify-center gap-2 px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-emerald-500 to-teal-500 shadow-[0_6px_0_0_rgba(16,185,129,0.6)] border-2 border-emerald-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(16,185,129,0.6)] font-bold text-white transition-all duration-200"
                 eventName="User Clicked Build Your Own Button"
                 buttonId="portfolio-landing-build-your-own"
                 eventProperties={{
