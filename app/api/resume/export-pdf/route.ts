@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import chromium from '@sparticuz/chromium-min';
 
 type ContactInfo = {
   name: string;
@@ -711,7 +711,11 @@ export async function POST(request: NextRequest) {
     
     let executablePath: string;
     if (isProduction) {
-      executablePath = await chromium.executablePath();
+      // Use chromium-min with hosted binary for serverless environments
+      // The binary is downloaded at runtime from GitHub releases
+      executablePath = await chromium.executablePath(
+        'https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar'
+      );
     } else {
       // Local development - use installed Chrome
       executablePath = process.platform === 'win32'
