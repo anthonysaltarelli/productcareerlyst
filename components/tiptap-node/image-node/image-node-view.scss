@@ -68,6 +68,14 @@
     }
   }
 
+  .tiptap-image-caption-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
   .tiptap-image-caption {
     cursor: text;
     text-align: center;
@@ -76,7 +84,6 @@
     width: 100%;
     white-space: break-spaces;
     word-break: break-word;
-    margin-top: 1rem;
     outline: none;
     position: relative;
 
@@ -90,6 +97,29 @@
       position: absolute;
       left: 0;
       right: 0;
+    }
+
+    // Read-only mode
+    &.tiptap-image-caption-readonly {
+      cursor: default;
+      color: #4b5563;
+    }
+  }
+
+  .tiptap-image-unsplash-attribution {
+    text-align: center;
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+    padding: 4px 0;
+    
+    a {
+      color: #7c3aed;
+      text-decoration: none;
+      
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
 }

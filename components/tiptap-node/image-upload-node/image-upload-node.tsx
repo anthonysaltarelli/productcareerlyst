@@ -1,12 +1,13 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useCallback } from "react"
 import type { NodeViewProps } from "@tiptap/react"
 import { NodeViewWrapper } from "@tiptap/react"
 import { Button } from "@/components/tiptap-ui-primitive/button"
 import { CloseIcon } from "@/components/tiptap-icons/close-icon"
 import "@/components/tiptap-node/image-upload-node/image-upload-node.scss"
 import { focusNextNode, isValidPosition } from "@/lib/tiptap-utils"
+import { TiptapImagePickerModal, ImagePickerResult } from "./TiptapImagePickerModal"
 
 export interface FileItem {
   /**
@@ -437,6 +438,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
   const { accept, limit, maxSize } = props.node.attrs
   const inputRef = useRef<HTMLInputElement>(null)
   const extension = props.extension
+  const [showModal, setShowModal] = useState(false)
 
   const uploadOptions: UploadOptions = {
     maxSize,
@@ -450,6 +452,51 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
   const { fileItems, uploadFiles, removeFileItem, clearAllFiles } =
     useFileUpload(uploadOptions)
 
+  // Handle image selection from the modal (both upload and Unsplash)
+  const handleImageSelect = useCallback((result: ImagePickerResult) => {
+    const pos = props.getPos()
+
+    if (isValidPosition(pos)) {
+      // Build the image node attributes
+      const imageAttrs: Record<string, unknown> = {
+        ...extension.options,
+        src: result.url,
+        alt: result.alt || "Image",
+        title: result.alt || "Image",
+        // For Unsplash images, we don't need showCaption since the attribution
+        // badge is rendered statically from node attributes
+        showCaption: false,
+      }
+
+      // Add Unsplash attribution data if present
+      // The attribution will be rendered as a static, non-editable badge
+      // in the image-node-view component
+      if (result.unsplashData) {
+        imageAttrs.unsplashPhotoId = result.unsplashData.photoId
+        imageAttrs.unsplashPhotographerName = result.unsplashData.photographerName
+        imageAttrs.unsplashPhotographerUsername = result.unsplashData.photographerUsername
+      }
+
+      // Build the image node content (no caption content needed - attribution is static)
+      const imageNodeContent: Record<string, unknown> = {
+        type: extension.options.type,
+        attrs: imageAttrs,
+      }
+
+      props.editor
+        .chain()
+        .focus()
+        .deleteRange({ from: pos, to: pos + props.node.nodeSize })
+        .insertContentAt(pos, imageNodeContent)
+        .run()
+
+      focusNextNode(props.editor)
+    }
+
+    setShowModal(false)
+  }, [props, extension.options])
+
+  // Legacy upload handler for drag-drop (still uses file upload directly)
   const handleUpload = async (files: File[]) => {
     const urls = await uploadFiles(files)
 
@@ -492,64 +539,97 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
     handleUpload(Array.from(files))
   }
 
+  // Open the modal when clicking on the upload area
   const handleClick = () => {
-    if (inputRef.current && fileItems.length === 0) {
-      inputRef.current.value = ""
-      inputRef.current.click()
+    if (fileItems.length === 0) {
+      setShowModal(true)
     }
   }
+
+  const handleCloseModal = useCallback(() => {
+    setShowModal(false)
+  }, [])
+
+  // Create upload function for the modal that wraps the extension's upload
+  const handleModalUpload = useCallback(async (file: File): Promise<string> => {
+    if (extension.options.upload) {
+      return extension.options.upload(file, () => {}, new AbortController().signal)
+    }
+    // Fallback: upload to API
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await fetch('/api/portfolio/images/upload', {
+      method: 'POST',
+      body: formData,
+    })
+    if (!response.ok) {
+      throw new Error('Failed to upload image')
+    }
+    const data = await response.json()
+    return data.url
+  }, [extension.options])
 
   const hasFiles = fileItems.length > 0
 
   return (
-    <NodeViewWrapper
-      className="tiptap-image-upload tiptap-exclude"
-      tabIndex={0}
-      onClick={handleClick}
-      data-drag-handle={false}
-    >
-      {!hasFiles && (
-        <ImageUploadDragArea onFile={handleUpload}>
-          <DropZoneContent maxSize={maxSize} limit={limit} />
-        </ImageUploadDragArea>
-      )}
+    <>
+      <NodeViewWrapper
+        className="tiptap-image-upload tiptap-exclude"
+        tabIndex={0}
+        onClick={handleClick}
+        data-drag-handle={false}
+      >
+        {!hasFiles && (
+          <ImageUploadDragArea onFile={handleUpload}>
+            <DropZoneContent maxSize={maxSize} limit={limit} />
+          </ImageUploadDragArea>
+        )}
 
-      {hasFiles && (
-        <div className="tiptap-image-upload-previews">
-          {fileItems.length > 1 && (
-            <div className="tiptap-image-upload-header">
-              <span>Uploading {fileItems.length} files</span>
-              <Button
-                type="button"
-                data-style="ghost"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  clearAllFiles()
-                }}
-              >
-                Clear All
-              </Button>
-            </div>
-          )}
-          {fileItems.map((fileItem) => (
-            <ImageUploadPreview
-              key={fileItem.id}
-              fileItem={fileItem}
-              onRemove={() => removeFileItem(fileItem.id)}
-            />
-          ))}
-        </div>
-      )}
+        {hasFiles && (
+          <div className="tiptap-image-upload-previews">
+            {fileItems.length > 1 && (
+              <div className="tiptap-image-upload-header">
+                <span>Uploading {fileItems.length} files</span>
+                <Button
+                  type="button"
+                  data-style="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    clearAllFiles()
+                  }}
+                >
+                  Clear All
+                </Button>
+              </div>
+            )}
+            {fileItems.map((fileItem) => (
+              <ImageUploadPreview
+                key={fileItem.id}
+                fileItem={fileItem}
+                onRemove={() => removeFileItem(fileItem.id)}
+              />
+            ))}
+          </div>
+        )}
 
-      <input
-        ref={inputRef}
-        name="file"
-        accept={accept}
-        type="file"
-        multiple={limit > 1}
-        onChange={handleChange}
-        onClick={(e: React.MouseEvent<HTMLInputElement>) => e.stopPropagation()}
-      />
-    </NodeViewWrapper>
+        <input
+          ref={inputRef}
+          name="file"
+          accept={accept}
+          type="file"
+          multiple={limit > 1}
+          onChange={handleChange}
+          onClick={(e: React.MouseEvent<HTMLInputElement>) => e.stopPropagation()}
+        />
+      </NodeViewWrapper>
+
+      {showModal && (
+        <TiptapImagePickerModal
+          onSelect={handleImageSelect}
+          onClose={handleCloseModal}
+          uploadFn={handleModalUpload}
+        />
+      )}
+    </>
   )
 }

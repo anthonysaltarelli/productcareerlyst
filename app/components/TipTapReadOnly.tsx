@@ -268,6 +268,39 @@ export const TipTapReadOnly = ({ content, className = '' }: TipTapReadOnlyProps)
           border-radius: 0.5rem;
         }
         
+        /* Image caption wrapper */
+        .tiptap-readonly-wrapper .tiptap-image-caption-wrapper {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          margin-top: 0.5rem;
+        }
+        
+        /* Image captions */
+        .tiptap-readonly-wrapper .tiptap-image-caption {
+          text-align: center;
+          font-size: 14px;
+          color: #4b5563;
+        }
+        
+        /* Unsplash attribution badge */
+        .tiptap-readonly-wrapper .tiptap-image-unsplash-attribution {
+          text-align: center;
+          font-size: 12px;
+          color: #6b7280;
+          margin-top: 4px;
+        }
+        
+        .tiptap-readonly-wrapper .tiptap-image-unsplash-attribution a {
+          color: #7c3aed;
+          text-decoration: none;
+        }
+        
+        .tiptap-readonly-wrapper .tiptap-image-unsplash-attribution a:hover {
+          text-decoration: underline;
+        }
+        
         /* Style inline code */
         .tiptap-readonly-wrapper code:not(pre code) {
           background-color: #f3f4f6;

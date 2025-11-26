@@ -4,6 +4,7 @@ import { NodeViewWrapper, NodeViewContent } from "@tiptap/react"
 import { NodeSelection } from "@tiptap/pm/state"
 
 import { isValidPosition } from "@/lib/tiptap-utils"
+import { getUnsplashProfileUrl, getUnsplashUrl } from "@/lib/types/unsplash"
 
 import "./image-node-view.scss"
 
@@ -29,6 +30,70 @@ export interface ResizableImageProps
   onUpdateAttributes?: (attrs: Record<string, any>) => void
   getPos: () => number | undefined
   nodeSize?: number
+  // Unsplash attribution data
+  unsplashPhotographerName?: string | null
+  unsplashPhotographerUsername?: string | null
+}
+
+/**
+ * Static Unsplash attribution component
+ * This is non-editable and renders below the caption
+ */
+const UnsplashAttributionBadge = ({
+  photographerName,
+  photographerUsername,
+  isEditable = false,
+}: {
+  photographerName: string
+  photographerUsername: string
+  isEditable?: boolean
+}) => {
+  const profileUrl = getUnsplashProfileUrl(photographerUsername)
+  const unsplashUrl = getUnsplashUrl()
+
+  return (
+    <div 
+      className="tiptap-image-unsplash-attribution"
+      contentEditable={false}
+      style={{
+        fontSize: '12px',
+        color: '#6b7280',
+        marginTop: '4px',
+        padding: '4px 0',
+        userSelect: isEditable ? 'none' : 'text',
+        pointerEvents: isEditable ? 'none' : 'auto',
+      }}
+    >
+      Photo by{' '}
+      <a
+        href={profileUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          color: '#7c3aed',
+          textDecoration: 'none',
+          pointerEvents: 'auto',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {photographerName}
+      </a>
+      {' '}on{' '}
+      <a
+        href={unsplashUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          color: '#7c3aed',
+          textDecoration: 'none',
+          pointerEvents: 'auto',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        Unsplash
+      </a>
+    </div>
+  )
 }
 
 export function ImageNodeView(props: NodeViewProps) {
@@ -48,6 +113,8 @@ export function ImageNodeView(props: NodeViewProps) {
       onImageResize={(width) => updateAttributes({ width })}
       onUpdateAttributes={updateAttributes}
       getPos={getPos}
+      unsplashPhotographerName={node.attrs.unsplashPhotographerName}
+      unsplashPhotographerUsername={node.attrs.unsplashPhotographerUsername}
     />
   )
 }
@@ -66,7 +133,11 @@ export const ResizableImage: React.FC<ResizableImageProps> = ({
   onImageResize,
   onUpdateAttributes,
   getPos,
+  unsplashPhotographerName,
+  unsplashPhotographerUsername,
 }) => {
+  // Check if this is an Unsplash image
+  const hasUnsplashAttribution = !!(unsplashPhotographerName && unsplashPhotographerUsername)
   const [resizeParams, setResizeParams] = useState<ResizeParams | undefined>()
   const [width, setWidth] = useState<number | undefined>(initialWidth)
   const [showHandles, setShowHandles] = useState(false)
@@ -274,7 +345,8 @@ export const ResizableImage: React.FC<ResizableImageProps> = ({
     }
   }, [windowMouseMoveHandler, windowMouseUpHandler])
 
-  const shouldShowCaption = showCaption || hasContent
+  // Show caption if: has content OR showCaption is true OR has Unsplash attribution
+  const shouldShowCaption = showCaption || hasContent || hasUnsplashAttribution
 
   return (
     <NodeViewWrapper
@@ -321,12 +393,35 @@ export const ResizableImage: React.FC<ResizableImageProps> = ({
           )}
         </div>
 
-        {editor?.isEditable && shouldShowCaption && (
-          <NodeViewContent
-            as="div"
-            className="tiptap-image-caption"
-            data-placeholder="Add a caption..."
-          />
+        {/* Caption area - shown in both edit and read-only modes */}
+        {shouldShowCaption && (
+          <div className="tiptap-image-caption-wrapper">
+            {/* Editable caption content - only in edit mode, and only if not purely Unsplash attribution */}
+            {editor?.isEditable && (
+              <NodeViewContent
+                as="div"
+                className="tiptap-image-caption"
+                data-placeholder={hasUnsplashAttribution ? "" : "Add a caption..."}
+              />
+            )}
+            
+            {/* Read-only caption content - show in view mode if there's content */}
+            {!editor?.isEditable && hasContent && (
+              <NodeViewContent
+                as="div"
+                className="tiptap-image-caption tiptap-image-caption-readonly"
+              />
+            )}
+            
+            {/* Static Unsplash attribution - always visible, non-editable */}
+            {hasUnsplashAttribution && (
+              <UnsplashAttributionBadge
+                photographerName={unsplashPhotographerName!}
+                photographerUsername={unsplashPhotographerUsername!}
+                isEditable={editor?.isEditable ?? false}
+              />
+            )}
+          </div>
         )}
       </div>
     </NodeViewWrapper>

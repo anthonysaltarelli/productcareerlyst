@@ -12,6 +12,10 @@ interface ImageAttributes {
   width?: string | null
   height?: string | null
   "data-align"?: string | null
+  // Unsplash attribution data
+  "data-unsplash-photo-id"?: string | null
+  "data-unsplash-photographer-name"?: string | null
+  "data-unsplash-photographer-username"?: string | null
 }
 
 const parseImageAttributes = (img: Element): Partial<ImageAttributes> => ({
@@ -20,6 +24,9 @@ const parseImageAttributes = (img: Element): Partial<ImageAttributes> => ({
   title: img.getAttribute("title"),
   width: img.getAttribute("width"),
   height: img.getAttribute("height"),
+  "data-unsplash-photo-id": img.getAttribute("data-unsplash-photo-id"),
+  "data-unsplash-photographer-name": img.getAttribute("data-unsplash-photographer-name"),
+  "data-unsplash-photographer-username": img.getAttribute("data-unsplash-photographer-username"),
 })
 
 function buildImageHTMLAttributes(
@@ -31,6 +38,10 @@ function buildImageHTMLAttributes(
   if (attrs.title) result.title = attrs.title
   if (attrs.width) result.width = attrs.width
   if (attrs.height) result.height = attrs.height
+  // Unsplash attribution data
+  if (attrs["data-unsplash-photo-id"]) result["data-unsplash-photo-id"] = attrs["data-unsplash-photo-id"]
+  if (attrs["data-unsplash-photographer-name"]) result["data-unsplash-photographer-name"] = attrs["data-unsplash-photographer-name"]
+  if (attrs["data-unsplash-photographer-username"]) result["data-unsplash-photographer-username"] = attrs["data-unsplash-photographer-username"]
 
   return result
 }
@@ -55,6 +66,40 @@ export const Image = TiptapImage.extend<ImageOptions>({
         renderHTML: (attributes) => {
           if (!attributes.showCaption) return {}
           return { "data-show-caption": "true" }
+        },
+      },
+      // Unsplash attribution attributes
+      unsplashPhotoId: {
+        default: null,
+        parseHTML: (element) => {
+          const img = element.tagName === "FIGURE" ? element.querySelector("img") : element
+          return img?.getAttribute("data-unsplash-photo-id") || null
+        },
+        renderHTML: (attributes) => {
+          if (!attributes.unsplashPhotoId) return {}
+          return { "data-unsplash-photo-id": attributes.unsplashPhotoId }
+        },
+      },
+      unsplashPhotographerName: {
+        default: null,
+        parseHTML: (element) => {
+          const img = element.tagName === "FIGURE" ? element.querySelector("img") : element
+          return img?.getAttribute("data-unsplash-photographer-name") || null
+        },
+        renderHTML: (attributes) => {
+          if (!attributes.unsplashPhotographerName) return {}
+          return { "data-unsplash-photographer-name": attributes.unsplashPhotographerName }
+        },
+      },
+      unsplashPhotographerUsername: {
+        default: null,
+        parseHTML: (element) => {
+          const img = element.tagName === "FIGURE" ? element.querySelector("img") : element
+          return img?.getAttribute("data-unsplash-photographer-username") || null
+        },
+        renderHTML: (attributes) => {
+          if (!attributes.unsplashPhotographerUsername) return {}
+          return { "data-unsplash-photographer-username": attributes.unsplashPhotographerUsername }
         },
       },
     }
@@ -92,7 +137,7 @@ export const Image = TiptapImage.extend<ImageOptions>({
   },
 
   renderHTML({ node }) {
-    const { src, alt, title, width, height, showCaption } = node.attrs
+    const { src, alt, title, width, height, showCaption, unsplashPhotoId, unsplashPhotographerName, unsplashPhotographerUsername } = node.attrs
     const align = node.attrs["data-align"]
 
     const imgAttrs = buildImageHTMLAttributes({
@@ -101,6 +146,9 @@ export const Image = TiptapImage.extend<ImageOptions>({
       title,
       width,
       height,
+      "data-unsplash-photo-id": unsplashPhotoId,
+      "data-unsplash-photographer-name": unsplashPhotographerName,
+      "data-unsplash-photographer-username": unsplashPhotographerUsername,
     })
 
     const hasContent = node.content.size > 0
