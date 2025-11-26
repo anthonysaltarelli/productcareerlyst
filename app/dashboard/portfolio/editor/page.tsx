@@ -1318,6 +1318,13 @@ const InlineProfileEditor = ({
   }, [editingField]);
 
   const handleSave = async (field: string, value: string | Record<string, string | undefined>) => {
+    // Validate subtitle is not empty
+    if (field === 'subtitle' && (!value || (typeof value === 'string' && !value.trim()))) {
+      toast.error('Subtitle is required. Your portfolio displays as "[Name] is a [subtitle]"');
+      // Don't close editing field so user can fix it
+      return;
+    }
+
     setIsSaving(true);
     try {
       const response = await fetch('/api/portfolio/manage', {
@@ -1463,54 +1470,95 @@ const InlineProfileEditor = ({
 
           {/* Info Section */}
           <div className="flex-1 space-y-3">
-            {/* Display Name - Editable */}
-            {editingField === 'display_name' ? (
-              <input
-                ref={inputRef as React.RefObject<HTMLInputElement>}
-                type="text"
-                value={formData.display_name}
-                onChange={(e) => setFormData((prev) => ({ ...prev, display_name: e.target.value }))}
-                onBlur={() => handleSave('display_name', formData.display_name)}
-                onKeyDown={(e) => handleKeyDown(e, 'display_name', formData.display_name)}
-                className="w-full rounded-lg border-2 border-purple-400 bg-white px-3 py-2 text-3xl font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-200 md:text-4xl"
-                placeholder="Your Name"
-              />
+            {/* Name + Subtitle Display with "is a" pattern */}
+            {editingField === 'display_name' || editingField === 'subtitle' ? (
+              <div className="space-y-3">
+                {/* Display Name Input */}
+                {editingField === 'display_name' ? (
+                  <input
+                    ref={inputRef as React.RefObject<HTMLInputElement>}
+                    type="text"
+                    value={formData.display_name}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, display_name: e.target.value }))}
+                    onBlur={() => handleSave('display_name', formData.display_name)}
+                    onKeyDown={(e) => handleKeyDown(e, 'display_name', formData.display_name)}
+                    className="w-full rounded-lg border-2 border-purple-400 bg-white px-3 py-2 text-3xl font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-200 md:text-4xl"
+                    placeholder="Your Name"
+                  />
+                ) : (
+                  <button
+                    onClick={() => setEditingField('display_name')}
+                    className="group/name flex w-full items-center justify-center gap-2 text-left md:justify-start"
+                    type="button"
+                  >
+                    <h1 className="text-3xl font-bold text-gray-900 md:text-4xl">
+                      {formData.display_name || 'Add your name'}
+                    </h1>
+                    <Pencil className="h-4 w-4 text-gray-300 opacity-0 transition-opacity group-hover/name:opacity-100" />
+                  </button>
+                )}
+                
+                {/* Subtitle Input */}
+                {editingField === 'subtitle' ? (
+                  <div>
+                    <p className="mb-2 text-xs text-gray-500">
+                      Your portfolio will display: &quot;{formData.display_name} is a [subtitle]&quot;
+                    </p>
+                    <input
+                      ref={inputRef as React.RefObject<HTMLInputElement>}
+                      type="text"
+                      value={formData.subtitle}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
+                      onBlur={() => handleSave('subtitle', formData.subtitle)}
+                      onKeyDown={(e) => handleKeyDown(e, 'subtitle', formData.subtitle)}
+                      className="w-full rounded-lg border-2 border-purple-400 bg-white px-3 py-2 text-lg text-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                      placeholder="Senior Product Manager in New York City"
+                    />
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setEditingField('subtitle')}
+                    className="group/subtitle flex w-full items-center justify-center gap-2 text-left md:justify-start"
+                    type="button"
+                  >
+                    <p className="text-lg text-gray-600">
+                      is a {formData.subtitle ? `${formData.subtitle.charAt(0).toLowerCase()}${formData.subtitle.slice(1)}` : '...'}
+                      {formData.subtitle && !formData.subtitle.endsWith('.') && '.'}
+                    </p>
+                    <Pencil className="h-3 w-3 text-gray-300 opacity-0 transition-opacity group-hover/subtitle:opacity-100" />
+                  </button>
+                )}
+              </div>
             ) : (
-              <button
-                onClick={() => setEditingField('display_name')}
-                className="group/name flex w-full items-center justify-center gap-2 text-left md:justify-start"
-                type="button"
-              >
-                <h1 className="text-3xl font-bold text-gray-900 md:text-4xl">
-                  {formData.display_name || 'Add your name'}
+              /* Combined Display View - shows "[Name] is a [subtitle]" pattern */
+              <div className="space-y-1">
+                <h1 className="text-3xl leading-tight text-gray-900 md:text-4xl">
+                  <button
+                    onClick={() => setEditingField('display_name')}
+                    className="group/name inline"
+                    type="button"
+                  >
+                    <span className="font-bold">{formData.display_name || 'Add your name'}</span>
+                    <Pencil className="ml-2 inline h-4 w-4 text-gray-300 opacity-0 transition-opacity group-hover/name:opacity-100" />
+                  </button>
+                  <button
+                    onClick={() => setEditingField('subtitle')}
+                    className="group/subtitle inline"
+                    type="button"
+                  >
+                    <span className="font-normal">
+                      {' '}is a {formData.subtitle ? `${formData.subtitle.charAt(0).toLowerCase()}${formData.subtitle.slice(1)}` : '...'}
+                      {formData.subtitle && !formData.subtitle.endsWith('.') && '.'}
+                    </span>
+                    <Pencil className="ml-2 inline h-3 w-3 text-gray-300 opacity-0 transition-opacity group-hover/subtitle:opacity-100" />
+                  </button>
                 </h1>
-                <Pencil className="h-4 w-4 text-gray-300 opacity-0 transition-opacity group-hover/name:opacity-100" />
-              </button>
-            )}
-
-            {/* Subtitle - Editable */}
-            {editingField === 'subtitle' ? (
-              <input
-                ref={inputRef as React.RefObject<HTMLInputElement>}
-                type="text"
-                value={formData.subtitle}
-                onChange={(e) => setFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
-                onBlur={() => handleSave('subtitle', formData.subtitle)}
-                onKeyDown={(e) => handleKeyDown(e, 'subtitle', formData.subtitle)}
-                className="w-full rounded-lg border-2 border-purple-400 bg-white px-3 py-2 text-lg text-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                placeholder="Your title or company (e.g., Senior PM at Google)"
-              />
-            ) : (
-              <button
-                onClick={() => setEditingField('subtitle')}
-                className="group/subtitle flex w-full items-center justify-center gap-2 text-left md:justify-start"
-                type="button"
-              >
-                <p className={`text-lg ${formData.subtitle ? 'text-gray-600' : 'text-gray-400 italic'}`}>
-                  {formData.subtitle || 'Add a subtitle...'}
-                </p>
-                <Pencil className="h-3 w-3 text-gray-300 opacity-0 transition-opacity group-hover/subtitle:opacity-100" />
-              </button>
+                {!formData.subtitle && (
+                  <p className="text-sm text-amber-600">
+                    ⚠️ Subtitle is required. Click to add one.
+                  </p>
+                )}
+              </div>
             )}
 
             {/* Bio - Editable */}
@@ -1788,7 +1836,7 @@ const SetupPortfolioScreen = ({ onComplete, userPlan }: { onComplete: () => void
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.display_name || !formData.slug || slugStatus === 'taken') return;
+    if (!formData.display_name || !formData.slug || !formData.subtitle || slugStatus === 'taken') return;
 
     // Check if user has Accelerate plan
     if (userPlan !== 'accelerate') {
@@ -1844,6 +1892,20 @@ const SetupPortfolioScreen = ({ onComplete, userPlan }: { onComplete: () => void
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl bg-white p-8 shadow-xl">
+          {/* Live Preview */}
+          {(formData.display_name || formData.subtitle) && (
+            <div className="rounded-xl bg-gradient-to-br from-slate-50 to-purple-50 p-6 text-center">
+              <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">Preview</p>
+              <h2 className="text-2xl leading-tight text-gray-900">
+                <span className="font-bold">{formData.display_name || 'Your Name'}</span>
+                <span className="font-normal">
+                  {' '}is a {formData.subtitle ? `${formData.subtitle.charAt(0).toLowerCase()}${formData.subtitle.slice(1)}` : '...'}
+                  {formData.subtitle && !formData.subtitle.endsWith('.') && '.'}
+                </span>
+              </h2>
+            </div>
+          )}
+
           {/* Display Name */}
           <div>
             <label htmlFor="display_name" className="mb-1 block text-sm font-medium text-gray-700">
@@ -1863,9 +1925,12 @@ const SetupPortfolioScreen = ({ onComplete, userPlan }: { onComplete: () => void
 
           {/* Subtitle */}
           <div>
-            <label htmlFor="subtitle" className="mb-2 block text-sm font-medium text-gray-700">
-              Subtitle <span className="text-gray-400">(optional)</span>
+            <label htmlFor="subtitle" className="mb-1 block text-sm font-medium text-gray-700">
+              Subtitle *
             </label>
+            <p className="mb-2 text-xs text-gray-500">
+              Your portfolio will display: &quot;{formData.display_name || 'Your Name'} is a [subtitle]&quot;
+            </p>
             <input
               id="subtitle"
               type="text"
@@ -1873,6 +1938,7 @@ const SetupPortfolioScreen = ({ onComplete, userPlan }: { onComplete: () => void
               onChange={(e) => setFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
               placeholder="Senior Product Manager in New York City"
               className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+              required
             />
           </div>
 
@@ -1920,7 +1986,7 @@ const SetupPortfolioScreen = ({ onComplete, userPlan }: { onComplete: () => void
           {/* Submit */}
           <button
             type="submit"
-            disabled={isSubmitting || !formData.display_name || !formData.slug || slugStatus === 'taken'}
+            disabled={isSubmitting || !formData.display_name || !formData.slug || !formData.subtitle || slugStatus === 'taken'}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-sm transition-all hover:from-purple-600 hover:to-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? (
