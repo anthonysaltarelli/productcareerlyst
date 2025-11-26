@@ -78,10 +78,10 @@ export default async function BillingPage() {
               </p>
             </div>
             <div className="bg-white/80 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-[0_12px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-200">
-              <div className="text-4xl mb-3">⚡</div>
-              <h3 className="text-xl font-black text-gray-900 mb-2">Save Time</h3>
+              <div className="text-4xl mb-3">🎨</div>
+              <h3 className="text-xl font-black text-gray-900 mb-2">Product Portfolio</h3>
               <p className="text-gray-700 font-semibold">
-                Automate your job search with AI-powered tools and insights
+                Launch a hosted product portfolio to showcase your experience and case studies
               </p>
             </div>
           </div>

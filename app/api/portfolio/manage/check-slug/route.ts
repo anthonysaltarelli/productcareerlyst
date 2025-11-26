@@ -49,15 +49,35 @@ export const GET = async (request: NextRequest) => {
       });
     }
 
-    // Check if slug is already taken (excluding current user's portfolio)
-    const { data: existingPortfolio } = await supabase
-      .from('portfolios')
-      .select('id, user_id')
-      .eq('slug', normalizedSlug)
-      .maybeSingle();
+    // Check if slug is already taken using the RLS-bypassing function
+    // This ensures we check ALL portfolios, not just published ones or user's own
+    const { data: slugCheck, error: slugCheckError } = await supabase
+      .rpc('check_portfolio_slug_available', {
+        p_slug: normalizedSlug,
+        p_user_id: user.id,
+      })
+      .single();
 
-    // If slug exists and belongs to someone else, it's not available
-    if (existingPortfolio && existingPortfolio.user_id !== user.id) {
+    if (slugCheckError) {
+      console.error('Error checking slug availability:', slugCheckError);
+      // Fallback to direct query (will have RLS limitations)
+      const { data: existingPortfolio } = await supabase
+        .from('portfolios')
+        .select('id, user_id')
+        .eq('slug', normalizedSlug)
+        .maybeSingle();
+
+      if (existingPortfolio && existingPortfolio.user_id !== user.id) {
+        return NextResponse.json<SlugAvailabilityResponse>({
+          available: false,
+          suggestion: await generateUniqueSuggestion(supabase, normalizedSlug),
+        });
+      }
+      return NextResponse.json<SlugAvailabilityResponse>({ available: true });
+    }
+
+    // If slug is not available, generate a suggestion
+    if (!slugCheck.available) {
       return NextResponse.json<SlugAvailabilityResponse>({
         available: false,
         suggestion: await generateUniqueSuggestion(supabase, normalizedSlug),

@@ -6,8 +6,6 @@ import { toast } from 'sonner';
 import { arrayMove } from '@dnd-kit/sortable';
 import { Loader2, Save, X, Trash2, Link2, AlertCircle } from 'lucide-react';
 import { DesktopOnlyFallback } from '@/app/components/DesktopOnlyFallback';
-import PremiumFeatureGateModal from '@/app/components/resume/PremiumFeatureGateModal';
-import { getUserPlanClient } from '@/lib/utils/resume-tracking';
 import {
   Portfolio,
   PortfolioCategory,
@@ -58,23 +56,6 @@ export default function PortfolioEditorPage() {
   const [selectedSection, setSelectedSection] = useState<PortfolioSection>('profile');
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-  const [userPlan, setUserPlan] = useState<'learn' | 'accelerate' | null>(null);
-  const [isPlanLoading, setIsPlanLoading] = useState(true);
-
-  // Fetch user plan on mount
-  useEffect(() => {
-    const fetchUserPlan = async () => {
-      try {
-        const plan = await getUserPlanClient();
-        setUserPlan(plan);
-      } catch (error) {
-        console.error('Error fetching user plan:', error);
-      } finally {
-        setIsPlanLoading(false);
-      }
-    };
-    fetchUserPlan();
-  }, []);
 
   // Fetch portfolio data
   const fetchPortfolio = useCallback(async () => {
@@ -108,6 +89,13 @@ export default function PortfolioEditorPage() {
   useEffect(() => {
     fetchPortfolio();
   }, [fetchPortfolio]);
+
+  // Redirect to main portfolio page if no portfolio exists (creation happens there)
+  useEffect(() => {
+    if (!state.isLoading && !state.portfolio) {
+      router.replace('/dashboard/portfolio');
+    }
+  }, [state.isLoading, state.portfolio, router]);
 
   const toggleCategory = (categoryId: string) => {
     setExpandedCategories((prev) => {
@@ -293,7 +281,7 @@ export default function PortfolioEditorPage() {
   }, [state.categories, handleReorderPages]);
 
   // Loading state
-  if (state.isLoading || isPlanLoading) {
+  if (state.isLoading) {
     return (
       <>
         <DesktopOnlyFallback 
@@ -309,7 +297,7 @@ export default function PortfolioEditorPage() {
     );
   }
 
-  // No portfolio - show setup screen
+  // No portfolio - show loading while redirecting to main portfolio page
   if (!state.portfolio) {
     return (
       <>
@@ -319,8 +307,8 @@ export default function PortfolioEditorPage() {
           pageTitle="Portfolio Editor"
         />
         
-        <div className="hidden md:block">
-          <SetupPortfolioScreen onComplete={fetchPortfolio} userPlan={userPlan} />
+        <div className="hidden md:flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
         </div>
       </>
     );
@@ -474,259 +462,6 @@ export default function PortfolioEditorPage() {
     </>
   );
 }
-
-// ============================================================================
-// Setup Portfolio Screen
-// ============================================================================
-
-const SetupPortfolioScreen = ({ onComplete, userPlan }: { onComplete: () => void; userPlan: 'learn' | 'accelerate' | null }) => {
-  const [formData, setFormData] = useState({
-    display_name: '',
-    slug: '',
-    subtitle: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
-  const [showPremiumGate, setShowPremiumGate] = useState(false);
-
-  // Load user profile to pre-fill form
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      try {
-        const response = await fetch('/api/user/profile');
-        if (response.ok) {
-          const data = await response.json();
-          const firstName = data.first_name || '';
-          const lastName = data.last_name || '';
-          
-          if (firstName || lastName) {
-            const fullName = [firstName, lastName].filter(Boolean).join(' ');
-            const suggestedSlug = fullName.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9-_]/g, '');
-            
-            setFormData({
-              display_name: fullName,
-              slug: suggestedSlug,
-              subtitle: '',
-            });
-            
-            if (suggestedSlug) {
-              checkSlug(suggestedSlug);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error loading profile:', error);
-      } finally {
-        setIsLoadingProfile(false);
-      }
-    };
-
-    loadUserProfile();
-  }, []);
-
-  const checkSlug = async (slug: string) => {
-    if (!slug) {
-      setSlugStatus('idle');
-      return;
-    }
-
-    setSlugStatus('checking');
-    try {
-      const response = await fetch(`/api/portfolio/manage/check-slug?slug=${slug}`);
-      const data = await response.json();
-      setSlugStatus(data.available ? 'available' : 'taken');
-    } catch {
-      setSlugStatus('idle');
-    }
-  };
-
-  const handleSlugChange = (value: string) => {
-    const formatted = value.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
-    setFormData((prev) => ({ ...prev, slug: formatted }));
-    checkSlug(formatted);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.display_name || !formData.slug || !formData.subtitle || slugStatus === 'taken') return;
-
-    if (userPlan !== 'accelerate') {
-      setShowPremiumGate(true);
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const response = await fetch('/api/portfolio/manage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create portfolio');
-      }
-
-      toast.success('Portfolio created!');
-      onComplete();
-    } catch (error) {
-      console.error('Error creating portfolio:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create portfolio');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (isLoadingProfile) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
-        <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-purple-500" />
-          <p className="mt-4 text-gray-600">Loading your profile...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
-      <div className="w-full max-w-lg">
-        <div className="mb-8 text-center">
-          <div className="mb-4 inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-4xl shadow-lg">
-            🎨
-          </div>
-          <h1 className="mb-2 text-3xl font-bold text-gray-800">Create a Product Portfolio</h1>
-          <p className="text-gray-600">
-            Stand out in the competitive market with a professional portfolio showcasing your experience and case studies.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl bg-white p-8 shadow-xl">
-          {/* Live Preview */}
-          {(formData.display_name || formData.subtitle) && (
-            <div className="rounded-xl bg-gradient-to-br from-slate-50 to-purple-50 p-6 text-center">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">Preview</p>
-              <h2 className="text-2xl leading-tight text-gray-900">
-                <span className="font-bold">{formData.display_name || 'Your Name'}</span>
-                <span className="font-normal">
-                  {' '}is a {formData.subtitle ? `${formData.subtitle.charAt(0).toLowerCase()}${formData.subtitle.slice(1)}` : '...'}
-                  {formData.subtitle && !formData.subtitle.endsWith('.') && '.'}
-                </span>
-              </h2>
-            </div>
-          )}
-
-          {/* Display Name */}
-          <div>
-            <label htmlFor="display_name" className="mb-1 block text-sm font-medium text-gray-700">
-              Portfolio Title (Your Name) *
-            </label>
-            <p className="mb-2 text-xs text-gray-500">This will be displayed as the main title of your portfolio</p>
-            <input
-              id="display_name"
-              type="text"
-              value={formData.display_name}
-              onChange={(e) => setFormData((prev) => ({ ...prev, display_name: e.target.value }))}
-              placeholder="Enter your full name"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-              required
-            />
-          </div>
-
-          {/* Subtitle */}
-          <div>
-            <label htmlFor="subtitle" className="mb-1 block text-sm font-medium text-gray-700">
-              Subtitle *
-            </label>
-            <p className="mb-2 text-xs text-gray-500">
-              Your portfolio will display: &quot;{formData.display_name || 'Your Name'} is a [subtitle]&quot;
-            </p>
-            <input
-              id="subtitle"
-              type="text"
-              value={formData.subtitle}
-              onChange={(e) => setFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
-              placeholder="Senior Product Manager in New York City"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-              required
-            />
-          </div>
-
-          {/* Slug */}
-          <div>
-            <label htmlFor="slug" className="mb-2 block text-sm font-medium text-gray-700">
-              Portfolio URL *
-            </label>
-            <div className="flex items-center">
-              <span className="rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-500">
-                productcareerlyst.com/p/
-              </span>
-              <input
-                id="slug"
-                type="text"
-                value={formData.slug}
-                onChange={(e) => handleSlugChange(e.target.value)}
-                placeholder="yourname"
-                className="w-full rounded-r-lg border border-gray-300 px-4 py-3 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                required
-              />
-            </div>
-            <div className="mt-2 flex items-center gap-2 text-sm">
-              {slugStatus === 'checking' && (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                  <span className="text-gray-500">Checking availability...</span>
-                </>
-              )}
-              {slugStatus === 'available' && (
-                <>
-                  <span className="text-green-500">✓</span>
-                  <span className="text-green-600">Available!</span>
-                </>
-              )}
-              {slugStatus === 'taken' && (
-                <>
-                  <span className="text-red-500">✗</span>
-                  <span className="text-red-600">Already taken</span>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={isSubmitting || !formData.display_name || !formData.slug || !formData.subtitle || slugStatus === 'taken'}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-sm transition-all hover:from-purple-600 hover:to-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <Save className="h-5 w-5" />
-                Start Editing Portfolio
-              </>
-            )}
-          </button>
-        </form>
-      </div>
-
-      <PremiumFeatureGateModal
-        isOpen={showPremiumGate}
-        onClose={() => setShowPremiumGate(false)}
-        featureName="Product Portfolio"
-        featureDescription="Create a professional product portfolio to showcase your experience and case studies. This feature is available exclusively for Accelerate plan subscribers."
-        currentPlan={userPlan}
-        requiresAccelerate={true}
-      />
-    </div>
-  );
-};
 
 // ============================================================================
 // Modal Components

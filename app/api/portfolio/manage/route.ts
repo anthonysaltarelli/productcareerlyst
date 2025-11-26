@@ -142,14 +142,18 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
-    // Check if slug is available
-    const { data: existingSlug } = await supabase
-      .from('portfolios')
-      .select('id')
-      .eq('slug', body.slug.toLowerCase())
-      .maybeSingle();
+    // Check if slug is available using the RLS-bypassing function
+    const { data: slugCheck, error: slugCheckError } = await supabase
+      .rpc('check_portfolio_slug_available', {
+        p_slug: body.slug.toLowerCase(),
+        p_user_id: user.id,
+      })
+      .single();
 
-    if (existingSlug) {
+    if (slugCheckError) {
+      console.error('Error checking slug availability:', slugCheckError);
+      // Continue with creation attempt - database constraint will catch duplicates
+    } else if (!slugCheck.available) {
       return NextResponse.json(
         { error: 'This slug is already taken' },
         { status: 409 }

@@ -20,8 +20,9 @@ body {
   font-style: normal;
 }
 
-html,
-body {
+// Scoped to editor wrapper only - prevents horizontal overscroll during editing
+// without breaking browser swipe navigation on read-only public pages
+.notion-like-editor-wrapper {
   overscroll-behavior-x: none;
 }
 

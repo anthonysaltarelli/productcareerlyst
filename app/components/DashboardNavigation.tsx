@@ -1,7 +1,7 @@
 'use client'
 
 import { useFlags } from 'launchdarkly-react-client-sdk'
-import { CreditCard, Settings, Home, BookOpen, Briefcase, FileText, FolderKanban, LayoutDashboard, FileSpreadsheet, Lightbulb } from 'lucide-react'
+import { CreditCard, Settings, Home, BookOpen, Briefcase, FileText, FolderKanban, FileSpreadsheet, Lightbulb } from 'lucide-react'
 import { NavLink } from '@/app/components/NavLink'
 
 interface DashboardNavigationProps {
@@ -10,7 +10,7 @@ interface DashboardNavigationProps {
 }
 
 export const DashboardNavigation = ({ fullScreen = false, onNavClick }: DashboardNavigationProps) => {
-  const { coach, compensation, impactPortfolio, careerTracker, nativeProductPortfolio } = useFlags()
+  const { coach, compensation, impactPortfolio, careerTracker } = useFlags()
 
   // Base styles for nav links
   const baseNavLinkClass = fullScreen
@@ -111,27 +111,6 @@ export const DashboardNavigation = ({ fullScreen = false, onNavClick }: Dashboar
         <FolderKanban className={iconClass} />
         <span>Product Portfolio</span>
       </NavLink>
-      {nativeProductPortfolio && (
-        <NavLink
-          href="/dashboard/portfolio/editor"
-          eventName="User Clicked Dashboard Navigation Link"
-          linkId={fullScreen ? 'mobile-nav-portfolio-editor-link' : 'dashboard-nav-portfolio-editor-link'}
-          eventProperties={{
-            'Link Text': 'Portfolio Editor',
-            'Link Destination': '/dashboard/portfolio/editor',
-            'Link Section': fullScreen ? 'Mobile Navigation' : 'Sidebar Navigation',
-            'Link Position': 'Main Navigation',
-            'Link Type': 'Navigation Link',
-            'Feature Flag Required': true,
-            'Feature Flag Name': 'native-product-portfolio',
-          }}
-          className={baseNavLinkClass}
-          onClick={onNavClick}
-        >
-          <LayoutDashboard className={iconClass} />
-          <span>Portfolio Editor</span>
-        </NavLink>
-      )}
       {coach && (
         <NavLink
           href="/dashboard/interview"

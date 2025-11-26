@@ -53,7 +53,7 @@ const plans = {
 const featureList = [
   { key: 'courseLessons', label: 'Course Lessons' },
   { key: 'resources', label: 'Resources' },
-  { key: 'productPortfolioTemplate', label: 'Product Portfolio Template' },
+  { key: 'productPortfolioTemplate', label: 'Hosted Product Portfolio' },
   { key: 'pmEmailsDiscovered', label: 'PM Emails Discovered' },
   { key: 'outreachMessagesCreated', label: 'Outreach Messages Created' },
   { key: 'resumeBulletOptimizations', label: 'Resume Bullet Optimizations' },
