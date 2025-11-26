@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Loader2 } from "lucide-react";
 import Link from "next/link";
 import type { ResumeVersion } from "@/lib/hooks/useResumeData";
 import CreateFromMasterModal from "./CreateFromMasterModal";
@@ -10,6 +10,7 @@ import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import ImportResumeModal from "./ImportResumeModal";
 import { trackEvent } from "@/lib/amplitude/client";
 import { getUserPlanClient } from "@/lib/utils/resume-tracking";
+import { createResumeDocument, downloadDocx } from "@/lib/utils/exportResume";
 
 type Props = {
   versions: ResumeVersion[];
@@ -50,6 +51,8 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
     versionId: null,
     versionName: '',
   });
+  const [downloadingPdfId, setDownloadingPdfId] = useState<string | null>(null);
+  const [downloadingDocxId, setDownloadingDocxId] = useState<string | null>(null);
 
   // Split versions into masters and job-specific
   const masterResumes = versions.filter(v => v.is_master);
@@ -131,6 +134,165 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
     if (onDeleteVersion && deleteModalState.versionId) {
       await onDeleteVersion(deleteModalState.versionId);
       setDeleteModalState({ isOpen: false, versionId: null, versionName: '' });
+    }
+  };
+
+  // Format month/year for filename
+  const formatMonthYear = (): string => {
+    const date = new Date();
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                    'July', 'August', 'September', 'October', 'November', 'December'];
+    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
+  const handleDownloadPDF = async (version: ResumeVersion) => {
+    setDownloadingPdfId(version.id);
+    const exportStartTime = Date.now();
+    
+    try {
+      // Fetch the resume data
+      const dataResponse = await fetch(`/api/resume/versions/${version.id}/data`);
+      if (!dataResponse.ok) {
+        throw new Error('Failed to fetch resume data');
+      }
+      const resumeData = await dataResponse.json();
+
+      // Generate PDF
+      const pdfResponse = await fetch('/api/resume/export-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(resumeData),
+      });
+
+      if (!pdfResponse.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      const blob = await pdfResponse.blob();
+      const exportDuration = Date.now() - exportStartTime;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Format filename: "Name - Month Year.pdf"
+      const resumeName = resumeData.contactInfo?.name || 'Resume';
+      link.download = `${resumeName} - ${formatMonthYear()}.pdf`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      // Track export success
+      const userPlan = await getUserPlanClient();
+      setTimeout(() => {
+        try {
+          trackEvent('User Exported Resume PDF', {
+            'Resume Version ID': version.id,
+            'Resume Name': version.name,
+            'Is Master Resume': version.is_master,
+            'Export Success': true,
+            'Export Duration': exportDuration,
+            'File Size': blob.size,
+            'Export Location': 'Resume Landing Page',
+            'User Plan': userPlan,
+          });
+        } catch {
+          // Silently fail - tracking should never block
+        }
+      }, 0);
+    } catch (err) {
+      console.error('Error downloading PDF:', err);
+      
+      // Track export failure
+      const userPlan = await getUserPlanClient();
+      setTimeout(() => {
+        try {
+          trackEvent('User Exported Resume PDF', {
+            'Resume Version ID': version.id,
+            'Resume Name': version.name,
+            'Is Master Resume': version.is_master,
+            'Export Success': false,
+            'Error Message': err instanceof Error ? err.message : 'Unknown error',
+            'Export Location': 'Resume Landing Page',
+            'User Plan': userPlan,
+          });
+        } catch {
+          // Silently fail
+        }
+      }, 0);
+      
+      alert('Failed to download PDF. Please try again.');
+    } finally {
+      setDownloadingPdfId(null);
+    }
+  };
+
+  const handleDownloadDocx = async (version: ResumeVersion) => {
+    setDownloadingDocxId(version.id);
+    const exportStartTime = Date.now();
+    
+    try {
+      // Fetch the resume data
+      const dataResponse = await fetch(`/api/resume/versions/${version.id}/data`);
+      if (!dataResponse.ok) {
+        throw new Error('Failed to fetch resume data');
+      }
+      const resumeData = await dataResponse.json();
+
+      // Generate DOCX
+      const doc = createResumeDocument(resumeData);
+      
+      // Format filename: "Name - Month Year.docx"
+      const resumeName = resumeData.contactInfo?.name || 'Resume';
+      const filename = `${resumeName} - ${formatMonthYear()}.docx`;
+      
+      await downloadDocx(doc, filename);
+      const exportDuration = Date.now() - exportStartTime;
+
+      // Track export success
+      const userPlan = await getUserPlanClient();
+      setTimeout(() => {
+        try {
+          trackEvent('User Exported Resume DOCX', {
+            'Resume Version ID': version.id,
+            'Resume Name': version.name,
+            'Is Master Resume': version.is_master,
+            'Export Success': true,
+            'Export Duration': exportDuration,
+            'Export Location': 'Resume Landing Page',
+            'User Plan': userPlan,
+          });
+        } catch {
+          // Silently fail
+        }
+      }, 0);
+    } catch (err) {
+      console.error('Error downloading DOCX:', err);
+      
+      // Track export failure
+      const userPlan = await getUserPlanClient();
+      setTimeout(() => {
+        try {
+          trackEvent('User Exported Resume DOCX', {
+            'Resume Version ID': version.id,
+            'Resume Name': version.name,
+            'Is Master Resume': version.is_master,
+            'Export Success': false,
+            'Error Message': err instanceof Error ? err.message : 'Unknown error',
+            'Export Location': 'Resume Landing Page',
+            'User Plan': userPlan,
+          });
+        } catch {
+          // Silently fail
+        }
+      }, 0);
+      
+      alert('Failed to download DOCX. Please try again.');
+    } finally {
+      setDownloadingDocxId(null);
     }
   };
 
@@ -271,6 +433,10 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
                   onDelete={(versionId, versionName) => {
                     setDeleteModalState({ isOpen: true, versionId, versionName });
                   }}
+                  onDownloadPDF={handleDownloadPDF}
+                  onDownloadDocx={handleDownloadDocx}
+                  isDownloadingPDF={downloadingPdfId === version.id}
+                  isDownloadingDocx={downloadingDocxId === version.id}
                 />
               ))}
             </div>
@@ -319,6 +485,8 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
                   isMaster={false}
                   analysisScore={analysisScores[version.id]}
                   jobApplication={version.application_id ? jobApplications[version.application_id] : undefined}
+                  onDownloadPDF={handleDownloadPDF}
+                  isDownloadingPDF={downloadingPdfId === version.id}
                 />
               ))}
             </div>
@@ -429,9 +597,13 @@ type ResumeCardProps = {
   onCloneToMaster?: () => void;
   onDelete?: (versionId: string, versionName: string) => void;
   jobApplication?: JobApplication;
+  onDownloadPDF?: (version: ResumeVersion) => void;
+  onDownloadDocx?: (version: ResumeVersion) => void;
+  isDownloadingPDF?: boolean;
+  isDownloadingDocx?: boolean;
 };
 
-function ResumeCard({ version, onEdit, isMaster, analysisScore, onCloneToJobSpecific, onCloneToMaster, onDelete, jobApplication }: ResumeCardProps) {
+function ResumeCard({ version, onEdit, isMaster, analysisScore, onCloneToJobSpecific, onCloneToMaster, onDelete, jobApplication, onDownloadPDF, onDownloadDocx, isDownloadingPDF, isDownloadingDocx }: ResumeCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -527,20 +699,42 @@ function ResumeCard({ version, onEdit, isMaster, analysisScore, onCloneToJobSpec
                 <button
                   onClick={() => {
                     setIsMenuOpen(false);
-                    // TODO: Implement PDF download
+                    onDownloadPDF?.(version);
                   }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 font-medium text-gray-700 border-b border-gray-200 flex items-center gap-2"
+                  disabled={isDownloadingPDF || isDownloadingDocx}
+                  className={`w-full px-4 py-3 text-left font-medium text-gray-700 border-b border-gray-200 flex items-center gap-2 ${
+                    isDownloadingPDF || isDownloadingDocx ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
+                  }`}
+                  aria-label="Download resume as PDF"
                 >
-                  📄 Download PDF
+                  {isDownloadingPDF ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Generating PDF...
+                    </>
+                  ) : (
+                    <>📄 Download PDF</>
+                  )}
                 </button>
                 <button
                   onClick={() => {
                     setIsMenuOpen(false);
-                    // TODO: Implement DOCX download
+                    onDownloadDocx?.(version);
                   }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 font-medium text-gray-700 border-b border-gray-200 flex items-center gap-2"
+                  disabled={isDownloadingPDF || isDownloadingDocx}
+                  className={`w-full px-4 py-3 text-left font-medium text-gray-700 border-b border-gray-200 flex items-center gap-2 ${
+                    isDownloadingPDF || isDownloadingDocx ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
+                  }`}
+                  aria-label="Download resume as DOCX"
                 >
-                  📝 Download DOCX
+                  {isDownloadingDocx ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Generating DOCX...
+                    </>
+                  ) : (
+                    <>📝 Download DOCX</>
+                  )}
                 </button>
                 <button
                   onClick={() => {
@@ -576,8 +770,24 @@ function ResumeCard({ version, onEdit, isMaster, analysisScore, onCloneToJobSpec
 
         {/* Job-Specific PDF Button */}
         {!isMaster && (
-          <button className="px-4 py-2 rounded-[1rem] bg-white hover:bg-gray-50 text-gray-700 font-bold border-2 border-slate-300 shadow-[0_4px_0_0_rgba(51,65,85,0.3)] hover:translate-y-0.5 hover:shadow-[0_2px_0_0_rgba(51,65,85,0.3)] transition-all duration-200 text-sm">
-            PDF
+          <button 
+            onClick={() => onDownloadPDF?.(version)}
+            disabled={isDownloadingPDF}
+            className={`px-4 py-2 rounded-[1rem] bg-white text-gray-700 font-bold border-2 border-slate-300 shadow-[0_4px_0_0_rgba(51,65,85,0.3)] transition-all duration-200 text-sm flex items-center gap-1.5 ${
+              isDownloadingPDF 
+                ? 'opacity-50 cursor-not-allowed' 
+                : 'hover:bg-gray-50 hover:translate-y-0.5 hover:shadow-[0_2px_0_0_rgba(51,65,85,0.3)]'
+            }`}
+            aria-label="Download resume as PDF"
+          >
+            {isDownloadingPDF ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>...</span>
+              </>
+            ) : (
+              'PDF'
+            )}
           </button>
         )}
       </div>

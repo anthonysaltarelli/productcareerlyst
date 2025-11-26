@@ -230,36 +230,10 @@ const CreateJobResumeModal = ({
         aria-modal="true"
         aria-labelledby="create-job-resume-title"
       >
-        <div className="rounded-[2.5rem] bg-white shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 max-w-lg w-full p-8 max-h-[90vh] overflow-y-auto relative">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-[0_4px_0_0_rgba(147,51,234,0.4)]">
-                <Wand2 className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 id="create-job-resume-title" className="text-2xl font-black text-gray-900">
-                  Create Tailored Resume
-                </h2>
-                <p className="text-sm text-gray-600 font-semibold">
-                  for {jobTitle} at {companyName}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleClose}
-              disabled={isLoading}
-              className="text-gray-400 hover:text-gray-600 disabled:opacity-50 transition-colors p-2 hover:bg-gray-100 rounded-[1rem]"
-              aria-label="Close modal"
-              tabIndex={0}
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          {/* Loading Overlay */}
+        <div className="rounded-[2.5rem] bg-white shadow-[0_20px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 max-w-lg w-full max-h-[90vh] relative flex flex-col">
+          {/* Loading Overlay - Outside scrollable area */}
           {isLoading && loadingMessage && (
-            <div className="absolute inset-0 bg-white/95 rounded-[2.5rem] flex flex-col items-center justify-center z-10">
+            <div className="absolute inset-0 bg-white/98 rounded-[2.5rem] flex flex-col items-center justify-center z-20">
               <div className="w-20 h-20 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-6 shadow-[0_8px_0_0_rgba(147,51,234,0.4)]">
                 <Sparkles className="w-10 h-10 text-white animate-pulse" />
               </div>
@@ -272,6 +246,34 @@ const CreateJobResumeModal = ({
               </div>
             </div>
           )}
+
+          {/* Scrollable Content */}
+          <div className="p-8 overflow-y-auto flex-1">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-[0_4px_0_0_rgba(147,51,234,0.4)]">
+                  <Wand2 className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 id="create-job-resume-title" className="text-2xl font-black text-gray-900">
+                    Create Tailored Resume
+                  </h2>
+                  <p className="text-sm text-gray-600 font-semibold">
+                    for {jobTitle} at {companyName}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleClose}
+                disabled={isLoading}
+                className="text-gray-400 hover:text-gray-600 disabled:opacity-50 transition-colors p-2 hover:bg-gray-100 rounded-[1rem]"
+                aria-label="Close modal"
+                tabIndex={0}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
 
           {/* No Master Resumes State */}
           {!isLoadingMasters && masterResumes.length === 0 && (
@@ -518,6 +520,7 @@ const CreateJobResumeModal = ({
               </div>
             </form>
           )}
+          </div>
         </div>
       </div>
 
