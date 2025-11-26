@@ -484,6 +484,20 @@ const CreatePortfolioForm = ({
   onSubmit,
   onCancel,
 }: CreatePortfolioFormProps) => {
+  // Compute missing fields for tooltip
+  const getMissingFields = (): string[] => {
+    const missing: string[] = [];
+    if (!formData.display_name.trim()) missing.push('Portfolio Title');
+    if (!formData.subtitle.trim()) missing.push('Subtitle');
+    if (!formData.slug.trim()) missing.push('Portfolio URL');
+    if (slugStatus === 'taken') missing.push('Choose a different URL (current one is taken)');
+    if (slugError) missing.push('Fix URL error');
+    return missing;
+  };
+
+  const missingFields = getMissingFields();
+  const isFormIncomplete = missingFields.length > 0;
+
   if (isLoadingProfile) {
     return (
       <div className="flex items-center gap-2 py-4">
@@ -614,35 +628,63 @@ const CreatePortfolioForm = ({
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 pt-2">
-        <TrackedButton
-          type="submit"
-          disabled={isSubmitting || !formData.display_name || !formData.slug || !formData.subtitle || slugStatus === 'taken' || !!slugError}
-          buttonId="portfolio-module-submit-create-button"
-          eventName="User Submitted Create Portfolio Form"
-          eventProperties={{
-            'Button Section': 'Portfolio Module Create Form',
-            'Button Position': 'Bottom of Create Form',
-            'Button Text': 'Create Portfolio',
-            'Button Type': 'Primary Submit Button',
-            'Button Context': 'Below portfolio form fields',
-            'Page Section': 'Above the fold',
-            'Display Name Length': formData.display_name.length,
-            'Slug Length': formData.slug.length,
-            'Subtitle Length': formData.subtitle.length,
-            'Slug Status': slugStatus,
-            'Has Slug Error': !!slugError,
-          }}
-          className="inline-flex items-center justify-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-bold text-sm md:text-base text-white transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Creating...
-            </>
-          ) : (
-            'Create Portfolio'
+        {/* Button with hover tooltip for missing fields */}
+        <div className="relative group">
+          <TrackedButton
+            type="submit"
+            disabled={isSubmitting || isFormIncomplete}
+            buttonId="portfolio-module-submit-create-button"
+            eventName="User Submitted Create Portfolio Form"
+            eventProperties={{
+              'Button Section': 'Portfolio Module Create Form',
+              'Button Position': 'Bottom of Create Form',
+              'Button Text': 'Create Portfolio',
+              'Button Type': 'Primary Submit Button',
+              'Button Context': 'Below portfolio form fields',
+              'Page Section': 'Above the fold',
+              'Display Name Length': formData.display_name.length,
+              'Slug Length': formData.slug.length,
+              'Subtitle Length': formData.subtitle.length,
+              'Slug Status': slugStatus,
+              'Has Slug Error': !!slugError,
+            }}
+            className="inline-flex items-center justify-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 font-bold text-sm md:text-base text-white transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              'Create Portfolio'
+            )}
+          </TrackedButton>
+          
+          {/* Tooltip for missing fields - only shows when button is disabled and not submitting */}
+          {isFormIncomplete && !isSubmitting && (
+            <div className="absolute bottom-full left-0 sm:left-1/2 sm:-translate-x-1/2 mb-2 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-50">
+              <div className="bg-gray-900 text-white text-xs md:text-sm rounded-xl p-3 shadow-lg border border-gray-700">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  <div>
+                    <p className="font-semibold text-amber-400 mb-1.5">Complete these fields:</p>
+                    <ul className="space-y-1">
+                      {missingFields.map((field, index) => (
+                        <li key={index} className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0" />
+                          <span>{field}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                {/* Tooltip arrow */}
+                <div className="absolute top-full left-4 sm:left-1/2 sm:-translate-x-1/2 border-8 border-transparent border-t-gray-900" />
+              </div>
+            </div>
           )}
-        </TrackedButton>
+        </div>
+        
         <button
           type="button"
           onClick={onCancel}
