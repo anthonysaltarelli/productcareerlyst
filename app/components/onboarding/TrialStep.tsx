@@ -535,7 +535,7 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
-          <div>
+          <div className="flex flex-col">
             <h4 className="font-black text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Popular Features:</h4>
             <ul className="space-y-1.5 md:space-y-2 text-gray-700 font-semibold text-sm md:text-base">
               <li className="flex items-center gap-2">
@@ -558,11 +558,14 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
                 <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0" />
                 Custom interview questions
               </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0" />
-                Product portfolio templates
-              </li>
             </ul>
+            
+            {/* Highlighted Portfolio Feature */}
+            <div className="mt-3 md:mt-4 flex-1 flex items-center p-3 md:p-4 bg-gradient-to-r from-purple-100 via-pink-100 to-orange-100 border-2 border-purple-300 rounded-xl">
+              <p className="text-sm md:text-base font-bold text-purple-900">
+                Launch a professionally designed Product Portfolio in minutes
+              </p>
+            </div>
           </div>
           <div>
             <h4 className="font-black text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Pricing:</h4>
@@ -570,21 +573,31 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
               {(['monthly', 'quarterly', 'yearly'] as const).map((cadence) => (
                 <label
                   key={cadence}
-                  className={`flex items-center justify-between p-3 md:p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                  className={`relative flex items-center justify-between p-3 md:p-4 rounded-xl border-2 cursor-pointer transition-all ${
                     selectedBilling === cadence
                       ? 'border-purple-500 bg-purple-50'
                       : 'border-gray-200 bg-white hover:border-purple-300'
                   }`}
                 >
+                  {cadence === 'yearly' && (
+                    <span className="absolute -top-2.5 left-3 px-2 py-0.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full">
+                      Most Popular
+                    </span>
+                  )}
                   <div>
-                    <div className="font-bold text-gray-900 text-sm md:text-base">
+                    <div className="font-bold text-gray-900 text-sm md:text-base flex items-center gap-2">
                       {billingLabels[cadence]}
+                      {'savings' in ACCELERATE_PLAN[cadence] && (
+                        <span className="text-green-600 text-xs font-bold">
+                          ({(ACCELERATE_PLAN[cadence] as { price: number; savings: string }).savings} off)
+                        </span>
+                      )}
                     </div>
                     <div className="text-xs md:text-sm text-gray-600 font-semibold">
-                      ${ACCELERATE_PLAN[cadence].price}
-                      {'savings' in ACCELERATE_PLAN[cadence] && (
-                        <span className="text-green-600 ml-2">
-                          ({(ACCELERATE_PLAN[cadence] as { price: number; savings: string }).savings} off)
+                      ${cadence === 'monthly' ? ACCELERATE_PLAN[cadence].price : Math.round(ACCELERATE_PLAN[cadence].price / (cadence === 'quarterly' ? 3 : 12))}/mo
+                      {cadence !== 'monthly' && (
+                        <span className="text-gray-500 ml-1">
+                          billed {cadence === 'quarterly' ? 'quarterly' : 'annually'}
                         </span>
                       )}
                     </div>
@@ -673,7 +686,7 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
             Start 7-Day Free Trial
           </button>
           <p className="text-xs md:text-sm text-gray-500 mt-2 text-center">
-            Cancel any time before {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.
+            You will not be charged today. Switch plans or cancel any time before December 3.
           </p>
         </>
         ) : (
@@ -739,15 +752,8 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
               </p>
               <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 text-left">
                 <p className="text-purple-900 font-semibold text-sm">
-                  With the free trial, you get <strong>full access</strong> to all AI-enabled features on the Accelerate plan until{' '}
-                  <strong>
-                    {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </strong>
-                  .
+                  With the free trial, you get <strong>full access</strong> to all AI-enabled features on the Accelerate plan, including launching a Product Portfolio, until{' '}
+                  <strong>Wednesday, December 3</strong>.
                 </p>
               </div>
             </div>
