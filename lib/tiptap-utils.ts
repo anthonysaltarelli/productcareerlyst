@@ -8,7 +8,7 @@ import {
 } from "@tiptap/pm/state"
 import type { Editor, NodeWithPos } from "@tiptap/react"
 
-export const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+export const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB (matches API limit)
 
 export const MAC_SYMBOLS: Record<string, string> = {
   mod: "⌘",
@@ -348,6 +348,7 @@ export function selectionWithinConvertibleTypes(
 
 /**
  * Handles image upload with progress tracking and abort capability
+ * Uploads to Supabase Storage via /api/portfolio/images/upload
  * @param file The file to upload
  * @param onProgress Optional callback for tracking upload progress
  * @param abortSignal Optional AbortSignal for cancelling the upload
@@ -369,17 +370,37 @@ export const handleImageUpload = async (
     )
   }
 
-  // For demo/testing: Simulate upload progress. In production, replace the following code
-  // with your own upload implementation.
-  for (let progress = 0; progress <= 100; progress += 10) {
-    if (abortSignal?.aborted) {
-      throw new Error("Upload cancelled")
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    onProgress?.({ progress })
-  }
+  // Create FormData for the API
+  const formData = new FormData()
+  formData.append('file', file)
 
-  return "/images/tiptap-ui-placeholder-image.jpg"
+  // Show initial progress
+  onProgress?.({ progress: 10 })
+
+  try {
+    const response = await fetch('/api/portfolio/images/upload', {
+      method: 'POST',
+      body: formData,
+      signal: abortSignal,
+    })
+
+    onProgress?.({ progress: 90 })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Upload failed')
+    }
+
+    const result = await response.json()
+    onProgress?.({ progress: 100 })
+
+    return result.url
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Upload cancelled')
+    }
+    throw error
+  }
 }
 
 type ProtocolOptions = {

@@ -503,9 +503,10 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
 
   return (
     <NodeViewWrapper
-      className="tiptap-image-upload"
+      className="tiptap-image-upload tiptap-exclude"
       tabIndex={0}
       onClick={handleClick}
+      data-drag-handle={false}
     >
       {!hasFiles && (
         <ImageUploadDragArea onFile={handleUpload}>

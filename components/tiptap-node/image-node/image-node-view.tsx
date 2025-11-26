@@ -283,6 +283,7 @@ export const ResizableImage: React.FC<ResizableImageProps> = ({
       onTouchStart={wrapperTouchStartHandler}
       data-align={align}
       data-width={width}
+      data-drag-handle={false}
       className="tiptap-image"
     >
       <div
