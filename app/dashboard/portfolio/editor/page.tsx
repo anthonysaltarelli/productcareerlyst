@@ -44,6 +44,7 @@ const SubstackIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
+import ProfileImageUploadModal from '@/app/components/ProfileImageUploadModal';
 import {
   Portfolio,
   PortfolioCategory,
@@ -1049,13 +1050,14 @@ const InlineProfileEditor = ({
           </div>
         </div>
 
-        {/* Profile Image URL Modal */}
+        {/* Profile Image Upload Modal */}
         {editingField === 'profile_image_url' && (
-          <ProfileImageModal
+          <ProfileImageUploadModal
             currentUrl={formData.profile_image_url}
             onSave={(url) => {
               setFormData((prev) => ({ ...prev, profile_image_url: url }));
               handleSave('profile_image_url', url);
+              setEditingField(null);
             }}
             onClose={() => setEditingField(null)}
           />
@@ -1149,89 +1151,6 @@ const SocialLinkEditor = ({
     >
       {icon}
     </button>
-  );
-};
-
-// Profile Image URL Modal
-const ProfileImageModal = ({
-  currentUrl,
-  onSave,
-  onClose,
-}: {
-  currentUrl: string;
-  onSave: (url: string) => void;
-  onClose: () => void;
-}) => {
-  const [url, setUrl] = useState(currentUrl);
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div
-        className="fixed inset-0"
-        onClick={onClose}
-        onKeyDown={(e) => e.key === 'Escape' && onClose()}
-        role="button"
-        tabIndex={-1}
-        aria-label="Close modal"
-      />
-      <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-        <h3 className="mb-4 text-lg font-semibold text-gray-800">Profile Image</h3>
-        
-        {/* Preview */}
-        <div className="mb-4 flex justify-center">
-          {url ? (
-            <img
-              src={url}
-              alt="Preview"
-              className="h-24 w-24 rounded-full object-cover ring-4 ring-gray-100"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-          ) : (
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-              <Camera className="h-8 w-8" />
-            </div>
-          )}
-        </div>
-
-        <div>
-          <label htmlFor="profile_image_input" className="mb-1 block text-sm font-medium text-gray-700">
-            Image URL
-          </label>
-          <input
-            id="profile_image_input"
-            type="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://example.com/your-photo.jpg"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-            autoFocus
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            Paste a URL to your profile image (JPG, PNG, or WebP)
-          </p>
-        </div>
-
-        <div className="mt-6 flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
-            type="button"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => onSave(url)}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 px-4 py-2 font-medium text-white hover:from-purple-600 hover:to-pink-600"
-            type="button"
-          >
-            <Save className="h-4 w-4" />
-            Save
-          </button>
-        </div>
-      </div>
-    </div>
   );
 };
 
