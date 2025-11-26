@@ -266,6 +266,10 @@ export const FloatingElement = forwardRef<HTMLDivElement, FloatingElementProps>(
       const handleMouseDown = (event: MouseEvent) => {
         if (event.button !== 0) return
 
+        // Skip custom selection handling for double-click (word) and triple-click (paragraph)
+        // Let the browser handle native multi-click text selection
+        if (event.detail >= 2) return
+
         preventShowRef.current = true
 
         const { state, view } = editor
