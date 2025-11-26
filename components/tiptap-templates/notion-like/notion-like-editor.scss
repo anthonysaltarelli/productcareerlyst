@@ -9,14 +9,15 @@ body {
   }
 }
 
-body {
+// Scoped font styles - only apply within TipTap editor contexts, not globally
+// This prevents overriding the app's Plus Jakarta Sans font on public pages
+.notion-like-editor-wrapper,
+.notion-like-editor-content {
   font-family: "Inter", sans-serif;
   color: var(--tt-theme-text);
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
-  padding: 0;
-  overscroll-behavior-y: none;
 }
 
 html,
