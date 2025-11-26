@@ -4,6 +4,26 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragEndEvent,
+  DragOverEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   Plus,
   Settings,
   Globe,
@@ -14,6 +34,7 @@ import {
   GripVertical,
   ChevronDown,
   ChevronRight,
+  ChevronUp,
   MoreHorizontal,
   Pencil,
   Trash2,
@@ -88,6 +109,20 @@ export default function PortfolioEditorPage() {
   });
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const [activeDragType, setActiveDragType] = useState<'category' | 'page' | null>(null);
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Fetch portfolio data
   const fetchPortfolio = useCallback(async () => {
@@ -161,6 +196,217 @@ export default function PortfolioEditorPage() {
     } catch (error) {
       console.error('Error toggling publish:', error);
       toast.error('Failed to update publish status');
+    }
+  };
+
+  // Reorder categories with auto-save
+  const handleReorderCategories = useCallback(async (newCategories: PortfolioCategoryWithPages[]) => {
+    // Update local state immediately for responsive UI
+    setState((prev) => ({ ...prev, categories: newCategories }));
+
+    // Save to API
+    try {
+      const response = await fetch('/api/portfolio/categories', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          categories: newCategories.map((cat, index) => ({
+            id: cat.id,
+            display_order: index,
+          })),
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to reorder');
+    } catch (error) {
+      console.error('Error reordering categories:', error);
+      toast.error('Failed to save order');
+      // Refetch to restore correct order on error
+      fetchPortfolio();
+    }
+  }, [fetchPortfolio]);
+
+  // Reorder pages within a category or move between categories
+  const handleReorderPages = useCallback(async (
+    categoryId: string,
+    newPages: PortfolioPage[],
+    targetCategoryId?: string
+  ) => {
+    // Update local state immediately
+    setState((prev) => {
+      const newCategories = prev.categories.map((cat) => {
+        if (cat.id === categoryId) {
+          return { ...cat, pages: newPages };
+        }
+        return cat;
+      });
+      return { ...prev, categories: newCategories };
+    });
+
+    // Save to API
+    try {
+      const response = await fetch('/api/portfolio/pages', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pages: newPages.map((page, index) => ({
+            id: page.id,
+            display_order: index,
+            ...(targetCategoryId !== undefined && { category_id: targetCategoryId || null }),
+          })),
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to reorder');
+    } catch (error) {
+      console.error('Error reordering pages:', error);
+      toast.error('Failed to save order');
+      fetchPortfolio();
+    }
+  }, [fetchPortfolio]);
+
+  // Move category up/down
+  const handleMoveCategoryUp = useCallback((categoryId: string) => {
+    const index = state.categories.findIndex((c) => c.id === categoryId);
+    if (index <= 0) return;
+    const newCategories = arrayMove(state.categories, index, index - 1);
+    handleReorderCategories(newCategories);
+  }, [state.categories, handleReorderCategories]);
+
+  const handleMoveCategoryDown = useCallback((categoryId: string) => {
+    const index = state.categories.findIndex((c) => c.id === categoryId);
+    if (index === -1 || index >= state.categories.length - 1) return;
+    const newCategories = arrayMove(state.categories, index, index + 1);
+    handleReorderCategories(newCategories);
+  }, [state.categories, handleReorderCategories]);
+
+  // Move page up/down within category
+  const handleMovePageUp = useCallback((categoryId: string, pageId: string) => {
+    const category = state.categories.find((c) => c.id === categoryId);
+    if (!category) return;
+    const pageIndex = category.pages.findIndex((p) => p.id === pageId);
+    if (pageIndex <= 0) return;
+    const newPages = arrayMove(category.pages, pageIndex, pageIndex - 1);
+    handleReorderPages(categoryId, newPages);
+  }, [state.categories, handleReorderPages]);
+
+  const handleMovePageDown = useCallback((categoryId: string, pageId: string) => {
+    const category = state.categories.find((c) => c.id === categoryId);
+    if (!category) return;
+    const pageIndex = category.pages.findIndex((p) => p.id === pageId);
+    if (pageIndex === -1 || pageIndex >= category.pages.length - 1) return;
+    const newPages = arrayMove(category.pages, pageIndex, pageIndex + 1);
+    handleReorderPages(categoryId, newPages);
+  }, [state.categories, handleReorderPages]);
+
+  // DnD handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const id = active.id as string;
+    
+    // Determine if dragging a category or page
+    if (state.categories.some((c) => c.id === id)) {
+      setActiveDragType('category');
+    } else {
+      setActiveDragType('page');
+    }
+    setActiveDragId(id);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveDragId(null);
+    setActiveDragType(null);
+
+    if (!over || active.id === over.id) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // Handle category reordering
+    if (activeDragType === 'category') {
+      const oldIndex = state.categories.findIndex((c) => c.id === activeId);
+      const newIndex = state.categories.findIndex((c) => c.id === overId);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newCategories = arrayMove(state.categories, oldIndex, newIndex);
+        handleReorderCategories(newCategories);
+      }
+    }
+    
+    // Handle page reordering within same category
+    if (activeDragType === 'page') {
+      // Find which category contains the active page
+      let sourceCategory: PortfolioCategoryWithPages | undefined;
+      let targetCategory: PortfolioCategoryWithPages | undefined;
+      
+      for (const cat of state.categories) {
+        if (cat.pages.some((p) => p.id === activeId)) {
+          sourceCategory = cat;
+        }
+        if (cat.pages.some((p) => p.id === overId) || cat.id === overId) {
+          targetCategory = cat;
+        }
+      }
+
+      if (sourceCategory && targetCategory) {
+        if (sourceCategory.id === targetCategory.id) {
+          // Reorder within same category
+          const oldIndex = sourceCategory.pages.findIndex((p) => p.id === activeId);
+          const newIndex = sourceCategory.pages.findIndex((p) => p.id === overId);
+          
+          if (oldIndex !== -1 && newIndex !== -1) {
+            const newPages = arrayMove(sourceCategory.pages, oldIndex, newIndex);
+            handleReorderPages(sourceCategory.id, newPages);
+          }
+        } else {
+          // Move to different category
+          const activePage = sourceCategory.pages.find((p) => p.id === activeId);
+          if (activePage) {
+            // Remove from source
+            const newSourcePages = sourceCategory.pages.filter((p) => p.id !== activeId);
+            
+            // Add to target
+            const targetIndex = targetCategory.pages.findIndex((p) => p.id === overId);
+            const newTargetPages = [...targetCategory.pages];
+            const insertIndex = targetIndex !== -1 ? targetIndex : newTargetPages.length;
+            newTargetPages.splice(insertIndex, 0, { ...activePage, category_id: targetCategory.id });
+
+            // Update both categories
+            setState((prev) => ({
+              ...prev,
+              categories: prev.categories.map((cat) => {
+                if (cat.id === sourceCategory!.id) {
+                  return { ...cat, pages: newSourcePages };
+                }
+                if (cat.id === targetCategory!.id) {
+                  return { ...cat, pages: newTargetPages };
+                }
+                return cat;
+              }),
+            }));
+
+            // Save to API
+            fetch('/api/portfolio/pages', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                pages: [
+                  ...newSourcePages.map((p, i) => ({ id: p.id, display_order: i })),
+                  ...newTargetPages.map((p, i) => ({ 
+                    id: p.id, 
+                    display_order: i,
+                    category_id: targetCategory!.id === 'uncategorized' ? null : targetCategory!.id,
+                  })),
+                ],
+              }),
+            }).catch(() => {
+              toast.error('Failed to move page');
+              fetchPortfolio();
+            });
+          }
+        }
+      }
     }
   };
 
@@ -249,39 +495,57 @@ export default function PortfolioEditorPage() {
           </div>
 
           {/* Categories & Pages */}
-          <div className="space-y-4">
-            {state.categories.length === 0 ? (
-              <EmptyState
-                title="No categories yet"
-                description="Create your first category to organize your portfolio pages"
-                action={
-                  <button
-                    onClick={() => setActiveModal({ type: 'createCategory' })}
-                    className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-sm transition-all hover:from-purple-600 hover:to-pink-600"
-                    type="button"
-                  >
-                    <FolderPlus className="h-5 w-5" />
-                    Create Category
-                  </button>
-                }
-              />
-            ) : (
-              state.categories.map((category) => (
-                <CategoryCard
-                  key={category.id}
-                  category={category}
-                  isExpanded={expandedCategories.has(category.id)}
-                  onToggle={() => toggleCategory(category.id)}
-                  onEdit={() => setActiveModal({ type: 'editCategory', category })}
-                  onDelete={() => setActiveModal({ type: 'deleteCategory', category })}
-                  onAddPage={() => setActiveModal({ type: 'createPage', categoryId: category.id })}
-                  onEditPage={(page) => setActiveModal({ type: 'editPage', page })}
-                  onDeletePage={(page) => setActiveModal({ type: 'deletePage', page })}
-                  onPageClick={(page) => router.push(`/dashboard/portfolio/editor/${page.id}`)}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="space-y-4">
+              {state.categories.length === 0 ? (
+                <EmptyState
+                  title="No categories yet"
+                  description="Create your first category to organize your portfolio pages"
+                  action={
+                    <button
+                      onClick={() => setActiveModal({ type: 'createCategory' })}
+                      className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-sm transition-all hover:from-purple-600 hover:to-pink-600"
+                      type="button"
+                    >
+                      <FolderPlus className="h-5 w-5" />
+                      Create Category
+                    </button>
+                  }
                 />
-              ))
-            )}
-          </div>
+              ) : (
+                <SortableContext
+                  items={state.categories.map((c) => c.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {state.categories.map((category, index) => (
+                    <SortableCategoryCard
+                      key={category.id}
+                      category={category}
+                      index={index}
+                      totalCategories={state.categories.length}
+                      isExpanded={expandedCategories.has(category.id)}
+                      onToggle={() => toggleCategory(category.id)}
+                      onEdit={() => setActiveModal({ type: 'editCategory', category })}
+                      onDelete={() => setActiveModal({ type: 'deleteCategory', category })}
+                      onAddPage={() => setActiveModal({ type: 'createPage', categoryId: category.id })}
+                      onEditPage={(page) => setActiveModal({ type: 'editPage', page })}
+                      onDeletePage={(page) => setActiveModal({ type: 'deletePage', page })}
+                      onPageClick={(page) => router.push(`/dashboard/portfolio/editor/${page.id}`)}
+                      onMoveUp={() => handleMoveCategoryUp(category.id)}
+                      onMoveDown={() => handleMoveCategoryDown(category.id)}
+                      onMovePageUp={(pageId) => handleMovePageUp(category.id, pageId)}
+                      onMovePageDown={(pageId) => handleMovePageDown(category.id, pageId)}
+                    />
+                  ))}
+                </SortableContext>
+              )}
+            </div>
+          </DndContext>
         </div>
 
         {/* Modals */}
@@ -415,8 +679,11 @@ const EmptyState = ({
   </div>
 );
 
-const CategoryCard = ({
+// Sortable Category Card wrapper
+const SortableCategoryCard = ({
   category,
+  index,
+  totalCategories,
   isExpanded,
   onToggle,
   onEdit,
@@ -425,8 +692,14 @@ const CategoryCard = ({
   onEditPage,
   onDeletePage,
   onPageClick,
+  onMoveUp,
+  onMoveDown,
+  onMovePageUp,
+  onMovePageDown,
 }: {
   category: PortfolioCategoryWithPages;
+  index: number;
+  totalCategories: number;
   isExpanded: boolean;
   onToggle: () => void;
   onEdit: () => void;
@@ -435,9 +708,89 @@ const CategoryCard = ({
   onEditPage: (page: PortfolioPage) => void;
   onDeletePage: (page: PortfolioPage) => void;
   onPageClick: (page: PortfolioPage) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onMovePageUp: (pageId: string) => void;
+  onMovePageDown: (pageId: string) => void;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: category.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <CategoryCard
+        category={category}
+        index={index}
+        totalCategories={totalCategories}
+        isExpanded={isExpanded}
+        onToggle={onToggle}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onAddPage={onAddPage}
+        onEditPage={onEditPage}
+        onDeletePage={onDeletePage}
+        onPageClick={onPageClick}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+        onMovePageUp={onMovePageUp}
+        onMovePageDown={onMovePageDown}
+        dragHandleProps={{ ...attributes, ...listeners }}
+      />
+    </div>
+  );
+};
+
+const CategoryCard = ({
+  category,
+  index,
+  totalCategories,
+  isExpanded,
+  onToggle,
+  onEdit,
+  onDelete,
+  onAddPage,
+  onEditPage,
+  onDeletePage,
+  onPageClick,
+  onMoveUp,
+  onMoveDown,
+  onMovePageUp,
+  onMovePageDown,
+  dragHandleProps,
+}: {
+  category: PortfolioCategoryWithPages;
+  index: number;
+  totalCategories: number;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onAddPage: () => void;
+  onEditPage: (page: PortfolioPage) => void;
+  onDeletePage: (page: PortfolioPage) => void;
+  onPageClick: (page: PortfolioPage) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onMovePageUp: (pageId: string) => void;
+  onMovePageDown: (pageId: string) => void;
+  dragHandleProps?: Record<string, unknown>;
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const isUncategorized = category.id === 'uncategorized';
+  const canMoveUp = index > 0;
+  const canMoveDown = index < totalCategories - 1;
 
   return (
     <div className="rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
@@ -466,7 +819,46 @@ const CategoryCard = ({
               <ChevronRight className="h-5 w-5" />
             )}
           </button>
-          <GripVertical className="h-4 w-4 text-gray-300" />
+          
+          {/* Drag Handle */}
+          <button
+            {...dragHandleProps}
+            className="cursor-grab text-gray-300 hover:text-gray-500 active:cursor-grabbing"
+            onClick={(e) => e.stopPropagation()}
+            type="button"
+            aria-label="Drag to reorder category"
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+
+          {/* Arrow buttons for reordering */}
+          <div className="flex flex-col">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoveUp();
+              }}
+              disabled={!canMoveUp}
+              className={`rounded p-0.5 ${canMoveUp ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-600' : 'cursor-not-allowed text-gray-200'}`}
+              type="button"
+              aria-label="Move category up"
+            >
+              <ChevronUp className="h-3 w-3" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoveDown();
+              }}
+              disabled={!canMoveDown}
+              className={`rounded p-0.5 ${canMoveDown ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-600' : 'cursor-not-allowed text-gray-200'}`}
+              type="button"
+              aria-label="Move category down"
+            >
+              <ChevronDown className="h-3 w-3" />
+            </button>
+          </div>
+
           <div>
             <h3 className="font-semibold text-gray-800">{category.name}</h3>
             <p className="text-sm text-gray-500">
@@ -559,17 +951,26 @@ const CategoryCard = ({
               )}
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
-              {category.pages.map((page) => (
-                <PageRow
-                  key={page.id}
-                  page={page}
-                  onClick={() => onPageClick(page)}
-                  onEdit={() => onEditPage(page)}
-                  onDelete={() => onDeletePage(page)}
-                />
-              ))}
-            </div>
+            <SortableContext
+              items={category.pages.map((p) => p.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="divide-y divide-gray-100">
+                {category.pages.map((page, pageIndex) => (
+                  <SortablePageRow
+                    key={page.id}
+                    page={page}
+                    index={pageIndex}
+                    totalPages={category.pages.length}
+                    onClick={() => onPageClick(page)}
+                    onEdit={() => onEditPage(page)}
+                    onDelete={() => onDeletePage(page)}
+                    onMoveUp={() => onMovePageUp(page.id)}
+                    onMoveDown={() => onMovePageDown(page.id)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
           )}
         </div>
       )}
@@ -577,28 +978,129 @@ const CategoryCard = ({
   );
 };
 
-const PageRow = ({
+// Sortable Page Row wrapper
+const SortablePageRow = ({
   page,
+  index,
+  totalPages,
   onClick,
   onEdit,
   onDelete,
+  onMoveUp,
+  onMoveDown,
 }: {
   page: PortfolioPage;
+  index: number;
+  totalPages: number;
   onClick: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: page.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <PageRow
+        page={page}
+        index={index}
+        totalPages={totalPages}
+        onClick={onClick}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+        dragHandleProps={{ ...attributes, ...listeners }}
+      />
+    </div>
+  );
+};
+
+const PageRow = ({
+  page,
+  index,
+  totalPages,
+  onClick,
+  onEdit,
+  onDelete,
+  onMoveUp,
+  onMoveDown,
+  dragHandleProps,
+}: {
+  page: PortfolioPage;
+  index: number;
+  totalPages: number;
+  onClick: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  dragHandleProps?: Record<string, unknown>;
 }) => {
   const [showMenu, setShowMenu] = useState(false);
+  const canMoveUp = index > 0;
+  const canMoveDown = index < totalPages - 1;
 
   return (
     <div
-      className="flex cursor-pointer items-center gap-4 p-4 pl-14 hover:bg-gray-50"
+      className="flex cursor-pointer items-center gap-4 p-4 pl-10 hover:bg-gray-50"
       onClick={onClick}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
       role="button"
       tabIndex={0}
     >
-      <GripVertical className="h-4 w-4 flex-shrink-0 text-gray-300" />
+      {/* Drag Handle */}
+      <button
+        {...dragHandleProps}
+        className="cursor-grab text-gray-300 hover:text-gray-500 active:cursor-grabbing"
+        onClick={(e) => e.stopPropagation()}
+        type="button"
+        aria-label="Drag to reorder page"
+      >
+        <GripVertical className="h-4 w-4 flex-shrink-0" />
+      </button>
+
+      {/* Arrow buttons for reordering */}
+      <div className="flex flex-col">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onMoveUp();
+          }}
+          disabled={!canMoveUp}
+          className={`rounded p-0.5 ${canMoveUp ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-600' : 'cursor-not-allowed text-gray-200'}`}
+          type="button"
+          aria-label="Move page up"
+        >
+          <ChevronUp className="h-3 w-3" />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onMoveDown();
+          }}
+          disabled={!canMoveDown}
+          className={`rounded p-0.5 ${canMoveDown ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-600' : 'cursor-not-allowed text-gray-200'}`}
+          type="button"
+          aria-label="Move page down"
+        >
+          <ChevronDown className="h-3 w-3" />
+        </button>
+      </div>
 
       {/* Cover Image or Placeholder */}
       <div className="flex h-12 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-100">
