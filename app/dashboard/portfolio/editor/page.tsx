@@ -65,7 +65,10 @@ const SubstackIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
+import { DesktopOnlyFallback } from '@/app/components/DesktopOnlyFallback';
 import ProfileImageUploadModal from '@/app/components/ProfileImageUploadModal';
+import PremiumFeatureGateModal from '@/app/components/resume/PremiumFeatureGateModal';
+import { getUserPlanClient } from '@/lib/utils/resume-tracking';
 import {
   Portfolio,
   PortfolioCategory,
@@ -111,6 +114,23 @@ export default function PortfolioEditorPage() {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragType, setActiveDragType] = useState<'category' | 'page' | null>(null);
+  const [userPlan, setUserPlan] = useState<'learn' | 'accelerate' | null>(null);
+  const [isPlanLoading, setIsPlanLoading] = useState(true);
+
+  // Fetch user plan on mount
+  useEffect(() => {
+    const fetchUserPlan = async () => {
+      try {
+        const plan = await getUserPlanClient();
+        setUserPlan(plan);
+      } catch (error) {
+        console.error('Error fetching user plan:', error);
+      } finally {
+        setIsPlanLoading(false);
+      }
+    };
+    fetchUserPlan();
+  }, []);
 
   // DnD sensors
   const sensors = useSensors(
@@ -411,11 +431,21 @@ export default function PortfolioEditorPage() {
   };
 
   // Loading state
-  if (state.isLoading) {
+  if (state.isLoading || isPlanLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-      </div>
+      <>
+        {/* Mobile fallback - shown only on mobile */}
+        <DesktopOnlyFallback 
+          featureName="Portfolio Editor"
+          description="The Portfolio Editor requires a larger screen to create and edit your portfolio effectively. Please access this feature from a desktop or laptop computer."
+          pageTitle="Portfolio Editor"
+        />
+        
+        {/* Desktop loading state - hidden on mobile */}
+        <div className="hidden md:flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+        </div>
+      </>
     );
   }
 
@@ -423,16 +453,32 @@ export default function PortfolioEditorPage() {
   if (!state.portfolio) {
     return (
       <>
-        <MobileDashboardHeader title="Portfolio Editor" />
-        <SetupPortfolioScreen onComplete={fetchPortfolio} />
+        {/* Mobile fallback - shown only on mobile */}
+        <DesktopOnlyFallback 
+          featureName="Portfolio Editor"
+          description="The Portfolio Editor requires a larger screen to create and edit your portfolio effectively. Please access this feature from a desktop or laptop computer."
+          pageTitle="Portfolio Editor"
+        />
+        
+        {/* Desktop content - hidden on mobile */}
+        <div className="hidden md:block">
+          <SetupPortfolioScreen onComplete={fetchPortfolio} userPlan={userPlan} />
+        </div>
       </>
     );
   }
 
   return (
     <>
-      <MobileDashboardHeader title="Portfolio Editor" />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 pt-16 md:pt-0">
+      {/* Mobile fallback - shown only on mobile */}
+      <DesktopOnlyFallback 
+        featureName="Portfolio Editor"
+        description="The Portfolio Editor requires a larger screen to create and edit your portfolio effectively. Please access this feature from a desktop or laptop computer."
+        pageTitle="Portfolio Editor"
+      />
+      
+      {/* Desktop content - hidden on mobile */}
+      <div className="hidden md:block min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         {/* Inline Profile Editor - Mimics Public Portfolio Header */}
         <InlineProfileEditor
           portfolio={state.portfolio}
@@ -1671,7 +1717,7 @@ const SocialLinkEditor = ({
 // Setup Portfolio Screen
 // ============================================================================
 
-const SetupPortfolioScreen = ({ onComplete }: { onComplete: () => void }) => {
+const SetupPortfolioScreen = ({ onComplete, userPlan }: { onComplete: () => void; userPlan: 'learn' | 'accelerate' | null }) => {
   const [formData, setFormData] = useState({
     display_name: '',
     slug: '',
@@ -1680,6 +1726,7 @@ const SetupPortfolioScreen = ({ onComplete }: { onComplete: () => void }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
 
   // Load user profile to pre-fill form
   useEffect(() => {
@@ -1743,6 +1790,12 @@ const SetupPortfolioScreen = ({ onComplete }: { onComplete: () => void }) => {
     e.preventDefault();
     if (!formData.display_name || !formData.slug || slugStatus === 'taken') return;
 
+    // Check if user has Accelerate plan
+    if (userPlan !== 'accelerate') {
+      setShowPremiumGate(true);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const response = await fetch('/api/portfolio/manage', {
@@ -1784,26 +1837,42 @@ const SetupPortfolioScreen = ({ onComplete }: { onComplete: () => void }) => {
           <div className="mb-4 inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-4xl shadow-lg">
             🎨
           </div>
-          <h1 className="mb-2 text-3xl font-bold text-gray-800">Create Your Portfolio</h1>
+          <h1 className="mb-2 text-3xl font-bold text-gray-800">Create a Product Portfolio</h1>
           <p className="text-gray-600">
-            Set up your portfolio to showcase your product case studies
+            Stand out in the competitive market with a professional portfolio showcasing your experience and case studies.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl bg-white p-8 shadow-xl">
           {/* Display Name */}
           <div>
-            <label htmlFor="display_name" className="mb-2 block text-sm font-medium text-gray-700">
-              Display Name *
+            <label htmlFor="display_name" className="mb-1 block text-sm font-medium text-gray-700">
+              Portfolio Title (Your Name) *
             </label>
+            <p className="mb-2 text-xs text-gray-500">This will be displayed as the main title of your portfolio</p>
             <input
               id="display_name"
               type="text"
               value={formData.display_name}
               onChange={(e) => setFormData((prev) => ({ ...prev, display_name: e.target.value }))}
-              placeholder="Your Name"
+              placeholder="Enter your full name"
               className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
               required
+            />
+          </div>
+
+          {/* Subtitle */}
+          <div>
+            <label htmlFor="subtitle" className="mb-2 block text-sm font-medium text-gray-700">
+              Subtitle <span className="text-gray-400">(optional)</span>
+            </label>
+            <input
+              id="subtitle"
+              type="text"
+              value={formData.subtitle}
+              onChange={(e) => setFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
+              placeholder="Senior Product Manager in New York City"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
             />
           </div>
 
@@ -1848,21 +1917,6 @@ const SetupPortfolioScreen = ({ onComplete }: { onComplete: () => void }) => {
             </div>
           </div>
 
-          {/* Subtitle */}
-          <div>
-            <label htmlFor="subtitle" className="mb-2 block text-sm font-medium text-gray-700">
-              Subtitle <span className="text-gray-400">(optional)</span>
-            </label>
-            <input
-              id="subtitle"
-              type="text"
-              value={formData.subtitle}
-              onChange={(e) => setFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
-              placeholder="e.g., Senior Product Manager at Google"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-            />
-          </div>
-
           {/* Submit */}
           <button
             type="submit"
@@ -1877,12 +1931,22 @@ const SetupPortfolioScreen = ({ onComplete }: { onComplete: () => void }) => {
             ) : (
               <>
                 <Save className="h-5 w-5" />
-                Create Portfolio
+                Start Editing Portfolio
               </>
             )}
           </button>
         </form>
       </div>
+
+      {/* Premium Feature Gate Modal */}
+      <PremiumFeatureGateModal
+        isOpen={showPremiumGate}
+        onClose={() => setShowPremiumGate(false)}
+        featureName="Product Portfolio"
+        featureDescription="Create a professional product portfolio to showcase your experience and case studies. This feature is available exclusively for Accelerate plan subscribers."
+        currentPlan={userPlan}
+        requiresAccelerate={true}
+      />
     </div>
   );
 };
