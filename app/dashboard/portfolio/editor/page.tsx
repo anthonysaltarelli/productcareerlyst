@@ -967,8 +967,8 @@ const InlineProfileEditor = ({
                   }
                 }}
                 className="w-full rounded-lg border-2 border-purple-400 bg-white px-3 py-2 text-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-200"
-                rows={3}
-                placeholder="Tell visitors about yourself..."
+                rows={8}
+                placeholder="Tell visitors about yourself... (Press Enter for new lines)"
               />
             ) : (
               <button
@@ -976,9 +976,20 @@ const InlineProfileEditor = ({
                 className="group/bio flex w-full items-start justify-center gap-2 text-left md:justify-start"
                 type="button"
               >
-                <p className={`max-w-2xl ${formData.bio ? 'text-gray-600' : 'text-gray-400 italic'}`}>
-                  {formData.bio || 'Add a bio...'}
-                </p>
+                <div className={`max-w-2xl ${formData.bio ? 'text-gray-600' : 'text-gray-400 italic'}`}>
+                  {formData.bio ? (
+                    <>
+                      <p className="line-clamp-2 whitespace-pre-wrap">{formData.bio}</p>
+                      {formData.bio.split('\n').length > 2 || formData.bio.length > 200 ? (
+                        <span className="mt-1 inline-block text-sm text-purple-500 hover:text-purple-600">
+                          Click to see more...
+                        </span>
+                      ) : null}
+                    </>
+                  ) : (
+                    'Add a bio...'
+                  )}
+                </div>
                 <Pencil className="mt-1 h-3 w-3 flex-shrink-0 text-gray-300 opacity-0 transition-opacity group-hover/bio:opacity-100" />
               </button>
             )}

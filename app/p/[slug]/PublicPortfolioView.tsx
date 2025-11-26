@@ -45,9 +45,15 @@ export default function PublicPortfolioView({
   const [activeCategory, setActiveCategory] = useState<string | null>(
     categories[0]?.id || null
   );
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
 
   const socialLinks = portfolio.social_links || {};
   const hasSocialLinks = Object.values(socialLinks).some((v) => v);
+
+  // Check if bio needs truncation (more than 3 lines or more than ~250 chars)
+  const bioNeedsTruncation = portfolio.bio 
+    ? portfolio.bio.split('\n').length > 3 || portfolio.bio.length > 250
+    : false;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50">
@@ -77,7 +83,25 @@ export default function PublicPortfolioView({
                 <p className="mb-4 text-lg text-gray-600">{portfolio.subtitle}</p>
               )}
               {portfolio.bio && (
-                <p className="mb-6 max-w-2xl text-gray-600">{portfolio.bio}</p>
+                <div className="mb-6 max-w-2xl">
+                  <p 
+                    className={`whitespace-pre-wrap text-gray-600 ${
+                      !isBioExpanded && bioNeedsTruncation ? 'line-clamp-3' : ''
+                    }`}
+                  >
+                    {portfolio.bio}
+                  </p>
+                  {bioNeedsTruncation && (
+                    <button
+                      onClick={() => setIsBioExpanded(!isBioExpanded)}
+                      className="mt-2 text-sm font-medium text-purple-600 transition-colors hover:text-purple-700"
+                      type="button"
+                      aria-expanded={isBioExpanded}
+                    >
+                      {isBioExpanded ? 'Show less' : 'Show more'}
+                    </button>
+                  )}
+                </div>
               )}
 
               {/* Social Links */}
