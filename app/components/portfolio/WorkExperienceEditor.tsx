@@ -851,7 +851,7 @@ const ImportModal = ({
               experience in your portfolio.
             </p>
 
-            <div className="mb-6 max-h-64 space-y-2 overflow-y-auto">
+            <div className="-m-1 mb-6 max-h-64 space-y-2 overflow-y-auto p-1">
               {versions.map((version) => (
                 <button
                   key={version.id}

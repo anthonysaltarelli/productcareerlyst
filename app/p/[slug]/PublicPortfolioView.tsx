@@ -198,24 +198,67 @@ export default function PublicPortfolioView({
       {/* About Section */}
       <section id="about" className="scroll-mt-20 border-t border-gray-100 bg-gray-50/50 py-20 md:py-28">
         <div className="mx-auto max-w-5xl px-6 md:px-8">
-          <div className="grid gap-12 md:grid-cols-3 md:gap-16">
-            {/* Profile Image */}
-            <div className="flex justify-center md:justify-start">
+          <div className="grid gap-12 md:grid-cols-[280px_1fr] md:gap-16 lg:grid-cols-[320px_1fr]">
+            {/* Profile Image & Work Experience */}
+            <div className="flex flex-col items-center gap-6 md:items-stretch">
               {portfolio.profile_image_url ? (
                 <img
                   src={portfolio.profile_image_url}
                   alt={portfolio.display_name}
-                  className="h-40 w-40 rounded-2xl object-cover shadow-lg md:h-48 md:w-48"
+                  className="aspect-square w-48 rounded-2xl object-cover shadow-lg md:w-full"
                 />
               ) : (
-                <div className="flex h-40 w-40 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 text-5xl font-bold text-white shadow-lg md:h-48 md:w-48">
+                <div className="flex aspect-square w-48 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 text-5xl font-bold text-white shadow-lg md:w-full">
                   {portfolio.display_name.charAt(0).toUpperCase()}
+                </div>
+              )}
+
+              {/* Compact Work Experience */}
+              {portfolio.work_experience && portfolio.work_experience.length > 0 && (
+                <div className="w-full space-y-4">
+                  {/* Current Position(s) */}
+                  {portfolio.work_experience.filter((exp) => exp.is_current).length > 0 && (
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Now
+                      </p>
+                      <div className="space-y-2">
+                        {portfolio.work_experience
+                          .filter((exp) => exp.is_current)
+                          .map((exp, index) => (
+                            <div key={`current-${index}`} className="flex items-baseline justify-between gap-3">
+                              <span className="text-sm font-medium text-gray-900">{exp.company}</span>
+                              <span className="text-xs text-gray-500">{exp.title}</span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Previous Position(s) */}
+                  {portfolio.work_experience.filter((exp) => !exp.is_current).length > 0 && (
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Previously
+                      </p>
+                      <div className="space-y-2">
+                        {portfolio.work_experience
+                          .filter((exp) => !exp.is_current)
+                          .map((exp, index) => (
+                            <div key={`prev-${index}`} className="flex items-baseline justify-between gap-3">
+                              <span className="text-sm font-medium text-gray-900">{exp.company}</span>
+                              <span className="text-xs text-gray-500">{exp.title}</span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
             {/* Bio & Links */}
-            <div className="md:col-span-2">
+            <div>
               <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-gray-500">
                 About
               </h2>
@@ -273,11 +316,6 @@ export default function PublicPortfolioView({
           </div>
         </div>
       </section>
-
-      {/* Work Experience Section */}
-      {portfolio.work_experience && portfolio.work_experience.length > 0 && (
-        <WorkExperienceSection workExperience={portfolio.work_experience} />
-      )}
 
       {/* Featured Section */}
       {featuredPages.length > 0 && (
@@ -390,68 +428,6 @@ const SocialLink = ({
   >
     {icon}
   </a>
-);
-
-const WorkExperienceSection = ({
-  workExperience,
-}: {
-  workExperience: PortfolioWorkExperience[];
-}) => {
-  const currentPositions = workExperience.filter((exp) => exp.is_current);
-  const previousPositions = workExperience.filter((exp) => !exp.is_current);
-
-  if (workExperience.length === 0) return null;
-
-  return (
-    <section className="scroll-mt-20 border-t border-gray-100 py-16 md:py-20">
-      <div className="mx-auto max-w-5xl px-6 md:px-8">
-        <div className="space-y-10">
-          {/* Current Position(s) */}
-          {currentPositions.length > 0 && (
-            <div>
-              <h3 className="mb-6 text-sm font-semibold uppercase tracking-wider text-gray-400">
-                Now
-              </h3>
-              <div className="space-y-4">
-                {currentPositions.map((exp, index) => (
-                  <ExperienceRow key={`current-${index}`} experience={exp} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Previous Position(s) */}
-          {previousPositions.length > 0 && (
-            <div>
-              <h3 className="mb-6 text-sm font-semibold uppercase tracking-wider text-gray-400">
-                Previously
-              </h3>
-              <div className="space-y-4">
-                {previousPositions.map((exp, index) => (
-                  <ExperienceRow key={`prev-${index}`} experience={exp} />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const ExperienceRow = ({
-  experience,
-}: {
-  experience: PortfolioWorkExperience;
-}) => (
-  <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-8 md:gap-16">
-    <span className="min-w-0 flex-1 text-lg font-medium text-gray-900 sm:max-w-xs md:max-w-sm lg:max-w-md">
-      {experience.company}
-    </span>
-    <span className="text-base text-gray-500 sm:flex-1">
-      {experience.title}
-    </span>
-  </div>
 );
 
 const FeaturedPageCard = ({
