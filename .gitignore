@@ -42,4 +42,5 @@ next-env.d.ts
 
 
 # Authentication tokens
-.npmrc
+# Keep .npmrc tracked for Vercel builds (uses env variable for token)
+# .npmrc
