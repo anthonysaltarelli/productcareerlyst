@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FileText, Download, Sparkles, ExternalLink, Loader2, Plus } from 'lucide-react';
+import { FileText, Download, Sparkles, ExternalLink, Loader2, Wand2 } from 'lucide-react';
 import BulletComparisonModal from '@/app/components/resume/BulletComparisonModal';
+import CreateJobResumeModal from '@/app/components/jobs/CreateJobResumeModal';
 
 type BulletChange = {
   bulletId: string;
@@ -73,10 +74,25 @@ export default function DocumentsTab({ applicationId, jobTitle, companyName }: P
   const [error, setError] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [selectedSummary, setSelectedSummary] = useState<ResumeVersion | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [jobDescription, setJobDescription] = useState<string | null>(null);
 
   useEffect(() => {
     fetchResumes();
+    fetchJobDescription();
   }, [applicationId]);
+
+  const fetchJobDescription = async () => {
+    try {
+      const response = await fetch(`/api/jobs/applications/${applicationId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setJobDescription(data.application?.description || null);
+      }
+    } catch (err) {
+      console.error('Error fetching job description:', err);
+    }
+  };
 
   const fetchResumes = async () => {
     setIsLoading(true);
@@ -178,16 +194,18 @@ export default function DocumentsTab({ applicationId, jobTitle, companyName }: P
             Documents 📄
           </h2>
           <p className="text-gray-700 font-semibold mt-2">
-            Resumes and other documents for this application
+            AI-tailored resumes for this job application
           </p>
         </div>
-        <Link
-          href="/dashboard/resume"
+        <button
+          onClick={() => setShowCreateModal(true)}
           className="px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200 flex items-center gap-2"
+          aria-label="Create AI-tailored resume"
+          tabIndex={0}
         >
-          <Plus className="w-5 h-5" />
-          Create Resume
-        </Link>
+          <Wand2 className="w-5 h-5" />
+          Create AI Resume
+        </button>
       </div>
 
       {/* Resumes Section */}
@@ -198,21 +216,34 @@ export default function DocumentsTab({ applicationId, jobTitle, companyName }: P
         </h3>
 
         {resumes.length === 0 ? (
-          <div className="p-12 rounded-[2rem] bg-gradient-to-br from-gray-100 to-gray-200 shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 text-center">
-            <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center mx-auto mb-4 border-2 border-purple-300">
-              <FileText className="w-8 h-8 text-purple-600" />
+          <div className="p-12 rounded-[2rem] bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 shadow-[0_8px_0_0_rgba(147,51,234,0.2)] border-2 border-purple-300 text-center">
+            <div className="w-20 h-20 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-6 border-2 border-purple-600 shadow-[0_6px_0_0_rgba(147,51,234,0.4)]">
+              <Sparkles className="w-10 h-10 text-white" />
             </div>
-            <h4 className="text-xl font-black text-gray-800 mb-2">No Resumes Yet</h4>
-            <p className="text-gray-600 font-medium mb-6">
-              Create a customized resume tailored for this job application.
+            <h4 className="text-2xl font-black text-gray-900 mb-3">Create an AI-Tailored Resume</h4>
+            <p className="text-gray-600 font-semibold mb-4 max-w-md mx-auto leading-relaxed">
+              Let AI analyze the job description and automatically customize your resume with the most relevant experience, optimized language, and targeted keywords.
             </p>
-            <Link
-              href="/dashboard/resume"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200"
+            <div className="flex flex-wrap justify-center gap-3 mb-6">
+              <span className="px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 font-bold text-sm border border-blue-200">
+                ✓ Reorders bullets by relevance
+              </span>
+              <span className="px-3 py-1.5 rounded-full bg-purple-100 text-purple-700 font-bold text-sm border border-purple-200">
+                ✓ Optimizes language
+              </span>
+              <span className="px-3 py-1.5 rounded-full bg-orange-100 text-orange-700 font-bold text-sm border border-orange-200">
+                ✓ Adds relevant keywords
+              </span>
+            </div>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.6)] font-black text-white text-lg transition-all duration-200"
+              aria-label="Create AI-tailored resume for this job"
+              tabIndex={0}
             >
-              <Plus className="w-5 h-5" />
-              Create Resume
-            </Link>
+              <Wand2 className="w-6 h-6" />
+              Create AI Resume
+            </button>
           </div>
         ) : (
           <div className="space-y-4">
@@ -306,6 +337,17 @@ export default function DocumentsTab({ applicationId, jobTitle, companyName }: P
         isOpen={!!selectedSummary}
         onClose={() => setSelectedSummary(null)}
         customizationSummary={selectedSummary?.customization_summary || null}
+      />
+
+      {/* Create Job Resume Modal */}
+      <CreateJobResumeModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={fetchResumes}
+        applicationId={applicationId}
+        jobTitle={jobTitle}
+        companyName={companyName}
+        jobDescription={jobDescription}
       />
     </div>
   );

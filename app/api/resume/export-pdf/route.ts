@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 
 type ContactInfo = {
   name: string;
@@ -705,15 +706,33 @@ export async function POST(request: NextRequest) {
     // Generate HTML content
     const html = generateResumeHTML(body);
 
-    // Launch Puppeteer browser
+    // Launch Puppeteer browser with serverless-compatible Chromium
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+    
+    let executablePath: string;
+    if (isProduction) {
+      executablePath = await chromium.executablePath();
+    } else {
+      // Local development - use installed Chrome
+      executablePath = process.platform === 'win32'
+        ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+        : process.platform === 'darwin'
+          ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+          : '/usr/bin/google-chrome';
+    }
+    
     const browser = await puppeteer.launch({
+      args: isProduction 
+        ? chromium.args 
+        : [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+          ],
+      defaultViewport: { width: 1280, height: 720 },
+      executablePath,
       headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-      ],
     });
 
     const page = await browser.newPage();
@@ -762,9 +781,21 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error generating PDF:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+    
+    console.error('Error generating PDF:', {
+      message: errorMessage,
+      stack: errorStack,
+      isProduction: process.env.NODE_ENV === 'production',
+      isVercel: !!process.env.VERCEL,
+    });
+    
     return NextResponse.json(
-      { error: 'Failed to generate PDF' },
+      { 
+        error: 'Failed to generate PDF',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+      },
       { status: 500 }
     );
   }
