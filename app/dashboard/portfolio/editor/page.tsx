@@ -440,7 +440,7 @@ const CategoryCard = ({
   const isUncategorized = category.id === 'uncategorized';
 
   return (
-    <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
+    <div className="rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
       {/* Category Header */}
       <div
         className="flex cursor-pointer items-center justify-between p-4 hover:bg-gray-50"
@@ -1782,20 +1782,6 @@ const PageModal = ({
         </div>
 
         <div>
-          <label htmlFor="page_cover" className="mb-1 block text-sm font-medium text-gray-700">
-            Cover Image URL
-          </label>
-          <input
-            id="page_cover"
-            type="url"
-            value={formData.cover_image_url}
-            onChange={(e) => setFormData((prev) => ({ ...prev, cover_image_url: e.target.value }))}
-            placeholder="https://..."
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
-          />
-        </div>
-
-        <div>
           <label htmlFor="page_tags" className="mb-1 block text-sm font-medium text-gray-700">
             Tags <span className="text-gray-400">(comma-separated)</span>
           </label>
@@ -1807,19 +1793,6 @@ const PageModal = ({
             placeholder="e.g., E-commerce, UX Design, Mobile"
             className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
           />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <input
-            id="page_featured"
-            type="checkbox"
-            checked={formData.is_featured}
-            onChange={(e) => setFormData((prev) => ({ ...prev, is_featured: e.target.checked }))}
-            className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-          />
-          <label htmlFor="page_featured" className="text-sm font-medium text-gray-700">
-            Featured page (shown prominently on homepage)
-          </label>
         </div>
 
         <div className="flex gap-3 pt-4">
