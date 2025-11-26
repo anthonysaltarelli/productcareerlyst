@@ -159,8 +159,8 @@ export const TipTapReadOnly = ({ content, className = '' }: TipTapReadOnlyProps)
           cursor: default;
         }
         
-        /* Hide any drag handles or editing UI */
-        .tiptap-readonly-wrapper [data-drag-handle],
+        /* Hide any drag handles or editing UI - but NOT elements with data-drag-handle="false" */
+        .tiptap-readonly-wrapper [data-drag-handle="true"],
         .tiptap-readonly-wrapper .drag-handle,
         .tiptap-readonly-wrapper .resize-handle {
           display: none !important;
