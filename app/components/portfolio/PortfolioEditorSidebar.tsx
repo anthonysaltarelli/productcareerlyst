@@ -1,6 +1,6 @@
 'use client';
 
-import { Settings, User, FileText, ArrowLeft, Eye, EyeOff, ExternalLink, Copy, Check, Globe } from 'lucide-react';
+import { Settings, User, FileText, ArrowLeft, Eye, EyeOff, ExternalLink, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -122,46 +122,42 @@ export const PortfolioEditorSidebar = ({
               </>
             )}
           </button>
-
-          {/* Copy Link */}
-          <button
-            onClick={handleCopyLink}
-            className="flex items-center justify-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200"
-            type="button"
-            aria-label="Copy portfolio link"
-          >
-            {justCopied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-          </button>
         </div>
 
         {/* Preview & View Live Links */}
         <div className="mt-3 flex gap-2">
-          <a
-            href={`/p/${portfolioSlug}?preview=true`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-700 transition-all hover:bg-amber-200"
-          >
-            <Eye className="h-4 w-4" />
-            Preview
-          </a>
-          {isPublished && (
+          {!isPublished && (
             <a
-              href={`/p/${portfolioSlug}`}
+              href={`/p/${portfolioSlug}?preview=true`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-purple-100 px-3 py-2 text-sm font-medium text-purple-700 transition-all hover:bg-purple-200"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-700 transition-all hover:bg-amber-200"
             >
-              <ExternalLink className="h-4 w-4" />
-              View Live
+              <Eye className="h-4 w-4" />
+              Preview
             </a>
           )}
-        </div>
-
-        {/* Portfolio URL */}
-        <div className="mt-3 flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2">
-          <Globe className="h-4 w-4 flex-shrink-0 text-gray-400" />
-          <span className="truncate text-xs text-gray-500">/p/{portfolioSlug}</span>
+          {isPublished && (
+            <>
+              <a
+                href={`/p/${portfolioSlug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200"
+              >
+                <ExternalLink className="h-4 w-4" />
+                View Live
+              </a>
+              <button
+                onClick={handleCopyLink}
+                className="flex items-center justify-center rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200"
+                type="button"
+                aria-label="Copy portfolio link"
+              >
+                {justCopied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+              </button>
+            </>
+          )}
         </div>
       </div>
 

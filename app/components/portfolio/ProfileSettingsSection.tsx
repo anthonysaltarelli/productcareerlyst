@@ -204,7 +204,7 @@ export const ProfileSettingsSection = ({
                 value={formData.display_name}
                 onChange={(e) => setFormData((prev) => ({ ...prev, display_name: e.target.value }))}
                 onKeyDown={(e) => handleKeyDown(e, 'display_name', formData.display_name)}
-                className="flex-1 rounded-lg border-2 border-purple-400 px-4 py-3 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-purple-200"
+                className="flex-1 rounded-lg border-2 border-purple-400 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-200"
                 placeholder="Your Name"
               />
               <button
@@ -232,7 +232,7 @@ export const ProfileSettingsSection = ({
               className="group flex w-full items-center justify-between rounded-lg bg-gray-50 px-4 py-3 text-left hover:bg-gray-100"
               type="button"
             >
-              <span className="text-lg font-bold text-gray-900">{formData.display_name || 'Add your name'}</span>
+              <span className="text-gray-900">{formData.display_name || 'Add your name'}</span>
               <Pencil className="h-4 w-4 text-gray-400 opacity-0 transition-opacity group-hover:opacity-100" />
             </button>
           )}
@@ -241,7 +241,7 @@ export const ProfileSettingsSection = ({
         {/* Subtitle */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-600">
-            Subtitle <span className="text-gray-400">(displays as &quot;{formData.display_name} is a [subtitle]&quot;)</span>
+            Subtitle
           </label>
           {editingField === 'subtitle' ? (
             <div className="flex gap-2">
@@ -449,15 +449,17 @@ export const ProfileSettingsSection = ({
         <h3 className="mb-4 text-lg font-semibold text-gray-800">Quick Actions</h3>
         
         <div className="grid gap-3 sm:grid-cols-2">
-          <a
-            href={`/p/${portfolio.slug}?preview=true`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 rounded-xl bg-amber-100 px-4 py-4 font-medium text-amber-700 transition-all hover:bg-amber-200"
-          >
-            <Eye className="h-5 w-5" />
-            Preview Portfolio
-          </a>
+          {!portfolio.is_published && (
+            <a
+              href={`/p/${portfolio.slug}?preview=true`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 rounded-xl bg-amber-100 px-4 py-4 font-medium text-amber-700 transition-all hover:bg-amber-200"
+            >
+              <Eye className="h-5 w-5" />
+              Preview Portfolio
+            </a>
+          )}
           {portfolio.is_published && (
             <a
               href={`/p/${portfolio.slug}`}
