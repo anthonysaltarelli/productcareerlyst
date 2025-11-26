@@ -453,7 +453,20 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
                   </span>
                 </button>
 
-                {/* Preview */}
+                {/* Preview (always visible) */}
+                {portfolioSlug && (
+                  <a
+                    href={`/p/${portfolioSlug}/${page.slug}?preview=true`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 rounded-lg bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-700 transition-all hover:bg-amber-200"
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span className="hidden md:inline">Preview</span>
+                  </a>
+                )}
+
+                {/* View Live (only when published) */}
                 {page.is_published && portfolioSlug && (
                   <a
                     href={`/p/${portfolioSlug}/${page.slug}`}
@@ -462,7 +475,7 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
                     className="flex items-center gap-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:from-purple-600 hover:to-pink-600"
                   >
                     <ExternalLink className="h-4 w-4" />
-                    <span className="hidden md:inline">Preview</span>
+                    <span className="hidden md:inline">View Live</span>
                   </a>
                 )}
               </div>

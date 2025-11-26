@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Youtube,
 } from 'lucide-react';
+import PreviewBanner from '@/app/components/PreviewBanner';
 
 // Custom Substack icon (lucide-react doesn't have one)
 const SubstackIcon = ({ className }: { className?: string }) => (
@@ -35,12 +36,14 @@ interface PublicPortfolioViewProps {
   portfolio: Portfolio;
   categories: PortfolioCategoryWithPages[];
   featuredPages: PortfolioPage[];
+  isPreviewMode?: boolean;
 }
 
 export default function PublicPortfolioView({
   portfolio,
   categories,
   featuredPages,
+  isPreviewMode = false,
 }: PublicPortfolioViewProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(
     categories[0]?.id || null
@@ -55,8 +58,29 @@ export default function PublicPortfolioView({
     ? portfolio.bio.split('\n').length > 3 || portfolio.bio.length > 250
     : false;
 
+  // Build link suffix for preview mode
+  const previewSuffix = isPreviewMode ? '?preview=true' : '';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50">
+      {/* Preview Banner */}
+      {isPreviewMode && (
+        <PreviewBanner 
+          editUrl="/dashboard/portfolio/editor"
+          portfolioIsPublished={portfolio.is_published}
+        />
+      )}
+
+      {/* Draft Badge for unpublished portfolio in preview mode */}
+      {isPreviewMode && !portfolio.is_published && (
+        <div className="mx-auto max-w-5xl px-6 py-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            Portfolio Draft - Not yet published
+          </span>
+        </div>
+      )}
+
       {/* Hero Section */}
       <header className="border-b border-gray-100 bg-white/80 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-6 py-12 md:py-16">
@@ -162,7 +186,12 @@ export default function PublicPortfolioView({
             </h2>
             <div className="grid gap-6 md:grid-cols-2">
               {featuredPages.map((page) => (
-                <FeaturedPageCard key={page.id} page={page} portfolioSlug={portfolio.slug} />
+                <FeaturedPageCard 
+                  key={page.id} 
+                  page={page} 
+                  portfolioSlug={portfolio.slug} 
+                  isPreviewMode={isPreviewMode}
+                />
               ))}
             </div>
           </div>
@@ -174,7 +203,11 @@ export default function PublicPortfolioView({
         <div className="mx-auto max-w-5xl px-6">
           {categories.length === 0 ? (
             <div className="text-center py-16">
-              <p className="text-gray-500">No published work yet. Check back soon!</p>
+              <p className="text-gray-500">
+                {isPreviewMode 
+                  ? 'No pages yet. Add some pages to see them here!'
+                  : 'No published work yet. Check back soon!'}
+              </p>
             </div>
           ) : (
             <>
@@ -210,7 +243,12 @@ export default function PublicPortfolioView({
                   )}
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {category.pages.map((page) => (
-                      <PageCard key={page.id} page={page} portfolioSlug={portfolio.slug} />
+                      <PageCard 
+                        key={page.id} 
+                        page={page} 
+                        portfolioSlug={portfolio.slug}
+                        isPreviewMode={isPreviewMode}
+                      />
                     ))}
                   </div>
                 </div>
@@ -267,115 +305,142 @@ const SocialLink = ({
 const FeaturedPageCard = ({
   page,
   portfolioSlug,
+  isPreviewMode = false,
 }: {
   page: PortfolioPage;
   portfolioSlug: string;
-}) => (
-  <Link
-    href={`/p/${portfolioSlug}/${page.slug}`}
-    className="group relative overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl"
-  >
-    {/* Cover Image */}
-    <div className="aspect-video w-full bg-gradient-to-br from-purple-100 to-pink-100">
-      {page.cover_image_url ? (
-        <img
-          src={page.cover_image_url}
-          alt={page.title}
-          className="h-full w-full object-cover transition-transform group-hover:scale-105"
-        />
-      ) : (
-        <div className="flex h-full w-full items-center justify-center text-4xl">
-          📄
-        </div>
-      )}
-    </div>
-
-    {/* Content */}
-    <div className="p-6">
-      <div className="mb-2 flex items-center gap-2">
-        <span className="rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
-          Featured
-        </span>
+  isPreviewMode?: boolean;
+}) => {
+  const previewSuffix = isPreviewMode ? '?preview=true' : '';
+  
+  return (
+    <Link
+      href={`/p/${portfolioSlug}/${page.slug}${previewSuffix}`}
+      className="group relative overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl"
+    >
+      {/* Cover Image */}
+      <div className="aspect-video w-full bg-gradient-to-br from-purple-100 to-pink-100">
+        {page.cover_image_url ? (
+          <img
+            src={page.cover_image_url}
+            alt={page.title}
+            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-4xl">
+            📄
+          </div>
+        )}
       </div>
-      <h3 className="mb-2 text-xl font-bold text-gray-900 group-hover:text-purple-600">
-        {page.title}
-      </h3>
-      {page.description && (
-        <p className="mb-4 line-clamp-2 text-gray-600">{page.description}</p>
-      )}
-      {page.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {page.tags.slice(0, 3).map((tag) => (
-            <span
-              key={tag}
-              className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
 
-    {/* Arrow */}
-    <div className="absolute bottom-6 right-6 flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 text-purple-600 opacity-0 transition-opacity group-hover:opacity-100">
-      <ChevronRight className="h-4 w-4" />
-    </div>
-  </Link>
-);
+      {/* Content */}
+      <div className="p-6">
+        <div className="mb-2 flex items-center gap-2">
+          <span className="rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
+            Featured
+          </span>
+          {/* Draft badge in preview mode */}
+          {isPreviewMode && !page.is_published && (
+            <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+              <span className="h-1 w-1 rounded-full bg-amber-500" />
+              Draft
+            </span>
+          )}
+        </div>
+        <h3 className="mb-2 text-xl font-bold text-gray-900 group-hover:text-purple-600">
+          {page.title}
+        </h3>
+        {page.description && (
+          <p className="mb-4 line-clamp-2 text-gray-600">{page.description}</p>
+        )}
+        {page.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {page.tags.slice(0, 3).map((tag) => (
+              <span
+                key={tag}
+                className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Arrow */}
+      <div className="absolute bottom-6 right-6 flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 text-purple-600 opacity-0 transition-opacity group-hover:opacity-100">
+        <ChevronRight className="h-4 w-4" />
+      </div>
+    </Link>
+  );
+};
 
 const PageCard = ({
   page,
   portfolioSlug,
+  isPreviewMode = false,
 }: {
   page: PortfolioPage;
   portfolioSlug: string;
-}) => (
-  <Link
-    href={`/p/${portfolioSlug}/${page.slug}`}
-    className="group overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-100 transition-all hover:-translate-y-1 hover:shadow-lg"
-  >
-    {/* Cover Image */}
-    <div className="aspect-video w-full bg-gradient-to-br from-gray-50 to-gray-100">
-      {page.cover_image_url ? (
-        <img
-          src={page.cover_image_url}
-          alt={page.title}
-          className="h-full w-full object-cover transition-transform group-hover:scale-105"
-        />
-      ) : (
-        <div className="flex h-full w-full items-center justify-center text-3xl text-gray-300">
-          📄
-        </div>
-      )}
-    </div>
-
-    {/* Content */}
-    <div className="p-4">
-      <h3 className="mb-1 font-semibold text-gray-900 group-hover:text-purple-600">
-        {page.title}
-      </h3>
-      {page.description && (
-        <p className="mb-3 line-clamp-2 text-sm text-gray-600">{page.description}</p>
-      )}
-      {page.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {page.tags.slice(0, 2).map((tag) => (
-            <span
-              key={tag}
-              className="rounded bg-purple-50 px-2 py-0.5 text-xs text-purple-600"
-            >
-              {tag}
+  isPreviewMode?: boolean;
+}) => {
+  const previewSuffix = isPreviewMode ? '?preview=true' : '';
+  
+  return (
+    <Link
+      href={`/p/${portfolioSlug}/${page.slug}${previewSuffix}`}
+      className="group overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-100 transition-all hover:-translate-y-1 hover:shadow-lg"
+    >
+      {/* Cover Image */}
+      <div className="relative aspect-video w-full bg-gradient-to-br from-gray-50 to-gray-100">
+        {page.cover_image_url ? (
+          <img
+            src={page.cover_image_url}
+            alt={page.title}
+            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-3xl text-gray-300">
+            📄
+          </div>
+        )}
+        {/* Draft badge overlay in preview mode */}
+        {isPreviewMode && !page.is_published && (
+          <div className="absolute left-2 top-2">
+            <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/90 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+              Draft
             </span>
-          ))}
-          {page.tags.length > 2 && (
-            <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
-              +{page.tags.length - 2}
-            </span>
-          )}
-        </div>
-      )}
-    </div>
-  </Link>
-);
+          </div>
+        )}
+      </div>
 
+      {/* Content */}
+      <div className="p-4">
+        <h3 className="mb-1 font-semibold text-gray-900 group-hover:text-purple-600">
+          {page.title}
+        </h3>
+        {page.description && (
+          <p className="mb-3 line-clamp-2 text-sm text-gray-600">{page.description}</p>
+        )}
+        {page.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {page.tags.slice(0, 2).map((tag) => (
+              <span
+                key={tag}
+                className="rounded bg-purple-50 px-2 py-0.5 text-xs text-purple-600"
+              >
+                {tag}
+              </span>
+            ))}
+            {page.tags.length > 2 && (
+              <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+                +{page.tags.length - 2}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+};

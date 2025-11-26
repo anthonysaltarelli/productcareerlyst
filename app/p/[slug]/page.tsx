@@ -5,19 +5,43 @@ import PublicPortfolioView from './PublicPortfolioView';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }
 
 // Generate metadata for SEO
-export const generateMetadata = async ({ params }: PageProps): Promise<Metadata> => {
+export const generateMetadata = async ({ params, searchParams }: PageProps): Promise<Metadata> => {
   const { slug } = await params;
+  const { preview } = await searchParams;
   const supabase = await createClient();
+  const isPreviewMode = preview === 'true';
 
-  const { data: portfolio } = await supabase
+  // In preview mode, check if user owns the portfolio
+  let isOwner = false;
+  if (isPreviewMode) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: ownerCheck } = await supabase
+        .from('portfolios')
+        .select('id')
+        .eq('slug', slug.toLowerCase())
+        .eq('user_id', user.id)
+        .maybeSingle();
+      isOwner = !!ownerCheck;
+    }
+  }
+
+  // Build query based on preview mode and ownership
+  let query = supabase
     .from('portfolios')
     .select('display_name, subtitle, bio')
-    .eq('slug', slug.toLowerCase())
-    .eq('is_published', true)
-    .maybeSingle();
+    .eq('slug', slug.toLowerCase());
+  
+  // Only apply is_published filter if not in preview mode or not owner
+  if (!isPreviewMode || !isOwner) {
+    query = query.eq('is_published', true);
+  }
+
+  const { data: portfolio } = await query.maybeSingle();
 
   if (!portfolio) {
     return {
@@ -25,28 +49,56 @@ export const generateMetadata = async ({ params }: PageProps): Promise<Metadata>
     };
   }
 
+  const titleSuffix = isPreviewMode && isOwner ? ' (Preview)' : '';
+
   return {
-    title: `${portfolio.display_name} | Product Portfolio`,
+    title: `${portfolio.display_name} | Product Portfolio${titleSuffix}`,
     description: portfolio.subtitle || portfolio.bio || `View ${portfolio.display_name}'s product portfolio`,
     openGraph: {
       title: `${portfolio.display_name} | Product Portfolio`,
       description: portfolio.subtitle || portfolio.bio || `View ${portfolio.display_name}'s product portfolio`,
       type: 'profile',
     },
+    // Prevent search engines from indexing preview pages
+    ...(isPreviewMode && isOwner ? { robots: { index: false, follow: false } } : {}),
   };
 };
 
-export default async function PublicPortfolioPage({ params }: PageProps) {
+export default async function PublicPortfolioPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
+  const { preview } = await searchParams;
   const supabase = await createClient();
+  const isPreviewMode = preview === 'true';
 
-  // Fetch portfolio
-  const { data: portfolio, error: portfolioError } = await supabase
+  // Check if user is owner (for preview mode)
+  let isOwner = false;
+  if (isPreviewMode) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: ownerCheck } = await supabase
+        .from('portfolios')
+        .select('id')
+        .eq('slug', slug.toLowerCase())
+        .eq('user_id', user.id)
+        .maybeSingle();
+      isOwner = !!ownerCheck;
+    }
+  }
+
+  // Determine if we should show unpublished content
+  const showUnpublished = isPreviewMode && isOwner;
+
+  // Fetch portfolio - skip is_published filter in preview mode for owners
+  let portfolioQuery = supabase
     .from('portfolios')
     .select('*')
-    .eq('slug', slug.toLowerCase())
-    .eq('is_published', true)
-    .maybeSingle();
+    .eq('slug', slug.toLowerCase());
+  
+  if (!showUnpublished) {
+    portfolioQuery = portfolioQuery.eq('is_published', true);
+  }
+
+  const { data: portfolio, error: portfolioError } = await portfolioQuery.maybeSingle();
 
   if (portfolioError || !portfolio) {
     notFound();
@@ -60,13 +112,18 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
     .eq('is_visible', true)
     .order('display_order', { ascending: true });
 
-  // Fetch published pages only
-  const { data: pages } = await supabase
+  // Fetch pages - in preview mode, show all pages (including unpublished)
+  let pagesQuery = supabase
     .from('portfolio_pages')
     .select('*')
     .eq('portfolio_id', portfolio.id)
-    .eq('is_published', true)
     .order('display_order', { ascending: true });
+  
+  if (!showUnpublished) {
+    pagesQuery = pagesQuery.eq('is_published', true);
+  }
+
+  const { data: pages } = await pagesQuery;
 
   // Organize pages by category
   const categoriesWithPages = (categories || []).map((category) => ({
@@ -82,7 +139,7 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
       portfolio={portfolio}
       categories={categoriesWithPages}
       featuredPages={featuredPages}
+      isPreviewMode={showUnpublished}
     />
   );
 }
-

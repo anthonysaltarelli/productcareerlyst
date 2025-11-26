@@ -5,91 +5,153 @@ import { ArrowLeft, Tag } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import type { JSONContent } from '@tiptap/react';
 import { TipTapReadOnlyWrapper } from '@/app/components/TipTapReadOnlyWrapper';
+import PreviewBanner from '@/app/components/PreviewBanner';
 
 interface PageProps {
   params: Promise<{ slug: string; pageSlug: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }
 
 // Generate metadata for SEO
-export const generateMetadata = async ({ params }: PageProps): Promise<Metadata> => {
+export const generateMetadata = async ({ params, searchParams }: PageProps): Promise<Metadata> => {
   const { slug, pageSlug } = await params;
+  const { preview } = await searchParams;
   const supabase = await createClient();
+  const isPreviewMode = preview === 'true';
+
+  // In preview mode, check if user owns the portfolio
+  let isOwner = false;
+  if (isPreviewMode) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: ownerCheck } = await supabase
+        .from('portfolios')
+        .select('id')
+        .eq('slug', slug.toLowerCase())
+        .eq('user_id', user.id)
+        .maybeSingle();
+      isOwner = !!ownerCheck;
+    }
+  }
+
+  const showUnpublished = isPreviewMode && isOwner;
 
   // Get portfolio
-  const { data: portfolio } = await supabase
+  let portfolioQuery = supabase
     .from('portfolios')
     .select('id, display_name')
-    .eq('slug', slug.toLowerCase())
-    .eq('is_published', true)
-    .maybeSingle();
+    .eq('slug', slug.toLowerCase());
+  
+  if (!showUnpublished) {
+    portfolioQuery = portfolioQuery.eq('is_published', true);
+  }
+
+  const { data: portfolio } = await portfolioQuery.maybeSingle();
 
   if (!portfolio) {
     return { title: 'Not Found' };
   }
 
   // Get page
-  const { data: page } = await supabase
+  let pageQuery = supabase
     .from('portfolio_pages')
     .select('title, description, meta_title, meta_description, cover_image_url')
     .eq('portfolio_id', portfolio.id)
-    .eq('slug', pageSlug.toLowerCase())
-    .eq('is_published', true)
-    .maybeSingle();
+    .eq('slug', pageSlug.toLowerCase());
+  
+  if (!showUnpublished) {
+    pageQuery = pageQuery.eq('is_published', true);
+  }
+
+  const { data: page } = await pageQuery.maybeSingle();
 
   if (!page) {
     return { title: 'Not Found' };
   }
 
-  const title = page.meta_title || `${page.title} | ${portfolio.display_name}`;
+  const titleSuffix = showUnpublished ? ' (Preview)' : '';
+  const title = page.meta_title || `${page.title} | ${portfolio.display_name}${titleSuffix}`;
   const description = page.meta_description || page.description || `View ${page.title}`;
 
   return {
     title,
     description,
     openGraph: {
-      title,
+      title: page.meta_title || `${page.title} | ${portfolio.display_name}`,
       description,
       type: 'article',
       images: page.cover_image_url ? [{ url: page.cover_image_url }] : undefined,
     },
     twitter: {
       card: page.cover_image_url ? 'summary_large_image' : 'summary',
-      title,
+      title: page.meta_title || `${page.title} | ${portfolio.display_name}`,
       description,
       images: page.cover_image_url ? [page.cover_image_url] : undefined,
     },
+    // Prevent search engines from indexing preview pages
+    ...(showUnpublished ? { robots: { index: false, follow: false } } : {}),
   };
 };
 
-export default async function PublicPageDetailPage({ params }: PageProps) {
+export default async function PublicPageDetailPage({ params, searchParams }: PageProps) {
   const { slug, pageSlug } = await params;
+  const { preview } = await searchParams;
   const supabase = await createClient();
+  const isPreviewMode = preview === 'true';
+
+  // Check if user is owner (for preview mode)
+  let isOwner = false;
+  let pageId: string | null = null;
+  if (isPreviewMode) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: ownerCheck } = await supabase
+        .from('portfolios')
+        .select('id')
+        .eq('slug', slug.toLowerCase())
+        .eq('user_id', user.id)
+        .maybeSingle();
+      isOwner = !!ownerCheck;
+    }
+  }
+
+  const showUnpublished = isPreviewMode && isOwner;
 
   // Get portfolio
-  const { data: portfolio, error: portfolioError } = await supabase
+  let portfolioQuery = supabase
     .from('portfolios')
     .select('*')
-    .eq('slug', slug.toLowerCase())
-    .eq('is_published', true)
-    .maybeSingle();
+    .eq('slug', slug.toLowerCase());
+  
+  if (!showUnpublished) {
+    portfolioQuery = portfolioQuery.eq('is_published', true);
+  }
+
+  const { data: portfolio, error: portfolioError } = await portfolioQuery.maybeSingle();
 
   if (portfolioError || !portfolio) {
     notFound();
   }
 
   // Get page
-  const { data: page, error: pageError } = await supabase
+  let pageQuery = supabase
     .from('portfolio_pages')
     .select('*')
     .eq('portfolio_id', portfolio.id)
-    .eq('slug', pageSlug.toLowerCase())
-    .eq('is_published', true)
-    .maybeSingle();
+    .eq('slug', pageSlug.toLowerCase());
+  
+  if (!showUnpublished) {
+    pageQuery = pageQuery.eq('is_published', true);
+  }
+
+  const { data: page, error: pageError } = await pageQuery.maybeSingle();
 
   if (pageError || !page) {
     notFound();
   }
 
+  // Store pageId for edit link
+  pageId = page.id;
 
   // Check if content exists and is valid
   const hasContent = page.content && 
@@ -98,13 +160,34 @@ export default async function PublicPageDetailPage({ params }: PageProps) {
     Array.isArray(page.content.content) &&
     page.content.content.length > 0;
 
+  // Build the back link - preserve preview mode if active
+  const backLink = showUnpublished ? `/p/${slug}?preview=true` : `/p/${slug}`;
+
   return (
     <div className="min-h-screen bg-white">
+      {/* Preview Banner */}
+      {showUnpublished && (
+        <PreviewBanner 
+          editUrl={`/dashboard/portfolio/editor/${pageId}`}
+          portfolioIsPublished={portfolio.is_published && page.is_published}
+        />
+      )}
+
+      {/* Draft Badge for unpublished pages in preview mode */}
+      {showUnpublished && !page.is_published && (
+        <div className="mx-auto max-w-5xl px-4 py-2 sm:px-6">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            Draft - Not yet published
+          </span>
+        </div>
+      )}
+
       {/* Navigation */}
       <nav className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-3 sm:px-6 sm:pb-6 sm:pt-[30px]">
           <Link
-            href={`/p/${slug}`}
+            href={backLink}
             className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -264,7 +347,7 @@ export default async function PublicPageDetailPage({ params }: PageProps) {
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <Link
-              href={`/p/${slug}`}
+              href={backLink}
               className="flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-purple-600"
             >
               <ArrowLeft className="h-4 w-4" />

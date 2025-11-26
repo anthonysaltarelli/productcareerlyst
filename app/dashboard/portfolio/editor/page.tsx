@@ -861,7 +861,18 @@ const InlineProfileEditor = ({
               )}
             </button>
 
-            {/* View Live */}
+            {/* Preview (always visible) */}
+            <a
+              href={`/p/${portfolio.slug}?preview=true`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 rounded-lg bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700 transition-all hover:bg-amber-200"
+            >
+              <Eye className="h-4 w-4" />
+              <span>Preview</span>
+            </a>
+
+            {/* View Live (only when published) */}
             {isPublished && (
               <a
                 href={`/p/${portfolio.slug}`}
