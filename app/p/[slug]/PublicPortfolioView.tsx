@@ -400,7 +400,7 @@ const FeaturedPageCard = ({
   return (
     <Link
       href={`/p/${portfolioSlug}/${page.slug}${previewSuffix}`}
-      className="group relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl"
+      className="group relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-[transform,box-shadow] duration-300 ease-out will-change-transform hover:-translate-y-1 hover:shadow-lg"
     >
       {/* Cover Image */}
       <div className="aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50">
@@ -408,7 +408,7 @@ const FeaturedPageCard = ({
           <img
             src={page.cover_image_url}
             alt={page.title}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.03]"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 text-5xl">
@@ -431,7 +431,7 @@ const FeaturedPageCard = ({
             </span>
           )}
         </div>
-        <h3 className="mb-2 text-xl font-bold text-gray-900 transition-colors duration-300 group-hover:text-gray-600">
+        <h3 className="mb-2 text-xl font-bold text-gray-900 transition-colors duration-200 ease-out group-hover:text-gray-600">
           {page.title}
         </h3>
         {page.description && (
@@ -452,7 +452,7 @@ const FeaturedPageCard = ({
       </div>
 
       {/* Arrow */}
-      <div className="absolute bottom-6 right-6 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:bg-gray-900 group-hover:text-white">
+      <div className="absolute bottom-6 right-6 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 opacity-0 transition-[opacity,background-color,color] duration-200 ease-out group-hover:bg-gray-900 group-hover:text-white group-hover:opacity-100">
         <ChevronRight className="h-5 w-5" />
       </div>
     </Link>
@@ -473,7 +473,7 @@ const PageCard = ({
   return (
     <Link
       href={`/p/${portfolioSlug}/${page.slug}${previewSuffix}`}
-      className="group w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-all duration-500 hover:-translate-y-2 hover:shadow-xl"
+      className="group w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-[transform,box-shadow] duration-300 ease-out will-change-transform hover:-translate-y-1 hover:shadow-lg"
     >
       {/* Cover Image with Title Overlay */}
       <div className="relative aspect-[3/1] w-full overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
@@ -481,7 +481,7 @@ const PageCard = ({
           <img
             src={page.cover_image_url}
             alt={page.title}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.03]"
           />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-gray-800 to-gray-900" />
