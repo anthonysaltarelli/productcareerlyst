@@ -177,7 +177,7 @@ export default function PublicPortfolioView({
             <span className="font-bold">{portfolio.display_name}</span>
             {portfolio.subtitle && (
               <span className="font-normal text-gray-900">
-                {' '}is {portfolio.subtitle.charAt(0).toLowerCase()}{portfolio.subtitle.slice(1)}
+                {' '}is a {portfolio.subtitle.charAt(0).toLowerCase()}{portfolio.subtitle.slice(1)}
                 {!portfolio.subtitle.endsWith('.') && '.'}
               </span>
             )}
@@ -198,37 +198,48 @@ export default function PublicPortfolioView({
       {/* About Section */}
       <section id="about" className="scroll-mt-20 border-t border-gray-100 bg-gray-50/50 py-20 md:py-28">
         <div className="mx-auto max-w-5xl px-6 md:px-8">
-          <div className="grid gap-12 md:grid-cols-[280px_1fr] md:gap-16 lg:grid-cols-[320px_1fr]">
+          <div className="grid gap-12 md:grid-cols-[224px_1fr] md:gap-16 lg:grid-cols-[256px_1fr]">
             {/* Profile Image & Work Experience */}
             <div className="flex flex-col items-center gap-6 md:items-stretch">
               {portfolio.profile_image_url ? (
                 <img
                   src={portfolio.profile_image_url}
                   alt={portfolio.display_name}
-                  className="aspect-square w-48 rounded-2xl object-cover shadow-lg md:w-full"
+                  className="aspect-square w-40 rounded-2xl object-cover shadow-lg md:w-full"
                 />
               ) : (
-                <div className="flex aspect-square w-48 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 text-5xl font-bold text-white shadow-lg md:w-full">
+                <div className="flex aspect-square w-40 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 text-4xl font-bold text-white shadow-lg md:w-full">
                   {portfolio.display_name.charAt(0).toUpperCase()}
                 </div>
               )}
 
               {/* Compact Work Experience */}
-              {portfolio.work_experience && portfolio.work_experience.length > 0 && (
-                <div className="w-full space-y-4">
+              {(portfolio.show_work_experience ?? true) && portfolio.work_experience && portfolio.work_experience.length > 0 && (
+                <div className="w-full space-y-6">
                   {/* Current Position(s) */}
                   {portfolio.work_experience.filter((exp) => exp.is_current).length > 0 && (
                     <div>
-                      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-900">
                         Now
                       </p>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {portfolio.work_experience
                           .filter((exp) => exp.is_current)
                           .map((exp, index) => (
-                            <div key={`current-${index}`} className="flex items-baseline justify-between gap-3">
-                              <span className="text-sm font-medium text-gray-900">{exp.company}</span>
-                              <span className="text-xs text-gray-500">{exp.title}</span>
+                            <div key={`current-${index}`} className="flex flex-col">
+                              {exp.company_url ? (
+                                <a
+                                  href={exp.company_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm font-medium text-gray-900 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-blue-600 hover:decoration-blue-400"
+                                >
+                                  {exp.company}
+                                </a>
+                              ) : (
+                                <span className="text-sm font-medium text-gray-900">{exp.company}</span>
+                              )}
+                              <span className="text-xs font-medium text-gray-500">{exp.title}</span>
                             </div>
                           ))}
                       </div>
@@ -238,16 +249,27 @@ export default function PublicPortfolioView({
                   {/* Previous Position(s) */}
                   {portfolio.work_experience.filter((exp) => !exp.is_current).length > 0 && (
                     <div>
-                      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-900">
                         Previously
                       </p>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {portfolio.work_experience
                           .filter((exp) => !exp.is_current)
                           .map((exp, index) => (
-                            <div key={`prev-${index}`} className="flex items-baseline justify-between gap-3">
-                              <span className="text-sm font-medium text-gray-900">{exp.company}</span>
-                              <span className="text-xs text-gray-500">{exp.title}</span>
+                            <div key={`prev-${index}`} className="flex flex-col">
+                              {exp.company_url ? (
+                                <a
+                                  href={exp.company_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm font-medium text-gray-900 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-blue-600 hover:decoration-blue-400"
+                                >
+                                  {exp.company}
+                                </a>
+                              ) : (
+                                <span className="text-sm font-medium text-gray-900">{exp.company}</span>
+                              )}
+                              <span className="text-xs font-medium text-gray-500">{exp.title}</span>
                             </div>
                           ))}
                       </div>

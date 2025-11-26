@@ -174,6 +174,29 @@ export default function PortfolioEditorPage() {
     }
   }, []);
 
+  // Toggle work experience visibility
+  const handleToggleWorkExperienceVisibility = useCallback(async (show: boolean) => {
+    try {
+      const response = await fetch('/api/portfolio/manage', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ show_work_experience: show }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update');
+
+      setState((prev) => ({
+        ...prev,
+        portfolio: prev.portfolio
+          ? { ...prev.portfolio, show_work_experience: show }
+          : null,
+      }));
+    } catch (error) {
+      console.error('Error toggling work experience visibility:', error);
+      throw error;
+    }
+  }, []);
+
   // Reorder categories with auto-save
   const handleReorderCategories = useCallback(async (newCategories: PortfolioCategoryWithPages[]) => {
     setState((prev) => ({ ...prev, categories: newCategories }));
@@ -346,6 +369,7 @@ export default function PortfolioEditorPage() {
               portfolio={state.portfolio}
               onUpdate={fetchPortfolio}
               onUpdateWorkExperience={handleUpdateWorkExperience}
+              onToggleWorkExperienceVisibility={handleToggleWorkExperienceVisibility}
             />
           )}
 

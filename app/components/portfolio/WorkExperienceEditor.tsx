@@ -15,6 +15,9 @@ import {
   Check,
   Loader2,
   FileText,
+  Link2,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import {
   DndContext,
@@ -52,6 +55,8 @@ interface WorkExperienceEditorProps {
   workExperience: PortfolioWorkExperience[];
   onUpdate: (workExperience: PortfolioWorkExperience[]) => Promise<void>;
   isCollapsed?: boolean;
+  showWorkExperience: boolean;
+  onToggleVisibility: (show: boolean) => Promise<void>;
 }
 
 // ============================================================================
@@ -62,6 +67,8 @@ export const WorkExperienceEditor = ({
   workExperience,
   onUpdate,
   isCollapsed = false,
+  showWorkExperience,
+  onToggleVisibility,
 }: WorkExperienceEditorProps) => {
   const [experiences, setExperiences] = useState<PortfolioWorkExperience[]>(workExperience);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -69,6 +76,20 @@ export const WorkExperienceEditor = ({
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isExpanded, setIsExpanded] = useState(!isCollapsed);
+  const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
+
+  const handleToggleVisibility = async () => {
+    setIsTogglingVisibility(true);
+    try {
+      await onToggleVisibility(!showWorkExperience);
+      toast.success(showWorkExperience ? 'Work experience hidden from portfolio' : 'Work experience visible on portfolio');
+    } catch (error) {
+      console.error('Error toggling visibility:', error);
+      toast.error('Failed to update visibility');
+    } finally {
+      setIsTogglingVisibility(false);
+    }
+  };
 
   // DnD sensors
   const sensors = useSensors(
@@ -212,6 +233,37 @@ export const WorkExperienceEditor = ({
       {/* Content */}
       {isExpanded && (
         <div className="border-t border-gray-100 p-4">
+          {/* Visibility Toggle */}
+          <div className="mb-4 flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-3">
+            <div className="flex items-center gap-2">
+              {showWorkExperience ? (
+                <Eye className="h-4 w-4 text-green-600" />
+              ) : (
+                <EyeOff className="h-4 w-4 text-gray-400" />
+              )}
+              <span className="text-sm font-medium text-gray-700">
+                {showWorkExperience ? 'Visible on portfolio' : 'Hidden from portfolio'}
+              </span>
+            </div>
+            <button
+              onClick={handleToggleVisibility}
+              disabled={isTogglingVisibility}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                showWorkExperience ? 'bg-green-500' : 'bg-gray-300'
+              }`}
+              type="button"
+              role="switch"
+              aria-checked={showWorkExperience}
+              aria-label="Toggle work experience visibility"
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  showWorkExperience ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
           {/* Actions */}
           <div className="mb-4 flex flex-wrap gap-2">
             <button
@@ -497,6 +549,21 @@ const ExperienceRow = ({
             />
           </div>
           <div>
+            <label className="mb-1 block text-xs font-medium text-gray-600">
+              <span className="flex items-center gap-1">
+                <Link2 className="h-3 w-3" />
+                Company URL (optional)
+              </span>
+            </label>
+            <input
+              type="url"
+              value={editData.company_url || ''}
+              onChange={(e) => setEditData({ ...editData, company_url: e.target.value || undefined })}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              placeholder="https://company.com"
+            />
+          </div>
+          <div>
             <label className="mb-1 block text-xs font-medium text-gray-600">Title</label>
             <input
               type="text"
@@ -582,6 +649,9 @@ const ExperienceRow = ({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="font-medium text-gray-800">{experience.company}</span>
+          {experience.company_url && (
+            <Link2 className="h-3.5 w-3.5 text-blue-500" />
+          )}
           {experience.is_current && (
             <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-medium text-green-700">
               Current
@@ -624,6 +694,7 @@ const AddExperienceModal = ({
 }) => {
   const [formData, setFormData] = useState({
     company: '',
+    company_url: '',
     title: '',
     is_current: false,
   });
@@ -636,6 +707,7 @@ const AddExperienceModal = ({
     }
     onAdd({
       company: formData.company.trim(),
+      company_url: formData.company_url.trim() || undefined,
       title: formData.title.trim(),
       is_current: formData.is_current,
       display_order: 0,
@@ -679,6 +751,23 @@ const AddExperienceModal = ({
               placeholder="e.g., Google"
               required
               autoFocus
+            />
+          </div>
+
+          <div>
+            <label htmlFor="company_url" className="mb-1 block text-sm font-medium text-gray-700">
+              <span className="flex items-center gap-1">
+                <Link2 className="h-3.5 w-3.5" />
+                Company URL (optional)
+              </span>
+            </label>
+            <input
+              id="company_url"
+              type="url"
+              value={formData.company_url}
+              onChange={(e) => setFormData({ ...formData, company_url: e.target.value })}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              placeholder="https://company.com"
             />
           </div>
 

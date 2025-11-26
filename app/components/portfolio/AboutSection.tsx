@@ -39,6 +39,7 @@ interface AboutSectionProps {
   portfolio: Portfolio;
   onUpdate: () => void;
   onUpdateWorkExperience: (workExperience: PortfolioWorkExperience[]) => Promise<void>;
+  onToggleWorkExperienceVisibility: (show: boolean) => Promise<void>;
 }
 
 interface SocialPlatform {
@@ -70,6 +71,7 @@ export const AboutSection = ({
   portfolio,
   onUpdate,
   onUpdateWorkExperience,
+  onToggleWorkExperienceVisibility,
 }: AboutSectionProps) => {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -302,6 +304,8 @@ export const AboutSection = ({
         <WorkExperienceEditor
           workExperience={portfolio.work_experience || []}
           onUpdate={onUpdateWorkExperience}
+          showWorkExperience={portfolio.show_work_experience ?? true}
+          onToggleVisibility={onToggleWorkExperienceVisibility}
         />
       </div>
 
@@ -333,7 +337,7 @@ interface SocialLinkRowProps {
   value: string;
   isEditing: boolean;
   isSaving: boolean;
-  inputRef?: React.RefObject<HTMLInputElement>;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
   onEdit: () => void;
   onCancel: () => void;
   onSave: (value: string) => void;
@@ -373,7 +377,7 @@ const SocialLinkRow = ({
           {platform.icon}
         </div>
         <input
-          ref={inputRef as React.RefObject<HTMLInputElement>}
+          ref={inputRef}
           type="text"
           value={localValue}
           onChange={(e) => {

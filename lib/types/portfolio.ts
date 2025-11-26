@@ -11,6 +11,7 @@
 
 export interface PortfolioWorkExperience {
   company: string;
+  company_url?: string;
   title: string;
   is_current: boolean;
   display_order: number;
@@ -47,6 +48,7 @@ export interface Portfolio {
   work_experience: PortfolioWorkExperience[];
   is_published: boolean;
   show_resume_download: boolean;
+  show_work_experience: boolean;
   resume_url?: string;
   created_at: string;
   updated_at: string;
@@ -62,6 +64,7 @@ export interface PortfolioCreateInput {
   work_experience?: PortfolioWorkExperience[];
   is_published?: boolean;
   show_resume_download?: boolean;
+  show_work_experience?: boolean;
   resume_url?: string;
 }
 
@@ -75,6 +78,7 @@ export interface PortfolioUpdateInput {
   work_experience?: PortfolioWorkExperience[];
   is_published?: boolean;
   show_resume_download?: boolean;
+  show_work_experience?: boolean;
   resume_url?: string;
 }
 
