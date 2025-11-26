@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
+import { transferBubbleSubscription } from '@/lib/utils/bubble-transfer'
 
 // Helper function to extract first and last name from user metadata
 function extractNameFromMetadata(userMetadata: any): { firstName: string | null; lastName: string | null } {
@@ -149,6 +150,17 @@ export async function GET(request: NextRequest) {
       } catch (profileError) {
         // Don't block user if profile creation fails
         console.error('[OAuth Callback] Error with profile:', profileError)
+      }
+
+      // Check if this is a Bubble user and transfer subscription (for new users)
+      if (isNewUser && user.email) {
+        try {
+          await transferBubbleSubscription(user.id, user.email);
+          console.log(`[OAuth Callback] Bubble transfer check completed for user ${user.id}`)
+        } catch (transferError) {
+          // Don't block user if transfer fails - they can do it manually
+          console.error('[OAuth Callback] Error transferring Bubble subscription:', transferError);
+        }
       }
 
       // Add new OAuth users to ConvertKit (non-blocking, fire and forget)
