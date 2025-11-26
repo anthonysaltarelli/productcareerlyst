@@ -19,13 +19,16 @@ export const ConditionalLayout = ({
   
   // Check if we're on an onboarding route
   const isOnboarding = pathname?.startsWith('/onboarding')
+  
+  // Check if we're on a public portfolio route (has its own header/footer)
+  const isPublicPortfolio = pathname?.startsWith('/p/')
 
-  if (isDashboard || isOnboarding) {
-    // Dashboard and onboarding pages have their own layouts, no nav/footer needed
+  if (isDashboard || isOnboarding || isPublicPortfolio) {
+    // These pages have their own layouts, no nav/footer needed
     return <>{children}</>
   }
 
-  // Non-dashboard pages get the navigation and footer
+  // Other pages get the navigation and footer
   return (
     <>
       {navigation}
