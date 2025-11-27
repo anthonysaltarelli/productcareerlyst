@@ -284,9 +284,10 @@ export default function PublicPortfolioView({
                 About
               </h2>
               {portfolio.bio && (
-                <p className="mb-8 whitespace-pre-wrap text-lg leading-relaxed text-gray-700 md:text-xl">
-                  {portfolio.bio}
-                </p>
+                <div 
+                  className="portfolio-bio mb-8 text-lg leading-relaxed text-gray-700 md:text-xl"
+                  dangerouslySetInnerHTML={{ __html: portfolio.bio }}
+                />
               )}
 
               {/* Social Links */}
@@ -423,6 +424,25 @@ export default function PublicPortfolioView({
           </p>
         </div>
       </footer>
+
+      {/* Bio HTML Styles */}
+      <style jsx global>{`
+        .portfolio-bio p {
+          margin-bottom: 0.75em;
+        }
+        .portfolio-bio p:last-child {
+          margin-bottom: 0;
+        }
+        .portfolio-bio strong {
+          font-weight: 600;
+        }
+        .portfolio-bio em {
+          font-style: italic;
+        }
+        .portfolio-bio u {
+          text-decoration: underline;
+        }
+      `}</style>
     </div>
   );
 }

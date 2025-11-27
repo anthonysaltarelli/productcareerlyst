@@ -19,7 +19,6 @@ import { getUserPlanClient } from '@/lib/utils/resume-tracking';
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
   wishlist: { label: 'Wishlist', color: 'text-gray-700', bgColor: 'bg-gray-50' },
   applied: { label: 'Applied', color: 'text-blue-700', bgColor: 'bg-blue-50' },
-  screening: { label: 'Screening', color: 'text-cyan-700', bgColor: 'bg-cyan-50' },
   interviewing: { label: 'Interviewing', color: 'text-purple-700', bgColor: 'bg-purple-50' },
   offer: { label: 'Offer', color: 'text-green-700', bgColor: 'bg-green-50' },
   rejected: { label: 'Rejected', color: 'text-red-700', bgColor: 'bg-red-50' },
@@ -696,7 +695,6 @@ export default function JobDetailPage() {
                     const statusLabels: Record<ApplicationStatus, { label: string; icon: string; color: string; bgColor: string }> = {
                       wishlist: { label: 'Added to Wishlist', icon: '⭐', color: 'bg-gray-400', bgColor: 'bg-gray-50' },
                       applied: { label: 'Application Submitted', icon: '📤', color: 'bg-blue-500', bgColor: 'bg-blue-50' },
-                      screening: { label: 'Moved to Screening', icon: '🔍', color: 'bg-cyan-500', bgColor: 'bg-cyan-50' },
                       interviewing: { label: 'Started Interviewing', icon: '🎯', color: 'bg-purple-500', bgColor: 'bg-purple-50' },
                       offer: { label: 'Received Offer! 🎉', icon: '🎉', color: 'bg-green-500', bgColor: 'bg-green-50' },
                       rejected: { label: 'Application Rejected', icon: '❌', color: 'bg-red-500', bgColor: 'bg-red-50' },

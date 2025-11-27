@@ -18,6 +18,7 @@ import {
 import { Portfolio, PortfolioWorkExperience } from '@/lib/types/portfolio';
 import ProfileImageUploadModal from '@/app/components/ProfileImageUploadModal';
 import { WorkExperienceEditor } from '@/app/components/portfolio/WorkExperienceEditor';
+import { SimpleBioEditor } from '@/app/components/portfolio/SimpleBioEditor';
 
 // Custom Substack icon (lucide-react doesn't have one)
 const SubstackIcon = ({ className }: { className?: string }) => (
@@ -81,7 +82,6 @@ export const AboutSection = ({
   });
   const [isSaving, setIsSaving] = useState(false);
   const [showProfileImageModal, setShowProfileImageModal] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Sync form data with portfolio prop
@@ -93,12 +93,9 @@ export const AboutSection = ({
     });
   }, [portfolio]);
 
-  // Focus input when editing starts
+  // Focus input when editing starts (for social links)
   useEffect(() => {
-    if (editingField === 'bio' && textareaRef.current) {
-      textareaRef.current.focus();
-      textareaRef.current.setSelectionRange(textareaRef.current.value.length, textareaRef.current.value.length);
-    } else if (editingField && editingField.startsWith('social_') && inputRef.current) {
+    if (editingField && editingField.startsWith('social_') && inputRef.current) {
       inputRef.current.focus();
       inputRef.current.select();
     }
@@ -208,12 +205,9 @@ export const AboutSection = ({
         
         {editingField === 'bio' ? (
           <div className="space-y-3">
-            <textarea
-              ref={textareaRef}
-              value={formData.bio}
-              onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))}
-              className="w-full rounded-lg border-2 border-purple-400 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-200"
-              rows={8}
+            <SimpleBioEditor
+              content={formData.bio}
+              onChange={(html) => setFormData((prev) => ({ ...prev, bio: html }))}
               placeholder="Tell visitors about yourself, your experience, and what you're passionate about..."
             />
             <div className="flex justify-end gap-2">
@@ -247,7 +241,10 @@ export const AboutSection = ({
             <div className="flex items-start justify-between gap-4">
               <div className={`flex-1 ${formData.bio ? 'text-gray-700' : 'italic text-gray-400'}`}>
                 {formData.bio ? (
-                  <p className="whitespace-pre-wrap">{formData.bio}</p>
+                  <div 
+                    className="bio-preview prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: formData.bio }}
+                  />
                 ) : (
                   'Add a bio to tell visitors about yourself...'
                 )}
