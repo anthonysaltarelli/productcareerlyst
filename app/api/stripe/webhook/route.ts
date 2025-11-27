@@ -109,26 +109,7 @@ export const POST = async (request: NextRequest) => {
     // The body must be the exact raw bytes Stripe sent, not a parsed/stringified version
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err: any) {
-    // Enhanced error logging for debugging
-    console.error('Webhook signature verification failed:', {
-      error: err,
-      errorType: err?.type,
-      errorMessage: err?.message,
-      signatureHeader: signature,
-      bodyLength: body.length,
-      bodyPreview: body.toString('utf8').substring(0, 200),
-      webhookSecretExists: !!webhookSecret,
-      webhookSecretLength: webhookSecret?.length,
-    });
-    
-    // If it's a signature verification error, provide more details
-    if (err?.type === 'StripeSignatureVerificationError') {
-      console.error('Signature verification details:', {
-        header: err?.header,
-        payloadPreview: err?.payload?.substring?.(0, 200),
-      });
-    }
-    
+    console.error('Webhook signature verification failed:', err?.message);
     return NextResponse.json(
       { 
         error: 'Invalid signature',

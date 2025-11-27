@@ -1,7 +1,13 @@
 import { updateSession } from '@/lib/supabase/middleware'
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // Skip middleware for Stripe webhooks - they need raw body access
+  // and should not go through session handling
+  if (request.nextUrl.pathname === '/api/stripe/webhook') {
+    return NextResponse.next()
+  }
+  
   return await updateSession(request)
 }
 
