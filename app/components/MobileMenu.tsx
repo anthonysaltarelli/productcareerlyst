@@ -120,6 +120,21 @@ export const MobileMenu = ({ user, isOnboardingComplete = true }: MobileMenuProp
                   Resume
                 </TrackedLink>
                 <TrackedLink
+                  href="/job-center"
+                  className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
+                  eventName="User Clicked Job Center Link"
+                  linkId="mobile-menu-job-center-link"
+                  eventProperties={{
+                    'Link Section': 'Mobile Menu',
+                    'Link Position': 'Mobile menu',
+                    'Link Type': 'Navigation Link',
+                    'Link Text': 'Job Center',
+                  }}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Job Center
+                </TrackedLink>
+                <TrackedLink
                   href="/portfolio"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 bg-white/50 hover:bg-white transition-all duration-200 text-center"
                   eventName="User Clicked Portfolio Link"

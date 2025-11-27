@@ -92,6 +92,20 @@ export const Navigation = async () => {
                   Resume
                 </TrackedLink>
                 <TrackedLink
+                  href="/job-center"
+                  className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"
+                  eventName="User Clicked Job Center Link"
+                  linkId="navigation-job-center-link"
+                  eventProperties={{
+                    'Link Section': 'Navigation',
+                    'Link Position': 'Desktop navigation',
+                    'Link Type': 'Navigation Link',
+                    'Link Text': 'Job Center',
+                  }}
+                >
+                  Job Center
+                </TrackedLink>
+                <TrackedLink
                   href="/portfolio"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"
                   eventName="User Clicked Portfolio Link"
