@@ -241,10 +241,32 @@ export const AboutSection = ({
             <div className="flex items-start justify-between gap-4">
               <div className={`flex-1 ${formData.bio ? 'text-gray-700' : 'italic text-gray-400'}`}>
                 {formData.bio ? (
-                  <div 
-                    className="bio-preview prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: formData.bio }}
-                  />
+                  <>
+                    <div 
+                      className="bio-preview"
+                      dangerouslySetInnerHTML={{ __html: formData.bio }}
+                    />
+                    <style jsx global>{`
+                      .bio-preview {
+                        line-height: 1.7;
+                      }
+                      .bio-preview p {
+                        margin-bottom: 0.875em;
+                      }
+                      .bio-preview p:last-child {
+                        margin-bottom: 0;
+                      }
+                      .bio-preview strong {
+                        font-weight: 600;
+                      }
+                      .bio-preview em {
+                        font-style: italic;
+                      }
+                      .bio-preview u {
+                        text-decoration: underline;
+                      }
+                    `}</style>
+                  </>
                 ) : (
                   'Add a bio to tell visitors about yourself...'
                 )}
