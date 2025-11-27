@@ -43,9 +43,9 @@ const ResumeLandingPage = () => {
                       🤖 AI-Powered
                     </span>
                   </div>
-                  <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/80 backdrop-blur-sm border-2 border-cyan-300 shadow-lg">
-                    <span className="text-xs sm:text-sm font-bold text-cyan-700">
-                      ✅ ATS-Optimized
+                  <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/80 backdrop-blur-sm border-2 border-purple-300 shadow-lg">
+                    <span className="text-xs sm:text-sm font-bold text-purple-700">
+                      ✨ Available on the Accelerate Plan
                     </span>
                   </div>
                 </div>
@@ -179,194 +179,367 @@ const ResumeLandingPage = () => {
         <div className="mb-12 md:mb-20">
           <div className="text-center mb-8 md:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-gray-800 mb-3 md:mb-4 px-2">
-              Your AI-Powered Resume Advantage
+              Everything You Need to Stand Out
             </h2>
             <p className="text-base sm:text-lg md:text-xl text-gray-700 font-medium px-2">
-              Stop guessing. Let AI help you craft resumes that actually convert.
+              Powerful AI tools that make your resume impossible to ignore.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:gap-6">
+          <div className="space-y-8 md:space-y-12">
 
-            {/* Feature 1: Job-Specific Customization */}
-            <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_8px_0_0_rgba(147,51,234,0.3)] md:shadow-[0_12px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
-              <div className="flex flex-col lg:flex-row items-start gap-4 sm:gap-6">
-                <div className="flex w-14 h-14 sm:w-16 sm:h-16 rounded-[1.25rem] sm:rounded-[1.5rem] bg-gradient-to-br from-purple-400 to-pink-400 shadow-[0_6px_0_0_rgba(147,51,234,0.4)] border-2 border-purple-500 items-center justify-center flex-shrink-0">
-                  <Target className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2 sm:mb-3 flex-wrap">
-                    <h3 className="text-xl sm:text-2xl font-bold text-gray-800">Job-Specific Resume Tailoring</h3>
-                    <span className="px-2.5 py-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold">
-                      ✨ GAME-CHANGER
-                    </span>
+            {/* Feature 1: Resume Import */}
+            <div className="rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-teal-100 to-emerald-100 border-2 border-teal-200 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 md:p-10">
+                <div className="flex flex-col justify-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500 text-white text-xs font-bold mb-4 w-fit">
+                    <Upload className="w-3.5 h-3.5" />
+                    INSTANT IMPORT
                   </div>
-                  <p className="text-sm sm:text-base text-gray-700 font-medium mb-3 sm:mb-4">
-                    Paste any job description and our AI instantly tailors your resume. It reorders your bullet points to prioritize what the employer cares about most, injects relevant keywords naturally, and suggests skills to add—all in seconds.
+                  <h3 className="text-2xl sm:text-3xl font-black text-gray-800 mb-3">
+                    Your Resume, Formatted Perfectly in 60 Seconds
+                  </h3>
+                  <p className="text-base sm:text-lg text-gray-700 font-medium mb-6">
+                    Drop your existing PDF or Word resume. Our AI extracts everything automatically—contact info, work history, skills, education—and professionally formats it.
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                    <div className="p-3 sm:p-4 rounded-xl bg-white/60 border-2 border-purple-200">
-                      <div className="flex items-center gap-2 mb-1 sm:mb-2">
-                        <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
-                        <span className="text-sm font-bold text-gray-800">Smart Reordering</span>
-                      </div>
-                      <p className="text-xs sm:text-sm text-gray-600">Puts your most relevant experience first</p>
+                  <div className="flex items-center gap-3 text-sm font-bold text-teal-700">
+                    <CheckCircle2 className="w-5 h-5" />
+                    PDF & DOCX supported
+                  </div>
+                </div>
+                {/* Mock Upload UI */}
+                <div className="bg-white rounded-2xl border-2 border-teal-200 p-6 shadow-lg">
+                  <div className="border-2 border-dashed border-teal-300 rounded-xl p-8 text-center bg-teal-50/50">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-400 flex items-center justify-center">
+                      <Upload className="w-8 h-8 text-white" />
                     </div>
-                    <div className="p-3 sm:p-4 rounded-xl bg-white/60 border-2 border-purple-200">
-                      <div className="flex items-center gap-2 mb-1 sm:mb-2">
-                        <Search className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
-                        <span className="text-sm font-bold text-gray-800">Keyword Injection</span>
-                      </div>
-                      <p className="text-xs sm:text-sm text-gray-600">Adds missing keywords naturally</p>
+                    <p className="text-lg font-bold text-gray-800 mb-2">Drop your resume here</p>
+                    <p className="text-sm text-gray-600 mb-4">or click to browse</p>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 text-white text-sm font-bold">
+                      <FileText className="w-4 h-4" />
+                      Select File
                     </div>
-                    <div className="p-3 sm:p-4 rounded-xl bg-white/60 border-2 border-purple-200">
-                      <div className="flex items-center gap-2 mb-1 sm:mb-2">
-                        <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
-                        <span className="text-sm font-bold text-gray-800">Instant Results</span>
+                  </div>
+                  <div className="mt-4 p-3 rounded-xl bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
+                        <CheckCircle2 className="w-5 h-5 text-white" />
                       </div>
-                      <p className="text-xs sm:text-sm text-gray-600">Customize in seconds, not hours</p>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-green-800">Extracted successfully!</p>
+                        <p className="text-xs text-green-700">3 jobs • 12 bullets • 8 skills</p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Feature 2: AI Resume Analysis */}
-            <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_8px_0_0_rgba(37,99,235,0.3)] md:shadow-[0_12px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300">
-              <div className="flex flex-col lg:flex-row items-start gap-4 sm:gap-6">
-                <div className="flex w-14 h-14 sm:w-16 sm:h-16 rounded-[1.25rem] sm:rounded-[1.5rem] bg-gradient-to-br from-blue-400 to-cyan-400 shadow-[0_6px_0_0_rgba(37,99,235,0.4)] border-2 border-blue-500 items-center justify-center flex-shrink-0">
-                  <BarChart3 className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+            {/* Feature 2: AI Bullet Optimization - 3 Options */}
+            <div className="rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-amber-200 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 md:p-10">
+                <div className="flex flex-col justify-center order-2 lg:order-1">
+                  {/* Mock Optimization UI */}
+                  <div className="bg-white rounded-2xl border-2 border-amber-200 p-5 shadow-lg">
+                    <div className="p-3 rounded-xl bg-gray-100 border border-gray-200 mb-4">
+                      <p className="text-sm text-gray-600 font-medium">"Worked on product roadmap and helped with feature launches"</p>
+                    </div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Sparkles className="w-4 h-4 text-amber-600" />
+                      <span className="text-xs font-bold text-gray-700">AI Optimized Versions:</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="p-3 rounded-xl bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 cursor-pointer hover:border-purple-400 transition-all">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold text-purple-600">Option 1</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-bold">IMPACT-FOCUSED</span>
+                        </div>
+                        <p className="text-sm text-gray-700">"Spearheaded product roadmap strategy, driving 5 feature launches that increased engagement by 40%"</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 cursor-pointer hover:border-purple-400 transition-all">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold text-purple-600">Option 2</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">METRIC-FOCUSED</span>
+                        </div>
+                        <p className="text-sm text-gray-700">"Led roadmap planning for 3 product lines, shipping 12 features with 98% on-time delivery rate"</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 cursor-pointer hover:border-purple-400 transition-all">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold text-purple-600">Option 3</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-bold">ACTION-FOCUSED</span>
+                        </div>
+                        <p className="text-sm text-gray-700">"Orchestrated cross-functional launch of 5 features, coordinating 4 teams to deliver $2M in new revenue"</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">AI Resume Analysis & Scoring</h3>
-                  <p className="text-sm sm:text-base text-gray-700 font-medium mb-3 sm:mb-4">
-                    Get an instant, comprehensive score with actionable feedback. Our AI evaluates 5 key dimensions and gives you specific recommendations to improve.
+                <div className="flex flex-col justify-center order-1 lg:order-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500 text-white text-xs font-bold mb-4 w-fit">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    3 OPTIONS PER BULLET
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-gray-800 mb-3">
+                    Transform Any Bullet with AI
+                  </h3>
+                  <p className="text-base sm:text-lg text-gray-700 font-medium mb-6">
+                    Click any bullet point and get 3 AI-optimized versions instantly. Each takes a different approach—impact-focused, metric-focused, or action-focused. Pick the one that fits, or edit further.
                   </p>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3 mb-3 sm:mb-4">
-                    <div className="p-2 sm:p-3 rounded-xl bg-white/60 border-2 border-green-200 text-center">
-                      <div className="text-lg sm:text-xl font-black text-green-600 mb-0.5 sm:mb-1">85%</div>
-                      <p className="text-xs text-gray-600 font-medium">Action Verbs</p>
-                    </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-white/60 border-2 border-blue-200 text-center">
-                      <div className="text-lg sm:text-xl font-black text-blue-600 mb-0.5 sm:mb-1">72%</div>
-                      <p className="text-xs text-gray-600 font-medium">Accomplishments</p>
-                    </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-white/60 border-2 border-purple-200 text-center">
-                      <div className="text-lg sm:text-xl font-black text-purple-600 mb-0.5 sm:mb-1">68%</div>
-                      <p className="text-xs text-gray-600 font-medium">Quantification</p>
-                    </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-white/60 border-2 border-orange-200 text-center">
-                      <div className="text-lg sm:text-xl font-black text-orange-600 mb-0.5 sm:mb-1">90%</div>
-                      <p className="text-xs text-gray-600 font-medium">Impact</p>
-                    </div>
-                    <div className="col-span-2 sm:col-span-1 p-2 sm:p-3 rounded-xl bg-white/60 border-2 border-yellow-200 text-center">
-                      <div className="text-lg sm:text-xl font-black text-yellow-600 mb-0.5 sm:mb-1">82%</div>
-                      <p className="text-xs text-gray-600 font-medium">Conciseness</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-200">
-                    <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 flex-shrink-0" />
-                    <span className="text-sm sm:text-base font-bold text-green-800">ATS Compatible: Good</span>
-                    <span className="text-xs sm:text-sm text-green-700 ml-auto">Your resume will pass ATS filters</span>
+                  <div className="flex items-center gap-3 text-sm font-bold text-amber-700">
+                    <Zap className="w-5 h-5" />
+                    Results in under 30 seconds
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Feature 3: AI Bullet Optimization */}
-            <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-amber-200 to-orange-200 shadow-[0_8px_0_0_rgba(245,158,11,0.3)] md:shadow-[0_12px_0_0_rgba(245,158,11,0.3)] border-2 border-amber-300">
-              <div className="flex flex-col lg:flex-row items-start gap-4 sm:gap-6">
-                <div className="flex w-14 h-14 sm:w-16 sm:h-16 rounded-[1.25rem] sm:rounded-[1.5rem] bg-gradient-to-br from-amber-400 to-orange-400 shadow-[0_6px_0_0_rgba(245,158,11,0.4)] border-2 border-amber-500 items-center justify-center flex-shrink-0">
-                  <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">AI Bullet Point Optimization</h3>
-                  <p className="text-sm sm:text-base text-gray-700 font-medium mb-3 sm:mb-4">
-                    Transform weak bullet points into compelling achievements. Our AI rewrites your experience using powerful action verbs and quantified results.
+            {/* Feature 3: Full Analysis */}
+            <div className="rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-blue-100 to-cyan-100 border-2 border-blue-200 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 md:p-10">
+                <div className="flex flex-col justify-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500 text-white text-xs font-bold mb-4 w-fit">
+                    <BarChart3 className="w-3.5 h-3.5" />
+                    COMPREHENSIVE ANALYSIS
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-gray-800 mb-3">
+                    Know Exactly Where You Stand
+                  </h3>
+                  <p className="text-base sm:text-lg text-gray-700 font-medium mb-6">
+                    Get a complete breakdown of your resume's strengths and weaknesses. Our AI evaluates action verbs, accomplishments, quantification, impact, and conciseness—then tells you exactly how to improve.
                   </p>
-                  <div className="space-y-3">
-                    <div className="p-3 sm:p-4 rounded-xl bg-red-100/80 border-2 border-red-200">
-                      <div className="flex items-center gap-2 mb-1 sm:mb-2">
-                        <span className="text-red-500 font-bold text-sm">BEFORE:</span>
-                      </div>
-                      <p className="text-sm sm:text-base text-gray-700 italic">"Worked on product roadmap and helped with feature launches"</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-sm font-bold text-blue-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      5-7 prioritized recommendations
                     </div>
-                    <div className="flex justify-center">
-                      <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 transform rotate-90" />
+                    <div className="flex items-center gap-3 text-sm font-bold text-blue-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Keyword analysis (present & missing)
                     </div>
-                    <div className="p-3 sm:p-4 rounded-xl bg-green-100/80 border-2 border-green-200">
-                      <div className="flex items-center gap-2 mb-1 sm:mb-2">
-                        <span className="text-green-600 font-bold text-sm">AFTER:</span>
+                    <div className="flex items-center gap-3 text-sm font-bold text-blue-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      ATS compatibility check
+                    </div>
+                  </div>
+                </div>
+                {/* Mock Analysis UI */}
+                <div className="bg-white rounded-2xl border-2 border-blue-200 p-5 shadow-lg">
+                  {/* Overall Score */}
+                  <div className="flex items-center gap-4 mb-5 pb-5 border-b border-gray-200">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                      <span className="text-3xl font-black text-white">78</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-600">Overall Score</p>
+                      <p className="text-lg font-black text-gray-800">Good — Room to improve</p>
+                    </div>
+                  </div>
+                  {/* Category Scores */}
+                  <div className="grid grid-cols-5 gap-2 mb-5">
+                    <div className="text-center p-2 rounded-lg bg-green-50 border border-green-200">
+                      <div className="text-lg font-black text-green-600">85%</div>
+                      <p className="text-[10px] text-gray-600 font-medium">Verbs</p>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-blue-50 border border-blue-200">
+                      <div className="text-lg font-black text-blue-600">72%</div>
+                      <p className="text-[10px] text-gray-600 font-medium">Accomplish.</p>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-orange-50 border border-orange-200">
+                      <div className="text-lg font-black text-orange-600">58%</div>
+                      <p className="text-[10px] text-gray-600 font-medium">Numbers</p>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-purple-50 border border-purple-200">
+                      <div className="text-lg font-black text-purple-600">82%</div>
+                      <p className="text-[10px] text-gray-600 font-medium">Impact</p>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-yellow-50 border border-yellow-200">
+                      <div className="text-lg font-black text-yellow-600">90%</div>
+                      <p className="text-[10px] text-gray-600 font-medium">Concise</p>
+                    </div>
+                  </div>
+                  {/* Sample Recommendations */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Top Recommendations</p>
+                    <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-200 text-red-700">HIGH</span>
+                        <span className="text-sm font-bold text-gray-800">Add metrics to bullet points</span>
                       </div>
-                      <p className="text-sm sm:text-base text-gray-700 italic">"Spearheaded product roadmap strategy for 3 key initiatives, driving 5 successful feature launches that increased user engagement by 40%"</p>
+                      <p className="text-xs text-gray-600">Only 40% of your bullets include numbers. Add revenue, users, or percentages.</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-orange-50 border border-orange-200">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-200 text-orange-700">MED</span>
+                        <span className="text-sm font-bold text-gray-800">Missing key PM keywords</span>
+                      </div>
+                      <p className="text-xs text-gray-600">Add: "roadmap", "A/B testing", "stakeholder management"</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Two-column features */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              {/* Feature 4: PDF Import */}
-              <div className="p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-teal-200 to-emerald-200 shadow-[0_8px_0_0_rgba(20,184,166,0.3)] border-2 border-teal-300">
-                <div className="flex items-start gap-4">
-                  <div className="flex w-12 h-12 sm:w-14 sm:h-14 rounded-[1rem] sm:rounded-[1.25rem] bg-gradient-to-br from-teal-400 to-emerald-400 shadow-[0_4px_0_0_rgba(20,184,166,0.4)] border-2 border-teal-500 items-center justify-center flex-shrink-0">
-                    <Upload className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1 sm:mb-2">Smart Resume Import</h3>
-                    <p className="text-sm sm:text-base text-gray-700 font-medium">
-                      Upload your existing PDF or DOCX resume and our AI extracts everything—contact info, experiences, skills, and bullet points—automatically.
-                    </p>
+            {/* Feature 4: Job-Specific Customization */}
+            <div className="rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-200 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 md:p-10">
+                <div className="flex flex-col justify-center order-2 lg:order-1">
+                  {/* Mock Comparison UI - Word-level diff */}
+                  <div className="bg-white rounded-2xl border-2 border-purple-200 p-5 shadow-lg">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-sm font-bold text-gray-700">Bullet Comparison</span>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-1 rounded-lg bg-blue-100 text-blue-700 text-xs font-bold flex items-center gap-1">
+                          <RefreshCw className="w-3 h-3" />
+                          Reordered
+                        </span>
+                        <span className="px-2 py-1 rounded-lg bg-purple-100 text-purple-700 text-xs font-bold flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          Optimized
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Word-level diff example */}
+                    <div className="space-y-4">
+                      {/* Original */}
+                      <div className="p-3 rounded-xl bg-gray-50 border border-gray-200">
+                        <p className="text-[10px] font-bold text-gray-500 mb-2 flex items-center gap-1">
+                          <span className="w-4 h-4 rounded bg-gray-300 flex items-center justify-center text-gray-600">#3</span>
+                          ORIGINAL
+                        </p>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          Led <span className="bg-red-200 text-red-800 rounded px-0.5">cross-functional</span> teams to launch 3 features, increasing <span className="bg-red-200 text-red-800 rounded px-0.5">monthly active users</span> by 25%
+                        </p>
+                      </div>
+                      
+                      {/* Arrow */}
+                      <div className="flex justify-center">
+                        <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                          <ArrowRight className="w-4 h-4 text-purple-600 rotate-90" />
+                        </div>
+                      </div>
+                      
+                      {/* Optimized */}
+                      <div className="p-3 rounded-xl bg-green-50 border border-green-200">
+                        <p className="text-[10px] font-bold text-green-600 mb-2 flex items-center gap-2">
+                          <span className="w-4 h-4 rounded bg-green-500 flex items-center justify-center text-white font-bold">#1</span>
+                          TAILORED
+                          <span className="text-[9px] text-green-600 bg-green-100 px-1.5 py-0.5 rounded">↑ Moved to top</span>
+                        </p>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          Led <span className="bg-green-200 text-green-800 rounded px-0.5">agile</span> teams to launch 3 features, increasing <span className="bg-green-200 text-green-800 rounded px-0.5">user engagement</span> by 25%
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Keywords Added */}
+                    <div className="mt-4 p-3 rounded-xl bg-purple-50 border border-purple-200">
+                      <p className="text-[10px] font-bold text-purple-600 mb-2">KEYWORDS ADDED TO YOUR RESUME</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="px-2 py-0.5 rounded-full bg-green-200 text-green-800 text-[10px] font-bold">+data-driven</span>
+                        <span className="px-2 py-0.5 rounded-full bg-green-200 text-green-800 text-[10px] font-bold">+roadmap</span>
+                        <span className="px-2 py-0.5 rounded-full bg-green-200 text-green-800 text-[10px] font-bold">+stakeholders</span>
+                        <span className="px-2 py-0.5 rounded-full bg-green-200 text-green-800 text-[10px] font-bold">+user research</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Feature 5: Multiple Versions */}
-              <div className="p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-indigo-200 to-violet-200 shadow-[0_8px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300">
-                <div className="flex items-start gap-4">
-                  <div className="flex w-12 h-12 sm:w-14 sm:h-14 rounded-[1rem] sm:rounded-[1.25rem] bg-gradient-to-br from-indigo-400 to-violet-400 shadow-[0_4px_0_0_rgba(99,102,241,0.4)] border-2 border-indigo-500 items-center justify-center flex-shrink-0">
-                    <Layers className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                <div className="flex flex-col justify-center order-1 lg:order-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500 text-white text-xs font-bold mb-4 w-fit">
+                    <Target className="w-3.5 h-3.5" />
+                    JOB-SPECIFIC TAILORING
                   </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1 sm:mb-2">Multiple Resume Versions</h3>
-                    <p className="text-sm sm:text-base text-gray-700 font-medium">
-                      Create different versions for different roles—one for startups, one for enterprise, one for each target company. Clone and customize in seconds.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Feature 6: Keyword Analysis */}
-              <div className="p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-rose-200 to-pink-200 shadow-[0_8px_0_0_rgba(244,63,94,0.3)] border-2 border-rose-300">
-                <div className="flex items-start gap-4">
-                  <div className="flex w-12 h-12 sm:w-14 sm:h-14 rounded-[1rem] sm:rounded-[1.25rem] bg-gradient-to-br from-rose-400 to-pink-400 shadow-[0_4px_0_0_rgba(244,63,94,0.4)] border-2 border-rose-500 items-center justify-center flex-shrink-0">
-                    <Search className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1 sm:mb-2">PM Keyword Analysis</h3>
-                    <p className="text-sm sm:text-base text-gray-700 font-medium">
-                      See which PM keywords you're using (roadmap, OKRs, A/B testing) and which critical ones you're missing. Beat ATS filters with the right terminology.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Feature 7: PDF Export */}
-              <div className="p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-sky-200 to-blue-200 shadow-[0_8px_0_0_rgba(14,165,233,0.3)] border-2 border-sky-300">
-                <div className="flex items-start gap-4">
-                  <div className="flex w-12 h-12 sm:w-14 sm:h-14 rounded-[1rem] sm:rounded-[1.25rem] bg-gradient-to-br from-sky-400 to-blue-400 shadow-[0_4px_0_0_rgba(14,165,233,0.4)] border-2 border-sky-500 items-center justify-center flex-shrink-0">
-                    <FileDown className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1 sm:mb-2">Professional PDF Export</h3>
-                    <p className="text-sm sm:text-base text-gray-700 font-medium">
-                      Export beautifully formatted PDFs ready for submission. ATS-friendly layouts that look great on screen and in print.
-                    </p>
+                  <h3 className="text-2xl sm:text-3xl font-black text-gray-800 mb-3">
+                    One Click to a Custom Resume
+                  </h3>
+                  <p className="text-base sm:text-lg text-gray-700 font-medium mb-6">
+                    Paste any job description and watch the magic happen. Our AI reorders your bullets to prioritize what the employer wants, injects missing keywords naturally, and shows you exactly what changed.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-sm font-bold text-purple-700">
+                      <RefreshCw className="w-5 h-5" />
+                      Smart bullet reordering
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-purple-700">
+                      <Search className="w-5 h-5" />
+                      Natural keyword injection
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-purple-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Side-by-side comparison
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Feature 5: Export Options */}
+            <div className="rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-slate-100 to-gray-100 border-2 border-slate-200 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 md:p-10">
+                <div className="flex flex-col justify-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-600 text-white text-xs font-bold mb-4 w-fit">
+                    <FileDown className="w-3.5 h-3.5" />
+                    EXPORT ANYWHERE
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-gray-800 mb-3">
+                    Download and Apply Instantly
+                  </h3>
+                  <p className="text-base sm:text-lg text-gray-700 font-medium mb-6">
+                    Export as a beautifully formatted PDF and submit directly to job applications. Or download as DOCX if you want to continue editing in Word or Google Docs.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      ATS-friendly formatting
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Clean, professional layouts
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Export unlimited versions
+                    </div>
+                  </div>
+                </div>
+                {/* Export Format Cards */}
+                <div className="flex flex-col gap-4 justify-center">
+                  {/* PDF Card */}
+                  <div className="bg-white rounded-2xl border-2 border-red-200 p-5 shadow-lg hover:shadow-xl transition-shadow">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg">
+                        <FileText className="w-7 h-7 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-black text-gray-800 text-lg">PDF Format</h4>
+                        <p className="text-sm text-gray-600">Ready for instant submission on any job application</p>
+                      </div>
+                      <button className="px-4 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold flex items-center gap-2 hover:bg-red-600 transition-colors">
+                        <FileDown className="w-4 h-4" />
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* DOCX Card */}
+                  <div className="bg-white rounded-2xl border-2 border-blue-200 p-5 shadow-lg hover:shadow-xl transition-shadow">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                        <FileText className="w-7 h-7 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-black text-gray-800 text-lg">DOCX Format</h4>
+                        <p className="text-sm text-gray-600">Continue editing in Word or Google Docs</p>
+                      </div>
+                      <button className="px-4 py-2.5 rounded-xl bg-blue-500 text-white text-sm font-bold flex items-center gap-2 hover:bg-blue-600 transition-colors">
+                        <FileDown className="w-4 h-4" />
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
