@@ -60,8 +60,8 @@ const ResumeLandingPage = () => {
                 {/* Key stats */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
                   <div className="text-center p-3 sm:p-4 rounded-[1rem] sm:rounded-[1.5rem] bg-white/60 backdrop-blur-sm border-2 border-blue-200">
-                    <div className="text-2xl sm:text-3xl font-black text-blue-700 mb-1">75%</div>
-                    <p className="text-xs sm:text-sm font-bold text-gray-700">of resumes rejected by ATS</p>
+                    <div className="text-2xl sm:text-3xl font-black text-blue-700 mb-1">~5%</div>
+                    <p className="text-xs sm:text-sm font-bold text-gray-700">of applications get interviews</p>
                   </div>
                   <div className="text-center p-3 sm:p-4 rounded-[1rem] sm:rounded-[1.5rem] bg-white/60 backdrop-blur-sm border-2 border-cyan-200">
                     <div className="text-2xl sm:text-3xl font-black text-cyan-700 mb-1">7 sec</div>
@@ -104,20 +104,20 @@ const ResumeLandingPage = () => {
               Why Your Resume Isn't Working
             </h2>
             <p className="text-base sm:text-lg md:text-xl text-gray-700 font-medium px-2">
-              It's not you—it's the system. Here's what you're up against.
+              Here's the hard truth about why you're not landing interviews.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8">
             <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] bg-gradient-to-br from-red-200 to-orange-200 shadow-[0_8px_0_0_rgba(239,68,68,0.3)] md:shadow-[0_10px_0_0_rgba(239,68,68,0.3)] border-2 border-red-300">
               <div className="flex items-start gap-3 sm:gap-4">
-                <span className="text-3xl sm:text-4xl flex-shrink-0">🤖</span>
+                <span className="text-3xl sm:text-4xl flex-shrink-0">🎯</span>
                 <div>
                   <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1 sm:mb-2">
-                    ATS Systems Filter You Out
+                    You Don't Look Like a Fit
                   </h3>
                   <p className="text-sm sm:text-base text-gray-700 font-medium">
-                    Before a human ever sees your resume, software scans for keywords and formatting. Miss the right terms and you're automatically rejected—even if you're perfectly qualified.
+                    Recruiters scan for relevance in seconds. If your experience doesn't clearly match what they're looking for, you're out—even if you'd be perfect for the role.
                   </p>
                 </div>
               </div>
@@ -125,27 +125,13 @@ const ResumeLandingPage = () => {
 
             <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] bg-gradient-to-br from-red-200 to-orange-200 shadow-[0_8px_0_0_rgba(239,68,68,0.3)] md:shadow-[0_10px_0_0_rgba(239,68,68,0.3)] border-2 border-red-300">
               <div className="flex items-start gap-3 sm:gap-4">
-                <span className="text-3xl sm:text-4xl flex-shrink-0">⏱️</span>
+                <span className="text-3xl sm:text-4xl flex-shrink-0">📊</span>
                 <div>
                   <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1 sm:mb-2">
-                    Recruiters Skim, Not Read
+                    No Proof of Impact
                   </h3>
                   <p className="text-sm sm:text-base text-gray-700 font-medium">
-                    With 250+ applications per role, recruiters spend just 7 seconds per resume. If your most relevant experience isn't immediately visible, you're in the "no" pile.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] bg-gradient-to-br from-red-200 to-orange-200 shadow-[0_8px_0_0_rgba(239,68,68,0.3)] md:shadow-[0_10px_0_0_rgba(239,68,68,0.3)] border-2 border-red-300">
-              <div className="flex items-start gap-3 sm:gap-4">
-                <span className="text-3xl sm:text-4xl flex-shrink-0">📋</span>
-                <div>
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1 sm:mb-2">
-                    One-Size-Fits-All Fails
-                  </h3>
-                  <p className="text-sm sm:text-base text-gray-700 font-medium">
-                    The same resume for every job? That's how you get passed over. Top candidates customize their resume for each application, highlighting the most relevant achievements first.
+                    "Responsible for..." and "Worked on..." tell recruiters nothing. Without quantified results and clear outcomes, your accomplishments look like a list of job duties.
                   </p>
                 </div>
               </div>
@@ -156,10 +142,24 @@ const ResumeLandingPage = () => {
                 <span className="text-3xl sm:text-4xl flex-shrink-0">😵</span>
                 <div>
                   <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1 sm:mb-2">
-                    Weak Bullet Points
+                    Hard to Follow Format
                   </h3>
                   <p className="text-sm sm:text-base text-gray-700 font-medium">
-                    "Responsible for..." and "Worked on..." tell recruiters nothing. Without strong action verbs and quantified results, your accomplishments don't land.
+                    Dense paragraphs, inconsistent structure, buried information. If recruiters can't quickly find what they need, they move on to the next candidate.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] bg-gradient-to-br from-red-200 to-orange-200 shadow-[0_8px_0_0_rgba(239,68,68,0.3)] md:shadow-[0_10px_0_0_rgba(239,68,68,0.3)] border-2 border-red-300">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <span className="text-3xl sm:text-4xl flex-shrink-0">📋</span>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1 sm:mb-2">
+                    Generic for Every Role
+                  </h3>
+                  <p className="text-sm sm:text-base text-gray-700 font-medium">
+                    The same resume for every job? That's how you get passed over. Top candidates tailor their resume to highlight the most relevant experience for each opportunity.
                   </p>
                 </div>
               </div>
@@ -397,15 +397,15 @@ const ResumeLandingPage = () => {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-red-500 text-lg font-bold flex-shrink-0">✗</span>
-                  <span className="text-sm sm:text-base text-gray-700 font-medium">Gets filtered out by ATS 75% of the time</span>
+                  <span className="text-sm sm:text-base text-gray-700 font-medium">Doesn't look like a fit at first glance</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-red-500 text-lg font-bold flex-shrink-0">✗</span>
-                  <span className="text-sm sm:text-base text-gray-700 font-medium">Weak bullets that list responsibilities, not results</span>
+                  <span className="text-sm sm:text-base text-gray-700 font-medium">Lists responsibilities instead of impact</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-red-500 text-lg font-bold flex-shrink-0">✗</span>
-                  <span className="text-sm sm:text-base text-gray-700 font-medium">Missing PM keywords recruiters search for</span>
+                  <span className="text-sm sm:text-base text-gray-700 font-medium">Hard to skim with poor formatting</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-red-500 text-lg font-bold flex-shrink-0">✗</span>
@@ -429,15 +429,15 @@ const ResumeLandingPage = () => {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-green-600 text-lg font-bold flex-shrink-0">✓</span>
-                  <span className="text-sm sm:text-base text-gray-700 font-medium">ATS-optimized with all the right keywords</span>
+                  <span className="text-sm sm:text-base text-gray-700 font-medium">Immediately looks like a great fit for the role</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-green-600 text-lg font-bold flex-shrink-0">✓</span>
-                  <span className="text-sm sm:text-base text-gray-700 font-medium">Powerful action verbs with quantified achievements</span>
+                  <span className="text-sm sm:text-base text-gray-700 font-medium">Quantified achievements that prove impact</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-green-600 text-lg font-bold flex-shrink-0">✓</span>
-                  <span className="text-sm sm:text-base text-gray-700 font-medium">Complete PM keyword coverage for the role</span>
+                  <span className="text-sm sm:text-base text-gray-700 font-medium">Clean, scannable format that's easy to follow</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-green-600 text-lg font-bold flex-shrink-0">✓</span>
