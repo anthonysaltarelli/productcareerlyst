@@ -774,132 +774,10 @@ const PortfolioLandingPage = () => {
               </div>
             </div>
 
-            {/* Feature 5: Profile & Social Links */}
-            <div className="rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-teal-100 to-cyan-100 border-2 border-teal-200 overflow-hidden">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 md:p-10">
-                <div className="flex flex-col justify-center">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500 text-white text-xs font-bold mb-4 w-fit">
-                    <User className="w-3.5 h-3.5" />
-                    PROFILE SECTION
-                  </div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-gray-800 mb-3">
-                    Your Professional Identity in One Place
-                  </h3>
-                  <p className="text-base sm:text-lg text-gray-700 font-medium mb-6">
-                    Add your photo, bio, work experience, and connect all your social profiles. Give recruiters everything they need to know about you at a glance.
-                  </p>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3 text-sm font-bold text-teal-700">
-                      <CheckCircle2 className="w-5 h-5" />
-                      Professional bio section
-                    </div>
-                    <div className="flex items-center gap-3 text-sm font-bold text-teal-700">
-                      <CheckCircle2 className="w-5 h-5" />
-                      Work experience timeline
-                    </div>
-                    <div className="flex items-center gap-3 text-sm font-bold text-teal-700">
-                      <CheckCircle2 className="w-5 h-5" />
-                      Social links (LinkedIn, Twitter, GitHub)
-                    </div>
-                  </div>
-                </div>
-                {/* Mock Profile UI */}
-                <div className="bg-white rounded-2xl border-2 border-teal-200 p-5 shadow-lg">
-                  <div className="flex items-center gap-4 mb-5 pb-5 border-b border-gray-200">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-400 to-cyan-400 flex items-center justify-center text-white text-2xl font-bold">
-                      AS
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-bold text-gray-800 text-lg">Anthony Saltarelli</h4>
-                      <p className="text-sm text-gray-600">Product Manager • San Francisco, CA</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-5 leading-relaxed">
-                    Product leader with 7+ years building consumer products at scale. Passionate about user research, data-driven decisions, and shipping fast.
-                  </p>
-                  <div className="flex flex-wrap gap-2 mb-5">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 text-xs font-bold">
-                      <Linkedin className="w-3.5 h-3.5" />
-                      LinkedIn
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs font-bold">
-                      <Twitter className="w-3.5 h-3.5" />
-                      Twitter
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 text-white text-xs font-bold">
-                      <Github className="w-3.5 h-3.5" />
-                      GitHub
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 text-xs font-bold">
-                      <Mail className="w-3.5 h-3.5" />
-                      Email
-                    </span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-200">
-                    <p className="text-xs font-bold text-gray-500 mb-2">WORK EXPERIENCE</p>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white text-xs font-bold">U</div>
-                        <div>
-                          <p className="text-sm font-bold text-gray-800">Uber</p>
-                          <p className="text-xs text-gray-500">Senior PM • 2021-Present</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white text-xs font-bold">S</div>
-                        <div>
-                          <p className="text-sm font-bold text-gray-800">Stripe</p>
-                          <p className="text-xs text-gray-500">Product Manager • 2018-2021</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Feature 6: Custom URLs & Publishing */}
+            {/* Feature 5: Custom URLs & Publishing */}
             <div className="rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-slate-100 to-gray-100 border-2 border-slate-200 overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 md:p-10">
-                <div className="flex flex-col justify-center order-2 lg:order-1">
-                  {/* Mock URL & Publishing UI */}
-                  <div className="bg-white rounded-2xl border-2 border-slate-200 p-5 shadow-lg">
-                    <div className="mb-5">
-                      <p className="text-xs font-bold text-gray-500 mb-2">YOUR PORTFOLIO URL</p>
-                      <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border-2 border-gray-200">
-                        <Globe className="w-5 h-5 text-gray-400" />
-                        <span className="text-sm font-mono text-gray-600">productcareerlyst.com/p/</span>
-                        <span className="text-sm font-mono font-bold text-emerald-600">yourname</span>
-                      </div>
-                    </div>
-                    <div className="mb-5">
-                      <p className="text-xs font-bold text-gray-500 mb-2">PAGE SLUGS</p>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 border border-gray-200">
-                          <span className="text-xs text-gray-500">/p/yourname/</span>
-                          <span className="text-xs font-bold text-gray-800">uber-eats-optimization</span>
-                        </div>
-                        <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 border border-gray-200">
-                          <span className="text-xs text-gray-500">/p/yourname/</span>
-                          <span className="text-xs font-bold text-gray-800">airbnb-pricing-strategy</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-emerald-100 to-teal-100 border border-emerald-200">
-                      <div className="flex items-center gap-3">
-                        <Eye className="w-5 h-5 text-emerald-600" />
-                        <div>
-                          <p className="text-sm font-bold text-emerald-800">Portfolio Published</p>
-                          <p className="text-xs text-emerald-600">Visible to everyone</p>
-                        </div>
-                      </div>
-                      <div className="w-12 h-6 rounded-full bg-emerald-500 flex items-center justify-end px-1">
-                        <div className="w-4 h-4 rounded-full bg-white shadow"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-col justify-center order-1 lg:order-2">
+                <div className="flex flex-col justify-center">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-600 text-white text-xs font-bold mb-4 w-fit">
                     <Link2 className="w-3.5 h-3.5" />
                     CUSTOM URLs & PUBLISHING
@@ -922,6 +800,42 @@ const PortfolioLandingPage = () => {
                     <div className="flex items-center gap-3 text-sm font-bold text-slate-700">
                       <CheckCircle2 className="w-5 h-5" />
                       One-click publish/unpublish
+                    </div>
+                  </div>
+                </div>
+                {/* Mock URL & Publishing UI */}
+                <div className="bg-white rounded-2xl border-2 border-slate-200 p-5 shadow-lg">
+                  <div className="mb-5">
+                    <p className="text-xs font-bold text-gray-500 mb-2">YOUR PORTFOLIO URL</p>
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border-2 border-gray-200">
+                      <Globe className="w-5 h-5 text-gray-400" />
+                      <span className="text-sm font-mono text-gray-600">productcareerlyst.com/p/</span>
+                      <span className="text-sm font-mono font-bold text-emerald-600">yourname</span>
+                    </div>
+                  </div>
+                  <div className="mb-5">
+                    <p className="text-xs font-bold text-gray-500 mb-2">PAGE SLUGS</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 border border-gray-200">
+                        <span className="text-xs text-gray-500">/p/yourname/</span>
+                        <span className="text-xs font-bold text-gray-800">uber-eats-optimization</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 border border-gray-200">
+                        <span className="text-xs text-gray-500">/p/yourname/</span>
+                        <span className="text-xs font-bold text-gray-800">airbnb-pricing-strategy</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-emerald-100 to-teal-100 border border-emerald-200">
+                    <div className="flex items-center gap-3">
+                      <Eye className="w-5 h-5 text-emerald-600" />
+                      <div>
+                        <p className="text-sm font-bold text-emerald-800">Portfolio Published</p>
+                        <p className="text-xs text-emerald-600">Visible to everyone</p>
+                      </div>
+                    </div>
+                    <div className="w-12 h-6 rounded-full bg-emerald-500 flex items-center justify-end px-1">
+                      <div className="w-4 h-4 rounded-full bg-white shadow"></div>
                     </div>
                   </div>
                 </div>
