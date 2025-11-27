@@ -1,5 +1,8 @@
 # Cursor Rules for Product Careerlyst
 
+## For data migrations or investigations 
+Always just use the Supabase MCP when doing data investigations or running migrations. 
+
 ## Amplitude Event Tracking Standards
 
 ### Event Naming Convention

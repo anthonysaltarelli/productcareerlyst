@@ -77,8 +77,73 @@ const unpublishUserPortfolioIfNotAccelerate = async (
   }
 };
 
+/**
+ * Store webhook event in database for debugging and audit purposes
+ */
+const storeWebhookEvent = async (
+  event: Stripe.Event,
+  signature: string | null,
+  ipAddress: string | null
+): Promise<string | null> => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('webhook_events')
+      .insert({
+        stripe_event_id: event.id,
+        stripe_event_type: event.type,
+        payload: event,
+        stripe_created_at: new Date(event.created * 1000).toISOString(),
+        stripe_signature: signature?.substring(0, 100), // Store first 100 chars only
+        ip_address: ipAddress,
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      // Don't fail the webhook if logging fails - just warn
+      console.warn('[Webhook] Failed to store event in database:', error.message);
+      return null;
+    }
+
+    return data?.id || null;
+  } catch (err) {
+    console.warn('[Webhook] Exception storing event:', err);
+    return null;
+  }
+};
+
+/**
+ * Update webhook event record after processing
+ */
+const updateWebhookEventStatus = async (
+  eventId: string | null,
+  processed: boolean,
+  error?: string
+): Promise<void> => {
+  if (!eventId) return;
+
+  try {
+    await supabaseAdmin
+      .from('webhook_events')
+      .update({
+        processed,
+        processing_error: error || null,
+        processed_at: new Date().toISOString(),
+      })
+      .eq('id', eventId);
+  } catch (err) {
+    // Don't fail if update fails
+    console.warn('[Webhook] Failed to update event status:', err);
+  }
+};
+
 export const POST = async (request: NextRequest) => {
   const stripe = getStripeClient();
+  
+  // Get IP address for logging
+  const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                    request.headers.get('x-real-ip') || 
+                    null;
   
   // Get raw body as Buffer for proper signature verification
   // This ensures the exact bytes Stripe sent are used for verification
@@ -119,6 +184,9 @@ export const POST = async (request: NextRequest) => {
     );
   }
 
+  // Store the event in database for debugging/audit (non-blocking)
+  const webhookEventId = await storeWebhookEvent(event, signature, ipAddress);
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -156,9 +224,20 @@ export const POST = async (request: NextRequest) => {
         console.log(`Unhandled event type: ${event.type}`);
     }
 
+    // Mark event as successfully processed
+    await updateWebhookEventStatus(webhookEventId, true);
+
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('Error processing webhook:', error);
+    
+    // Mark event as failed with error message
+    await updateWebhookEventStatus(
+      webhookEventId, 
+      false, 
+      error instanceof Error ? error.message : 'Unknown error'
+    );
+
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }
