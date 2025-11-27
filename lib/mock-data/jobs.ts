@@ -56,7 +56,7 @@ export const mockJobApplications: LegacyJobApplication[] = [
       currency: 'USD',
     },
     jobUrl: 'https://amazon.jobs/en/jobs/2345678',
-    status: 'screening',
+    status: 'applied',
     priority: 'medium',
     appliedDate: '2025-10-25',
     notes: 'Initial recruiter call scheduled. Review leadership principles.',

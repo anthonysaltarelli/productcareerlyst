@@ -16,7 +16,7 @@ import { updateJobApplication } from '@/lib/hooks/useJobApplications';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 
-const columnOrder: ApplicationStatus[] = ['wishlist', 'applied', 'screening', 'interviewing', 'offer', 'rejected'];
+const columnOrder: ApplicationStatus[] = ['wishlist', 'applied', 'interviewing', 'offer', 'rejected'];
 
 interface KanbanBoardProps {
   applications: JobApplicationWithCompany[];

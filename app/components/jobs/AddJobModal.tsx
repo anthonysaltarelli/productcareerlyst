@@ -871,7 +871,6 @@ export const AddJobModal = ({ isOpen, onClose, onSuccess }: AddJobModalProps) =>
               >
                 <option value="wishlist">Wishlist</option>
                 <option value="applied">Applied</option>
-                <option value="screening">Screening</option>
                 <option value="interviewing">Interviewing</option>
                 <option value="offer">Offer</option>
                 <option value="rejected">Rejected</option>

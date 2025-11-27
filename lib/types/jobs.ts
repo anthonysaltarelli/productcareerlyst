@@ -7,7 +7,6 @@
 export type ApplicationStatus = 
   | 'wishlist' 
   | 'applied' 
-  | 'screening' 
   | 'interviewing' 
   | 'offer' 
   | 'rejected' 

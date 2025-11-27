@@ -7,7 +7,6 @@ import { KanbanCard } from './KanbanCard';
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string; borderColor: string }> = {
   wishlist: { label: 'Wishlist', color: 'text-gray-700', bgColor: 'bg-gray-50', borderColor: 'border-gray-300' },
   applied: { label: 'Applied', color: 'text-blue-700', bgColor: 'bg-blue-50', borderColor: 'border-blue-300' },
-  screening: { label: 'Screening', color: 'text-yellow-700', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-300' },
   interviewing: { label: 'Interviewing', color: 'text-purple-700', bgColor: 'bg-purple-50', borderColor: 'border-purple-300' },
   offer: { label: 'Offer', color: 'text-green-700', bgColor: 'bg-green-50', borderColor: 'border-green-300' },
   rejected: { label: 'Rejected', color: 'text-red-700', bgColor: 'bg-red-50', borderColor: 'border-red-300' },
@@ -18,7 +17,6 @@ const statusConfig: Record<ApplicationStatus, { label: string; color: string; bg
 const statusBadgeBorderConfig: Record<ApplicationStatus, string> = {
   wishlist: 'border-gray-400',
   applied: 'border-blue-400',
-  screening: 'border-yellow-400',
   interviewing: 'border-purple-400',
   offer: 'border-green-400',
   rejected: 'border-red-400',

@@ -4,10 +4,10 @@
 -- Note: Run this after 001_create_updated_at_function.sql
 
 -- Application status enum
+-- Note: 'screening' was removed in Nov 2025 - existing records were migrated to 'applied'
 CREATE TYPE application_status AS ENUM (
   'wishlist',
   'applied',
-  'screening',
   'interviewing',
   'offer',
   'rejected',

@@ -148,7 +148,7 @@ Communication history with contacts.
 
 All categorical fields use PostgreSQL enums for type safety:
 
-- `application_status`: wishlist, applied, screening, interviewing, offer, rejected, accepted, withdrawn
+- `application_status`: wishlist, applied, interviewing, offer, rejected, accepted, withdrawn
 - `priority_level`: low, medium, high
 - `work_mode`: remote, hybrid, onsite
 - `interview_type`: recruiter_screen, phone_screen, technical, behavioral, system_design, onsite, final, other

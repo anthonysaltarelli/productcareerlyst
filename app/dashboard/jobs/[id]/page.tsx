@@ -19,7 +19,7 @@ import { getUserPlanClient } from '@/lib/utils/resume-tracking';
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
   wishlist: { label: 'Wishlist', color: 'text-gray-700', bgColor: 'bg-gray-50' },
   applied: { label: 'Applied', color: 'text-blue-700', bgColor: 'bg-blue-50' },
-  screening: { label: 'Screening', color: 'text-yellow-700', bgColor: 'bg-yellow-50' },
+  screening: { label: 'Screening', color: 'text-cyan-700', bgColor: 'bg-cyan-50' },
   interviewing: { label: 'Interviewing', color: 'text-purple-700', bgColor: 'bg-purple-50' },
   offer: { label: 'Offer', color: 'text-green-700', bgColor: 'bg-green-50' },
   rejected: { label: 'Rejected', color: 'text-red-700', bgColor: 'bg-red-50' },
@@ -54,6 +54,14 @@ export default function JobDetailPage() {
   const { application, loading, error, refetch } = useJobApplication(jobId);
   const { interviews, refetch: refetchInterviews } = useInterviews(jobId);
   const { contacts, refetch: refetchContacts } = useContacts(undefined, jobId);
+
+  // Status history state
+  const [statusHistory, setStatusHistory] = useState<Array<{
+    id: string;
+    old_status: ApplicationStatus | null;
+    new_status: ApplicationStatus;
+    changed_at: string;
+  }>>([]);
 
   // Initialize activeTab from query params, default to 'overview'
   const tabFromQuery = searchParams.get('tab') as 'overview' | 'interviews' | 'contacts' | 'documents' | 'research' | null;
@@ -172,6 +180,25 @@ export default function JobDetailPage() {
       setNotesValue(application.notes || '');
     }
   }, [application?.notes, isEditingNotes]);
+
+  // Fetch status history for the application
+  useEffect(() => {
+    const fetchStatusHistory = async () => {
+      if (!jobId) return;
+      
+      try {
+        const response = await fetch(`/api/jobs/applications/${jobId}/status-history`);
+        if (response.ok) {
+          const data = await response.json();
+          setStatusHistory(data.history || []);
+        }
+      } catch (err) {
+        console.error('Error fetching status history:', err);
+      }
+    };
+
+    fetchStatusHistory();
+  }, [jobId, application?.status]); // Refetch when status changes
 
   // Check if user has completed or has a request in progress
   const hasCompletedOrInProgressRequest = wizaRequests.some(
@@ -485,7 +512,7 @@ export default function JobDetailPage() {
                   </>
                 )}
                 <span className="text-gray-400">•</span>
-                <span className={`px-4 py-2 rounded-[1rem] text-sm font-black border-2 ${statusConfig[application.status].bgColor} ${statusConfig[application.status].color} ${application.status === 'wishlist' || application.status === 'withdrawn' ? 'border-gray-400' : application.status === 'applied' ? 'border-blue-400' : application.status === 'screening' ? 'border-yellow-400' : application.status === 'interviewing' ? 'border-purple-400' : application.status === 'offer' || application.status === 'accepted' ? 'border-green-400' : 'border-red-400'}`}>
+                <span className={`px-4 py-2 rounded-[1rem] text-sm font-black border-2 ${statusConfig[application.status].bgColor} ${statusConfig[application.status].color} ${application.status === 'wishlist' || application.status === 'withdrawn' ? 'border-gray-400' : application.status === 'applied' ? 'border-blue-400' : application.status === 'interviewing' ? 'border-purple-400' : application.status === 'offer' || application.status === 'accepted' ? 'border-green-400' : 'border-red-400'}`}>
                   {statusConfig[application.status].label}
                 </span>
                 {application.work_mode && (
@@ -664,33 +691,97 @@ export default function JobDetailPage() {
               <div className="p-8 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300">
                 <h3 className="text-2xl font-black text-gray-900 mb-6">Activity Timeline ⏱️</h3>
                 <div className="space-y-5">
-                  {application.applied_date && (
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-3 h-3 rounded-full bg-blue-500 shadow-[0_2px_0_0_rgba(37,99,235,0.4)] mt-1.5"></div>
-                      <div>
-                        <div className="font-bold text-gray-900">Application Submitted</div>
-                        <div className="text-sm text-gray-700 font-semibold">{handleFormatDate(application.applied_date)}</div>
-                      </div>
-                    </div>
-                  )}
-                  {interviews.map((interview) => (
-                    <div key={interview.id} className="flex gap-4">
-                      <div className="flex-shrink-0 w-3 h-3 rounded-full bg-purple-500 shadow-[0_2px_0_0_rgba(147,51,234,0.4)] mt-1.5"></div>
-                      <div>
-                        <div className="font-bold text-gray-900">{interview.title}</div>
-                        <div className="text-sm text-gray-700 font-semibold">
-                          {interview.scheduled_for ? handleFormatDateTime(interview.scheduled_for) : 'Date TBD'}
+                  {/* Combine status history and interviews, sorted by date (newest first) */}
+                  {(() => {
+                    const statusLabels: Record<ApplicationStatus, { label: string; icon: string; color: string; bgColor: string }> = {
+                      wishlist: { label: 'Added to Wishlist', icon: '⭐', color: 'bg-gray-400', bgColor: 'bg-gray-50' },
+                      applied: { label: 'Application Submitted', icon: '📤', color: 'bg-blue-500', bgColor: 'bg-blue-50' },
+                      screening: { label: 'Moved to Screening', icon: '🔍', color: 'bg-cyan-500', bgColor: 'bg-cyan-50' },
+                      interviewing: { label: 'Started Interviewing', icon: '🎯', color: 'bg-purple-500', bgColor: 'bg-purple-50' },
+                      offer: { label: 'Received Offer! 🎉', icon: '🎉', color: 'bg-green-500', bgColor: 'bg-green-50' },
+                      rejected: { label: 'Application Rejected', icon: '❌', color: 'bg-red-500', bgColor: 'bg-red-50' },
+                      accepted: { label: 'Accepted Offer! 🎊', icon: '🎊', color: 'bg-emerald-500', bgColor: 'bg-emerald-50' },
+                      withdrawn: { label: 'Application Withdrawn', icon: '↩️', color: 'bg-gray-500', bgColor: 'bg-gray-50' },
+                    };
+
+                    // Create timeline items from status history
+                    const timelineItems: Array<{
+                      id: string;
+                      type: 'status' | 'interview';
+                      date: string;
+                      title: string;
+                      subtitle?: string;
+                      color: string;
+                      icon?: string;
+                      isFirst?: boolean;
+                    }> = statusHistory.map((item, index) => ({
+                      id: item.id,
+                      type: 'status' as const,
+                      date: item.changed_at,
+                      title: item.old_status === null 
+                        ? 'Application Created' 
+                        : statusLabels[item.new_status]?.label || `Status: ${item.new_status}`,
+                      subtitle: item.old_status !== null 
+                        ? `From ${statusConfig[item.old_status]?.label || item.old_status}` 
+                        : undefined,
+                      color: item.old_status === null 
+                        ? 'bg-gray-400' 
+                        : statusLabels[item.new_status]?.color || 'bg-gray-400',
+                      icon: item.old_status === null 
+                        ? '📝' 
+                        : statusLabels[item.new_status]?.icon,
+                      isFirst: index === statusHistory.length - 1,
+                    }));
+
+                    // Add interviews to timeline
+                    interviews.forEach((interview) => {
+                      if (interview.scheduled_for) {
+                        timelineItems.push({
+                          id: interview.id,
+                          type: 'interview',
+                          date: interview.scheduled_for,
+                          title: interview.title,
+                          subtitle: interview.status === 'completed' ? 'Completed' : interview.status === 'scheduled' ? 'Scheduled' : 'Cancelled',
+                          color: interview.status === 'completed' ? 'bg-green-500' : interview.status === 'scheduled' ? 'bg-purple-500' : 'bg-gray-400',
+                          icon: '📅',
+                        });
+                      }
+                    });
+
+                    // Sort by date (newest first)
+                    timelineItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+                    return timelineItems.length > 0 ? (
+                      timelineItems.map((item) => (
+                        <div key={item.id} className="flex gap-4">
+                          <div className={`flex-shrink-0 w-3 h-3 rounded-full ${item.color} shadow-[0_2px_0_0_rgba(0,0,0,0.2)] mt-1.5`}></div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              {item.icon && <span className="text-sm">{item.icon}</span>}
+                              <span className="font-bold text-gray-900">{item.title}</span>
+                            </div>
+                            {item.subtitle && (
+                              <div className="text-xs text-gray-500 font-semibold">{item.subtitle}</div>
+                            )}
+                            <div className="text-sm text-gray-700 font-semibold">
+                              {item.type === 'interview' 
+                                ? handleFormatDateTime(item.date) 
+                                : handleFormatDate(item.date)}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      // Fallback if no status history yet
+                      <div className="flex gap-4">
+                        <div className="flex-shrink-0 w-3 h-3 rounded-full bg-gray-400 shadow-[0_2px_0_0_rgba(0,0,0,0.2)] mt-1.5"></div>
+                        <div>
+                          <div className="font-bold text-gray-900">📝 Application Created</div>
+                          <div className="text-sm text-gray-700 font-semibold">{handleFormatDate(application.created_at)}</div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-3 h-3 rounded-full bg-gray-400 shadow-[0_2px_0_0_rgba(0,0,0,0.2)] mt-1.5"></div>
-                    <div>
-                      <div className="font-bold text-gray-900">Application Created</div>
-                      <div className="text-sm text-gray-700 font-semibold">{handleFormatDate(application.created_at)}</div>
-                    </div>
-                  </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

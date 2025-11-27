@@ -15,7 +15,6 @@ import { KanbanBoard } from '@/app/components/jobs/KanbanBoard';
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
   wishlist: { label: 'Wishlist', color: 'text-gray-700', bgColor: 'bg-gray-50' },
   applied: { label: 'Applied', color: 'text-blue-700', bgColor: 'bg-blue-50' },
-  screening: { label: 'Screening', color: 'text-yellow-700', bgColor: 'bg-yellow-50' },
   interviewing: { label: 'Interviewing', color: 'text-purple-700', bgColor: 'bg-purple-50' },
   offer: { label: 'Offer', color: 'text-green-700', bgColor: 'bg-green-50' },
   rejected: { label: 'Rejected', color: 'text-red-700', bgColor: 'bg-red-50' },
@@ -244,7 +243,7 @@ export default function JobsPage() {
                       {handleFormatSalary(job)}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-3 py-1.5 rounded-[0.75rem] text-xs font-black border-2 ${statusConfig[job.status].bgColor} ${statusConfig[job.status].color} ${status === 'wishlist' || status === 'withdrawn' ? 'border-gray-400' : status === 'applied' ? 'border-blue-400' : status === 'screening' ? 'border-yellow-400' : status === 'interviewing' ? 'border-purple-400' : status === 'offer' || status === 'accepted' ? 'border-green-400' : 'border-red-400'}`}>
+                      <span className={`px-3 py-1.5 rounded-[0.75rem] text-xs font-black border-2 ${statusConfig[job.status].bgColor} ${statusConfig[job.status].color} ${job.status === 'wishlist' || job.status === 'withdrawn' ? 'border-gray-400' : job.status === 'applied' ? 'border-blue-400' : job.status === 'interviewing' ? 'border-purple-400' : job.status === 'offer' || job.status === 'accepted' ? 'border-green-400' : 'border-red-400'}`}>
                         {statusConfig[job.status].label}
                       </span>
                     </td>
