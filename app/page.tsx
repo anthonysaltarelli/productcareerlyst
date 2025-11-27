@@ -237,184 +237,160 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:gap-6">
-            <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_8px_0_0_rgba(99,102,241,0.3)] md:shadow-[0_12px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300">
-              <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-                <span className="text-3xl sm:hidden">📚</span>
-                <div className="hidden sm:flex w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-indigo-400 to-purple-400 shadow-[0_6px_0_0_rgba(99,102,241,0.4)] border-2 border-indigo-500 items-center justify-center flex-shrink-0">
-                  <span className="text-3xl">📚</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            {/* Portfolio Editor - Featured at top, full width */}
+            <div className="p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_10px_0_0_rgba(22,163,74,0.3)] md:shadow-[0_12px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300 md:col-span-2">
+              <div className="flex flex-col md:flex-row md:items-center gap-5 md:gap-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-[1.25rem] sm:rounded-[1.5rem] bg-gradient-to-br from-green-400 to-emerald-400 shadow-[0_6px_0_0_rgba(22,163,74,0.4)] border-2 border-green-500 flex items-center justify-center flex-shrink-0">
+                    <span className="text-3xl sm:text-4xl">🎨</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-bold text-gray-800">Portfolio Editor</h3>
+                    <p className="text-xs sm:text-sm text-green-700 font-bold">Stand out from 99% of PM candidates</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">PM Courses</h3>
-                  <p className="text-sm sm:text-base text-gray-700 font-medium mb-2 sm:mb-3">
-                    Structured learning paths with 120+ video lessons across 7 comprehensive courses. Master product management skills from resume building to portfolio creation.
-                  </p>
-                  <ul className="space-y-1.5 sm:space-y-2 text-sm sm:text-base text-gray-700 font-medium mb-3 sm:mb-4">
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-indigo-600 font-black flex-shrink-0">✓</span>
-                      <span>7 courses organized by category (Interview Mastery, Career Advancement, PM Fundamentals)</span>
-                    </li>
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-indigo-600 font-black flex-shrink-0">✓</span>
-                      <span>Embedded Loom video lessons with progress tracking</span>
-                    </li>
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-indigo-600 font-black flex-shrink-0">✓</span>
-                      <span>Course navigation with lesson-by-lesson progression</span>
-                    </li>
-                  </ul>
-                  <TrackedLink
-                    href="/courses"
-                    className="inline-block px-5 py-2.5 sm:px-6 sm:py-3 rounded-[1rem] sm:rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-indigo-300 font-black text-sm sm:text-base text-indigo-700 transition-all duration-200"
-                    eventName="User Clicked Courses Link"
-                    linkId="homepage-features-pm-courses-link"
-                    eventProperties={{
-                      'Link Section': 'Features Section',
-                      'Link Position': 'PM Courses Feature Card',
-                      'Link Type': 'Feature Card CTA',
-                      'Link Text': 'Browse Courses →',
-                      'Feature Card': 'PM Courses',
-                      'Card Color': 'Indigo to Purple Gradient',
-                      'Card Position': 'First Feature Card',
-                    }}
-                  >
-                    Browse Courses →
-                  </TrackedLink>
-                </div>
+                <p className="text-sm sm:text-base text-gray-700 font-medium flex-1">
+                  Build a stunning portfolio website with AI writing assistant, Unsplash image integration, and your custom URL. Showcase your strategic thinking with professional case studies.
+                </p>
+                <TrackedLink
+                  href="/portfolio"
+                  className="inline-block px-6 py-3 rounded-[1.25rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_4px_0_0_rgba(22,163,74,0.5)] border-2 border-green-600 hover:translate-y-0.5 hover:shadow-[0_2px_0_0_rgba(22,163,74,0.5)] font-black text-sm sm:text-base text-white transition-all duration-200 text-center flex-shrink-0"
+                  eventName="User Clicked Portfolio Link"
+                  linkId="homepage-features-portfolio-link"
+                  eventProperties={{
+                    'Link Section': 'Features Section',
+                    'Link Position': 'Portfolio Editor Feature Card',
+                    'Link Type': 'Feature Card CTA',
+                    'Link Text': 'Build Your Portfolio →',
+                    'Feature Card': 'Portfolio Editor',
+                    'Card Color': 'Green to Emerald Gradient',
+                    'Card Position': 'First Feature Card (Featured)',
+                  }}
+                >
+                  Build Your Portfolio →
+                </TrackedLink>
               </div>
             </div>
 
-            <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-pink-200 to-rose-200 shadow-[0_8px_0_0_rgba(236,72,153,0.3)] md:shadow-[0_12px_0_0_rgba(236,72,153,0.3)] border-2 border-pink-300">
-              <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-                <span className="text-3xl sm:hidden">⚡</span>
-                <div className="hidden sm:flex w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-pink-400 to-rose-400 shadow-[0_6px_0_0_rgba(236,72,153,0.4)] border-2 border-pink-500 items-center justify-center flex-shrink-0">
-                  <span className="text-3xl">⚡</span>
+            {/* PM Courses */}
+            <div className="p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_8px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300 flex flex-col">
+              <div className="flex items-center gap-3 sm:gap-4 mb-3">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-[1rem] sm:rounded-[1.25rem] bg-gradient-to-br from-indigo-400 to-purple-400 shadow-[0_4px_0_0_rgba(99,102,241,0.4)] border-2 border-indigo-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl sm:text-3xl">📚</span>
                 </div>
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">PM Templates & Resources</h3>
-                  <p className="text-sm sm:text-base text-gray-700 font-medium mb-2 sm:mb-3">
-                    Access 50+ essential PM templates and resources. PRDs, roadmaps, OKRs, and frameworks that help you ship faster and think more strategically.
-                  </p>
-                  <ul className="space-y-1.5 sm:space-y-2 text-sm sm:text-base text-gray-700 font-medium">
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-pink-600 font-black flex-shrink-0">✓</span>
-                      <span>50+ templates across 4 categories</span>
-                    </li>
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-pink-600 font-black flex-shrink-0">✓</span>
-                      <span>Smart templates that adapt to your product context</span>
-                    </li>
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-pink-600 font-black flex-shrink-0">✓</span>
-                      <span>Prioritization frameworks (RICE, value vs effort, ICE)</span>
-                    </li>
-                  </ul>
-                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800">PM Courses</h3>
               </div>
+              <p className="text-sm sm:text-base text-gray-700 font-medium mb-4 flex-1">
+                120+ video lessons across 7 courses. Interview mastery, career advancement, and PM fundamentals with progress tracking.
+              </p>
+              <TrackedLink
+                href="/courses"
+                className="inline-block px-5 py-2.5 rounded-[1rem] bg-white/80 hover:bg-white border-2 border-indigo-300 font-black text-sm text-indigo-700 transition-all duration-200 text-center"
+                eventName="User Clicked Courses Link"
+                linkId="homepage-features-pm-courses-link"
+                eventProperties={{
+                  'Link Section': 'Features Section',
+                  'Link Position': 'PM Courses Feature Card',
+                  'Link Type': 'Feature Card CTA',
+                  'Link Text': 'Browse Courses →',
+                  'Feature Card': 'PM Courses',
+                  'Card Color': 'Indigo to Purple Gradient',
+                  'Card Position': 'Second Feature Card',
+                }}
+              >
+                Browse Courses →
+              </TrackedLink>
             </div>
 
-            <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-teal-200 to-cyan-200 shadow-[0_8px_0_0_rgba(20,184,166,0.3)] md:shadow-[0_12px_0_0_rgba(20,184,166,0.3)] border-2 border-teal-300">
-              <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-                <span className="text-3xl sm:hidden">💼</span>
-                <div className="hidden sm:flex w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-teal-400 to-cyan-400 shadow-[0_6px_0_0_rgba(20,184,166,0.4)] border-2 border-teal-500 items-center justify-center flex-shrink-0">
-                  <span className="text-3xl">💼</span>
+            {/* PM Templates & Resources */}
+            <div className="p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-amber-200 to-orange-200 shadow-[0_8px_0_0_rgba(245,158,11,0.3)] border-2 border-amber-300 flex flex-col">
+              <div className="flex items-center gap-3 sm:gap-4 mb-3">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-[1rem] sm:rounded-[1.25rem] bg-gradient-to-br from-amber-400 to-orange-400 shadow-[0_4px_0_0_rgba(245,158,11,0.4)] border-2 border-amber-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl sm:text-3xl">⚡</span>
                 </div>
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">Job Center</h3>
-                  <p className="text-sm sm:text-base text-gray-700 font-medium mb-2 sm:mb-3">
-                    Track applications, research companies, and manage your entire job search in one place. Kanban boards, interview scheduling, and automated company research.
-                  </p>
-                  <ul className="space-y-1.5 sm:space-y-2 text-sm sm:text-base text-gray-700 font-medium">
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-teal-600 font-black flex-shrink-0">✓</span>
-                      <span>Track applications with Kanban board and list views</span>
-                    </li>
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-teal-600 font-black flex-shrink-0">✓</span>
-                      <span>Schedule interviews and manage contacts at companies</span>
-                    </li>
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-teal-600 font-black flex-shrink-0">✓</span>
-                      <span>Automated company research with AI-powered insights</span>
-                    </li>
-                  </ul>
-                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800">PM Templates & Resources</h3>
               </div>
+              <p className="text-sm sm:text-base text-gray-700 font-medium mb-4 flex-1">
+                20+ essential templates: PRDs, roadmaps, interview prep, negotiation scripts, and frameworks to ship faster.
+              </p>
+              <TrackedLink
+                href="/resources"
+                className="inline-block px-5 py-2.5 rounded-[1rem] bg-white/80 hover:bg-white border-2 border-amber-300 font-black text-sm text-amber-700 transition-all duration-200 text-center"
+                eventName="User Clicked Resources Link"
+                linkId="homepage-features-resources-link"
+                eventProperties={{
+                  'Link Section': 'Features Section',
+                  'Link Position': 'PM Templates Feature Card',
+                  'Link Type': 'Feature Card CTA',
+                  'Link Text': 'View Templates →',
+                  'Feature Card': 'PM Templates & Resources',
+                  'Card Color': 'Amber to Orange Gradient',
+                  'Card Position': 'Third Feature Card',
+                }}
+              >
+                View Templates →
+              </TrackedLink>
             </div>
 
-            <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_8px_0_0_rgba(37,99,235,0.3)] md:shadow-[0_12px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300">
-              <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-                <span className="text-3xl sm:hidden">📄</span>
-                <div className="hidden sm:flex w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-blue-400 to-cyan-400 shadow-[0_6px_0_0_rgba(37,99,235,0.4)] border-2 border-blue-500 items-center justify-center flex-shrink-0">
-                  <span className="text-3xl">📄</span>
+            {/* Job Center */}
+            <div className="p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-teal-200 to-cyan-200 shadow-[0_8px_0_0_rgba(20,184,166,0.3)] border-2 border-teal-300 flex flex-col">
+              <div className="flex items-center gap-3 sm:gap-4 mb-3">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-[1rem] sm:rounded-[1.25rem] bg-gradient-to-br from-teal-400 to-cyan-400 shadow-[0_4px_0_0_rgba(20,184,166,0.4)] border-2 border-teal-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl sm:text-3xl">💼</span>
                 </div>
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">Resume Editor</h3>
-                  <p className="text-sm sm:text-base text-gray-700 font-medium mb-2 sm:mb-3">
-                    Build, optimize, and analyze your resume with AI-powered insights. Create multiple versions, customize for specific jobs, and export to PDF.
-                  </p>
-                  <ul className="space-y-1.5 sm:space-y-2 text-sm sm:text-base text-gray-700 font-medium">
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-blue-600 font-black flex-shrink-0">✓</span>
-                      <span>Multiple resume versions with full editing capabilities</span>
-                    </li>
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-blue-600 font-black flex-shrink-0">✓</span>
-                      <span>AI-powered bullet optimization and resume analysis</span>
-                    </li>
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-blue-600 font-black flex-shrink-0">✓</span>
-                      <span>Customizable styles and PDF export functionality</span>
-                    </li>
-                  </ul>
-                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800">Job Center</h3>
               </div>
+              <p className="text-sm sm:text-base text-gray-700 font-medium mb-4 flex-1">
+                Kanban job tracking, AI company research across 13 vectors, verified PM contacts, and interview question generation.
+              </p>
+              <TrackedLink
+                href="/job-center"
+                className="inline-block px-5 py-2.5 rounded-[1rem] bg-white/80 hover:bg-white border-2 border-teal-300 font-black text-sm text-teal-700 transition-all duration-200 text-center"
+                eventName="User Clicked Job Center Link"
+                linkId="homepage-features-job-center-link"
+                eventProperties={{
+                  'Link Section': 'Features Section',
+                  'Link Position': 'Job Center Feature Card',
+                  'Link Type': 'Feature Card CTA',
+                  'Link Text': 'Learn More →',
+                  'Feature Card': 'Job Center',
+                  'Card Color': 'Teal to Cyan Gradient',
+                  'Card Position': 'Fourth Feature Card',
+                }}
+              >
+                Learn More →
+              </TrackedLink>
             </div>
 
-            <div className="p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_8px_0_0_rgba(22,163,74,0.3)] md:shadow-[0_12px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300">
-              <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-                <span className="text-3xl sm:hidden">🎨</span>
-                <div className="hidden sm:flex w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-green-400 to-emerald-400 shadow-[0_6px_0_0_rgba(22,163,74,0.4)] border-2 border-green-500 items-center justify-center flex-shrink-0">
-                  <span className="text-3xl">🎨</span>
+            {/* Resume Editor */}
+            <div className="p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_8px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300 flex flex-col">
+              <div className="flex items-center gap-3 sm:gap-4 mb-3">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-[1rem] sm:rounded-[1.25rem] bg-gradient-to-br from-blue-400 to-cyan-400 shadow-[0_4px_0_0_rgba(37,99,235,0.4)] border-2 border-blue-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl sm:text-3xl">📄</span>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-3">Portfolio Editor</h3>
-                  <p className="text-sm sm:text-base text-gray-700 font-medium mb-2 sm:mb-3">
-                    Build a stunning product portfolio website that showcases your strategic thinking. Stand out from 99% of PM candidates with professional case studies.
-                  </p>
-                  <ul className="space-y-1.5 sm:space-y-2 text-sm sm:text-base text-gray-700 font-medium mb-3 sm:mb-4">
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-green-600 font-black flex-shrink-0">✓</span>
-                      <span>Rich text editor with Unsplash image integration</span>
-                    </li>
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-green-600 font-black flex-shrink-0">✓</span>
-                      <span>Custom URL with your name (productcareerlyst.com/p/yourname)</span>
-                    </li>
-                    <li className="flex items-start sm:items-center gap-2">
-                      <span className="text-green-600 font-black flex-shrink-0">✓</span>
-                      <span>Mobile-optimized, SEO-friendly portfolio website</span>
-                    </li>
-                  </ul>
-                  <TrackedLink
-                    href="/portfolio"
-                    className="inline-block px-5 py-2.5 sm:px-6 sm:py-3 rounded-[1rem] sm:rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-green-300 font-black text-sm sm:text-base text-green-700 transition-all duration-200"
-                    eventName="User Clicked Portfolio Link"
-                    linkId="homepage-features-portfolio-link"
-                    eventProperties={{
-                      'Link Section': 'Features Section',
-                      'Link Position': 'Portfolio Editor Feature Card',
-                      'Link Type': 'Feature Card CTA',
-                      'Link Text': 'Learn More →',
-                      'Feature Card': 'Portfolio Editor',
-                      'Card Color': 'Green to Emerald Gradient',
-                      'Card Position': 'Fifth Feature Card',
-                    }}
-                  >
-                    Learn More →
-                  </TrackedLink>
-                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800">Resume Editor</h3>
               </div>
+              <p className="text-sm sm:text-base text-gray-700 font-medium mb-4 flex-1">
+                AI-powered bullet optimization, resume analysis, job-specific tailoring, and PDF export. Multiple versions supported.
+              </p>
+              <TrackedLink
+                href="/resume"
+                className="inline-block px-5 py-2.5 rounded-[1rem] bg-white/80 hover:bg-white border-2 border-blue-300 font-black text-sm text-blue-700 transition-all duration-200 text-center"
+                eventName="User Clicked Resume Link"
+                linkId="homepage-features-resume-link"
+                eventProperties={{
+                  'Link Section': 'Features Section',
+                  'Link Position': 'Resume Editor Feature Card',
+                  'Link Type': 'Feature Card CTA',
+                  'Link Text': 'Learn More →',
+                  'Feature Card': 'Resume Editor',
+                  'Card Color': 'Blue to Cyan Gradient',
+                  'Card Position': 'Fifth Feature Card',
+                }}
+              >
+                Learn More →
+              </TrackedLink>
             </div>
           </div>
         </div>
