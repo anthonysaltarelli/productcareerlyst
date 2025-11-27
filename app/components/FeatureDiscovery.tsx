@@ -1,9 +1,9 @@
 'use client'
 
-import { useFlags } from 'launchdarkly-react-client-sdk'
 import { TrackedLink } from '@/app/components/TrackedLink'
 import { getDashboardTrackingContext } from '@/lib/utils/dashboard-tracking-context'
 import type { DashboardStats } from '@/app/api/dashboard/stats/route'
+import { ExternalLink, Sparkles } from 'lucide-react'
 
 interface FeatureDiscoveryProps {
   stats: {
@@ -224,6 +224,74 @@ export const FeatureDiscovery = ({ stats, fullStats, subscription }: FeatureDisc
             </div>
           </div>
         </TrackedLink>
+      </div>
+
+      {/* Portfolio Editor - Featured Section */}
+      <div className="mt-6">
+        <div className="p-5 md:p-8 rounded-[2.5rem] bg-gradient-to-br from-emerald-200 to-teal-200 shadow-[0_12px_0_0_rgba(16,185,129,0.3)] border-2 border-emerald-300">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-start gap-6 mb-6">
+            <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-emerald-400 to-teal-400 shadow-[0_6px_0_0_rgba(16,185,129,0.4)] border-2 border-emerald-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-3xl">🎨</span>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">Portfolio Editor</h3>
+              <p className="text-gray-700 font-medium">
+                Build a stunning portfolio website that showcases your strategic thinking and ships your personal brand to the world.
+              </p>
+            </div>
+          </div>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            {/* View Live Example */}
+            <TrackedLink
+              href="https://productcareerlyst.com/p/anthonysaltarelli"
+              target="_blank"
+              rel="noopener noreferrer"
+              eventName="User Clicked Feature Discovery Card"
+              linkId="dashboard-feature-discovery-portfolio-view-example"
+              eventProperties={{
+                'Feature Name': 'Portfolio Editor',
+                'Feature Description': 'Build a stunning portfolio website',
+                'Feature Icon': '🎨',
+                'Feature Href': '/p/anthonysaltarelli',
+                'Feature Status': 'View Example',
+                'Feature Position': 'Row 3, Full Width',
+                'Feature Type': 'Portfolio Feature',
+                'Link Type': 'External Example Link',
+                'Portfolio URL': 'productcareerlyst.com/p/anthonysaltarelli',
+                ...userStateContext,
+              }}
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-emerald-400 font-bold text-emerald-700 transition-all duration-200"
+            >
+              <ExternalLink className="w-5 h-5" />
+              View Live Example
+            </TrackedLink>
+
+            {/* Build Your Portfolio */}
+            <TrackedLink
+              href="/dashboard/portfolio"
+              eventName="User Clicked Feature Discovery Card"
+              linkId="dashboard-feature-discovery-portfolio-build"
+              eventProperties={{
+                'Feature Name': 'Portfolio Editor',
+                'Feature Description': 'Build a stunning portfolio website',
+                'Feature Icon': '🎨',
+                'Feature Href': '/dashboard/portfolio',
+                'Feature Status': subscription?.plan === 'accelerate' ? 'Has Access' : 'Accelerate Plan Required',
+                'Feature Position': 'Row 3, Full Width',
+                'Feature Type': 'Portfolio Feature',
+                'Link Type': 'Primary CTA',
+                ...userStateContext,
+              }}
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-emerald-500 to-teal-500 shadow-[0_6px_0_0_rgba(16,185,129,0.6)] border-2 border-emerald-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(16,185,129,0.6)] font-bold text-white transition-all duration-200"
+            >
+              <Sparkles className="w-5 h-5" />
+              Build Your Portfolio →
+            </TrackedLink>
+          </div>
+        </div>
       </div>
     </div>
   )
