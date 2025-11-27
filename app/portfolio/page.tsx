@@ -17,6 +17,24 @@ import {
   MessageSquare,
   ArrowRight,
   Sparkles,
+  Wand2,
+  PenLine,
+  List,
+  FileText,
+  Type,
+  ImagePlus,
+  Layers,
+  Tag,
+  Star,
+  GripVertical,
+  Globe,
+  User,
+  Linkedin,
+  Twitter,
+  Github,
+  Mail,
+  ToggleRight,
+  EyeOff,
 } from 'lucide-react';
 
 const PortfolioLandingPage = () => {
@@ -371,7 +389,7 @@ const PortfolioLandingPage = () => {
           </div>
         </div>
 
-        {/* Features Section */}
+        {/* Visual Features Section - NEW DESIGN */}
         <div className="mb-12 md:mb-20">
           <div className="text-center mb-8 md:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-gray-800 mb-3 md:mb-4 px-2">
@@ -382,87 +400,534 @@ const PortfolioLandingPage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {/* Feature Cards */}
-            <FeatureCard
-              icon={<Layout className="w-6 h-6 sm:w-7 sm:h-7" />}
-              title="Rich Text Editor"
-              description="Create beautiful case studies with our powerful rich text editor. Add headings, images, lists, code blocks, and more."
-              gradient="from-indigo-200 to-purple-200"
-              borderColor="border-indigo-300"
-              shadowColor="rgba(99,102,241,0.3)"
-              iconBg="from-indigo-400 to-purple-400"
-            />
-            
-            <FeatureCard
-              icon={<Image className="w-6 h-6 sm:w-7 sm:h-7" />}
-              title="Unsplash Integration"
-              description="Search millions of stunning photos directly from Unsplash. Add professional cover images to your case studies in seconds."
-              gradient="from-pink-200 to-rose-200"
-              borderColor="border-pink-300"
-              shadowColor="rgba(236,72,153,0.3)"
-              iconBg="from-pink-400 to-rose-400"
-            />
-            
-            <FeatureCard
-              icon={<Briefcase className="w-6 h-6 sm:w-7 sm:h-7" />}
-              title="Profile Section"
-              description="Showcase your bio, work experience, and social links. Connect your LinkedIn, Twitter, GitHub, and more."
-              gradient="from-teal-200 to-cyan-200"
-              borderColor="border-teal-300"
-              shadowColor="rgba(20,184,166,0.3)"
-              iconBg="from-teal-400 to-cyan-400"
-            />
-            
-            <FeatureCard
-              icon={<FolderOpen className="w-6 h-6 sm:w-7 sm:h-7" />}
-              title="Categories & Organization"
-              description="Organize your work into categories. Feature your best case studies and arrange them in any order."
-              gradient="from-amber-200 to-yellow-200"
-              borderColor="border-amber-300"
-              shadowColor="rgba(245,158,11,0.3)"
-              iconBg="from-amber-400 to-yellow-400"
-            />
-            
-            <FeatureCard
-              icon={<Link2 className="w-6 h-6 sm:w-7 sm:h-7" />}
-              title="Custom URL Slugs"
-              description="Get a personalized URL like productcareerlyst.com/p/yourname. Customize slugs for each case study page."
-              gradient="from-violet-200 to-purple-200"
-              borderColor="border-violet-300"
-              shadowColor="rgba(139,92,246,0.3)"
-              iconBg="from-violet-400 to-purple-400"
-            />
-            
-            <FeatureCard
-              icon={<Smartphone className="w-6 h-6 sm:w-7 sm:h-7" />}
-              title="Mobile Optimized"
-              description="Your portfolio looks stunning on any device. Responsive design ensures recruiters can view your work anywhere."
-              gradient="from-sky-200 to-blue-200"
-              borderColor="border-sky-300"
-              shadowColor="rgba(14,165,233,0.3)"
-              iconBg="from-sky-400 to-blue-400"
-            />
-            
-            <FeatureCard
-              icon={<Eye className="w-6 h-6 sm:w-7 sm:h-7" />}
-              title="One-Click Publish"
-              description="Preview your portfolio before going live. Publish or unpublish with a single click whenever you're ready."
-              gradient="from-emerald-200 to-green-200"
-              borderColor="border-emerald-300"
-              shadowColor="rgba(16,185,129,0.3)"
-              iconBg="from-emerald-400 to-green-400"
-            />
-            
-            <FeatureCard
-              icon={<Search className="w-6 h-6 sm:w-7 sm:h-7" />}
-              title="SEO-Friendly"
-              description="Custom meta titles and descriptions for each page. Help recruiters find you through search engines."
-              gradient="from-orange-200 to-red-200"
-              borderColor="border-orange-300"
-              shadowColor="rgba(249,115,22,0.3)"
-              iconBg="from-orange-400 to-red-400"
-            />
+          <div className="space-y-8 md:space-y-12">
+
+            {/* Feature 1: Unsplash Integration */}
+            <div className="rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-pink-100 to-rose-100 border-2 border-pink-200 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 md:p-10">
+                <div className="flex flex-col justify-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-pink-500 text-white text-xs font-bold mb-4 w-fit">
+                    <ImagePlus className="w-3.5 h-3.5" />
+                    UNSPLASH INTEGRATION
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-gray-800 mb-3">
+                    Millions of Stunning Photos at Your Fingertips
+                  </h3>
+                  <p className="text-base sm:text-lg text-gray-700 font-medium mb-6">
+                    Search Unsplash's library of professional photos directly from your editor. Find the perfect images for your portfolio in seconds—no design skills required.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-sm font-bold text-pink-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Millions of free professional photos
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-pink-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Search by keyword instantly
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-pink-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      One-click to add to your portfolio
+                    </div>
+                  </div>
+                </div>
+                {/* Mock Unsplash Search UI */}
+                <div className="bg-white rounded-2xl border-2 border-pink-200 p-5 shadow-lg">
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border-2 border-gray-200">
+                      <Search className="w-5 h-5 text-gray-400" />
+                      <span className="text-sm text-gray-600 font-medium">uber eats</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 mb-4">
+                    <div className="aspect-[4/3] rounded-lg relative overflow-hidden group cursor-pointer">
+                      <img 
+                        src="/portfolio_example_photos/greenbackpackonbike.jpg" 
+                        alt="Green backpack on bike"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <CheckCircle2 className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <span className="absolute bottom-1 right-1 text-[8px] text-white/80 bg-black/40 px-1 rounded">Robert Anasch</span>
+                    </div>
+                    <div className="aspect-[4/3] rounded-lg relative overflow-hidden group cursor-pointer">
+                      <img 
+                        src="/portfolio_example_photos/app.jpg" 
+                        alt="App interface"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <CheckCircle2 className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <span className="absolute bottom-1 right-1 text-[8px] text-white/80 bg-black/40 px-1 rounded">appshunter.io</span>
+                    </div>
+                    <div className="aspect-[4/3] rounded-lg relative overflow-hidden group cursor-pointer ring-2 ring-pink-500 ring-offset-2">
+                      <img 
+                        src="/portfolio_example_photos/computer.jpg" 
+                        alt="Computer workspace"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                        <CheckCircle2 className="w-6 h-6 text-white" />
+                      </div>
+                      <span className="absolute bottom-1 right-1 text-[8px] text-white/80 bg-black/40 px-1 rounded">charlesdeluvio</span>
+                    </div>
+                    <div className="aspect-[4/3] rounded-lg relative overflow-hidden group cursor-pointer">
+                      <img 
+                        src="/portfolio_example_photos/biker.jpg" 
+                        alt="Biker from above"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <CheckCircle2 className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <span className="absolute bottom-1 right-1 text-[8px] text-white/80 bg-black/40 px-1 rounded">Pim de Boer</span>
+                    </div>
+                    <div className="aspect-[4/3] rounded-lg relative overflow-hidden group cursor-pointer">
+                      <img 
+                        src="/portfolio_example_photos/reflective.jpg" 
+                        alt="Reflective photo"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <CheckCircle2 className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <span className="absolute bottom-1 right-1 text-[8px] text-white/80 bg-black/40 px-1 rounded">Tony Sebastian</span>
+                    </div>
+                    <div className="aspect-[4/3] rounded-lg relative overflow-hidden group cursor-pointer">
+                      <img 
+                        src="/portfolio_example_photos/bikerdownback.jpg" 
+                        alt="Biker down back view"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <CheckCircle2 className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <span className="absolute bottom-1 right-1 text-[8px] text-white/80 bg-black/40 px-1 rounded">Kai Pilger</span>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
+                        <CheckCircle2 className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-green-800">Cover image added!</p>
+                        <p className="text-xs text-green-700">Photo by charlesdeluvio on Unsplash</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Feature 2: AI Writing Assistant */}
+            <div className="rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-violet-100 to-purple-100 border-2 border-violet-200 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 md:p-10">
+                <div className="flex flex-col justify-center order-2 lg:order-1">
+                  {/* Mock AI Dropdown UI */}
+                  <div className="bg-white rounded-2xl border-2 border-violet-200 p-5 shadow-lg">
+                    <div className="mb-4 p-3 rounded-xl bg-gray-50 border border-gray-200">
+                      <p className="text-sm text-gray-700 font-medium">
+                        <span className="bg-violet-100 px-1 rounded">|</span> Type / to see AI commands...
+                      </p>
+                    </div>
+                    <div className="bg-white rounded-xl border-2 border-violet-300 shadow-lg overflow-hidden">
+                      <div className="p-2 border-b border-gray-100">
+                        <p className="text-xs font-bold text-gray-500 px-2">AI WRITING ASSISTANT</p>
+                      </div>
+                      <div className="divide-y divide-gray-100">
+                        <div className="p-3 flex items-center gap-3 hover:bg-violet-50 cursor-pointer transition-colors bg-violet-50">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
+                            <Wand2 className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-gray-800">Continue Writing</p>
+                            <p className="text-xs text-gray-500">AI will continue your paragraph</p>
+                          </div>
+                        </div>
+                        <div className="p-3 flex items-center gap-3 hover:bg-violet-50 cursor-pointer transition-colors">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                            <PenLine className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-gray-800">Improve Writing</p>
+                            <p className="text-xs text-gray-500">Make your text more professional</p>
+                          </div>
+                        </div>
+                        <div className="p-3 flex items-center gap-3 hover:bg-violet-50 cursor-pointer transition-colors">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center">
+                            <FileText className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-gray-800">Summarize</p>
+                            <p className="text-xs text-gray-500">Create a concise summary</p>
+                          </div>
+                        </div>
+                        <div className="p-3 flex items-center gap-3 hover:bg-violet-50 cursor-pointer transition-colors">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                            <List className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-gray-800">Make Bullet Points</p>
+                            <p className="text-xs text-gray-500">Convert to a scannable list</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col justify-center order-1 lg:order-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500 text-white text-xs font-bold mb-4 w-fit">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    AI WRITING ASSISTANT
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-gray-800 mb-3">
+                    Write Better Case Studies with AI
+                  </h3>
+                  <p className="text-base sm:text-lg text-gray-700 font-medium mb-6">
+                    Stuck on what to write? Just type "/" to access AI commands. Continue your thoughts, improve your writing, create summaries, or transform text into bullet points—all powered by AI.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-sm font-bold text-violet-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Continue writing from where you left off
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-violet-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Improve and polish your writing
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-violet-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Transform into bullet points or summaries
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Feature 3: Categories & Organization */}
+            <div className="rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-amber-200 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 md:p-10">
+                <div className="flex flex-col justify-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500 text-white text-xs font-bold mb-4 w-fit">
+                    <Layers className="w-3.5 h-3.5" />
+                    CATEGORIES & ORGANIZATION
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-gray-800 mb-3">
+                    Organize Your Work Beautifully
+                  </h3>
+                  <p className="text-base sm:text-lg text-gray-700 font-medium mb-6">
+                    Create categories to group your case studies by theme, industry, or skill. Feature your best work, reorder with drag-and-drop, and help recruiters find exactly what they're looking for.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-sm font-bold text-amber-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Unlimited custom categories
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-amber-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Drag-and-drop reordering
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-amber-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Feature your top case studies
+                    </div>
+                  </div>
+                </div>
+                {/* Mock Categories UI */}
+                <div className="bg-white rounded-2xl border-2 border-amber-200 p-5 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm font-bold text-gray-700">Your Categories</span>
+                    <button className="px-3 py-1.5 rounded-lg bg-amber-100 text-amber-700 text-xs font-bold flex items-center gap-1.5 hover:bg-amber-200 transition-colors">
+                      <Tag className="w-3.5 h-3.5" />
+                      Add Category
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {/* Category 1 */}
+                    <div className="p-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <GripVertical className="w-4 h-4 text-gray-400 cursor-grab" />
+                          <span className="font-bold text-gray-800 text-sm">Case Studies</span>
+                        </div>
+                        <span className="text-xs text-blue-600 font-bold">3 projects</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="flex-1 p-2 rounded-lg bg-white border border-blue-100">
+                          <div className="flex items-center gap-2">
+                            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                            <span className="text-xs font-medium text-gray-700 truncate">Uber Eats Redesign</span>
+                          </div>
+                        </div>
+                        <div className="flex-1 p-2 rounded-lg bg-white border border-blue-100">
+                          <span className="text-xs font-medium text-gray-700 truncate block">Spotify Discovery</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Category 2 */}
+                    <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <GripVertical className="w-4 h-4 text-gray-400 cursor-grab" />
+                          <span className="font-bold text-gray-800 text-sm">Work</span>
+                        </div>
+                        <span className="text-xs text-emerald-600 font-bold">2 projects</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="flex-1 p-2 rounded-lg bg-white border border-emerald-100">
+                          <span className="text-xs font-medium text-gray-700 truncate block">Checkout Flow</span>
+                        </div>
+                        <div className="flex-1 p-2 rounded-lg bg-white border border-emerald-100">
+                          <span className="text-xs font-medium text-gray-700 truncate block">Search Ranking</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Category 3 */}
+                    <div className="p-3 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <GripVertical className="w-4 h-4 text-gray-400 cursor-grab" />
+                          <span className="font-bold text-gray-800 text-sm">Side Projects</span>
+                        </div>
+                        <span className="text-xs text-purple-600 font-bold">2 projects</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="flex-1 p-2 rounded-lg bg-white border border-purple-100">
+                          <span className="text-xs font-medium text-gray-700 truncate block">Habit Tracker App</span>
+                        </div>
+                        <div className="flex-1 p-2 rounded-lg bg-white border border-purple-100">
+                          <span className="text-xs font-medium text-gray-700 truncate block">Recipe Finder</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Feature 4: Rich Text Editor */}
+            <div className="rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-indigo-100 to-blue-100 border-2 border-indigo-200 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 md:p-10">
+                <div className="flex flex-col justify-center order-2 lg:order-1">
+                  {/* Mock Editor UI */}
+                  <div className="bg-white rounded-2xl border-2 border-indigo-200 p-5 shadow-lg">
+                    {/* Toolbar */}
+                    <div className="flex items-center gap-1 p-2 rounded-lg bg-gray-50 border border-gray-200 mb-4">
+                      <button className="p-2 rounded hover:bg-gray-200 transition-colors">
+                        <Type className="w-4 h-4 text-gray-600" />
+                      </button>
+                      <button className="p-2 rounded hover:bg-gray-200 transition-colors font-bold text-gray-600 text-sm">B</button>
+                      <button className="p-2 rounded hover:bg-gray-200 transition-colors italic text-gray-600 text-sm">I</button>
+                      <div className="w-px h-5 bg-gray-300 mx-1"></div>
+                      <button className="p-2 rounded hover:bg-gray-200 transition-colors">
+                        <List className="w-4 h-4 text-gray-600" />
+                      </button>
+                      <button className="p-2 rounded hover:bg-gray-200 transition-colors">
+                        <Image className="w-4 h-4 text-gray-600" />
+                      </button>
+                      <div className="w-px h-5 bg-gray-300 mx-1"></div>
+                      <button className="p-2 rounded bg-violet-100 hover:bg-violet-200 transition-colors">
+                        <Sparkles className="w-4 h-4 text-violet-600" />
+                      </button>
+                    </div>
+                    {/* Content */}
+                    <div className="space-y-3">
+                      <h3 className="text-xl font-bold text-gray-800">Problem Statement</h3>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        The Uber Eats merchant dashboard had a <span className="bg-blue-100 px-1 rounded font-semibold">30% abandonment rate</span> during onboarding. Restaurant owners were struggling to complete menu setup and go live.
+                      </p>
+                      <div className="p-3 rounded-lg bg-gray-100 border border-gray-200 font-mono">
+                        <p className="text-sm text-gray-700">Menu photo requirements were the #1 reason for drop-off</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col justify-center order-1 lg:order-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500 text-white text-xs font-bold mb-4 w-fit">
+                    <Layout className="w-3.5 h-3.5" />
+                    NOTION-LIKE EDITOR
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-gray-800 mb-3">
+                    Write Like You're in Notion
+                  </h3>
+                  <p className="text-base sm:text-lg text-gray-700 font-medium mb-6">
+                    A familiar, powerful editing experience. Add headings, images, callouts, bullet points, and more. Focus on your content while we handle the formatting.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-sm font-bold text-indigo-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Rich formatting options
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-indigo-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Drag-and-drop images
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-indigo-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Callout boxes and highlights
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Feature 5: Profile & Social Links */}
+            <div className="rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-teal-100 to-cyan-100 border-2 border-teal-200 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 md:p-10">
+                <div className="flex flex-col justify-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500 text-white text-xs font-bold mb-4 w-fit">
+                    <User className="w-3.5 h-3.5" />
+                    PROFILE SECTION
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-gray-800 mb-3">
+                    Your Professional Identity in One Place
+                  </h3>
+                  <p className="text-base sm:text-lg text-gray-700 font-medium mb-6">
+                    Add your photo, bio, work experience, and connect all your social profiles. Give recruiters everything they need to know about you at a glance.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-sm font-bold text-teal-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Professional bio section
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-teal-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Work experience timeline
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-teal-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Social links (LinkedIn, Twitter, GitHub)
+                    </div>
+                  </div>
+                </div>
+                {/* Mock Profile UI */}
+                <div className="bg-white rounded-2xl border-2 border-teal-200 p-5 shadow-lg">
+                  <div className="flex items-center gap-4 mb-5 pb-5 border-b border-gray-200">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-400 to-cyan-400 flex items-center justify-center text-white text-2xl font-bold">
+                      AS
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-800 text-lg">Anthony Saltarelli</h4>
+                      <p className="text-sm text-gray-600">Product Manager • San Francisco, CA</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-5 leading-relaxed">
+                    Product leader with 7+ years building consumer products at scale. Passionate about user research, data-driven decisions, and shipping fast.
+                  </p>
+                  <div className="flex flex-wrap gap-2 mb-5">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 text-xs font-bold">
+                      <Linkedin className="w-3.5 h-3.5" />
+                      LinkedIn
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs font-bold">
+                      <Twitter className="w-3.5 h-3.5" />
+                      Twitter
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 text-white text-xs font-bold">
+                      <Github className="w-3.5 h-3.5" />
+                      GitHub
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 text-xs font-bold">
+                      <Mail className="w-3.5 h-3.5" />
+                      Email
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-200">
+                    <p className="text-xs font-bold text-gray-500 mb-2">WORK EXPERIENCE</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white text-xs font-bold">U</div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-800">Uber</p>
+                          <p className="text-xs text-gray-500">Senior PM • 2021-Present</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white text-xs font-bold">S</div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-800">Stripe</p>
+                          <p className="text-xs text-gray-500">Product Manager • 2018-2021</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Feature 6: Custom URLs & Publishing */}
+            <div className="rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-slate-100 to-gray-100 border-2 border-slate-200 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 md:p-10">
+                <div className="flex flex-col justify-center order-2 lg:order-1">
+                  {/* Mock URL & Publishing UI */}
+                  <div className="bg-white rounded-2xl border-2 border-slate-200 p-5 shadow-lg">
+                    <div className="mb-5">
+                      <p className="text-xs font-bold text-gray-500 mb-2">YOUR PORTFOLIO URL</p>
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border-2 border-gray-200">
+                        <Globe className="w-5 h-5 text-gray-400" />
+                        <span className="text-sm font-mono text-gray-600">productcareerlyst.com/p/</span>
+                        <span className="text-sm font-mono font-bold text-emerald-600">yourname</span>
+                      </div>
+                    </div>
+                    <div className="mb-5">
+                      <p className="text-xs font-bold text-gray-500 mb-2">PAGE SLUGS</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 border border-gray-200">
+                          <span className="text-xs text-gray-500">/p/yourname/</span>
+                          <span className="text-xs font-bold text-gray-800">uber-eats-optimization</span>
+                        </div>
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 border border-gray-200">
+                          <span className="text-xs text-gray-500">/p/yourname/</span>
+                          <span className="text-xs font-bold text-gray-800">airbnb-pricing-strategy</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-emerald-100 to-teal-100 border border-emerald-200">
+                      <div className="flex items-center gap-3">
+                        <Eye className="w-5 h-5 text-emerald-600" />
+                        <div>
+                          <p className="text-sm font-bold text-emerald-800">Portfolio Published</p>
+                          <p className="text-xs text-emerald-600">Visible to everyone</p>
+                        </div>
+                      </div>
+                      <div className="w-12 h-6 rounded-full bg-emerald-500 flex items-center justify-end px-1">
+                        <div className="w-4 h-4 rounded-full bg-white shadow"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col justify-center order-1 lg:order-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-600 text-white text-xs font-bold mb-4 w-fit">
+                    <Link2 className="w-3.5 h-3.5" />
+                    CUSTOM URLs & PUBLISHING
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-black text-gray-800 mb-3">
+                    Your Personal Domain, One Click to Go Live
+                  </h3>
+                  <p className="text-base sm:text-lg text-gray-700 font-medium mb-6">
+                    Get a personalized URL for your portfolio and each case study. Preview everything before going live, then publish with one click when you're ready.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Custom portfolio URL slug
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      Custom slugs for each case study
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      One-click publish/unpublish
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -568,37 +1033,6 @@ const PortfolioLandingPage = () => {
   );
 };
 
-// Feature Card Component
-interface FeatureCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  gradient: string;
-  borderColor: string;
-  shadowColor: string;
-  iconBg: string;
-}
-
-const FeatureCard = ({ icon, title, description, gradient, borderColor, shadowColor, iconBg }: FeatureCardProps) => (
-  <div 
-    className={`p-5 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br ${gradient} border-2 ${borderColor}`}
-    style={{ boxShadow: `0 8px 0 0 ${shadowColor}` }}
-  >
-    <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
-      <div 
-        className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-[1rem] bg-gradient-to-br ${iconBg} flex items-center justify-center flex-shrink-0 text-white`}
-        style={{ boxShadow: `0 4px 0 0 ${shadowColor}` }}
-      >
-        {icon}
-      </div>
-      <div>
-        <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">{title}</h3>
-        <p className="text-sm sm:text-base text-gray-700 font-medium">{description}</p>
-      </div>
-    </div>
-  </div>
-);
-
 // FAQ Item Component
 interface FAQItemProps {
   question: string;
@@ -617,4 +1051,3 @@ const FAQItem = ({ question, answer }: FAQItemProps) => (
 );
 
 export default PortfolioLandingPage;
-
