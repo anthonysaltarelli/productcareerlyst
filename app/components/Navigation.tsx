@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { MobileMenu } from './MobileMenu'
 import { TrackedLink } from './TrackedLink'
 import { TrackedButton } from './TrackedButton'
+import { FeaturesDropdown } from './FeaturesDropdown'
 import { isOnboardingComplete } from '@/lib/utils/onboarding'
 
 export const Navigation = async () => {
@@ -63,61 +64,20 @@ export const Navigation = async () => {
               </>
             ) : (
               <>
+                <FeaturesDropdown />
                 <TrackedLink
-                  href="/courses"
+                  href="/pricing"
                   className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"
-                  eventName="User Clicked Courses Link"
-                  linkId="navigation-courses-link"
+                  eventName="User Clicked Pricing Link"
+                  linkId="navigation-pricing-link"
                   eventProperties={{
                     'Link Section': 'Navigation',
                     'Link Position': 'Desktop navigation',
                     'Link Type': 'Navigation Link',
-                    'Link Text': 'Courses',
+                    'Link Text': 'Pricing',
                   }}
                 >
-                  Courses
-                </TrackedLink>
-                <TrackedLink
-                  href="/resume"
-                  className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"
-                  eventName="User Clicked Resume Link"
-                  linkId="navigation-resume-link"
-                  eventProperties={{
-                    'Link Section': 'Navigation',
-                    'Link Position': 'Desktop navigation',
-                    'Link Type': 'Navigation Link',
-                    'Link Text': 'Resume',
-                  }}
-                >
-                  Resume
-                </TrackedLink>
-                <TrackedLink
-                  href="/job-center"
-                  className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"
-                  eventName="User Clicked Job Center Link"
-                  linkId="navigation-job-center-link"
-                  eventProperties={{
-                    'Link Section': 'Navigation',
-                    'Link Position': 'Desktop navigation',
-                    'Link Type': 'Navigation Link',
-                    'Link Text': 'Job Center',
-                  }}
-                >
-                  Job Center
-                </TrackedLink>
-                <TrackedLink
-                  href="/portfolio"
-                  className="px-6 py-3 rounded-[1.5rem] font-bold text-gray-700 hover:bg-white/50 transition-all duration-200"
-                  eventName="User Clicked Portfolio Link"
-                  linkId="navigation-portfolio-link"
-                  eventProperties={{
-                    'Link Section': 'Navigation',
-                    'Link Position': 'Desktop navigation',
-                    'Link Type': 'Navigation Link',
-                    'Link Text': 'Product Portfolio',
-                  }}
-                >
-                  Product Portfolio
+                  Pricing
                 </TrackedLink>
                 <TrackedLink
                   href="/auth/login"
