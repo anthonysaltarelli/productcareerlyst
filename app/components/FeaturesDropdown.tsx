@@ -154,11 +154,14 @@ export const FeaturesDropdown = () => {
         role="menu"
         aria-orientation="vertical"
       >
-        {/* Arrow pointer */}
-        <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-l border-t border-purple-200" />
+        {/* Arrow pointer with border */}
+        <div className="absolute -top-[10px] left-1/2 -translate-x-1/2 z-10 w-5 h-5 bg-white rotate-45 border-l-2 border-t-2 border-purple-200" />
+        
+        {/* White mask to hide the content box border behind arrow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 w-6 h-2 bg-white" />
         
         {/* Content */}
-        <div className="relative bg-white rounded-2xl shadow-xl border-2 border-purple-200 p-6 min-w-[540px]">
+        <div className="relative z-0 bg-white rounded-2xl shadow-xl border-2 border-purple-200 p-6 min-w-[620px]">
           <div className="grid grid-cols-2 gap-8">
             {FEATURE_CATEGORIES.map((category) => (
               <div key={category.label}>
