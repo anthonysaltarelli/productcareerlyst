@@ -13,6 +13,8 @@ import {
   ChevronRight,
   Youtube,
   ArrowDown,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import PreviewBanner from '@/app/components/PreviewBanner';
 
@@ -56,6 +58,8 @@ export default function PublicPortfolioView({
 }: PublicPortfolioViewProps) {
   const [activeSection, setActiveSection] = useState<string>('hero');
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showPreviousRoles, setShowPreviousRoles] = useState(false);
+  const [showFullBio, setShowFullBio] = useState(false);
 
   const socialLinks = portfolio.social_links || {};
   const hasSocialLinks = Object.values(socialLinks).some((v) => v);
@@ -200,6 +204,10 @@ export default function PublicPortfolioView({
           <div className="grid gap-12 md:grid-cols-[224px_1fr] md:gap-16 lg:grid-cols-[256px_1fr]">
             {/* Profile Image & Work Experience */}
             <div className="flex flex-col items-start gap-6 md:items-stretch">
+              {/* Mobile: "About" title above photo */}
+              <h2 className="mb-4 text-xl font-bold text-gray-900 md:hidden">
+                About
+              </h2>
               {portfolio.profile_image_url ? (
                 <img
                   src={portfolio.profile_image_url}
@@ -248,10 +256,30 @@ export default function PublicPortfolioView({
                   {/* Previous Position(s) */}
                   {portfolio.work_experience.filter((exp) => !exp.is_current).length > 0 && (
                     <div>
-                      <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-900">
+                      {/* Desktop: Always show "Previously" label */}
+                      <p className="mb-2 hidden text-sm font-semibold uppercase tracking-wider text-gray-900 md:block">
                         Previously
                       </p>
-                      <div className="space-y-3">
+                      {/* Mobile: Expandable button */}
+                      <button
+                        onClick={() => setShowPreviousRoles(!showPreviousRoles)}
+                        className="mb-2 flex w-full items-center justify-between text-sm font-medium text-gray-900 md:hidden"
+                        type="button"
+                        aria-expanded={showPreviousRoles}
+                        aria-controls="previous-roles-list"
+                      >
+                        <span>{showPreviousRoles ? 'Hide Previous Roles' : 'Show Previous Roles'}</span>
+                        {showPreviousRoles ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </button>
+                      {/* Previous roles list - hidden on mobile unless expanded */}
+                      <div 
+                        id="previous-roles-list"
+                        className={`space-y-3 ${showPreviousRoles ? 'block' : 'hidden md:block'}`}
+                      >
                         {portfolio.work_experience
                           .filter((exp) => !exp.is_current)
                           .map((exp, index) => (
@@ -281,13 +309,27 @@ export default function PublicPortfolioView({
             {/* Bio & Links */}
             <div>
               <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-gray-500">
-                About
+                <span className="md:hidden">About Me</span>
+                <span className="hidden md:inline">About</span>
               </h2>
               {portfolio.bio && (
-                <div 
-                  className="portfolio-bio mb-8 text-lg leading-relaxed text-gray-700 md:text-xl"
-                  dangerouslySetInnerHTML={{ __html: portfolio.bio }}
-                />
+                <>
+                  <div 
+                    className={`portfolio-bio mb-4 text-lg leading-relaxed text-gray-700 md:mb-8 md:text-xl ${
+                      showFullBio ? '' : 'line-clamp-4 md:line-clamp-none'
+                    }`}
+                    dangerouslySetInnerHTML={{ __html: portfolio.bio }}
+                  />
+                  {/* Mobile: Show more/less button */}
+                  <button
+                    onClick={() => setShowFullBio(!showFullBio)}
+                    className="mb-8 text-sm font-medium text-gray-600 underline underline-offset-2 transition-colors hover:text-gray-900 md:hidden"
+                    type="button"
+                    aria-expanded={showFullBio}
+                  >
+                    {showFullBio ? 'Show less' : 'Show more'}
+                  </button>
+                </>
               )}
 
               {/* Social Links */}
