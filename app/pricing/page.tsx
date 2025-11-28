@@ -1,13 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { Check, X, Plus, Info } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Check, X, Plus } from 'lucide-react';
 import { TrackedButton } from '@/app/components/TrackedButton';
-import { TrackedLink } from '@/app/components/TrackedLink';
 import { PageTracking } from '@/app/components/PageTracking';
 import { trackEvent } from '@/lib/amplitude/client';
+import { useFlags } from 'launchdarkly-react-client-sdk';
 
 type BillingPeriod = 'monthly' | 'quarterly' | 'yearly';
+
+// Black Friday deal configuration
+const BLACK_FRIDAY_END_DATE = new Date('2025-12-02T04:59:59Z'); // Dec 1st 11:59pm EST = Dec 2nd 04:59:59 UTC
+const BLACK_FRIDAY_DISCOUNT = 0.5; // 50% off
 
 interface FeatureInfo {
   key: string;
@@ -19,7 +23,7 @@ interface FeatureInfo {
 const plans = {
   learn: {
     name: 'Learn',
-    description: 'Perfect for getting started with PM fundamentals',
+    description: 'Perfect for getting started with fundamentals',
     popular: false,
     monthly: { price: 12, priceId: 'price_learn_monthly_12' },
     quarterly: { price: 27, priceId: 'price_learn_quarterly_27', savings: '25%' },
@@ -213,22 +217,116 @@ const FeatureModal = ({
   );
 };
 
+// Helper function to calculate time remaining until Black Friday ends
+interface TimeRemaining {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+
+const calculateTimeRemaining = (): TimeRemaining | null => {
+  const now = new Date();
+  const difference = BLACK_FRIDAY_END_DATE.getTime() - now.getTime();
+  
+  if (difference <= 0) {
+    return null;
+  }
+  
+  return {
+    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+    minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+    seconds: Math.floor((difference % (1000 * 60)) / 1000),
+  };
+};
+
 export default function PricingPage() {
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('yearly');
   const [selectedFeature, setSelectedFeature] = useState<FeatureInfo | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<TimeRemaining | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  
+  // Feature flags
+  const flags = useFlags();
+  const blackFridayEnabled = flags['blackFriday2025'] ?? false;
+  
+  // Check if Black Friday deal is active (feature flag + date check)
+  const isBlackFridayActive = isClient && blackFridayEnabled && timeRemaining !== null;
+  
+  // Update countdown timer
+  useEffect(() => {
+    setIsClient(true);
+    setTimeRemaining(calculateTimeRemaining());
+    
+    const timer = setInterval(() => {
+      setTimeRemaining(calculateTimeRemaining());
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, []);
+  
+  // Track Black Friday deal view
+  useEffect(() => {
+    if (isBlackFridayActive && timeRemaining) {
+      trackEvent('User Viewed Black Friday Deal', {
+        'Page': 'Pricing',
+        'Days Remaining': timeRemaining.days,
+        'Hours Remaining': timeRemaining.hours,
+        'Feature Flag Enabled': blackFridayEnabled,
+      });
+    }
+  }, [isBlackFridayActive]); // Only track once when Black Friday becomes active
+
+  // Calculate Black Friday price (50% off the already discounted price)
+  const getBlackFridayPrice = (originalPrice: number) => {
+    return Math.round(originalPrice * (1 - BLACK_FRIDAY_DISCOUNT));
+  };
 
   const getMonthlyEquivalent = (plan: typeof plans.learn | typeof plans.accelerate) => {
+    let basePrice: number;
     switch (billingPeriod) {
       case 'monthly':
+        if (isBlackFridayActive) {
+          return getBlackFridayPrice(plan.monthly.price);
+        }
         return plan.monthly.price;
       case 'quarterly':
-        return Math.round(plan.quarterly.price / 3);
+        basePrice = plan.quarterly.price;
+        if (isBlackFridayActive) {
+          return Math.round(getBlackFridayPrice(basePrice) / 3);
+        }
+        return Math.round(basePrice / 3);
       case 'yearly':
-        return Math.round(plan.yearly.price / 12);
+        basePrice = plan.yearly.price;
+        if (isBlackFridayActive) {
+          return Math.round(getBlackFridayPrice(basePrice) / 12);
+        }
+        return Math.round(basePrice / 12);
     }
   };
 
   const getTotalPrice = (plan: typeof plans.learn | typeof plans.accelerate) => {
+    switch (billingPeriod) {
+      case 'monthly':
+        if (isBlackFridayActive) {
+          return getBlackFridayPrice(plan.monthly.price);
+        }
+        return plan.monthly.price;
+      case 'quarterly':
+        if (isBlackFridayActive) {
+          return getBlackFridayPrice(plan.quarterly.price);
+        }
+        return plan.quarterly.price;
+      case 'yearly':
+        if (isBlackFridayActive) {
+          return getBlackFridayPrice(plan.yearly.price);
+        }
+        return plan.yearly.price;
+    }
+  };
+
+  const getOriginalTotalPrice = (plan: typeof plans.learn | typeof plans.accelerate) => {
     switch (billingPeriod) {
       case 'monthly':
         return plan.monthly.price;
@@ -240,6 +338,18 @@ export default function PricingPage() {
   };
 
   const getSavingsText = (plan: typeof plans.learn | typeof plans.accelerate) => {
+    if (isBlackFridayActive) {
+      // For monthly with Black Friday, just show 50%
+      if (billingPeriod === 'monthly') {
+        return '50%';
+      }
+      // Calculate total savings with Black Friday for quarterly/yearly
+      const monthlyAnnualized = plan.monthly.price * (billingPeriod === 'yearly' ? 12 : 3);
+      const finalPrice = getTotalPrice(plan);
+      const savingsPercent = Math.round((1 - finalPrice / monthlyAnnualized) * 100);
+      return `${savingsPercent}%`;
+    }
+    
     switch (billingPeriod) {
       case 'quarterly':
         return plan.quarterly.savings;
@@ -292,25 +402,77 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100">
       <PageTracking pageName="Pricing" />
-      
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:py-12 md:py-16">
-        {/* Hero Section */}
-        <div className="text-center mb-10 sm:mb-16">
-          <div className="flex justify-center gap-2 sm:gap-4 mb-4 sm:mb-6 flex-wrap">
-            <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/80 backdrop-blur-sm border-2 border-purple-300 shadow-lg">
-              <span className="text-xs sm:text-sm font-bold text-purple-700">
-                💰 Save up to 40% with annual billing
-              </span>
-            </div>
+        
+        <div className="max-w-7xl mx-auto px-4 py-8 sm:py-12 md:py-16">
+          {/* Hero Section */}
+          <div className="text-center mb-10 sm:mb-16">
+            {/* Regular savings badge - only show when Black Friday is NOT active */}
+            {!isBlackFridayActive && (
+              <div className="flex justify-center gap-2 sm:gap-4 mb-4 sm:mb-6 flex-wrap">
+                <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/80 backdrop-blur-sm border-2 border-purple-300 shadow-lg">
+                  <span className="text-xs sm:text-sm font-bold text-purple-700">
+                    💰 Save up to 40% with annual billing
+                  </span>
+                </div>
+              </div>
+            )}
+            
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-3 sm:mb-4 px-2 pb-1 leading-tight">
+              Simple, Transparent Pricing
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl text-gray-700 font-semibold max-w-2xl mx-auto px-2 mb-6">
+              Choose the plan that accelerates your product management career. No hidden fees. Cancel anytime.
+            </p>
+            
+            {/* Black Friday section - Badge + Countdown Timer */}
+            {isBlackFridayActive && timeRemaining && (
+              <div className="flex flex-col items-center gap-4 sm:gap-6">
+                {/* Black Friday Badge */}
+                <div className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-black border-2 border-gray-700 shadow-[0_4px_0_0_rgba(0,0,0,0.5)]">
+                  <span className="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                    BLACK FRIDAY: Save 50% off forever on any plan
+                  </span>
+                </div>
+                
+                {/* Limited Spots Text */}
+                <p className="text-red-600 font-bold text-sm sm:text-base uppercase tracking-wide flex items-center gap-2">
+                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  Limited Spots Remaining — Our Prices Increase In
+                </p>
+                
+                {/* Countdown Timer */}
+                <div className="flex items-center justify-center gap-2 sm:gap-3">
+                  <div className="text-center">
+                    <div className="bg-slate-800 rounded-xl px-3 py-2 sm:px-4 sm:py-3 min-w-[3.5rem] sm:min-w-[4rem] shadow-lg">
+                      <span className="text-white font-black text-2xl sm:text-3xl">{String(timeRemaining.days).padStart(2, '0')}</span>
+                    </div>
+                    <span className="text-gray-600 text-[10px] sm:text-xs font-bold uppercase mt-1.5 block">Days</span>
+                  </div>
+                  <span className="text-slate-800 font-bold text-2xl sm:text-3xl -mt-4">:</span>
+                  <div className="text-center">
+                    <div className="bg-slate-800 rounded-xl px-3 py-2 sm:px-4 sm:py-3 min-w-[3.5rem] sm:min-w-[4rem] shadow-lg">
+                      <span className="text-white font-black text-2xl sm:text-3xl">{String(timeRemaining.hours).padStart(2, '0')}</span>
+                    </div>
+                    <span className="text-gray-600 text-[10px] sm:text-xs font-bold uppercase mt-1.5 block">Hours</span>
+                  </div>
+                  <span className="text-slate-800 font-bold text-2xl sm:text-3xl -mt-4">:</span>
+                  <div className="text-center">
+                    <div className="bg-slate-800 rounded-xl px-3 py-2 sm:px-4 sm:py-3 min-w-[3.5rem] sm:min-w-[4rem] shadow-lg">
+                      <span className="text-white font-black text-2xl sm:text-3xl">{String(timeRemaining.minutes).padStart(2, '0')}</span>
+                    </div>
+                    <span className="text-gray-600 text-[10px] sm:text-xs font-bold uppercase mt-1.5 block">Mins</span>
+                  </div>
+                  <span className="text-slate-800 font-bold text-2xl sm:text-3xl -mt-4">:</span>
+                  <div className="text-center">
+                    <div className="bg-slate-800 rounded-xl px-3 py-2 sm:px-4 sm:py-3 min-w-[3.5rem] sm:min-w-[4rem] shadow-lg">
+                      <span className="text-white font-black text-2xl sm:text-3xl">{String(timeRemaining.seconds).padStart(2, '0')}</span>
+                    </div>
+                    <span className="text-gray-600 text-[10px] sm:text-xs font-bold uppercase mt-1.5 block">Secs</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-3 sm:mb-4 px-2 pb-1 leading-tight">
-            Simple, Transparent Pricing
-          </h1>
-          <p className="text-base sm:text-lg md:text-xl text-gray-700 font-semibold max-w-2xl mx-auto px-2">
-            Choose the plan that accelerates your product management career. No hidden fees. Cancel anytime.
-          </p>
-        </div>
 
         {/* Billing Period Toggle */}
         <div className="flex justify-center mb-8 sm:mb-12">
@@ -344,7 +506,7 @@ export default function PricingPage() {
         {/* Plan Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-12 sm:mb-16">
           {/* Learn Plan */}
-          <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-[0_10px_0_0_rgba(0,0,0,0.1)] sm:shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200 p-6 sm:p-8 flex flex-col hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(0,0,0,0.1)] sm:hover:shadow-[0_8px_0_0_rgba(0,0,0,0.1)] transition-all duration-200">
+          <div className="relative bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-[0_10px_0_0_rgba(0,0,0,0.1)] sm:shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200 p-6 sm:p-8 flex flex-col hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(0,0,0,0.1)] sm:hover:shadow-[0_8px_0_0_rgba(0,0,0,0.1)] transition-all duration-200">
             <div className="text-center flex-grow flex flex-col">
               <div>
                 <span className="text-4xl mb-2 block">📚</span>
@@ -355,19 +517,39 @@ export default function PricingPage() {
                   ${getMonthlyEquivalent(plans.learn)}<span className="text-lg sm:text-xl font-bold text-gray-500">/mo</span>
                 </div>
                 
-                {billingPeriod !== 'monthly' && (
-                  <div className="text-sm text-gray-600 font-semibold mb-2">
-                    ${getTotalPrice(plans.learn)} billed {billingPeriod}
+                {(billingPeriod !== 'monthly' || isBlackFridayActive) && (
+                  <div className="text-sm font-semibold mb-2 flex items-center justify-center gap-2">
+                    {isBlackFridayActive && (
+                      <span className="text-gray-400 line-through">${getOriginalTotalPrice(plans.learn)}</span>
+                    )}
+                    <span className={isBlackFridayActive ? 'text-red-600' : 'text-gray-600'}>
+                      ${getTotalPrice(plans.learn)} billed {billingPeriod}
+                    </span>
                   </div>
                 )}
                 
-                {getSavingsText(plans.learn) && (
-                  <div className="inline-block px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-bold mb-6">
+                {isBlackFridayActive ? (() => {
+                  const multiplier = billingPeriod === 'yearly' ? 12 : billingPeriod === 'quarterly' ? 3 : 1;
+                  const monthlyTotal = plans.learn.monthly.price * multiplier;
+                  const bfPrice = getTotalPrice(plans.learn);
+                  const savingsAmount = monthlyTotal - bfPrice;
+                  const savingsPercent = Math.round((savingsAmount / monthlyTotal) * 100);
+                  return (
+                    <div className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 mb-6">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Total Savings</p>
+                      <p className="text-2xl font-black text-lime-400">-${savingsAmount}</p>
+                      <p className="text-xs font-semibold text-gray-400 mt-1">
+                        {savingsPercent}% off vs monthly pricing
+                      </p>
+                    </div>
+                  );
+                })() : getSavingsText(plans.learn) && (
+                  <div className="inline-block px-3 py-1 rounded-full text-sm font-bold mb-6 bg-green-100 text-green-700">
                     Save {getSavingsText(plans.learn)}
                   </div>
                 )}
                 
-                {billingPeriod === 'monthly' && <div className="mb-6" />}
+                {billingPeriod === 'monthly' && !isBlackFridayActive && <div className="mb-6" />}
                 
                 <div className="text-left mb-6 space-y-2">
                   <p className="text-sm font-semibold text-gray-700 mb-3">Kickstart your PM career with...</p>
@@ -395,6 +577,9 @@ export default function PricingPage() {
                     'Billing Period': billingPeriod,
                     'Monthly Equivalent': getMonthlyEquivalent(plans.learn),
                     'Total Price': getTotalPrice(plans.learn),
+                    'Original Price': getOriginalTotalPrice(plans.learn),
+                    'Black Friday Active': isBlackFridayActive,
+                    'Black Friday Discount Applied': isBlackFridayActive,
                   }}
                   onClick={() => handlePlanSelect('learn')}
                   className="w-full px-6 py-3.5 rounded-[1.5rem] bg-white border-2 border-purple-400 text-purple-600 font-black hover:bg-purple-50 transition-all duration-200 shadow-[0_6px_0_0_rgba(147,51,234,0.3)] hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.3)]"
@@ -423,19 +608,39 @@ export default function PricingPage() {
                 ${getMonthlyEquivalent(plans.accelerate)}<span className="text-lg sm:text-xl font-bold text-gray-500">/mo</span>
               </div>
               
-              {billingPeriod !== 'monthly' && (
-                <div className="text-sm text-gray-600 font-semibold mb-2">
-                  ${getTotalPrice(plans.accelerate)} billed {billingPeriod}
+              {(billingPeriod !== 'monthly' || isBlackFridayActive) && (
+                <div className="text-sm font-semibold mb-2 flex items-center justify-center gap-2">
+                  {isBlackFridayActive && (
+                    <span className="text-gray-400 line-through">${getOriginalTotalPrice(plans.accelerate)}</span>
+                  )}
+                  <span className={isBlackFridayActive ? 'text-red-600' : 'text-gray-600'}>
+                    ${getTotalPrice(plans.accelerate)} billed {billingPeriod}
+                  </span>
                 </div>
               )}
               
-              {getSavingsText(plans.accelerate) && (
-                <div className="inline-block px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-bold mb-6">
+              {isBlackFridayActive ? (() => {
+                const multiplier = billingPeriod === 'yearly' ? 12 : billingPeriod === 'quarterly' ? 3 : 1;
+                const monthlyTotal = plans.accelerate.monthly.price * multiplier;
+                const bfPrice = getTotalPrice(plans.accelerate);
+                const savingsAmount = monthlyTotal - bfPrice;
+                const savingsPercent = Math.round((savingsAmount / monthlyTotal) * 100);
+                return (
+                  <div className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 mb-6">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Total Savings</p>
+                    <p className="text-2xl font-black text-lime-400">-${savingsAmount}</p>
+                    <p className="text-xs font-semibold text-gray-400 mt-1">
+                      {savingsPercent}% off vs monthly pricing
+                    </p>
+                  </div>
+                );
+              })() : getSavingsText(plans.accelerate) && (
+                <div className="inline-block px-3 py-1 rounded-full text-sm font-bold mb-6 bg-green-100 text-green-700">
                   Save {getSavingsText(plans.accelerate)}
                 </div>
               )}
               
-              {billingPeriod === 'monthly' && <div className="mb-6" />}
+              {billingPeriod === 'monthly' && !isBlackFridayActive && <div className="mb-6" />}
               
               <div className="text-left mb-6 space-y-2">
                 <p className="text-sm font-semibold text-gray-700 mb-3">Everything in Learn plus...</p>
@@ -470,7 +675,10 @@ export default function PricingPage() {
                   'Billing Period': billingPeriod,
                   'Monthly Equivalent': getMonthlyEquivalent(plans.accelerate),
                   'Total Price': getTotalPrice(plans.accelerate),
+                  'Original Price': getOriginalTotalPrice(plans.accelerate),
                   'Is Most Popular': true,
+                  'Black Friday Active': isBlackFridayActive,
+                  'Black Friday Discount Applied': isBlackFridayActive,
                 }}
                 onClick={() => handlePlanSelect('accelerate')}
                 className="w-full px-6 py-3.5 rounded-[1.5rem] bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-[0_6px_0_0_rgba(147,51,234,0.5)] hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.5)]"

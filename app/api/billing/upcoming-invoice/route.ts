@@ -67,13 +67,39 @@ export const GET = async (request: NextRequest) => {
           subtotal: 0,
           total: 0,
           description: null,
+          discount: null,
         });
       }
 
       const amount = price.unit_amount;
       const currency = price.currency || 'usd';
-      // Use type assertion to access properties that may not be in the type definition
+
+      // Check for discounts on the subscription
       const sub = stripeSubscription as any;
+      let discountInfo: { percentOff?: number; amountOff?: number; couponId?: string; couponName?: string } | null = null;
+      
+      // Get discount from subscription.discount (for single discount) or subscription.discounts (for multiple)
+      const discount = sub.discount || (sub.discounts && sub.discounts[0]);
+      if (discount && discount.coupon) {
+        discountInfo = {
+          percentOff: discount.coupon.percent_off || undefined,
+          amountOff: discount.coupon.amount_off || undefined,
+          couponId: discount.coupon.id,
+          couponName: discount.coupon.name,
+        };
+      }
+
+      // Calculate discounted amount
+      let discountedAmount = amount;
+      if (discountInfo) {
+        if (discountInfo.percentOff) {
+          discountedAmount = Math.round(amount * (1 - discountInfo.percentOff / 100));
+        } else if (discountInfo.amountOff) {
+          discountedAmount = Math.max(0, amount - discountInfo.amountOff);
+        }
+      }
+      
+      // Access current_period_end (sub already defined above for discount check)
       const currentPeriodEnd = sub.current_period_end;
 
       // Calculate next period end based on billing interval
@@ -105,11 +131,43 @@ export const GET = async (request: NextRequest) => {
         console.log('Could not retrieve customer balance:', balanceError);
       }
 
-      // Try to get the actual upcoming invoice - this accounts for customer balance/credits
+      // Try to get the actual upcoming invoice - this accounts for customer balance/credits and discounts
+      // Note: For subscriptions with billing_mode = flexible, we need to use createPreview instead of retrieveUpcoming
       try {
         const invoicesResource = stripe.invoices as any;
         
-        // Try retrieveUpcoming if available
+        // First try createPreview (works with flexible billing mode)
+        if (invoicesResource && typeof invoicesResource.createPreview === 'function') {
+          const previewInvoice = await invoicesResource.createPreview({
+            customer: subscription.stripe_customer_id,
+            subscription: subscription.stripe_subscription_id,
+          });
+
+          // Extract discount info from the preview invoice
+          let invoiceDiscountInfo = discountInfo;
+          if (previewInvoice.discount && previewInvoice.discount.coupon) {
+            invoiceDiscountInfo = {
+              percentOff: previewInvoice.discount.coupon.percent_off || undefined,
+              amountOff: previewInvoice.discount.coupon.amount_off || undefined,
+              couponId: previewInvoice.discount.coupon.id,
+              couponName: previewInvoice.discount.coupon.name,
+            };
+          }
+
+          return NextResponse.json({
+            amount_due: previewInvoice.amount_due, // This accounts for credits/balance AND discounts
+            currency: previewInvoice.currency,
+            period_start: previewInvoice.period_start,
+            period_end: previewInvoice.period_end,
+            next_payment_date: previewInvoice.period_start || previewInvoice.period_end,
+            subtotal: previewInvoice.subtotal,
+            total: previewInvoice.total,
+            description: previewInvoice.description || previewInvoice.lines?.data[0]?.description || null,
+            discount: invoiceDiscountInfo,
+          });
+        }
+        
+        // Fallback: Try retrieveUpcoming (for non-flexible billing mode)
         if (invoicesResource && typeof invoicesResource.retrieveUpcoming === 'function') {
           const upcomingInvoice = await invoicesResource.retrieveUpcoming({
             customer: subscription.stripe_customer_id,
@@ -117,37 +175,39 @@ export const GET = async (request: NextRequest) => {
           });
 
           return NextResponse.json({
-            amount_due: upcomingInvoice.amount_due, // This accounts for credits/balance
+            amount_due: upcomingInvoice.amount_due,
             currency: upcomingInvoice.currency,
             period_start: upcomingInvoice.period_start,
             period_end: upcomingInvoice.period_end,
             next_payment_date: upcomingInvoice.period_start || upcomingInvoice.period_end,
             subtotal: upcomingInvoice.subtotal,
             total: upcomingInvoice.total,
-            description: upcomingInvoice.description || upcomingInvoice.lines.data[0]?.description || null,
+            description: upcomingInvoice.description || upcomingInvoice.lines?.data[0]?.description || null,
+            discount: discountInfo,
           });
         }
       } catch (invoiceError: any) {
-        // If retrieveUpcoming fails, we'll calculate with customer balance
-        console.log('Could not retrieve upcoming invoice, calculating with customer balance:', invoiceError.message);
+        // If both methods fail, we'll calculate with customer balance and discounts
+        console.log('Could not retrieve upcoming/preview invoice, calculating manually:', invoiceError.message);
       }
 
-      // Fallback: Calculate amount_due accounting for customer balance/credits
+      // Fallback: Calculate amount_due accounting for customer balance/credits AND discounts
       // Customer balance is negative when they have credits, so we add it (subtract the negative)
       // Example: $48 subscription + (-$48 credit) = $0 due
-      const actualAmountDue = Math.max(0, amount + customerBalance);
+      const actualAmountDue = Math.max(0, discountedAmount + customerBalance);
 
-      // Fallback: use subscription price information with customer balance
+      // Fallback: use subscription price information with customer balance and discounts
       // The next payment is due when the current period ends
       return NextResponse.json({
-        amount_due: actualAmountDue, // Accounts for customer credits
+        amount_due: actualAmountDue, // Accounts for customer credits AND discounts
         currency: currency,
         period_start: currentPeriodEnd, // When next billing period starts
         period_end: nextPeriodEnd, // When next billing period ends
         next_payment_date: currentPeriodEnd, // When the payment is actually due
         subtotal: amount,
-        total: amount,
+        total: discountedAmount,
         description: price.nickname || `Subscription renewal - ${interval}`,
+        discount: discountInfo,
       });
     } catch (error: any) {
       // If there's an error, return zero amount

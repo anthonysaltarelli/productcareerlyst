@@ -29,7 +29,7 @@ export const POST = async (request: NextRequest) => {
     }
 
     const body = await request.json();
-    const { plan, billingCadence, paymentMethodId, trialPeriodDays } = body;
+    const { plan, billingCadence, paymentMethodId, trialPeriodDays, couponCode } = body;
 
     if (!plan || !billingCadence || !paymentMethodId) {
       return NextResponse.json(
@@ -170,6 +170,11 @@ export const POST = async (request: NextRequest) => {
     // Add trial period if specified (for onboarding)
     if (trialPeriodDays && typeof trialPeriodDays === 'number' && trialPeriodDays > 0) {
       subscriptionParams.trial_period_days = trialPeriodDays;
+    }
+
+    // Add coupon/promotion code if specified
+    if (couponCode && typeof couponCode === 'string' && couponCode.trim()) {
+      subscriptionParams.discounts = [{ coupon: couponCode.trim() }];
     }
 
     const subscription = await stripe.subscriptions.create(subscriptionParams);

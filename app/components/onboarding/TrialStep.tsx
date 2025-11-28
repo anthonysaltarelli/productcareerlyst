@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { CheckCircle, Loader2, AlertCircle, Sparkles, Rocket, Zap, X } from 'lucide-react';
+import { CheckCircle, Loader2, AlertCircle, Sparkles, Rocket, Zap, X, Tag, ChevronDown, ChevronUp } from 'lucide-react';
 import { useOnboardingProgress } from '@/lib/hooks/useOnboardingProgress';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/amplitude/client';
@@ -35,10 +35,12 @@ const PaymentFormContent = ({
   billingCadence,
   onSuccess,
   clientSecret,
+  couponCode,
 }: {
   billingCadence: 'monthly' | 'quarterly' | 'yearly';
   onSuccess: () => void;
   clientSecret: string;
+  couponCode: string;
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -88,18 +90,31 @@ const PaymentFormContent = ({
         ? setupIntent.payment_method
         : setupIntent.payment_method.id;
 
-      // Create subscription with 7-day trial
+      // Create subscription with 7-day trial (and optional coupon)
+      const requestBody: {
+        plan: string;
+        billingCadence: string;
+        paymentMethodId: string;
+        trialPeriodDays: number;
+        couponCode?: string;
+      } = {
+        plan: 'accelerate',
+        billingCadence,
+        paymentMethodId,
+        trialPeriodDays: 7, // 7-day free trial
+      };
+
+      // Add coupon code if provided
+      if (couponCode && couponCode.trim()) {
+        requestBody.couponCode = couponCode.trim();
+      }
+
       const response = await fetch('/api/stripe/create-subscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          plan: 'accelerate',
-          billingCadence,
-          paymentMethodId,
-          trialPeriodDays: 7, // 7-day free trial
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -153,8 +168,47 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
   const [analysisStatus, setAnalysisStatus] = useState<'pending' | 'processing' | 'completed' | 'failed' | null>(null);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [showSkipConfirmModal, setShowSkipConfirmModal] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [showCouponInput, setShowCouponInput] = useState(false);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    id: string;
+    name: string | null;
+    percentOff: number | null;
+    amountOff: number | null;
+    currency: string | null;
+    duration: string;
+    durationInMonths: number | null;
+  } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
 
   const resumeData = progress?.progress_data?.resume_upload;
+
+  // Calculate discounted price - must be defined before callbacks that use it
+  const calculateDiscountedPrice = (originalPrice: number): number => {
+    if (!appliedCoupon) return originalPrice;
+    
+    if (appliedCoupon.percentOff) {
+      return Math.round(originalPrice * (1 - appliedCoupon.percentOff / 100));
+    }
+    
+    if (appliedCoupon.amountOff) {
+      // Amount off is in cents, convert to dollars
+      const amountOffDollars = appliedCoupon.amountOff / 100;
+      return Math.max(0, originalPrice - amountOffDollars);
+    }
+    
+    return originalPrice;
+  };
+
+  const price = ACCELERATE_PLAN[selectedBilling].price;
+  const discountedPrice = calculateDiscountedPrice(price);
+  const monthlyEquivalent =
+    selectedBilling === 'monthly'
+      ? discountedPrice
+      : selectedBilling === 'quarterly'
+        ? discountedPrice / 3
+        : discountedPrice / 12;
 
   // Refresh progress when component mounts to get latest resume data
   useEffect(() => {
@@ -348,26 +402,107 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
       'Step': 'trial',
       'Billing Cadence': selectedBilling,
       'Plan': 'accelerate',
-      'Price': price,
+      'Original Price': ACCELERATE_PLAN[selectedBilling].price,
+      'Discounted Price': discountedPrice,
       'Monthly Equivalent': Math.round(monthlyEquivalent),
       'Trial Period Days': 7,
       'Resume Analysis Available': !!analysisData,
       'Resume Score': analysisData?.overallScore || null,
       'Onboarding Completed': true,
+      'Coupon Code': appliedCoupon?.id || null,
+      'Has Coupon': !!appliedCoupon,
+      'Coupon Percent Off': appliedCoupon?.percentOff || null,
+      'Coupon Amount Off': appliedCoupon?.amountOff || null,
+      'Coupon Duration': appliedCoupon?.duration || null,
     });
 
     // Redirect to dashboard
     router.push('/dashboard');
     router.refresh();
-  }, [markComplete, selectedBilling, analysisData, router]);
+  }, [markComplete, selectedBilling, analysisData, router, appliedCoupon, discountedPrice]);
 
-  const price = ACCELERATE_PLAN[selectedBilling].price;
-  const monthlyEquivalent =
-    selectedBilling === 'monthly'
-      ? price
-      : selectedBilling === 'quarterly'
-        ? price / 3
-        : price / 12;
+  // Handle coupon validation
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    
+    setValidatingCoupon(true);
+    setCouponError(null);
+    
+    try {
+      const response = await fetch('/api/stripe/validate-coupon', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ couponCode: couponCode.trim() }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        setCouponError(data.error || 'Failed to validate coupon');
+        setAppliedCoupon(null);
+        return;
+      }
+      
+      if (data.valid) {
+        setAppliedCoupon(data.coupon);
+        setCouponError(null);
+        toast.success(`Promo code "${couponCode}" applied!`);
+        
+        // Track coupon applied (non-blocking)
+        setTimeout(() => {
+          try {
+            trackEvent('User Applied Coupon Code', {
+              'Page Route': '/onboarding',
+              'Step': 'trial',
+              'Coupon Code': couponCode,
+              'Coupon Valid': true,
+              'Percent Off': data.coupon.percentOff,
+              'Amount Off': data.coupon.amountOff,
+              'Duration': data.coupon.duration,
+            });
+          } catch (error) {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('⚠️ Tracking error (non-blocking):', error);
+            }
+          }
+        }, 0);
+      } else {
+        setCouponError(data.error || 'Invalid coupon code');
+        setAppliedCoupon(null);
+        
+        // Track invalid coupon (non-blocking)
+        setTimeout(() => {
+          try {
+            trackEvent('User Applied Coupon Code', {
+              'Page Route': '/onboarding',
+              'Step': 'trial',
+              'Coupon Code': couponCode,
+              'Coupon Valid': false,
+              'Error': data.error,
+            });
+          } catch (error) {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('⚠️ Tracking error (non-blocking):', error);
+            }
+          }
+        }, 0);
+      }
+    } catch (error) {
+      setCouponError('Failed to validate coupon. Please try again.');
+      setAppliedCoupon(null);
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  // Handle removing applied coupon
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError(null);
+  };
 
   // Get encouraging message based on score
   const getEncouragingMessage = (score: number): string => {
@@ -570,87 +705,214 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
           <div>
             <h4 className="font-black text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Pricing:</h4>
             <div className="space-y-2 md:space-y-3">
-              {(['monthly', 'quarterly', 'yearly'] as const).map((cadence) => (
-                <label
-                  key={cadence}
-                  className={`relative flex items-center justify-between p-3 md:p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                    selectedBilling === cadence
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 bg-white hover:border-purple-300'
-                  }`}
-                >
-                  {cadence === 'yearly' && (
-                    <span className="absolute -top-2.5 left-3 px-2 py-0.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full">
-                      Most Popular
-                    </span>
-                  )}
-                  <div>
-                    <div className="font-bold text-gray-900 text-sm md:text-base flex items-center gap-2">
-                      {billingLabels[cadence]}
-                      {'savings' in ACCELERATE_PLAN[cadence] && (
-                        <span className="text-green-600 text-xs font-bold">
-                          ({(ACCELERATE_PLAN[cadence] as { price: number; savings: string }).savings} off)
-                        </span>
-                      )}
+              {(['monthly', 'quarterly', 'yearly'] as const).map((cadence) => {
+                const originalPrice = ACCELERATE_PLAN[cadence].price;
+                const cadenceDiscountedPrice = calculateDiscountedPrice(originalPrice);
+                const originalMonthly = cadence === 'monthly' ? originalPrice : Math.round(originalPrice / (cadence === 'quarterly' ? 3 : 12));
+                const discountedMonthly = cadence === 'monthly' ? cadenceDiscountedPrice : Math.round(cadenceDiscountedPrice / (cadence === 'quarterly' ? 3 : 12));
+                const hasDiscount = appliedCoupon && cadenceDiscountedPrice < originalPrice;
+                
+                return (
+                  <label
+                    key={cadence}
+                    className={`relative flex items-center justify-between p-3 md:p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                      selectedBilling === cadence
+                        ? 'border-purple-500 bg-purple-50'
+                        : 'border-gray-200 bg-white hover:border-purple-300'
+                    }`}
+                  >
+                    {cadence === 'yearly' && (
+                      <span className="absolute -top-2.5 left-3 px-2 py-0.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full">
+                        Most Popular
+                      </span>
+                    )}
+                    <div>
+                      <div className="font-bold text-gray-900 text-sm md:text-base flex items-center gap-2 flex-wrap">
+                        {billingLabels[cadence]}
+                        {'savings' in ACCELERATE_PLAN[cadence] && !hasDiscount && (
+                          <span className="text-green-600 text-xs font-bold">
+                            ({(ACCELERATE_PLAN[cadence] as { price: number; savings: string }).savings} off)
+                          </span>
+                        )}
+                        {hasDiscount && (
+                          <span className="text-green-600 text-xs font-bold bg-green-100 px-2 py-0.5 rounded-full">
+                            {appliedCoupon?.percentOff ? `${appliedCoupon.percentOff}% off` : `$${(appliedCoupon?.amountOff || 0) / 100} off`}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs md:text-sm font-semibold flex items-center gap-2 flex-wrap">
+                        {hasDiscount ? (
+                          <>
+                            <span className="text-gray-400 line-through">${originalMonthly}/mo</span>
+                            <span className="text-green-600 font-bold">${discountedMonthly}/mo</span>
+                          </>
+                        ) : (
+                          <span className="text-gray-600">${originalMonthly}/mo</span>
+                        )}
+                        {cadence !== 'monthly' && (
+                          <span className="text-gray-500">
+                            billed {cadence === 'quarterly' ? 'quarterly' : 'annually'}
+                            {hasDiscount && ` ($${cadenceDiscountedPrice})`}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-xs md:text-sm text-gray-600 font-semibold">
-                      ${cadence === 'monthly' ? ACCELERATE_PLAN[cadence].price : Math.round(ACCELERATE_PLAN[cadence].price / (cadence === 'quarterly' ? 3 : 12))}/mo
-                      {cadence !== 'monthly' && (
-                        <span className="text-gray-500 ml-1">
-                          billed {cadence === 'quarterly' ? 'quarterly' : 'annually'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <input
-                    type="radio"
-                    name="billing"
-                    value={cadence}
-                    checked={selectedBilling === cadence}
-                    onChange={(e) => {
-                      const newCadence = e.target.value as typeof selectedBilling;
-                      setSelectedBilling(newCadence);
-                      setHasTrackedBillingSelection(false); // Reset to track new selection
-                      
-                      // Track billing cadence change (non-blocking)
-                      setTimeout(() => {
-                        try {
-                          const price = ACCELERATE_PLAN[newCadence].price;
-                          const monthlyEquivalent =
-                            newCadence === 'monthly'
-                              ? price
-                              : newCadence === 'quarterly'
-                                ? price / 3
-                                : price / 12;
-                          
-                          trackEvent('User Selected Billing Cadence', {
-                            'Page Route': '/onboarding',
-                            'Step': 'trial',
-                            'Billing Cadence': newCadence,
-                            'Previous Billing Cadence': selectedBilling,
-                            'Plan': 'accelerate',
-                            'Price': price,
-                            'Monthly Equivalent': Math.round(monthlyEquivalent),
-                            'Has Savings': 'savings' in ACCELERATE_PLAN[newCadence],
-                            'Savings Percentage': 'savings' in ACCELERATE_PLAN[newCadence] 
-                              ? (ACCELERATE_PLAN[newCadence] as { savings: string }).savings 
-                              : null,
-                            'Resume Analysis Available': !!analysisData,
-                            'Resume Score': analysisData?.overallScore || null,
-                          });
-                        } catch (error) {
-                          if (process.env.NODE_ENV === 'development') {
-                            console.warn('⚠️ Tracking error (non-blocking):', error);
+                    <input
+                      type="radio"
+                      name="billing"
+                      value={cadence}
+                      checked={selectedBilling === cadence}
+                      onChange={(e) => {
+                        const newCadence = e.target.value as typeof selectedBilling;
+                        setSelectedBilling(newCadence);
+                        setHasTrackedBillingSelection(false); // Reset to track new selection
+                        
+                        // Track billing cadence change (non-blocking)
+                        setTimeout(() => {
+                          try {
+                            const newPrice = ACCELERATE_PLAN[newCadence].price;
+                            const newMonthlyEquivalent =
+                              newCadence === 'monthly'
+                                ? newPrice
+                                : newCadence === 'quarterly'
+                                  ? newPrice / 3
+                                  : newPrice / 12;
+                            
+                            trackEvent('User Selected Billing Cadence', {
+                              'Page Route': '/onboarding',
+                              'Step': 'trial',
+                              'Billing Cadence': newCadence,
+                              'Previous Billing Cadence': selectedBilling,
+                              'Plan': 'accelerate',
+                              'Price': newPrice,
+                              'Monthly Equivalent': Math.round(newMonthlyEquivalent),
+                              'Has Savings': 'savings' in ACCELERATE_PLAN[newCadence],
+                              'Savings Percentage': 'savings' in ACCELERATE_PLAN[newCadence] 
+                                ? (ACCELERATE_PLAN[newCadence] as { savings: string }).savings 
+                                : null,
+                              'Resume Analysis Available': !!analysisData,
+                              'Resume Score': analysisData?.overallScore || null,
+                              'Applied Coupon': appliedCoupon?.id || null,
+                            });
+                          } catch (error) {
+                            if (process.env.NODE_ENV === 'development') {
+                              console.warn('⚠️ Tracking error (non-blocking):', error);
+                            }
                           }
-                        }
-                      }, 0);
-                    }}
-                    className="w-5 h-5 text-purple-600 focus:ring-purple-500"
-                  />
-                </label>
-              ))}
+                        }, 0);
+                      }}
+                      className="w-5 h-5 text-purple-600 focus:ring-purple-500"
+                    />
+                  </label>
+                );
+              })}
             </div>
           </div>
+        </div>
+
+        {/* Coupon Code Input */}
+        <div className="mb-4 md:mb-6">
+          {appliedCoupon ? (
+            // Show applied coupon state
+            <div className="p-3 md:p-4 bg-green-50 border-2 border-green-200 rounded-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-bold text-green-700">
+                      Promo code applied!
+                    </p>
+                    <p className="text-xs text-green-600 font-semibold">
+                      {appliedCoupon.percentOff 
+                        ? `${appliedCoupon.percentOff}% off ${appliedCoupon.duration === 'forever' ? 'forever' : appliedCoupon.duration === 'once' ? 'first payment' : `for ${appliedCoupon.durationInMonths} months`}`
+                        : `$${(appliedCoupon.amountOff || 0) / 100} off ${appliedCoupon.duration === 'forever' ? 'forever' : appliedCoupon.duration === 'once' ? 'first payment' : `for ${appliedCoupon.durationInMonths} months`}`
+                      }
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveCoupon}
+                  className="p-2 text-gray-500 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                  aria-label="Remove promo code"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            // Show coupon input
+            <>
+              <button
+                type="button"
+                onClick={() => setShowCouponInput(!showCouponInput)}
+                className="flex items-center gap-2 text-sm font-semibold text-purple-600 hover:text-purple-700 transition-colors"
+                aria-expanded={showCouponInput}
+                aria-label="Toggle coupon code input"
+              >
+                <Tag className="w-4 h-4" />
+                Have a promo code?
+                {showCouponInput ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </button>
+              
+              {showCouponInput && (
+                <div className="mt-3">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value.toUpperCase());
+                        setCouponError(null); // Clear error when typing
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleApplyCoupon();
+                        }
+                      }}
+                      placeholder="Enter promo code"
+                      disabled={validatingCoupon}
+                      className={`flex-1 px-4 py-2.5 border-2 rounded-xl font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none transition-colors ${
+                        couponError 
+                          ? 'border-red-300 focus:border-red-500' 
+                          : 'border-gray-200 focus:border-purple-500'
+                      } disabled:bg-gray-50 disabled:cursor-not-allowed`}
+                      aria-label="Promo code"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={!couponCode.trim() || validatingCoupon}
+                      className="px-4 md:px-6 py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                      aria-label="Apply promo code"
+                    >
+                      {validatingCoupon ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span className="hidden md:inline">Checking...</span>
+                        </>
+                      ) : (
+                        'Apply'
+                      )}
+                    </button>
+                  </div>
+                  
+                  {/* Error state */}
+                  {couponError && (
+                    <div className="mt-2 flex items-center gap-2 text-red-600">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      <p className="text-xs font-semibold">{couponError}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {!showPaymentForm ? (
@@ -660,7 +922,6 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
               // Track payment form shown (non-blocking)
               setTimeout(() => {
                 try {
-                  const price = ACCELERATE_PLAN[selectedBilling].price;
                   trackEvent('User Clicked Start Trial Button', {
                     'Page Route': '/onboarding',
                     'Step': 'trial',
@@ -668,9 +929,12 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
                     'Button Type': 'Primary CTA',
                     'Billing Cadence': selectedBilling,
                     'Plan': 'accelerate',
-                    'Price': price,
+                    'Original Price': ACCELERATE_PLAN[selectedBilling].price,
+                    'Discounted Price': discountedPrice,
                     'Resume Analysis Available': !!analysisData,
                     'Resume Score': analysisData?.overallScore || null,
+                    'Coupon Code': appliedCoupon?.id || null,
+                    'Has Coupon': !!appliedCoupon,
                   });
                 } catch (error) {
                   if (process.env.NODE_ENV === 'development') {
@@ -709,6 +973,7 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
                   billingCadence={selectedBilling}
                   onSuccess={handleTrialStart}
                   clientSecret={clientSecret}
+                  couponCode={appliedCoupon?.id || ''}
                 />
               </Elements>
             ) : null}

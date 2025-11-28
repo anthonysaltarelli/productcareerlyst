@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import { ReactNode } from 'react'
+import { BlackFridayBanner } from './BlackFridayBanner'
 
 export const ConditionalLayout = ({ 
   children,
@@ -28,9 +29,10 @@ export const ConditionalLayout = ({
     return <>{children}</>
   }
 
-  // Other pages get the navigation and footer
+  // Other pages get the Black Friday banner, navigation and footer
   return (
     <>
+      <BlackFridayBanner />
       {navigation}
       {children}
       {footer}

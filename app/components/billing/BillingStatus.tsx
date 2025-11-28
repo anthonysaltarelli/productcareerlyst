@@ -17,6 +17,12 @@ interface UpcomingInvoice {
   subtotal: number;
   total: number;
   description: string | null;
+  discount?: {
+    percentOff?: number;
+    amountOff?: number;
+    couponId?: string;
+    couponName?: string;
+  } | null;
 }
 
 export const BillingStatus = ({ subscription }: BillingStatusProps) => {
@@ -299,10 +305,35 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
                 <>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600 font-semibold">First Charge</span>
-                    <span className="text-gray-900 font-bold">
-                      {formatAmount(upcomingInvoice.amount_due, upcomingInvoice.currency)}
-                    </span>
+                    <div className="text-right">
+                      {upcomingInvoice.discount && upcomingInvoice.subtotal !== upcomingInvoice.amount_due ? (
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-gray-400 line-through text-sm">
+                            {formatAmount(upcomingInvoice.subtotal, upcomingInvoice.currency)}
+                          </span>
+                          <span className="text-green-600 font-bold">
+                            {formatAmount(upcomingInvoice.amount_due, upcomingInvoice.currency)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-900 font-bold">
+                          {formatAmount(upcomingInvoice.amount_due, upcomingInvoice.currency)}
+                        </span>
+                      )}
+                    </div>
                   </div>
+                  {upcomingInvoice.discount && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600 font-semibold">Discount</span>
+                      <span className="text-green-600 font-bold bg-green-100 px-2 py-0.5 rounded-full text-sm">
+                        {upcomingInvoice.discount.percentOff 
+                          ? `${upcomingInvoice.discount.percentOff}% off` 
+                          : upcomingInvoice.discount.amountOff 
+                            ? `${formatAmount(upcomingInvoice.discount.amountOff, upcomingInvoice.currency)} off`
+                            : 'Discount applied'}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600 font-semibold">Charge Date</span>
                     <span className="text-gray-900 font-bold">
@@ -340,10 +371,31 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
           <div className="p-4 rounded-xl bg-gray-50">
             <div className="text-sm text-gray-600 font-semibold mb-1">Next Payment</div>
             <div className="text-lg font-black text-gray-900">
-              {formatAmount(upcomingInvoice.amount_due, upcomingInvoice.currency)} owed on{' '}
+              {upcomingInvoice.discount && upcomingInvoice.subtotal !== upcomingInvoice.amount_due ? (
+                <>
+                  <span className="text-gray-400 line-through text-sm mr-2">
+                    {formatAmount(upcomingInvoice.subtotal, upcomingInvoice.currency)}
+                  </span>
+                  <span className="text-green-600">
+                    {formatAmount(upcomingInvoice.amount_due, upcomingInvoice.currency)}
+                  </span>
+                </>
+              ) : (
+                formatAmount(upcomingInvoice.amount_due, upcomingInvoice.currency)
+              )}{' '}
+              owed on{' '}
               {formatDate(upcomingInvoice.next_payment_date || upcomingInvoice.period_start || upcomingInvoice.period_end) || 
                (subscription?.current_period_end ? formatDate(subscription.current_period_end) : 'N/A')}
             </div>
+            {upcomingInvoice.discount && (
+              <div className="mt-1 text-sm text-green-600 font-semibold">
+                {upcomingInvoice.discount.percentOff 
+                  ? `${upcomingInvoice.discount.percentOff}% discount applied` 
+                  : upcomingInvoice.discount.amountOff 
+                    ? `${formatAmount(upcomingInvoice.discount.amountOff, upcomingInvoice.currency)} discount applied`
+                    : 'Discount applied'}
+              </div>
+            )}
           </div>
         ) : willCancel ? (
           <div className="p-4 rounded-xl bg-gray-50">

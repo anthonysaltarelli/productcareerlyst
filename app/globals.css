@@ -118,3 +118,12 @@ body {
    - components/tiptap-templates/notion-like/notion-like-editor.scss
    - components/tiptap-node/*.scss files
 */
+
+/* Black Friday animations */
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}

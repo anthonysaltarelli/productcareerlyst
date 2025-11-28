@@ -73,6 +73,7 @@ export const POST = async (request: NextRequest) => {
           quantity: 1,
         },
       ],
+      allow_promotion_codes: true, // Enable promo code field in Stripe Checkout
       success_url: `${request.nextUrl.origin}/dashboard/billing?success=true`,
       cancel_url: `${request.nextUrl.origin}/dashboard/billing?canceled=true`,
       metadata: {

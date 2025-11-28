@@ -4,10 +4,20 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { Check, ArrowLeft, Loader2 } from 'lucide-react';
+import { Check, ArrowLeft, Loader2, Tag, ChevronDown, ChevronUp, X, AlertCircle, CheckCircle } from 'lucide-react';
 import { TrackedButton } from '@/app/components/TrackedButton';
 import { trackEvent } from '@/lib/amplitude/client';
 import { createClient } from '@/lib/supabase/client';
+
+// Type for coupon details
+interface CouponDetails {
+  couponId: string;
+  couponName?: string;
+  percentOff?: number;
+  amountOff?: number;
+  currency?: string;
+  duration?: string;
+}
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
@@ -38,12 +48,14 @@ const PaymentFormContent = ({
   plan, 
   billingCadence, 
   onSuccess,
-  clientSecret
+  clientSecret,
+  couponCode
 }: { 
   plan: 'learn' | 'accelerate';
   billingCadence: 'monthly' | 'quarterly' | 'yearly';
   onSuccess: () => void;
   clientSecret: string;
+  couponCode: string;
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -67,6 +79,8 @@ const PaymentFormContent = ({
       'Price': plans[plan][billingCadence].price,
       'Form Validation Status': 'valid',
       'Payment Method Type': 'card',
+      'Has Coupon': !!couponCode,
+      'Coupon Code': couponCode || null,
     });
 
     setLoading(true);
@@ -127,16 +141,28 @@ const PaymentFormContent = ({
         : setupIntent.payment_method.id;
 
       // Create subscription with payment method
+      const requestBody: {
+        plan: string;
+        billingCadence: string;
+        paymentMethodId: string;
+        couponCode?: string;
+      } = {
+        plan,
+        billingCadence,
+        paymentMethodId,
+      };
+      
+      // Include coupon code if provided
+      if (couponCode && couponCode.trim()) {
+        requestBody.couponCode = couponCode.trim();
+      }
+
       const response = await fetch('/api/stripe/create-subscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          plan,
-          billingCadence,
-          paymentMethodId,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -159,6 +185,8 @@ const PaymentFormContent = ({
         'Payment Method ID': paymentMethodId,
         'Setup Intent Status': setupIntent.status,
         'Subscription Created': true,
+        'Has Coupon': !!couponCode,
+        'Coupon Code': couponCode || null,
       });
 
       // Success - subscription created
@@ -233,6 +261,107 @@ export default function SelectBillingPage() {
   const [subscription, setSubscription] = useState<any>(null);
   const [accountCreatedAt, setAccountCreatedAt] = useState<string | null>(null);
   const [pageTracked, setPageTracked] = useState(false);
+  
+  // Coupon code state
+  const [couponCode, setCouponCode] = useState('');
+  const [showCouponInput, setShowCouponInput] = useState(false);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponDetails | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  
+  // Helper function to calculate discounted price
+  const calculateDiscountedPrice = (originalPrice: number): number => {
+    if (!appliedCoupon) return originalPrice;
+    
+    if (appliedCoupon.percentOff) {
+      return Math.round(originalPrice * (1 - appliedCoupon.percentOff / 100));
+    }
+    if (appliedCoupon.amountOff) {
+      // Convert cents to dollars for comparison
+      const amountOffDollars = appliedCoupon.amountOff / 100;
+      return Math.max(0, originalPrice - amountOffDollars);
+    }
+    return originalPrice;
+  };
+  
+  // Handle coupon code validation
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    
+    setValidatingCoupon(true);
+    setCouponError(null);
+    
+    try {
+      const response = await fetch('/api/stripe/validate-coupon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ couponCode: couponCode.trim() }),
+      });
+      
+      const data = await response.json();
+      
+      // Check for HTTP errors first
+      if (!response.ok) {
+        setCouponError(data.error || 'Failed to validate coupon');
+        setAppliedCoupon(null);
+        trackEvent('Coupon Code Validation Failed', {
+          'Coupon Code': couponCode.trim(),
+          'Error': data.error || 'HTTP error',
+          'Page': 'Select Billing Page',
+        });
+        return;
+      }
+      
+      // Check if coupon is valid (API returns 200 with valid: false for invalid coupons)
+      if (!data.valid) {
+        setCouponError(data.error || 'Invalid coupon code');
+        setAppliedCoupon(null);
+        trackEvent('Coupon Code Validation Failed', {
+          'Coupon Code': couponCode.trim(),
+          'Error': data.error || 'Invalid coupon code',
+          'Page': 'Select Billing Page',
+        });
+        return;
+      }
+      
+      // Coupon is valid - use data.coupon for the details
+      setAppliedCoupon({
+        couponId: data.coupon.id,
+        couponName: data.coupon.name,
+        percentOff: data.coupon.percentOff,
+        amountOff: data.coupon.amountOff,
+        currency: data.coupon.currency,
+        duration: data.coupon.duration,
+      });
+      setCouponError(null);
+      
+      trackEvent('Coupon Code Validation Success', {
+        'Coupon Code': couponCode.trim(),
+        'Coupon ID': data.coupon.id,
+        'Percent Off': data.coupon.percentOff,
+        'Amount Off': data.coupon.amountOff,
+        'Duration': data.coupon.duration,
+        'Page': 'Select Billing Page',
+      });
+    } catch (error) {
+      setCouponError('Failed to validate coupon. Please try again.');
+      setAppliedCoupon(null);
+      trackEvent('Coupon Code Validation Error', {
+        'Coupon Code': couponCode.trim(),
+        'Error': 'Network error',
+        'Page': 'Select Billing Page',
+      });
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+  
+  // Clear coupon
+  const handleClearCoupon = () => {
+    setCouponCode('');
+    setAppliedCoupon(null);
+    setCouponError(null);
+  };
 
   // Fetch subscription and user data for tracking
   useEffect(() => {
@@ -316,8 +445,11 @@ export default function SelectBillingPage() {
       'Plan Selected': plan!,
       'Billing Cycle Selected': selectedBilling,
       'Price': billingData.price,
+      'Discounted Price': appliedCoupon ? calculateDiscountedPrice(billingData.price) : billingData.price,
       'Monthly Equivalent': monthlyEquivalent,
       'Savings Percentage': 'savings' in billingData ? billingData.savings : null,
+      'Has Coupon': !!appliedCoupon,
+      'Coupon Code': appliedCoupon ? couponCode : null,
     });
 
     setShowPaymentForm(true);
@@ -415,6 +547,93 @@ export default function SelectBillingPage() {
 
         {!showPaymentForm ? (
           <>
+            {/* Promo Code Section */}
+            <div className="max-w-xl mx-auto mb-8">
+              <button
+                type="button"
+                onClick={() => setShowCouponInput(!showCouponInput)}
+                className="flex items-center gap-2 text-gray-600 font-semibold hover:text-purple-600 transition-colors mx-auto"
+                aria-expanded={showCouponInput}
+                aria-controls="coupon-input-section"
+              >
+                <Tag className="w-4 h-4" />
+                Have a promo code?
+                {showCouponInput ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </button>
+              
+              {showCouponInput && (
+                <div 
+                  id="coupon-input-section"
+                  className="mt-4 bg-white rounded-2xl p-4 border-2 border-gray-200 shadow-sm"
+                >
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value.toUpperCase());
+                        setCouponError(null);
+                        setAppliedCoupon(null);
+                      }}
+                      placeholder="Enter promo code"
+                      className="flex-1 px-4 py-2.5 border-2 border-gray-200 rounded-xl font-semibold text-gray-900 placeholder:text-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
+                      aria-label="Promo code"
+                      disabled={!!appliedCoupon}
+                    />
+                    {!appliedCoupon ? (
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        disabled={validatingCoupon || !couponCode.trim()}
+                        className="px-5 py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                      >
+                        {validatingCoupon ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          'Apply'
+                        )}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleClearCoupon}
+                        className="px-4 py-2.5 text-gray-500 hover:text-gray-700 bg-gray-100 rounded-xl transition-colors flex items-center gap-1"
+                        aria-label="Remove promo code"
+                      >
+                        <X className="w-5 h-5" />
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  
+                  {validatingCoupon && (
+                    <p className="mt-3 text-sm text-gray-600 font-semibold flex items-center gap-1.5">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Validating promo code...
+                    </p>
+                  )}
+                  {couponError && (
+                    <p className="mt-3 text-sm text-red-600 font-semibold flex items-center gap-1.5">
+                      <AlertCircle className="w-4 h-4" />
+                      {couponError}
+                    </p>
+                  )}
+                  {appliedCoupon && (
+                    <p className="mt-3 text-sm text-green-600 font-semibold flex items-center gap-1.5">
+                      <CheckCircle className="w-4 h-4" />
+                      Promo code "{appliedCoupon.couponName || appliedCoupon.couponId || couponCode}" applied!
+                      {appliedCoupon.percentOff ? ` (${appliedCoupon.percentOff}% off)` : null}
+                      {!appliedCoupon.percentOff && appliedCoupon.amountOff ? ` ($${(appliedCoupon.amountOff / 100).toFixed(2)} off)` : null}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               {(['monthly', 'quarterly', 'yearly'] as const).map((billing) => {
                 const billingData = planData[billing];
@@ -469,19 +688,47 @@ export default function SelectBillingPage() {
                     </div>
                     <div className="space-y-2">
                       <div className="text-4xl font-black text-purple-600">
-                        ${billingData.price}
+                        {appliedCoupon ? (
+                          <>
+                            <span className="text-gray-400 line-through text-2xl mr-2">
+                              ${billingData.price}
+                            </span>
+                            ${calculateDiscountedPrice(billingData.price)}
+                          </>
+                        ) : (
+                          `$${billingData.price}`
+                        )}
                         {billing === 'monthly' && '/mo'}
                         {billing === 'quarterly' && '/3mo'}
                         {billing === 'yearly' && '/yr'}
                       </div>
                       {billing !== 'monthly' && (
                         <div className="text-lg text-gray-600 font-semibold">
-                          ${monthlyEquivalent.toFixed(0)}/mo
+                          {appliedCoupon ? (
+                            <>
+                              <span className="text-gray-400 line-through text-sm mr-1">
+                                ${monthlyEquivalent.toFixed(0)}
+                              </span>
+                              ${(calculateDiscountedPrice(billingData.price) / (billing === 'quarterly' ? 3 : 12)).toFixed(0)}/mo
+                            </>
+                          ) : (
+                            `$${monthlyEquivalent.toFixed(0)}/mo`
+                          )}
                         </div>
                       )}
                       {billing === 'yearly' && (
                         <div className="pt-2 text-sm text-green-600 font-bold">
                           Best Value - Save {plan === 'learn' ? '42' : '40'}% annually
+                        </div>
+                      )}
+                      {appliedCoupon && (
+                        <div className="pt-1 text-sm text-purple-600 font-bold flex items-center gap-1">
+                          <Tag className="w-3 h-3" />
+                          {appliedCoupon.percentOff 
+                            ? `${appliedCoupon.percentOff}% off` 
+                            : appliedCoupon.amountOff 
+                              ? `$${(appliedCoupon.amountOff / 100).toFixed(2)} off`
+                              : 'Discount applied'}
                         </div>
                       )}
                     </div>
@@ -545,18 +792,118 @@ export default function SelectBillingPage() {
                     </span>
                   </div>
                 )}
+                {appliedCoupon && (
+                  <div className="flex justify-between items-center pb-4 border-b-2 border-gray-200">
+                    <span className="text-green-600 font-semibold flex items-center gap-2">
+                      <Tag className="w-4 h-4" />
+                      Discount ({appliedCoupon.couponName || appliedCoupon.couponId || 'Promo'})
+                    </span>
+                    <span className="text-green-600 font-bold">
+                      -{appliedCoupon.percentOff 
+                        ? `${appliedCoupon.percentOff}%` 
+                        : appliedCoupon.amountOff 
+                          ? `$${(appliedCoupon.amountOff / 100).toFixed(2)}`
+                          : 'Discount'}
+                    </span>
+                  </div>
+                )}
                 <div className="pt-4">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-900 font-bold text-xl">Total</span>
-                    <span className="text-purple-600 font-black text-2xl">
-                      ${price}
-                      {selectedBilling === 'monthly' && '/mo'}
-                      {selectedBilling === 'quarterly' && '/3mo'}
-                      {selectedBilling === 'yearly' && '/yr'}
-                    </span>
+                    <div className="text-right">
+                      {appliedCoupon ? (
+                        <>
+                          <span className="text-gray-400 line-through text-lg mr-2">
+                            ${price}
+                          </span>
+                          <span className="text-purple-600 font-black text-2xl">
+                            ${calculateDiscountedPrice(price)}
+                            {selectedBilling === 'monthly' && '/mo'}
+                            {selectedBilling === 'quarterly' && '/3mo'}
+                            {selectedBilling === 'yearly' && '/yr'}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-purple-600 font-black text-2xl">
+                          ${price}
+                          {selectedBilling === 'monthly' && '/mo'}
+                          {selectedBilling === 'quarterly' && '/3mo'}
+                          {selectedBilling === 'yearly' && '/yr'}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
+              
+              {/* Promo Code Section in Order Summary */}
+              {!appliedCoupon && (
+                <div className="mt-6 pt-6 border-t-2 border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => setShowCouponInput(!showCouponInput)}
+                    className="flex items-center gap-2 text-gray-600 font-semibold hover:text-purple-600 transition-colors text-sm"
+                    aria-expanded={showCouponInput}
+                  >
+                    <Tag className="w-4 h-4" />
+                    Have a promo code?
+                    {showCouponInput ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+                  
+                  {showCouponInput && (
+                    <div className="mt-3">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={couponCode}
+                          onChange={(e) => {
+                            setCouponCode(e.target.value.toUpperCase());
+                            setCouponError(null);
+                          }}
+                          placeholder="Enter promo code"
+                          className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg font-semibold text-gray-900 placeholder:text-gray-400 focus:border-purple-500 focus:outline-none transition-colors text-sm"
+                          aria-label="Promo code"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyCoupon}
+                          disabled={validatingCoupon || !couponCode.trim()}
+                          className="px-4 py-2 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1 text-sm"
+                        >
+                          {validatingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply'}
+                        </button>
+                      </div>
+                      {couponError && (
+                        <p className="mt-2 text-xs text-red-600 font-semibold flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {couponError}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              {appliedCoupon && (
+                <div className="mt-6 pt-6 border-t-2 border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-green-600 font-semibold flex items-center gap-1.5">
+                      <CheckCircle className="w-4 h-4" />
+                      {appliedCoupon.percentOff 
+                        ? `${appliedCoupon.percentOff}% discount applied`
+                        : appliedCoupon.amountOff 
+                          ? `$${(appliedCoupon.amountOff / 100).toFixed(2)} discount applied`
+                          : 'Discount applied'}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleClearCoupon}
+                      className="text-xs text-gray-500 hover:text-red-500 font-semibold transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* What's Included */}
               <div className="mt-8 pt-8 border-t-2 border-gray-200">
@@ -623,6 +970,7 @@ export default function SelectBillingPage() {
                     billingCadence={selectedBilling} 
                     onSuccess={handleSuccess}
                     clientSecret={clientSecret}
+                    couponCode={appliedCoupon ? couponCode : ''}
                   />
                 </Elements>
               )}
