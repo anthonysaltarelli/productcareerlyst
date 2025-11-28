@@ -23,6 +23,8 @@ interface UpcomingInvoice {
     couponId?: string;
     couponName?: string;
   } | null;
+  refunded?: boolean;
+  payment_overdue?: boolean;
 }
 
 export const BillingStatus = ({ subscription }: BillingStatusProps) => {
@@ -368,24 +370,31 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
           </div>
         </div>
         {upcomingInvoice && !willCancel ? (
-          <div className="p-4 rounded-xl bg-gray-50">
+          <div className={`p-4 rounded-xl ${upcomingInvoice.payment_overdue ? 'bg-orange-50 border-2 border-orange-200' : 'bg-gray-50'}`}>
             <div className="text-sm text-gray-600 font-semibold mb-1">Next Payment</div>
-            <div className="text-lg font-black text-gray-900">
+            {upcomingInvoice.payment_overdue && (
+              <div className="mb-2 text-sm text-orange-700 font-bold">
+                ⚠️ Payment overdue - previous charge was refunded
+              </div>
+            )}
+            <div className={`text-lg font-black ${upcomingInvoice.payment_overdue ? 'text-orange-700' : 'text-gray-900'}`}>
               {upcomingInvoice.discount && upcomingInvoice.subtotal !== upcomingInvoice.amount_due ? (
                 <>
                   <span className="text-gray-400 line-through text-sm mr-2">
                     {formatAmount(upcomingInvoice.subtotal, upcomingInvoice.currency)}
                   </span>
-                  <span className="text-green-600">
+                  <span className={upcomingInvoice.payment_overdue ? 'text-orange-600' : 'text-green-600'}>
                     {formatAmount(upcomingInvoice.amount_due, upcomingInvoice.currency)}
                   </span>
                 </>
               ) : (
                 formatAmount(upcomingInvoice.amount_due, upcomingInvoice.currency)
               )}{' '}
-              owed on{' '}
-              {formatDate(upcomingInvoice.next_payment_date || upcomingInvoice.period_start || upcomingInvoice.period_end) || 
-               (subscription?.current_period_end ? formatDate(subscription.current_period_end) : 'N/A')}
+              {upcomingInvoice.payment_overdue ? 'due now' : 'owed on'}{' '}
+              {upcomingInvoice.payment_overdue 
+                ? 'immediately' 
+                : formatDate(upcomingInvoice.next_payment_date || upcomingInvoice.period_start || upcomingInvoice.period_end) || 
+                  (subscription?.current_period_end ? formatDate(subscription.current_period_end) : 'N/A')}
             </div>
             {upcomingInvoice.discount && (
               <div className="mt-1 text-sm text-green-600 font-semibold">
@@ -394,6 +403,11 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
                   : upcomingInvoice.discount.amountOff 
                     ? `${formatAmount(upcomingInvoice.discount.amountOff, upcomingInvoice.currency)} discount applied`
                     : 'Discount applied'}
+              </div>
+            )}
+            {upcomingInvoice.refunded && !upcomingInvoice.payment_overdue && (
+              <div className="mt-1 text-sm text-orange-600 font-semibold">
+                Previous payment was refunded
               </div>
             )}
           </div>

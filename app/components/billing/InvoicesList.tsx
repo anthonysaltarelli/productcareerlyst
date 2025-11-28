@@ -9,6 +9,15 @@ interface Invoice {
   number: string | null;
   amount_paid: number;
   amount_due: number;
+  amount_refunded?: number;
+  refunded?: boolean;
+  refunds?: Array<{
+    id: string;
+    amount: number;
+    status: string;
+    created: number;
+    reason: string | null;
+  }>;
   currency: string;
   status: string;
   created: number;
@@ -43,6 +52,20 @@ export const InvoicesList = ({ subscription }: InvoicesListProps) => {
         }
 
         const { invoices: fetchedInvoices } = await response.json();
+        
+        // Debug logging to see what we're receiving from the API
+        console.log('[InvoicesList] Received invoices from API:', fetchedInvoices);
+        fetchedInvoices.forEach((inv: Invoice) => {
+          console.log(`[InvoicesList] Invoice ${inv.id}:`, {
+            number: inv.number,
+            status: inv.status,
+            refunded: inv.refunded,
+            amount_refunded: inv.amount_refunded,
+            refunds_count: inv.refunds?.length || 0,
+            refunds: inv.refunds,
+          });
+        });
+        
         setInvoices(fetchedInvoices);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -69,7 +92,12 @@ export const InvoicesList = ({ subscription }: InvoicesListProps) => {
     }).format(amount / 100);
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string, refunded?: boolean) => {
+    // If refunded, show refunded status instead of paid
+    if (refunded) {
+      return 'bg-orange-100 text-orange-700';
+    }
+    
     switch (status) {
       case 'paid':
         return 'bg-green-100 text-green-700';
@@ -84,6 +112,13 @@ export const InvoicesList = ({ subscription }: InvoicesListProps) => {
       default:
         return 'bg-gray-100 text-gray-700';
     }
+  };
+
+  const getStatusLabel = (status: string, refunded?: boolean) => {
+    if (refunded) {
+      return 'REFUNDED';
+    }
+    return status.toUpperCase();
   };
 
   if (!subscription) {
@@ -143,9 +178,9 @@ export const InvoicesList = ({ subscription }: InvoicesListProps) => {
                     {invoice.number || `Invoice ${invoice.id.slice(-8)}`}
                   </h3>
                   <span
-                    className={`px-3 py-1 rounded-lg text-sm font-bold ${getStatusColor(invoice.status)}`}
+                    className={`px-3 py-1 rounded-lg text-sm font-bold ${getStatusColor(invoice.status, invoice.refunded)}`}
                   >
-                    {invoice.status.toUpperCase()}
+                    {getStatusLabel(invoice.status, invoice.refunded)}
                   </span>
                 </div>
                 <p className="text-gray-600 font-semibold text-sm mb-1">
@@ -155,11 +190,27 @@ export const InvoicesList = ({ subscription }: InvoicesListProps) => {
                   Created: {formatDate(invoice.created)}
                   {invoice.due_date && ` • Due: ${formatDate(invoice.due_date)}`}
                 </p>
+                {invoice.refunded && invoice.amount_refunded && invoice.amount_refunded > 0 && (
+                  <p className="text-orange-600 font-semibold text-sm mt-1">
+                    Refunded: {formatAmount(invoice.amount_refunded, invoice.currency)}
+                  </p>
+                )}
               </div>
               <div className="text-right ml-4">
-                <div className="text-xl font-black text-gray-900 mb-2">
-                  {formatAmount(invoice.amount_paid || invoice.amount_due, invoice.currency)}
-                </div>
+                {invoice.refunded && invoice.amount_refunded ? (
+                  <div className="mb-2">
+                    <div className="text-sm text-gray-400 line-through mb-1">
+                      {formatAmount(invoice.amount_paid || invoice.amount_due, invoice.currency)}
+                    </div>
+                    <div className="text-xl font-black text-orange-600">
+                      {formatAmount(invoice.amount_paid - invoice.amount_refunded, invoice.currency)}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xl font-black text-gray-900 mb-2">
+                    {formatAmount(invoice.amount_paid || invoice.amount_due, invoice.currency)}
+                  </div>
+                )}
               </div>
             </div>
 

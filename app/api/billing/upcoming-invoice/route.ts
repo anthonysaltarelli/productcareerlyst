@@ -38,10 +38,11 @@ export const GET = async (request: NextRequest) => {
     const stripe = getStripeClient();
 
     try {
-      // Get the subscription from Stripe to get price information
-      const stripeSubscription: StripeSubscription = await stripe.subscriptions.retrieve(
-        subscription.stripe_subscription_id
-      );
+      // OPTIMIZATION 1: Parallel fetch of subscription and customer
+      const [stripeSubscription, customer] = await Promise.all([
+        stripe.subscriptions.retrieve(subscription.stripe_subscription_id),
+        stripe.customers.retrieve(subscription.stripe_customer_id).catch(() => null),
+      ]);
 
       // If subscription is set to cancel at period end, there's no upcoming charge
       if (stripeSubscription.cancel_at_period_end) {
@@ -101,6 +102,62 @@ export const GET = async (request: NextRequest) => {
       
       // Access current_period_end (sub already defined above for discount check)
       const currentPeriodEnd = sub.current_period_end;
+      const now = Math.floor(Date.now() / 1000);
+
+      // OPTIMIZATION 2: Check refund status with timeout (non-blocking if slow)
+      // This is optional and won't block the main response
+      let latestInvoiceRefunded = false;
+      let periodEndAdjusted = false;
+      let adjustedPeriodEnd = currentPeriodEnd;
+
+      // Check refund status with timeout - don't wait more than 500ms
+      if (stripeSubscription.latest_invoice) {
+        try {
+          const latestInvoiceId = typeof stripeSubscription.latest_invoice === 'string' 
+            ? stripeSubscription.latest_invoice 
+            : stripeSubscription.latest_invoice.id;
+          
+          // Use direct API for faster charge ID retrieval
+          const stripeApiKey = process.env.STRIPE_SECRET_KEY;
+          if (stripeApiKey) {
+            const refundCheck = Promise.race([
+              (async () => {
+                const response = await fetch(`https://api.stripe.com/v1/invoices/${latestInvoiceId}`, {
+                  headers: { 'Authorization': `Bearer ${stripeApiKey}` },
+                });
+                
+                if (response.ok) {
+                  const directInvoice: any = await response.json();
+                  const chargeId = directInvoice.charge;
+                  
+                  if (chargeId && typeof chargeId === 'string') {
+                    const charge = await stripe.charges.retrieve(chargeId);
+                    return {
+                      refunded: (charge.amount_refunded > 0) || (charge.refunded === true),
+                      overdue: currentPeriodEnd < now,
+                    };
+                  }
+                }
+                return { refunded: false, overdue: false };
+              })(),
+              new Promise<{ refunded: boolean; overdue: boolean }>(resolve => 
+                setTimeout(() => resolve({ refunded: false, overdue: false }), 500)
+              ),
+            ]);
+            
+            const refundResult = await refundCheck;
+            if (refundResult.refunded) {
+              latestInvoiceRefunded = true;
+              if (refundResult.overdue) {
+                periodEndAdjusted = true;
+                adjustedPeriodEnd = now + (24 * 60 * 60);
+              }
+            }
+          }
+        } catch (error) {
+          // Silently fail - refund check is not critical
+        }
+      }
 
       // Calculate next period end based on billing interval
       const interval = price.recurring?.interval || 'month';
@@ -121,23 +178,15 @@ export const GET = async (request: NextRequest) => {
         nextPeriodEnd = currentPeriodEnd + (intervalCount * 7 * secondsInDay);
       }
 
-      // Get customer balance to account for credits
-      // Customer balance: negative = credit, positive = debit
-      let customerBalance = 0;
-      try {
-        const customer = await stripe.customers.retrieve(subscription.stripe_customer_id);
-        customerBalance = (customer as any).balance || 0;
-      } catch (balanceError) {
-        console.log('Could not retrieve customer balance:', balanceError);
-      }
+      // Customer balance already retrieved in parallel above
+      const customerBalance = (customer as any)?.balance || 0;
 
-      // Try to get the actual upcoming invoice - this accounts for customer balance/credits and discounts
-      // Note: For subscriptions with billing_mode = flexible, we need to use createPreview instead of retrieveUpcoming
+      // OPTIMIZATION 3: Try createPreview first (most accurate), skip retrieveUpcoming if it fails
+      // This reduces sequential API calls
       try {
         const invoicesResource = stripe.invoices as any;
         
-        // First try createPreview (works with flexible billing mode)
-        if (invoicesResource && typeof invoicesResource.createPreview === 'function') {
+        if (invoicesResource?.createPreview) {
           const previewInvoice = await invoicesResource.createPreview({
             customer: subscription.stripe_customer_id,
             subscription: subscription.stripe_subscription_id,
@@ -154,41 +203,29 @@ export const GET = async (request: NextRequest) => {
             };
           }
 
+          // For flexible billing mode, createPreview returns:
+          // - period_start: The old invoice creation date (NOT the next payment date!)
+          // - period_end: The actual subscription renewal date (the correct next payment date)
+          const previewPaymentDate = previewInvoice.period_end;
+          const isPreviewOverdue = latestInvoiceRefunded && previewPaymentDate < now;
+          
           return NextResponse.json({
-            amount_due: previewInvoice.amount_due, // This accounts for credits/balance AND discounts
+            amount_due: previewInvoice.amount_due,
             currency: previewInvoice.currency,
             period_start: previewInvoice.period_start,
             period_end: previewInvoice.period_end,
-            next_payment_date: previewInvoice.period_start || previewInvoice.period_end,
+            next_payment_date: isPreviewOverdue ? now : previewPaymentDate,
             subtotal: previewInvoice.subtotal,
             total: previewInvoice.total,
             description: previewInvoice.description || previewInvoice.lines?.data[0]?.description || null,
             discount: invoiceDiscountInfo,
+            refunded: latestInvoiceRefunded,
+            payment_overdue: isPreviewOverdue,
           });
         }
-        
-        // Fallback: Try retrieveUpcoming (for non-flexible billing mode)
-        if (invoicesResource && typeof invoicesResource.retrieveUpcoming === 'function') {
-          const upcomingInvoice = await invoicesResource.retrieveUpcoming({
-            customer: subscription.stripe_customer_id,
-            subscription: subscription.stripe_subscription_id,
-          });
-
-          return NextResponse.json({
-            amount_due: upcomingInvoice.amount_due,
-            currency: upcomingInvoice.currency,
-            period_start: upcomingInvoice.period_start,
-            period_end: upcomingInvoice.period_end,
-            next_payment_date: upcomingInvoice.period_start || upcomingInvoice.period_end,
-            subtotal: upcomingInvoice.subtotal,
-            total: upcomingInvoice.total,
-            description: upcomingInvoice.description || upcomingInvoice.lines?.data[0]?.description || null,
-            discount: discountInfo,
-          });
-        }
-      } catch (invoiceError: any) {
-        // If both methods fail, we'll calculate with customer balance and discounts
-        console.log('Could not retrieve upcoming/preview invoice, calculating manually:', invoiceError.message);
+      } catch (previewError) {
+        // Fall through to calculated fallback - don't try retrieveUpcoming
+        console.log('[Upcoming Invoice] Preview failed, using calculated fallback');
       }
 
       // Fallback: Calculate amount_due accounting for customer balance/credits AND discounts
@@ -197,17 +234,24 @@ export const GET = async (request: NextRequest) => {
       const actualAmountDue = Math.max(0, discountedAmount + customerBalance);
 
       // Fallback: use subscription price information with customer balance and discounts
-      // The next payment is due when the current period ends
+      // The next payment is due when the current period ends (or adjusted if refunded)
+      const nextPaymentDate = periodEndAdjusted ? adjustedPeriodEnd : currentPeriodEnd;
+      
+      // If the period end is in the past and invoice was refunded, show payment due now
+      const isPaymentOverdue = latestInvoiceRefunded && currentPeriodEnd < now;
+      
       return NextResponse.json({
         amount_due: actualAmountDue, // Accounts for customer credits AND discounts
         currency: currency,
-        period_start: currentPeriodEnd, // When next billing period starts
+        period_start: periodEndAdjusted ? adjustedPeriodEnd : currentPeriodEnd, // When next billing period starts
         period_end: nextPeriodEnd, // When next billing period ends
-        next_payment_date: currentPeriodEnd, // When the payment is actually due
+        next_payment_date: isPaymentOverdue ? now : nextPaymentDate, // When the payment is actually due
         subtotal: amount,
         total: discountedAmount,
         description: price.nickname || `Subscription renewal - ${interval}`,
         discount: discountInfo,
+        refunded: latestInvoiceRefunded, // Flag to indicate refund status
+        payment_overdue: isPaymentOverdue, // Flag to indicate if payment is overdue
       });
     } catch (error: any) {
       // If there's an error, return zero amount
