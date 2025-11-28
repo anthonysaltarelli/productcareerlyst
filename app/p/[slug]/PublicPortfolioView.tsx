@@ -176,7 +176,7 @@ export default function PublicPortfolioView({
             <span className="font-bold">{portfolio.display_name}</span>
             {portfolio.subtitle && (
               <span className="font-normal text-gray-900">
-                {' '}is a {portfolio.subtitle.charAt(0).toLowerCase()}{portfolio.subtitle.slice(1)}
+                {' '}is a {portfolio.subtitle}
                 {!portfolio.subtitle.endsWith('.') && '.'}
               </span>
             )}
