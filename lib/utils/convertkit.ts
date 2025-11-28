@@ -274,6 +274,42 @@ export const tagSubscriber = async (
 };
 
 /**
+ * Create a subscriber and add them to a form (without sequence)
+ * This is useful for newsletter signups where no sequence is needed
+ * 
+ * Flow:
+ * 1. Create subscriber first (if they don't exist)
+ * 2. Add to form using email address
+ */
+export const createAndAddSubscriberToForm = async (
+  formId: number,
+  email: string,
+  firstName?: string
+): Promise<{
+  success: boolean;
+  error?: string;
+}> => {
+  // Step 1: Create subscriber first (required before adding to form)
+  try {
+    await createSubscriber(email, firstName);
+  } catch (error) {
+    // If creation fails, subscriber might already exist - continue anyway
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.warn(`[ConvertKit] Create subscriber warning (may already exist, continuing): ${errorMessage}`);
+  }
+
+  // Step 2: Add to form (subscriber now exists)
+  try {
+    await addSubscriberToForm(formId, email);
+    return { success: true };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[ConvertKit] Failed to add subscriber to form:', error);
+    return { success: false, error: errorMessage };
+  }
+};
+
+/**
  * Add a subscriber to both a form and sequence
  * This is the main function to use when a user verifies their email
  * 

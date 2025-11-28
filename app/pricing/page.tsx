@@ -572,7 +572,7 @@ export default function PricingPage() {
                   eventProperties={{
                     'Button Section': 'Pricing Page Plan Cards',
                     'Button Position': 'Learn Plan Card',
-                    'Button Text': 'Get Started',
+                    'Button Text': 'Try for Free',
                     'Plan Selected': 'learn',
                     'Billing Period': billingPeriod,
                     'Monthly Equivalent': getMonthlyEquivalent(plans.learn),
@@ -584,7 +584,7 @@ export default function PricingPage() {
                   onClick={() => handlePlanSelect('learn')}
                   className="w-full px-6 py-3.5 rounded-[1.5rem] bg-white border-2 border-purple-400 text-purple-600 font-black hover:bg-purple-50 transition-all duration-200 shadow-[0_6px_0_0_rgba(147,51,234,0.3)] hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.3)]"
                 >
-                  Get Started
+                  Try for Free
                 </TrackedButton>
               </div>
             </div>
@@ -670,7 +670,7 @@ export default function PricingPage() {
                 eventProperties={{
                   'Button Section': 'Pricing Page Plan Cards',
                   'Button Position': 'Accelerate Plan Card',
-                  'Button Text': 'Get Started',
+                  'Button Text': 'Try for Free',
                   'Plan Selected': 'accelerate',
                   'Billing Period': billingPeriod,
                   'Monthly Equivalent': getMonthlyEquivalent(plans.accelerate),
@@ -683,7 +683,7 @@ export default function PricingPage() {
                 onClick={() => handlePlanSelect('accelerate')}
                 className="w-full px-6 py-3.5 rounded-[1.5rem] bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-[0_6px_0_0_rgba(147,51,234,0.5)] hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.5)]"
               >
-                Get Started
+                Try for Free
               </TrackedButton>
             </div>
           </div>
