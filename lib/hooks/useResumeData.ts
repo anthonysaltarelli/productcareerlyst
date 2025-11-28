@@ -202,10 +202,12 @@ export const useResumeData = (versionId?: string) => {
   const [versions, setVersions] = useState<ResumeVersion[]>([]);
   const [currentResume, setCurrentResume] = useState<CompleteResumeData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingVersions, setIsLoadingVersions] = useState(true); // Starts true until initial fetch completes
   const [error, setError] = useState<string | null>(null);
 
   // Fetch all versions
   const fetchVersions = useCallback(async () => {
+    setIsLoadingVersions(true);
     try {
       const response = await fetch('/api/resume/versions');
       if (!response.ok) throw new Error('Failed to fetch versions');
@@ -217,6 +219,8 @@ export const useResumeData = (versionId?: string) => {
       setError(message);
       toast.error(message);
       return [];
+    } finally {
+      setIsLoadingVersions(false);
     }
   }, []);
 
@@ -834,6 +838,7 @@ export const useResumeData = (versionId?: string) => {
     versions,
     currentResume,
     isLoading,
+    isLoadingVersions,
     error,
 
     // Version operations

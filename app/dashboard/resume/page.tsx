@@ -15,16 +15,17 @@ export default function ResumePage() {
   // Use the resume data hook
   const {
     versions,
-    isLoading,
+    isLoadingVersions,
     createVersion,
     cloneVersion,
     deleteVersion,
     importResumeVersion,
+    fetchVersions,
   } = useResumeData();
 
   // Track page view
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoadingVersions) return;
 
     const trackPageView = async () => {
       const userContext = await getBaseUserContext();
@@ -61,7 +62,7 @@ export default function ResumePage() {
     };
 
     trackPageView();
-  }, [isLoading, versions]);
+  }, [isLoadingVersions, versions]);
 
   const handleEditVersion = (versionId: string) => {
     router.push(`/dashboard/resume/${versionId}`);
@@ -254,11 +255,13 @@ export default function ResumePage() {
       <div className="hidden md:block">
         <ResumeLanding
           versions={versions}
+          isLoadingVersions={isLoadingVersions}
           onEditVersion={handleEditVersion}
           onCreateMaster={handleCreateMaster}
           onCloneFromMaster={handleCloneFromMaster}
           onDeleteVersion={handleDeleteVersion}
           onImportMaster={handleImportMaster}
+          onRefreshVersions={fetchVersions}
         />
       </div>
     </>

@@ -8,17 +8,21 @@ import CreateFromMasterModal from "./CreateFromMasterModal";
 import CloneToMasterModal from "./CloneToMasterModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import ImportResumeModal from "./ImportResumeModal";
+import ResumeOnboardingEmptyState from "./ResumeOnboardingEmptyState";
 import { trackEvent } from "@/lib/amplitude/client";
 import { getUserPlanClient } from "@/lib/utils/resume-tracking";
 import { createResumeDocument, downloadDocx } from "@/lib/utils/exportResume";
+import { useUserPlan } from "@/lib/hooks/useUserPlan";
 
 type Props = {
   versions: ResumeVersion[];
+  isLoadingVersions?: boolean;
   onEditVersion: (versionId: string) => void;
   onCreateMaster?: () => void;
   onCloneFromMaster?: (sourceVersionId: string, newName: string, applicationId?: string, isMaster?: boolean) => Promise<void>;
   onDeleteVersion?: (versionId: string) => Promise<void>;
   onImportMaster?: (file: File, versionName: string, isMaster: boolean) => Promise<void>;
+  onRefreshVersions?: () => void;
 };
 
 type JobApplication = {
@@ -39,7 +43,7 @@ const formatDate = (dateString: string): string => {
   return date.toLocaleDateString('en-US', options);
 };
 
-export default function ResumeLanding({ versions, onEditVersion, onCreateMaster, onCloneFromMaster, onDeleteVersion, onImportMaster }: Props) {
+export default function ResumeLanding({ versions, isLoadingVersions = false, onEditVersion, onCreateMaster, onCloneFromMaster, onDeleteVersion, onImportMaster, onRefreshVersions }: Props) {
   const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
   const [isCloneToMasterModalOpen, setIsCloneToMasterModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -54,9 +58,15 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
   const [downloadingPdfId, setDownloadingPdfId] = useState<string | null>(null);
   const [downloadingDocxId, setDownloadingDocxId] = useState<string | null>(null);
 
+  // Get user plan for the empty state
+  const { plan: userPlan, isLoading: isPlanLoading } = useUserPlan();
+
   // Split versions into masters and job-specific
   const masterResumes = versions.filter(v => v.is_master);
   const jobSpecificResumes = versions.filter(v => !v.is_master);
+
+  // Show the onboarding empty state if user has no resumes
+  const showOnboardingEmptyState = versions.length === 0;
 
   // Fetch job applications for job-specific resumes
   useEffect(() => {
@@ -295,6 +305,30 @@ export default function ResumeLanding({ versions, onEditVersion, onCreateMaster,
       setDownloadingDocxId(null);
     }
   };
+
+  // Show the onboarding empty state when user has no resumes
+  // Wait for both versions and plan to finish loading before showing empty state
+  if (showOnboardingEmptyState && !isPlanLoading && !isLoadingVersions) {
+    return (
+      <ResumeOnboardingEmptyState
+        userPlan={userPlan}
+        onImportComplete={(versionId) => {
+          // DON'T refresh versions here - wait until user clicks "View & Edit Resume"
+          // This prevents the landing page from flashing before the score page
+          // The versions will be refreshed when onViewResume is called
+        }}
+        onViewResume={(versionId) => {
+          // Refresh versions when user explicitly navigates to the editor
+          onRefreshVersions?.();
+          onEditVersion(versionId);
+        }}
+        onCreateFromScratch={() => {
+          // Create a new master resume from scratch
+          onCreateMaster?.();
+        }}
+      />
+    );
+  }
 
   return (
     <div className="p-8 md:p-12">

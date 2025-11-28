@@ -3,6 +3,8 @@
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useCallback, useMemo, useState } from 'react'
 import { trackEvent } from '@/lib/amplitude/client'
+import { createClient } from '@/lib/supabase/client'
+import { getSiteUrl } from '@/lib/utils/site-url'
 
 const otpRegex = /^\d{6}$/
 
@@ -14,6 +16,8 @@ export const OtpConfirmationCard = () => {
   const [otp, setOtp] = useState('')
   const [error, setError] = useState<string | null>(errorParam)
   const [loading, setLoading] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resendSuccess, setResendSuccess] = useState(false)
 
   const maskedEmail = useMemo(() => {
     if (!emailParam) return ''
@@ -64,7 +68,17 @@ export const OtpConfirmationCard = () => {
     [emailParam, otp, router]
   )
 
-  const handleResend = useCallback(() => {
+  const handleResend = useCallback(async () => {
+    if (!emailParam) {
+      setError('We could not detect your email. Please restart the sign up flow.')
+      return
+    }
+
+    setResending(true)
+    setResendSuccess(false)
+    setError(null)
+
+    // Track resend request (non-blocking)
     setTimeout(() => {
       try {
         trackEvent('User Requested OTP Resend', {
@@ -77,8 +91,62 @@ export const OtpConfirmationCard = () => {
         }
       }
     }, 0)
-    router.push('/auth/sign-up')
-  }, [router])
+
+    try {
+      const supabase = createClient()
+      const siteUrl = getSiteUrl()
+      
+      // Resend the OTP by calling resend() method
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: emailParam,
+        options: {
+          emailRedirectTo: `${siteUrl}/auth/confirm`,
+        },
+      })
+
+      if (resendError) {
+        // If resend fails, try signUp as fallback (handles case where user doesn't exist yet)
+        // Note: This will work even if user already exists - Supabase will resend the OTP
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: emailParam,
+          password: '', // Empty password for OTP-only flow
+          options: {
+            emailRedirectTo: `${siteUrl}/auth/confirm`,
+          },
+        })
+
+        if (signUpError) {
+          throw signUpError
+        }
+      }
+
+      setResendSuccess(true)
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        setResendSuccess(false)
+      }, 5000)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to resend code. Please try again.'
+      setError(errorMessage)
+      
+      // Track resend error
+      setTimeout(() => {
+        try {
+          trackEvent('User Failed OTP Resend', {
+            'Page Route': '/auth/sign-up-success',
+            'Error Message': errorMessage,
+          })
+        } catch (trackingError) {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('⚠️ Tracking error (non-blocking):', trackingError)
+          }
+        }
+      }, 0)
+    } finally {
+      setResending(false)
+    }
+  }, [emailParam])
 
   const isEmailMissing = !emailParam
 
@@ -146,6 +214,14 @@ export const OtpConfirmationCard = () => {
           </div>
         )}
 
+        {resendSuccess && (
+          <div className="p-4 rounded-[1rem] bg-gradient-to-br from-green-200 to-emerald-200 border-2 border-green-300 text-left">
+            <p className="text-green-700 font-semibold">
+              ✓ Verification code resent! Check your email.
+            </p>
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={isEmailMissing || loading || otp.length !== 6}
@@ -159,9 +235,10 @@ export const OtpConfirmationCard = () => {
         <button
           type="button"
           onClick={handleResend}
-          className="text-sm font-bold text-green-700 underline hover:text-green-800 transition-colors"
+          disabled={resending || isEmailMissing}
+          className="text-sm font-bold text-green-700 underline hover:text-green-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Didn’t get a code? Resend
+          {resending ? 'Resending...' : "Didn't get a code? Resend"}
         </button>
       </div>
     </div>

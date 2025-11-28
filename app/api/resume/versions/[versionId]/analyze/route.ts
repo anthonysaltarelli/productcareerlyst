@@ -544,8 +544,9 @@ export const POST = async (
         resumeUploadData: onboardingProgress?.progress_data?.resume_upload ? 'exists' : 'null',
       });
 
-      if (onboardingProgress && !onboardingProgress.is_complete) {
-        // User is in onboarding
+      if (onboardingProgress) {
+        // Check if onboarding analysis has been used (regardless of is_complete status)
+        // This allows users who completed onboarding but are using resume import flow for first time
         const resumeUploadData = onboardingProgress.progress_data?.resume_upload;
         const onboardingVersionId = resumeUploadData?.versionId;
         onboardingAnalysisUsed = resumeUploadData?.onboardingAnalysisUsed === true;
@@ -555,21 +556,28 @@ export const POST = async (
           requestVersionId: versionId,
           versionIdsMatch: onboardingVersionId === versionId,
           onboardingAnalysisUsed,
+          isComplete: onboardingProgress.is_complete,
         });
         
-        // Only allow if: user hasn't used it yet AND the versionId matches the one from onboarding
-        if (!onboardingAnalysisUsed && onboardingVersionId === versionId) {
-          // Allow one-time analysis during onboarding for this specific resume
-          allowOnboardingAnalysis = true;
-          console.log('[Analyze API] ✓ Onboarding analysis ALLOWED (versionId match)');
-        } else if (!onboardingAnalysisUsed && !onboardingVersionId) {
-          // Fallback: If versionId not yet stored but analysis not used, allow it
-          // This handles race conditions where progress might not be synced yet
-          allowOnboardingAnalysis = true;
-          console.log('[Analyze API] ✓ Onboarding analysis ALLOWED (fallback - no stored versionId yet)');
+        // Only allow if: user hasn't used it yet AND (versionId matches OR no versionId stored yet)
+        if (!onboardingAnalysisUsed) {
+          if (onboardingVersionId === versionId) {
+            // VersionId matches - allow it
+            allowOnboardingAnalysis = true;
+            console.log('[Analyze API] ✓ Onboarding analysis ALLOWED (versionId match)');
+          } else if (!onboardingVersionId) {
+            // No versionId stored yet - allow it (handles first-time resume import)
+            allowOnboardingAnalysis = true;
+            console.log('[Analyze API] ✓ Onboarding analysis ALLOWED (fallback - no stored versionId yet)');
+          } else {
+            // VersionId mismatch - don't allow
+            console.log('[Analyze API] ✗ Onboarding analysis NOT allowed:', {
+              reason: 'versionId mismatch',
+            });
+          }
         } else {
           console.log('[Analyze API] ✗ Onboarding analysis NOT allowed:', {
-            reason: onboardingAnalysisUsed ? 'already used' : 'versionId mismatch',
+            reason: 'already used',
           });
         }
       } else if (!onboardingProgress) {
@@ -577,10 +585,6 @@ export const POST = async (
         // Allow the free analysis since they clearly haven't used it
         allowOnboardingAnalysis = true;
         console.log('[Analyze API] ✓ Onboarding analysis ALLOWED (new user - no progress record)');
-      } else {
-        console.log('[Analyze API] ✗ Onboarding analysis NOT allowed:', {
-          reason: 'onboarding complete',
-        });
       }
     }
 

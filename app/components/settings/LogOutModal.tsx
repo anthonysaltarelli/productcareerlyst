@@ -2,7 +2,8 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { TrackedButton } from '@/app/components/TrackedButton'
 import { trackEvent } from '@/lib/amplitude/client'
 import { getDashboardTrackingContext } from '@/lib/utils/dashboard-tracking-context'
@@ -49,7 +50,45 @@ export const LogOutModal = ({
   modalOpenTime,
 }: LogOutModalProps) => {
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
+  const scrollPositionRef = useRef(0)
+
+  // Ensure we're on the client before using createPortal
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Handle body scroll lock when modal is open
+  useEffect(() => {
+    if (mounted) {
+      // Save current scroll position before locking
+      scrollPositionRef.current = window.scrollY
+      
+      // Lock body scroll
+      document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollPositionRef.current}px`
+      document.body.style.left = '0'
+      document.body.style.right = '0'
+      document.body.style.width = '100%'
+
+      return () => {
+        // Restore body scroll
+        document.body.style.overflow = ''
+        document.body.style.position = ''
+        document.body.style.top = ''
+        document.body.style.left = ''
+        document.body.style.right = ''
+        document.body.style.width = ''
+        
+        // Restore scroll position
+        if (scrollPositionRef.current > 0) {
+          window.scrollTo(0, scrollPositionRef.current)
+        }
+      }
+    }
+  }, [mounted])
 
   const getUserStateContext = () => {
     return getDashboardTrackingContext(
@@ -98,11 +137,17 @@ export const LogOutModal = ({
         ...getUserStateContext(),
       })
 
-      router.push('/auth/login')
-      router.refresh()
+      // Close modal first to ensure cleanup
+      onClose()
+
+      // Small delay to ensure modal cleanup completes before navigation
+      // This prevents React from trying to remove DOM nodes during navigation
+      setTimeout(() => {
+        router.push('/auth/login')
+        router.refresh()
+      }, 100)
     } catch (error) {
       console.error('Error logging out:', error)
-    } finally {
       setLoading(false)
     }
   }
@@ -134,10 +179,19 @@ export const LogOutModal = ({
     ? Math.floor((Date.now() - modalOpenTime) / 1000)
     : 0
 
-  return (
+  // Don't render until mounted (prevents SSR issues)
+  if (!mounted) return null
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose()
+    }
+  }
+
+  const modalContent = (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-      onClick={onClose}
+      onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
       role="dialog"
@@ -208,4 +262,8 @@ export const LogOutModal = ({
       </div>
     </div>
   )
+
+  // Use portal to render modal at document.body level
+  // This ensures fixed positioning works correctly and prevents DOM manipulation errors during navigation
+  return createPortal(modalContent, document.body)
 }
