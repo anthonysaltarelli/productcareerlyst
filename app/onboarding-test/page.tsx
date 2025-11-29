@@ -3,17 +3,32 @@
 import { useState, useMemo } from 'react';
 import { PersonalInfoStepVisual } from './components/PersonalInfoStepVisual';
 import { GoalsAndChallengesStepVisual } from './components/GoalsAndChallengesStepVisual';
+import { PortfolioQuestionStepVisual } from './components/PortfolioQuestionStepVisual';
 import { PlanDisplayStepVisual } from './components/PlanDisplayStepVisual';
+import { ActionableGoalsStepVisual } from './components/ActionableGoalsStepVisual';
 import { TrialStepVisual } from './components/TrialStepVisual';
 
 const ALL_STEPS = [
   { id: 'personal_info', name: 'Personal Info' },
   { id: 'goals', name: 'Goals & Challenges' },
+  { id: 'portfolio', name: 'Portfolio' },
   { id: 'plan_display', name: 'Your Plan' },
+  { id: 'actionable_goals', name: 'Set Goals' },
   { id: 'trial', name: 'Start Free Trial' },
 ] as const;
 
 export default function OnboardingTestPage() {
+  // Block access in production (dev-only route)
+  if (process.env.NODE_ENV !== 'development') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">404 - Not Found</h1>
+          <p className="text-gray-600">This page is only available in development mode.</p>
+        </div>
+      </div>
+    );
+  }
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [mockProgress, setMockProgress] = useState<any>({
     completed_steps: [],
@@ -21,7 +36,9 @@ export default function OnboardingTestPage() {
     progress_data: {
       personal_info: {},
       goals: {},
+      portfolio: {},
       baseline: {},
+      actionable_goals: {},
     },
   });
 
@@ -136,8 +153,14 @@ export default function OnboardingTestPage() {
           {currentStep.id === 'goals' && (
             <GoalsAndChallengesStepVisual onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
           )}
+          {currentStep.id === 'portfolio' && (
+            <PortfolioQuestionStepVisual onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
+          )}
           {currentStep.id === 'plan_display' && (
             <PlanDisplayStepVisual onNext={handleNext} onBack={handleBack} />
+          )}
+          {currentStep.id === 'actionable_goals' && (
+            <ActionableGoalsStepVisual onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
           )}
           {currentStep.id === 'trial' && (
             <TrialStepVisual onBack={handleBack} />

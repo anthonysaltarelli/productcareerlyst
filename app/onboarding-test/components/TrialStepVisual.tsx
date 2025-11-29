@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CheckCircle, Sparkles, Rocket, Zap } from 'lucide-react';
+import { CheckCircle, Sparkles, Rocket, Zap, X, AlertCircle } from 'lucide-react';
 
 interface TrialStepVisualProps {
   onBack: () => void;
@@ -23,6 +23,7 @@ const billingLabels = {
 export const TrialStepVisual = ({ onBack }: TrialStepVisualProps) => {
   const [selectedBilling, setSelectedBilling] = useState<'monthly' | 'quarterly' | 'yearly'>('yearly');
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [showSkipConfirmModal, setShowSkipConfirmModal] = useState(false);
 
   const price = ACCELERATE_PLAN[selectedBilling].price;
   const monthlyEquivalent =
@@ -163,6 +164,73 @@ export const TrialStepVisual = ({ onBack }: TrialStepVisualProps) => {
           </div>
         )}
       </div>
+
+      {/* Skip Option */}
+      <div className="mt-4 md:mt-6 text-center">
+        <button
+          onClick={() => setShowSkipConfirmModal(true)}
+          className="px-4 md:px-6 py-2 md:py-3 text-gray-500 font-medium hover:text-gray-700 transition-colors underline text-sm md:text-base"
+        >
+          I don't want a free trial of the Accelerate plan
+        </button>
+      </div>
+
+      {/* Skip Confirmation Modal */}
+      {showSkipConfirmModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-in fade-in zoom-in duration-200">
+            {/* Close button */}
+            <button
+              onClick={() => setShowSkipConfirmModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close modal"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {/* Modal content */}
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full mb-4">
+                <AlertCircle className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 mb-3">
+                Are you sure?
+              </h3>
+              <p className="text-gray-700 font-semibold mb-4">
+                You can only start a free trial from this screen.
+              </p>
+              <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 text-left">
+                <p className="text-purple-900 font-semibold text-sm">
+                  With the free trial, you get <strong>full access</strong> to all AI-enabled features on the Accelerate plan, including launching a Product Portfolio, until{' '}
+                  <strong>Wednesday, December 3</strong>.
+                </p>
+              </div>
+            </div>
+
+            {/* Modal actions */}
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setShowSkipConfirmModal(false);
+                  setShowPaymentForm(true);
+                }}
+                className="w-full px-6 py-4 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg"
+              >
+                Try for Free
+              </button>
+              <button
+                onClick={() => {
+                  setShowSkipConfirmModal(false);
+                  // In test mode, just close the modal - no navigation
+                }}
+                className="w-full px-6 py-3 text-gray-600 font-bold hover:text-gray-800 transition-colors"
+              >
+                I don't want a free trial
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Navigation */}
       <div className="mt-6 md:mt-8 flex items-center justify-between">

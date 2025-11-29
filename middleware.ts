@@ -2,6 +2,13 @@ import { updateSession } from '@/lib/supabase/middleware'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // Block /onboarding-test route in production (dev-only route)
+  if (request.nextUrl.pathname === '/onboarding-test') {
+    if (process.env.NODE_ENV !== 'development') {
+      return new NextResponse('Not Found', { status: 404 })
+    }
+  }
+
   // Skip middleware for Stripe webhooks - they need raw body access
   // and should not go through session handling
   if (request.nextUrl.pathname === '/api/stripe/webhook') {
