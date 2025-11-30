@@ -33,7 +33,6 @@ export const BASELINE_TRIGGERS = {
 
   // Job search events
   job_added: ['job-add-first'],
-  target_companies_added: ['job-add-target-companies'],
   company_researched: ['job-research-companies'],
   application_tracked: ['job-track-applications'],
 

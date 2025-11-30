@@ -119,13 +119,6 @@ export const POST = async (request: NextRequest) => {
       console.error('Error marking job_added baseline action:', err);
     });
 
-    // If the status is 'wishlist', mark target companies baseline action
-    if (data.status === 'wishlist') {
-      markBaselineActionsComplete(user.id, 'target_companies_added').catch((err) => {
-        console.error('Error marking target_companies_added baseline action:', err);
-      });
-    }
-
     // If the status is 'applied', increment weekly goal
     if (data.status === 'applied') {
       incrementWeeklyGoalProgress(user.id, 'job_applied').catch((err) => {

@@ -452,11 +452,6 @@ Be thorough and extract all available information. If information is not availab
           console.error('Error marking job_added baseline action:', err);
         });
 
-        // Mark baseline action for adding to wishlist (target companies)
-        markBaselineActionsComplete(user.id, 'target_companies_added').catch((err) => {
-          console.error('Error marking target_companies_added baseline action:', err);
-        });
-
         return NextResponse.json(
           {
             application,

@@ -40,7 +40,6 @@ const PREDEFINED_ACTION_IDS = new Set([
   'course-pm-fundamentals',
   // Job Search Actions
   'job-add-first',
-  'job-add-target-companies',
   'job-research-companies',
   'job-track-applications',
   // Networking Actions

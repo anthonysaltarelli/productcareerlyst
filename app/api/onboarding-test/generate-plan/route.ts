@@ -224,7 +224,6 @@ Course Actions:
 
 Job Search Actions:
 - job-add-first: Add your first job application to track
-- job-add-target-companies: Add target companies to your wishlist
 - job-research-companies: Research companies using AI insights
 - job-track-applications: Track all applications in Job Center
 

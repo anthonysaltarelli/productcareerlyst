@@ -19,7 +19,7 @@ const PREDEFINED_ACTION_IDS = new Set([
   // Course Actions
   'course-resume-linkedin', 'course-portfolio', 'course-secure-referral', 'course-company-prep', 'course-pm-interviews', 'course-negotiation', 'course-pm-fundamentals',
   // Job Search Actions
-  'job-add-first', 'job-add-target-companies', 'job-research-companies', 'job-track-applications',
+  'job-add-first', 'job-research-companies', 'job-track-applications',
   // Networking Actions
   'networking-add-contact', 'networking-find-contacts', 'networking-scripts',
   // Interview Prep Actions

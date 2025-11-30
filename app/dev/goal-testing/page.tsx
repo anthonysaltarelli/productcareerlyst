@@ -182,14 +182,6 @@ const BASELINE_ACTIONS: BaselineAction[] = [
     verified: true,
   },
   {
-    actionId: 'job-add-target-companies',
-    label: 'Add target companies to your wishlist',
-    route: '/dashboard/jobs',
-    triggerLogic: 'Triggered when a job is created with wishlist status (POST /api/jobs/applications, POST /api/jobs/import-from-url) or status is changed to wishlist (PATCH /api/jobs/applications/[id]). Calls markBaselineActionsComplete(userId, "target_companies_added").',
-    userExplanation: 'Add companies you\'re interested in to your wishlist to track opportunities.',
-    verified: true,
-  },
-  {
     actionId: 'job-research-companies',
     label: 'Research companies using AI insights',
     route: '/dashboard/jobs',

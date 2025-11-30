@@ -92,10 +92,6 @@ export const BASELINE_ACTION_INFO: Record<string, ActionInfo> = {
     explanation: 'Go to Dashboard > Jobs and click "Add Job" to start tracking a job opportunity.',
     route: '/dashboard/jobs',
   },
-  'job-add-target-companies': {
-    explanation: 'Add companies you\'re interested in to your wishlist to track opportunities.',
-    route: '/dashboard/jobs',
-  },
   'job-research-companies': {
     explanation: 'Click "Research" on any company to get AI-powered insights about the company.',
     route: '/dashboard/jobs',

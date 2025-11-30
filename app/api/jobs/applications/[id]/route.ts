@@ -102,13 +102,6 @@ export const PATCH = async (
       });
     }
 
-    // If status was changed to 'wishlist', mark target companies baseline action
-    if (body.status === 'wishlist') {
-      markBaselineActionsComplete(user.id, 'target_companies_added').catch((err) => {
-        console.error('Error marking target_companies_added baseline action:', err);
-      });
-    }
-
     return NextResponse.json({ application: data });
   } catch (error) {
     console.error('Unexpected error:', error);
