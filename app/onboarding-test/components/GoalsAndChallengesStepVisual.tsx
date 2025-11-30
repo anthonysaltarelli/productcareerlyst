@@ -1,11 +1,18 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 interface GoalsAndChallengesStepVisualProps {
   onNext: () => void;
   onBack: () => void;
   onSkip: () => void;
+  onDataUpdate?: (data: {
+    targetRole?: string;
+    timeline?: string;
+    struggles?: string;
+    jobSearchStage?: string;
+    interviewConfidence?: number;
+  }) => void;
 }
 
 const TARGET_ROLES = [
@@ -33,6 +40,9 @@ const JOB_SEARCH_STAGES = [
   { value: 'not_started', label: "I haven't started actively applying yet" },
   { value: 'not_getting_interviews', label: "I'm applying but not getting interviews" },
   { value: 'not_passing_first_round', label: 'I get some interviews but rarely pass the first round' },
+  { value: 'not_passing_later_rounds', label: 'I pass first rounds but struggle with later interview stages' },
+  { value: 'not_getting_offers', label: "I get to final rounds but don't receive offers" },
+  { value: 'offers_not_right_fit', label: "I'm getting offers but they're not the right fit for me" },
 ] as const;
 
 const INTERVIEW_CONFIDENCE_LABELS = [
@@ -43,7 +53,7 @@ const INTERVIEW_CONFIDENCE_LABELS = [
   { value: 5, label: 'Very confident' },
 ] as const;
 
-export const GoalsAndChallengesStepVisual = ({ onNext, onBack }: GoalsAndChallengesStepVisualProps) => {
+export const GoalsAndChallengesStepVisual = ({ onNext, onBack, onDataUpdate }: GoalsAndChallengesStepVisualProps) => {
   const [targetRole, setTargetRole] = useState<string>('');
   const [timeline, setTimeline] = useState<string>('');
   const [struggles, setStruggles] = useState<string>('');
@@ -173,6 +183,45 @@ export const GoalsAndChallengesStepVisual = ({ onNext, onBack }: GoalsAndChallen
       setStruggles(prev => prev.trim() ? `${prev.trim()} ${suggestion}` : suggestion);
     }
   }, [struggles]);
+
+  // Track previous values to avoid unnecessary updates
+  const prevValuesRef = useRef({
+    targetRole,
+    timeline,
+    struggles,
+    jobSearchStage,
+    interviewConfidence,
+  });
+
+  // Update parent data when fields change
+  useEffect(() => {
+    const currentValues = {
+      targetRole: targetRole || undefined,
+      timeline: timeline || undefined,
+      struggles: struggles || undefined,
+      jobSearchStage: jobSearchStage || undefined,
+      interviewConfidence: interviewConfidence !== null ? interviewConfidence : undefined,
+    };
+
+    // Only update if values actually changed
+    const hasChanged = 
+      prevValuesRef.current.targetRole !== currentValues.targetRole ||
+      prevValuesRef.current.timeline !== currentValues.timeline ||
+      prevValuesRef.current.struggles !== currentValues.struggles ||
+      prevValuesRef.current.jobSearchStage !== currentValues.jobSearchStage ||
+      prevValuesRef.current.interviewConfidence !== currentValues.interviewConfidence;
+
+    if (hasChanged && onDataUpdate) {
+      prevValuesRef.current = {
+        targetRole: currentValues.targetRole || '',
+        timeline: currentValues.timeline || '',
+        struggles: currentValues.struggles || '',
+        jobSearchStage: currentValues.jobSearchStage || '',
+        interviewConfidence: currentValues.interviewConfidence !== undefined ? currentValues.interviewConfidence : null,
+      };
+      onDataUpdate(currentValues);
+    }
+  }, [targetRole, timeline, struggles, jobSearchStage, interviewConfidence, onDataUpdate]);
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-8">

@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { PersonalInfoStepVisual } from './components/PersonalInfoStepVisual';
 import { GoalsAndChallengesStepVisual } from './components/GoalsAndChallengesStepVisual';
 import { PortfolioQuestionStepVisual } from './components/PortfolioQuestionStepVisual';
 import { PlanDisplayStepVisual } from './components/PlanDisplayStepVisual';
 import { ActionableGoalsStepVisual } from './components/ActionableGoalsStepVisual';
 import { TrialStepVisual } from './components/TrialStepVisual';
+import { OnboardingData } from './utils/planGenerator';
 
 const ALL_STEPS = [
   { id: 'personal_info', name: 'Personal Info' },
@@ -30,6 +31,10 @@ export default function OnboardingTestPage() {
     );
   }
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [onboardingData, setOnboardingData] = useState<OnboardingData>({
+    personalInfo: {},
+    goals: {},
+  });
   const [mockProgress, setMockProgress] = useState<any>({
     completed_steps: [],
     skipped_steps: [],
@@ -63,6 +68,20 @@ export default function OnboardingTestPage() {
       handleNext();
     }
   };
+
+  const updatePersonalInfo = useCallback((data: Partial<OnboardingData['personalInfo']>) => {
+    setOnboardingData((prev) => ({
+      ...prev,
+      personalInfo: { ...prev.personalInfo, ...data },
+    }));
+  }, []);
+
+  const updateGoals = useCallback((data: Partial<OnboardingData['goals']>) => {
+    setOnboardingData((prev) => ({
+      ...prev,
+      goals: { ...prev.goals, ...data },
+    }));
+  }, []);
 
   const currentStep = STEPS[currentStepIndex];
   const progressPercentage = ((currentStepIndex + 1) / STEPS.length) * 100;
@@ -148,16 +167,30 @@ export default function OnboardingTestPage() {
         {/* Step Content */}
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border-2 border-gray-200 p-[3px] sm:p-8 md:p-12">
           {currentStep.id === 'personal_info' && (
-            <PersonalInfoStepVisual onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
+            <PersonalInfoStepVisual 
+              onNext={handleNext} 
+              onBack={handleBack} 
+              onSkip={handleSkip}
+              onDataUpdate={updatePersonalInfo}
+            />
           )}
           {currentStep.id === 'goals' && (
-            <GoalsAndChallengesStepVisual onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
+            <GoalsAndChallengesStepVisual 
+              onNext={handleNext} 
+              onBack={handleBack} 
+              onSkip={handleSkip}
+              onDataUpdate={updateGoals}
+            />
           )}
           {currentStep.id === 'portfolio' && (
             <PortfolioQuestionStepVisual onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
           )}
           {currentStep.id === 'plan_display' && (
-            <PlanDisplayStepVisual onNext={handleNext} onBack={handleBack} />
+            <PlanDisplayStepVisual 
+              onNext={handleNext} 
+              onBack={handleBack} 
+              onboardingData={onboardingData}
+            />
           )}
           {currentStep.id === 'actionable_goals' && (
             <ActionableGoalsStepVisual onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />

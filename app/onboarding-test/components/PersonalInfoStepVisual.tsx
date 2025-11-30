@@ -1,11 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface PersonalInfoStepVisualProps {
   onNext: () => void;
   onBack: () => void;
   onSkip: () => void;
+  onDataUpdate?: (data: {
+    firstName?: string;
+    lastName?: string;
+    currentRole?: string;
+    careerStage?: string;
+    currentSalary?: number;
+  }) => void;
 }
 
 const CAREER_STAGES = [
@@ -28,7 +35,7 @@ const ROLE_SUGGESTIONS = [
   'Data Analyst',
 ] as const;
 
-export const PersonalInfoStepVisual = ({ onNext, onBack }: PersonalInfoStepVisualProps) => {
+export const PersonalInfoStepVisual = ({ onNext, onBack, onDataUpdate }: PersonalInfoStepVisualProps) => {
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
   const [careerStage, setCareerStage] = useState<string>('');
@@ -122,6 +129,45 @@ export const PersonalInfoStepVisual = ({ onNext, onBack }: PersonalInfoStepVisua
 
   const missingFields = getMissingFields();
   const [showTooltip, setShowTooltip] = useState<boolean>(false);
+
+  // Track previous values to avoid unnecessary updates
+  const prevValuesRef = useRef({
+    firstName,
+    lastName,
+    currentRole,
+    careerStage,
+    currentSalary,
+  });
+
+  // Update parent data when fields change
+  useEffect(() => {
+    const currentValues = {
+      firstName: firstName || undefined,
+      lastName: lastName || undefined,
+      currentRole: currentRole || undefined,
+      careerStage: careerStage || undefined,
+      currentSalary: currentSalary ? parseInt(currentSalary, 10) : undefined,
+    };
+
+    // Only update if values actually changed
+    const hasChanged = 
+      prevValuesRef.current.firstName !== currentValues.firstName ||
+      prevValuesRef.current.lastName !== currentValues.lastName ||
+      prevValuesRef.current.currentRole !== currentValues.currentRole ||
+      prevValuesRef.current.careerStage !== currentValues.careerStage ||
+      prevValuesRef.current.currentSalary !== currentValues.currentSalary;
+
+    if (hasChanged && onDataUpdate) {
+      prevValuesRef.current = {
+        firstName: currentValues.firstName || '',
+        lastName: currentValues.lastName || '',
+        currentRole: currentValues.currentRole || '',
+        careerStage: currentValues.careerStage || '',
+        currentSalary: currentValues.currentSalary || '',
+      };
+      onDataUpdate(currentValues);
+    }
+  }, [firstName, lastName, currentRole, careerStage, currentSalary, onDataUpdate]);
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-8">
