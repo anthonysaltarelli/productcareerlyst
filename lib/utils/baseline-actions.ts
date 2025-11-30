@@ -41,12 +41,20 @@ export const BASELINE_TRIGGERS = {
   contacts_found: ['networking-find-contacts'],
   networking_scripts_accessed: ['networking-scripts'],
 
-  // Interview prep events
+  // Interview prep events (practice interview logging)
+  recruiter_screen_prep_completed: ['interview-prep-recruiter-screen'],
+  hiring_manager_prep_completed: ['interview-prep-hiring-manager'],
+  product_sense_prep_completed: ['interview-prep-product-sense'],
+  product_design_prep_completed: ['interview-prep-product-design'],
+  analytics_prep_completed: ['interview-prep-analytics'],
+  system_design_prep_completed: ['interview-prep-system-design'],
+  technical_prep_completed: ['interview-prep-technical'],
+  strategy_prep_completed: ['interview-prep-strategy'],
+  estimation_prep_completed: ['interview-prep-estimation'],
+  executive_prep_completed: ['interview-prep-executive'],
+  cross_functional_prep_completed: ['interview-prep-cross-functional'],
   behavioral_prep_completed: ['interview-prep-behavioral'],
   mock_interview_completed: ['interview-practice-mock'],
-  product_design_prep_completed: ['interview-prep-product-design'],
-  strategy_prep_completed: ['interview-prep-strategy'],
-  metrics_prep_completed: ['interview-prep-metrics'],
   questions_generated: ['interview-generate-questions'],
   thank_you_sent: ['interview-send-thank-you'],
 

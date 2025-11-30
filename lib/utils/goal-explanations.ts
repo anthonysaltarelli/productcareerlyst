@@ -115,25 +115,57 @@ export const BASELINE_ACTION_INFO: Record<string, ActionInfo> = {
     route: '/dashboard/templates',
   },
 
-  // Interview prep actions
-  'interview-prep-behavioral': {
-    explanation: 'Access the My 8 Stories worksheet in the PM Resources section to prepare your behavioral interview responses.',
-    route: '/dashboard/templates',
+  // Interview prep actions (practice interview logging)
+  'interview-prep-recruiter-screen': {
+    explanation: 'Log a practice recruiter screen interview in the Interview Prep section.',
+    route: '/dashboard/interview',
   },
-  'interview-practice-mock': {
-    explanation: 'Complete a mock interview session to practice your responses.',
+  'interview-prep-hiring-manager': {
+    explanation: 'Log a practice hiring manager interview in the Interview Prep section.',
+    route: '/dashboard/interview',
+  },
+  'interview-prep-product-sense': {
+    explanation: 'Log a practice product sense interview in the Interview Prep section.',
     route: '/dashboard/interview',
   },
   'interview-prep-product-design': {
-    explanation: 'Review and practice product design interview frameworks.',
+    explanation: 'Log a practice product design interview in the Interview Prep section.',
+    route: '/dashboard/interview',
+  },
+  'interview-prep-analytics': {
+    explanation: 'Log a practice analytics/execution interview in the Interview Prep section.',
+    route: '/dashboard/interview',
+  },
+  'interview-prep-system-design': {
+    explanation: 'Log a practice system design interview in the Interview Prep section.',
+    route: '/dashboard/interview',
+  },
+  'interview-prep-technical': {
+    explanation: 'Log a practice technical interview in the Interview Prep section.',
     route: '/dashboard/interview',
   },
   'interview-prep-strategy': {
-    explanation: 'Review and practice product strategy interview frameworks.',
+    explanation: 'Log a practice product strategy interview in the Interview Prep section.',
     route: '/dashboard/interview',
   },
-  'interview-prep-metrics': {
-    explanation: 'Review and practice metrics and analytics interview frameworks.',
+  'interview-prep-estimation': {
+    explanation: 'Log a practice estimation interview in the Interview Prep section.',
+    route: '/dashboard/interview',
+  },
+  'interview-prep-executive': {
+    explanation: 'Log a practice executive interview in the Interview Prep section.',
+    route: '/dashboard/interview',
+  },
+  'interview-prep-cross-functional': {
+    explanation: 'Log a practice cross-functional interview in the Interview Prep section.',
+    route: '/dashboard/interview',
+  },
+  'interview-prep-behavioral': {
+    explanation: 'Log a practice behavioral interview in the Interview Prep section, or access the My 8 Stories worksheet in the PM Resources section.',
+    route: '/dashboard/interview',
+  },
+  'interview-practice-mock': {
+    explanation: 'Log a mock interview session in the Interview Prep section.',
     route: '/dashboard/interview',
   },
   'interview-generate-questions': {

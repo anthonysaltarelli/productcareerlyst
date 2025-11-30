@@ -1,150 +1,327 @@
-export default function InterviewPage() {
-  return (
-    <div className="p-8 md:p-12">
-      {/* Page Header */}
-      <div className="mb-8">
-        <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_15px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300">
-          <span className="text-5xl mb-4 block">🤖</span>
-          <h1 className="text-4xl md:text-5xl font-black text-gray-800 mb-3">
-            AI Interview Coach
-          </h1>
-          <p className="text-xl text-gray-700 font-semibold">
-            Practice with AI that interviews you like Google, Meta, and Amazon
-          </p>
-        </div>
-      </div>
+'use client';
 
-      {/* Interview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="p-6 rounded-[2rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_10px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 text-center">
-          <p className="text-4xl font-black text-purple-600 mb-2">0</p>
-          <p className="text-sm font-bold text-gray-700">Total Interviews</p>
-        </div>
-        <div className="p-6 rounded-[2rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_10px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300 text-center">
-          <p className="text-4xl font-black text-green-600 mb-2">-</p>
-          <p className="text-sm font-bold text-gray-700">Avg Score</p>
-        </div>
-        <div className="p-6 rounded-[2rem] bg-gradient-to-br from-orange-200 to-yellow-200 shadow-[0_10px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-300 text-center">
-          <p className="text-4xl font-black text-orange-600 mb-2">0h</p>
-          <p className="text-sm font-bold text-gray-700">Practice Time</p>
-        </div>
-        <div className="p-6 rounded-[2rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_10px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300 text-center">
-          <p className="text-4xl font-black text-blue-600 mb-2">0</p>
-          <p className="text-sm font-bold text-gray-700">Streak Days</p>
-        </div>
-      </div>
+import { useState, useEffect } from 'react';
+import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 
-      {/* Interview Types */}
-      <div className="space-y-6">
-        <h2 className="text-2xl font-black text-gray-800">
-          Choose Your Interview Type
-        </h2>
+// Interview types matching the job application center
+const INTERVIEW_TYPES = [
+  { value: 'recruiter_screen', label: 'Recruiter Screen', emoji: '📞' },
+  { value: 'hiring_manager_screen', label: 'Hiring Manager Screen', emoji: '👔' },
+  { value: 'product_sense', label: 'Product Sense', emoji: '💡' },
+  { value: 'product_analytics_execution', label: 'Product Analytics / Execution', emoji: '📊' },
+  { value: 'system_design', label: 'System Design', emoji: '🏗️' },
+  { value: 'technical', label: 'Technical', emoji: '💻' },
+  { value: 'product_strategy', label: 'Product Strategy', emoji: '🎯' },
+  { value: 'estimation', label: 'Estimation', emoji: '🔢' },
+  { value: 'executive', label: 'Executive', emoji: '👑' },
+  { value: 'cross_functional', label: 'Cross Functional', emoji: '🤝' },
+] as const;
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Product Design */}
-          <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_12px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300">
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">
-              📐 Product Design
-            </h3>
-            <p className="text-gray-700 font-medium mb-4">
-              "Design a product for..." exercises. Practice designing new products, improving existing ones, and thinking through user needs.
-            </p>
-            <div className="mb-4 text-sm font-bold text-gray-600">
-              <p>✓ User research & personas</p>
-              <p>✓ Feature prioritization</p>
-              <p>✓ Success metrics</p>
-            </div>
-            <button className="w-full px-6 py-4 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_6px_0_0_rgba(37,99,235,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(37,99,235,0.6)] font-black text-white transition-all duration-200">
-              Start Design Interview →
-            </button>
-          </div>
+type InterviewType = (typeof INTERVIEW_TYPES)[number]['value'];
 
-          {/* Product Strategy */}
-          <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_12px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300">
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">
-              🎯 Product Strategy
-            </h3>
-            <p className="text-gray-700 font-medium mb-4">
-              Market analysis, competitive positioning, and go-to-market strategy. Practice thinking like a product leader.
-            </p>
-            <div className="mb-4 text-sm font-bold text-gray-600">
-              <p>✓ Market opportunity sizing</p>
-              <p>✓ Competitive analysis</p>
-              <p>✓ Strategic roadmapping</p>
-            </div>
-            <button className="w-full px-6 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200">
-              Start Strategy Interview →
-            </button>
-          </div>
-
-          {/* Metrics & Analytics */}
-          <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_12px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300">
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">
-              📊 Metrics & Analytics
-            </h3>
-            <p className="text-gray-700 font-medium mb-4">
-              Analyze product metrics, investigate drops, and define success criteria. Practice data-driven decision making.
-            </p>
-            <div className="mb-4 text-sm font-bold text-gray-600">
-              <p>✓ Metric selection & KPIs</p>
-              <p>✓ A/B testing analysis</p>
-              <p>✓ Root cause investigation</p>
-            </div>
-            <button className="w-full px-6 py-4 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200">
-              Start Metrics Interview →
-            </button>
-          </div>
-
-          {/* Behavioral */}
-          <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-orange-200 to-yellow-200 shadow-[0_12px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-300">
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">
-              💬 Behavioral
-            </h3>
-            <p className="text-gray-700 font-medium mb-4">
-              Tell me about a time when... questions. Practice using STAR method to craft compelling stories about your experience.
-            </p>
-            <div className="mb-4 text-sm font-bold text-gray-600">
-              <p>✓ STAR method mastery</p>
-              <p>✓ Leadership examples</p>
-              <p>✓ Conflict resolution</p>
-            </div>
-            <button className="w-full px-6 py-4 rounded-[1.5rem] bg-gradient-to-br from-orange-500 to-yellow-500 shadow-[0_6px_0_0_rgba(234,88,12,0.6)] border-2 border-orange-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(234,88,12,0.6)] font-black text-white transition-all duration-200">
-              Start Behavioral Interview →
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Performance Tracking */}
-      <div className="mt-8 p-8 rounded-[2.5rem] bg-gradient-to-br from-slate-700 to-slate-900 shadow-[0_15px_0_0_rgba(15,23,42,0.4)] border-2 border-slate-800">
-        <h2 className="text-2xl font-black text-white mb-6">
-          📈 Your Performance Breakdown
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: 'Communication', score: '-' },
-            { label: 'Structure', score: '-' },
-            { label: 'User Focus', score: '-' },
-            { label: 'Data Analysis', score: '-' },
-            { label: 'Strategy', score: '-' },
-            { label: 'Execution', score: '-' },
-            { label: 'Innovation', score: '-' },
-            { label: 'Trade-offs', score: '-' },
-          ].map((competency) => (
-            <div
-              key={competency.label}
-              className="p-4 rounded-[1.5rem] bg-white/10 border-2 border-slate-600 text-center"
-            >
-              <p className="text-2xl font-black text-white mb-1">{competency.score}</p>
-              <p className="text-xs font-bold text-gray-400">{competency.label}</p>
-            </div>
-          ))}
-        </div>
-        <p className="text-center text-gray-400 font-medium mt-6">
-          Complete your first interview to see your competency scores
-        </p>
-      </div>
-    </div>
-  )
+interface PracticeInterview {
+  id: string;
+  interview_type: InterviewType;
+  completed_at: string;
+  created_at: string;
 }
 
+function getInterviewLabel(type: string): string {
+  return INTERVIEW_TYPES.find((t) => t.value === type)?.label || type;
+}
+
+function getInterviewEmoji(type: string): string {
+  return INTERVIEW_TYPES.find((t) => t.value === type)?.emoji || '📝';
+}
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+export default function InterviewPrepPage() {
+  const [interviews, setInterviews] = useState<PracticeInterview[]>([]);
+  const [stats, setStats] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedType, setSelectedType] = useState<InterviewType>('product_sense');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [submitting, setSubmitting] = useState(false);
+
+  const fetchInterviews = async () => {
+    try {
+      const response = await fetch('/api/practice-interviews');
+      if (!response.ok) throw new Error('Failed to fetch interviews');
+      const data = await response.json();
+      setInterviews(data.interviews);
+      setStats(data.stats);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInterviews();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      const response = await fetch('/api/practice-interviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          interview_type: selectedType,
+          completed_at: new Date(selectedDate).toISOString(),
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to log interview');
+
+      await fetchInterviews();
+      setShowModal(false);
+      setSelectedType('product_sense');
+      setSelectedDate(new Date().toISOString().split('T')[0]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this practice interview?')) return;
+
+    try {
+      const response = await fetch(`/api/practice-interviews?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete interview');
+
+      await fetchInterviews();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  };
+
+  const totalInterviews = interviews.length;
+
+  if (loading) {
+    return (
+      <>
+        <MobileDashboardHeader title="Interview Prep" />
+        <div className="min-h-screen p-6 pt-20 md:p-12 md:pt-12 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-700 font-semibold">Loading practice interviews...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <MobileDashboardHeader title="Interview Prep" />
+        <div className="min-h-screen p-6 pt-20 md:p-12 md:pt-12 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-red-600 font-bold mb-4">Error loading practice interviews</p>
+            <p className="text-gray-700 mb-4">{error}</p>
+            <button
+              onClick={() => {
+                setError(null);
+                setLoading(true);
+                fetchInterviews();
+              }}
+              className="px-6 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <MobileDashboardHeader title="Interview Prep" />
+      <div className="min-h-screen p-6 pt-20 md:p-12 md:pt-12">
+        {/* Header */}
+        <div className="mb-6 md:mb-8">
+          <div className="p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_12px_0_0_rgba(37,99,235,0.3)] md:shadow-[0_20px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl md:text-5xl font-black bg-gradient-to-br from-blue-700 to-cyan-600 bg-clip-text text-transparent mb-2">
+                  🎯 Interview Prep
+                </h1>
+                <p className="text-base md:text-xl text-gray-700 font-semibold">
+                  Track your practice interviews and build confidence
+                </p>
+              </div>
+              <button
+                onClick={() => setShowModal(true)}
+                className="px-6 py-3 md:px-8 md:py-4 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_6px_0_0_rgba(37,99,235,0.4)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(37,99,235,0.4)] font-black text-white transition-all duration-200 whitespace-nowrap"
+              >
+                + Log Practice Interview
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Summary */}
+        {totalInterviews > 0 && (
+          <div className="mb-6 md:mb-8">
+            <div className="p-6 rounded-[2rem] bg-white border-2 border-gray-200 shadow-sm">
+              <h2 className="text-lg font-bold text-gray-800 mb-4">Practice Summary</h2>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 text-center">
+                  <p className="text-2xl font-black text-blue-600">{totalInterviews}</p>
+                  <p className="text-xs font-semibold text-gray-600">Total Sessions</p>
+                </div>
+                {Object.entries(stats)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 4)
+                  .map(([type, count]) => (
+                    <div
+                      key={type}
+                      className="p-4 rounded-xl bg-gray-50 border border-gray-200 text-center"
+                    >
+                      <p className="text-2xl font-black text-gray-700">{count}</p>
+                      <p className="text-xs font-semibold text-gray-600 truncate">
+                        {getInterviewEmoji(type)} {getInterviewLabel(type)}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Empty State or Interview List */}
+        {totalInterviews === 0 ? (
+          <div className="p-8 md:p-12 rounded-[2.5rem] bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 text-center">
+            <span className="text-6xl mb-6 block">🎤</span>
+            <h2 className="text-2xl md:text-3xl font-black text-gray-800 mb-3">
+              No practice interviews yet
+            </h2>
+            <p className="text-gray-600 font-medium mb-6 max-w-md mx-auto">
+              Start logging your mock interviews to track your progress and identify areas to
+              improve. Practice makes perfect!
+            </p>
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_6px_0_0_rgba(37,99,235,0.4)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(37,99,235,0.4)] font-black text-white transition-all duration-200"
+            >
+              Log Your First Practice Interview
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-gray-800">Practice History</h2>
+            <div className="space-y-3">
+              {interviews.map((interview) => (
+                <div
+                  key={interview.id}
+                  className="p-4 md:p-6 rounded-[1.5rem] bg-white border-2 border-gray-200 shadow-sm hover:border-blue-300 transition-colors flex items-center justify-between gap-4"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="text-3xl">{getInterviewEmoji(interview.interview_type)}</span>
+                    <div>
+                      <p className="font-bold text-gray-800">
+                        {getInterviewLabel(interview.interview_type)}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Completed {formatDate(interview.completed_at)}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDelete(interview.id)}
+                    className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    title="Delete"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-md shadow-2xl">
+              <h2 className="text-2xl font-black text-gray-800 mb-6">Log Practice Interview</h2>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Interview Type
+                  </label>
+                  <select
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value as InterviewType)}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:ring-0 font-medium text-gray-800"
+                  >
+                    {INTERVIEW_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.emoji} {type.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Date Completed
+                  </label>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:ring-0 font-medium text-gray-800"
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 px-6 py-3 rounded-xl border-2 border-gray-200 font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 border-2 border-blue-600 font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    {submitting ? 'Saving...' : 'Log Interview'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}

@@ -233,12 +233,20 @@ Networking Actions:
 - networking-find-contacts: Find PM contacts at target companies
 - networking-scripts: Access networking email scripts
 
-Interview Prep Actions:
-- interview-prep-behavioral: Prepare behavioral stories (My 8 Stories worksheet)
-- interview-practice-mock: Complete mock interview sessions
-- interview-prep-product-design: Practice product design questions
-- interview-prep-strategy: Practice product strategy questions
-- interview-prep-metrics: Practice metrics & analytics questions
+Interview Prep Actions (log practice interviews by type):
+- interview-prep-recruiter-screen: Practice recruiter screen interviews
+- interview-prep-hiring-manager: Practice hiring manager interviews
+- interview-prep-product-sense: Practice product sense interviews
+- interview-prep-product-design: Practice product design interviews
+- interview-prep-analytics: Practice analytics/execution interviews
+- interview-prep-system-design: Practice system design interviews
+- interview-prep-technical: Practice technical interviews
+- interview-prep-strategy: Practice product strategy interviews
+- interview-prep-estimation: Practice estimation interviews
+- interview-prep-executive: Practice executive interviews
+- interview-prep-cross-functional: Practice cross-functional interviews
+- interview-prep-behavioral: Practice behavioral interviews (My 8 Stories worksheet)
+- interview-practice-mock: Complete general mock interview sessions
 - interview-generate-questions: Generate tailored questions for upcoming interviews
 - interview-send-thank-you: Send personalized thank you notes after interviews
 

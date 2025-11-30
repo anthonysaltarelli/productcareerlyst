@@ -1,7 +1,7 @@
 'use client'
 
 import { useFlags } from 'launchdarkly-react-client-sdk'
-import { CreditCard, Settings, Home, BookOpen, Briefcase, FileText, FolderKanban, FileSpreadsheet, Lightbulb } from 'lucide-react'
+import { CreditCard, Settings, Home, BookOpen, Briefcase, FileText, FolderKanban, FileSpreadsheet, Lightbulb, Target } from 'lucide-react'
 import { NavLink } from '@/app/components/NavLink'
 
 interface DashboardNavigationProps {
@@ -10,7 +10,7 @@ interface DashboardNavigationProps {
 }
 
 export const DashboardNavigation = ({ fullScreen = false, onNavClick }: DashboardNavigationProps) => {
-  const { coach, compensation, impactPortfolio, careerTracker } = useFlags()
+  const { compensation, impactPortfolio, careerTracker } = useFlags()
 
   // Base styles for nav links
   const baseNavLinkClass = fullScreen
@@ -111,26 +111,24 @@ export const DashboardNavigation = ({ fullScreen = false, onNavClick }: Dashboar
         <FolderKanban className={iconClass} />
         <span>Product Portfolio</span>
       </NavLink>
-      {coach && (
-        <NavLink
-          href="/dashboard/interview"
-          eventName="User Clicked Dashboard Navigation Link"
-          linkId={fullScreen ? 'mobile-nav-interview-link' : 'dashboard-nav-interview-link'}
-          eventProperties={{
-            'Link Text': 'Interview Coach',
-            'Link Destination': '/dashboard/interview',
-            'Link Section': fullScreen ? 'Mobile Navigation' : 'Sidebar Navigation',
-            'Link Position': 'Main Navigation',
-            'Link Type': 'Navigation Link',
-            'Feature Flag Required': true,
-            'Feature Flag Name': 'coach',
-          }}
-          className={baseNavLinkClass}
-          onClick={onNavClick}
-        >
-          <span>Interview Coach</span>
-        </NavLink>
-      )}
+      <NavLink
+        href="/dashboard/interview"
+        eventName="User Clicked Dashboard Navigation Link"
+        linkId={fullScreen ? 'mobile-nav-interview-link' : 'dashboard-nav-interview-link'}
+        eventProperties={{
+          'Link Text': 'Interview Prep',
+          'Link Destination': '/dashboard/interview',
+          'Link Section': fullScreen ? 'Mobile Navigation' : 'Sidebar Navigation',
+          'Link Position': 'Main Navigation',
+          'Link Type': 'Navigation Link',
+          'Feature Flag Required': false,
+        }}
+        className={baseNavLinkClass}
+        onClick={onNavClick}
+      >
+        <Target className={iconClass} />
+        <span>Interview Prep</span>
+      </NavLink>
       {careerTracker && (
         <NavLink
           href="/dashboard/career"
