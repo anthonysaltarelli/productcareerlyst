@@ -9,6 +9,14 @@ import { useOnboardingProgress } from '@/lib/hooks/useOnboardingProgress';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/amplitude/client';
 import { scoreToGrade, getGradeColor } from '@/lib/utils/gradeUtils';
+import type { PersonalizedPlan } from '@/lib/utils/planGenerator';
+
+// Type for confirmed goals
+interface ConfirmedGoal {
+  id: string;
+  label: string;
+  target: number | null;
+}
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
@@ -29,6 +37,8 @@ const billingLabels = {
 
 interface TrialStepProps {
   onBack: () => void;
+  plan?: PersonalizedPlan | null;
+  confirmedGoals?: ConfirmedGoal[];
 }
 
 const PaymentFormContent = ({
@@ -156,7 +166,7 @@ const PaymentFormContent = ({
   );
 };
 
-export const TrialStep = ({ onBack }: TrialStepProps) => {
+export const TrialStep = ({ onBack, plan, confirmedGoals }: TrialStepProps) => {
   const router = useRouter();
   const { progress, markComplete, refresh } = useOnboardingProgress();
   const [selectedBilling, setSelectedBilling] = useState<'monthly' | 'quarterly' | 'yearly'>('yearly');
@@ -384,7 +394,40 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
     }
   }, [showPaymentForm, clientSecret, selectedBilling]);
 
+  // Helper function to save plan and goals to database
+  const completeOnboarding = useCallback(async () => {
+    if (!plan) {
+      console.warn('No plan available to save');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/onboarding/complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plan,
+          confirmedGoals: confirmedGoals || [],
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        console.error('Error completing onboarding:', data.error);
+        // Don't throw - allow onboarding to complete even if plan save fails
+      }
+    } catch (error) {
+      console.error('Error calling complete endpoint:', error);
+      // Don't throw - allow onboarding to complete even if plan save fails
+    }
+  }, [plan, confirmedGoals]);
+
   const handleTrialStart = useCallback(async () => {
+    // Save plan and goals to database first
+    await completeOnboarding();
+
     // Mark onboarding as complete
     await markComplete();
 
@@ -419,7 +462,7 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
     // Redirect to dashboard
     router.push('/dashboard');
     router.refresh();
-  }, [markComplete, selectedBilling, analysisData, router, appliedCoupon, discountedPrice]);
+  }, [completeOnboarding, markComplete, selectedBilling, analysisData, router, appliedCoupon, discountedPrice]);
 
   // Handle coupon validation
   const handleApplyCoupon = async () => {
@@ -1072,9 +1115,12 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
                       }
                     }
                   }, 0);
-                  
+
                   setShowSkipConfirmModal(false);
-                  
+
+                  // Save plan and goals to database first
+                  await completeOnboarding();
+
                   // CRITICAL: Must await markComplete before navigating
                   // Otherwise the is_complete flag won't be saved to the database
                   try {
@@ -1083,7 +1129,7 @@ export const TrialStep = ({ onBack }: TrialStepProps) => {
                     console.error('Error marking onboarding complete:', error);
                     // Continue to dashboard even if this fails
                   }
-                  
+
                   router.push('/dashboard');
                   router.refresh();
                 }}

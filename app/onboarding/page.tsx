@@ -34,6 +34,7 @@ export default function OnboardingPage() {
   // State for passing data between plan display and confirm goals steps
   const [weeklyGoals, setWeeklyGoals] = useState<WeeklyGoalForConfirm[]>([]);
   const [generatedPlan, setGeneratedPlan] = useState<PersonalizedPlan | null>(null);
+  const [confirmedGoals, setConfirmedGoals] = useState<WeeklyGoal[]>([]);
 
   // Check if user has active subscription
   useEffect(() => {
@@ -203,10 +204,9 @@ export default function OnboardingPage() {
   }, []);
 
   // Callback for ConfirmGoalsStep to save confirmed goals (with user-adjusted values)
-  const handleSaveConfirmedGoals = useCallback(async (confirmedGoals: WeeklyGoal[]) => {
-    // Save to database will happen in Phase 2C/3
-    // For now, just store in state - the plan and goals will be saved after trial step
-    console.log('Confirmed goals:', confirmedGoals);
+  const handleSaveConfirmedGoals = useCallback((goals: WeeklyGoal[]) => {
+    // Store confirmed goals in state - they will be saved to database in TrialStep
+    setConfirmedGoals(goals);
   }, []);
 
   // Show loading while checking subscription or fetching progress
@@ -327,7 +327,11 @@ export default function OnboardingPage() {
             />
           )}
           {currentStep.id === 'trial' && (
-            <TrialStep onBack={handleBack} />
+            <TrialStep
+              onBack={handleBack}
+              plan={generatedPlan}
+              confirmedGoals={confirmedGoals}
+            />
           )}
         </div>
       </div>
