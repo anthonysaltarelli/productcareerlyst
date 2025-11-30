@@ -205,7 +205,7 @@ const BASELINE_ACTIONS: BaselineAction[] = [
     route: '/dashboard/jobs',
     triggerLogic: 'Triggered when POST /api/jobs/contacts creates a new contact. Calls markBaselineActionsComplete(userId, "contact_added").',
     userExplanation: 'Go to a company page and click "Add Contact" to track networking connections.',
-    verified: false,
+    verified: true,
   },
   {
     actionId: 'networking-find-contacts',
@@ -213,7 +213,7 @@ const BASELINE_ACTIONS: BaselineAction[] = [
     route: '/dashboard/jobs',
     triggerLogic: 'Triggered when POST /api/jobs/wiza/import-contacts imports contacts. Calls markBaselineActionsComplete(userId, "contacts_found").',
     userExplanation: 'Use the contact finder to discover PM contacts at your target companies.',
-    verified: false,
+    verified: true,
   },
   {
     actionId: 'networking-scripts',
