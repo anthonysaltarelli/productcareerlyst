@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserPlan } from '@/lib/utils/subscription';
+import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
 
 // JSON Schema for structured output
 const INTERVIEW_QUESTIONS_SCHEMA = {
@@ -327,6 +328,11 @@ Generate 2-3 high-quality questions that will help the candidate stand out and g
       } else {
         createdQuestions.push(question);
       }
+    }
+
+    // Mark baseline action as complete if questions were generated
+    if (createdQuestions.length > 0) {
+      await markBaselineActionsComplete(user.id, 'questions_generated');
     }
 
     return NextResponse.json(

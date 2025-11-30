@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
 
 // GET /api/jobs/interviews/[id] - Get a specific interview
 export const GET = async (
@@ -78,9 +79,16 @@ export const PATCH = async (
 
     const body = await request.json();
 
+    // Check if we're marking thank you as sent (for baseline action trigger)
+    const isMarkingThankYouSent = body.thank_you_sent_at && !body._skipBaselineAction;
+
+    // Remove internal flag before updating DB
+    const updateData = { ...body };
+    delete updateData._skipBaselineAction;
+
     const { data, error } = await supabase
       .from('interviews')
-      .update(body)
+      .update(updateData)
       .eq('id', id)
       .eq('user_id', user.id)
       .select(`
@@ -98,6 +106,11 @@ export const PATCH = async (
         { error: 'Failed to update interview' },
         { status: 500 }
       );
+    }
+
+    // Trigger baseline action if thank you note was marked as sent
+    if (isMarkingThankYouSent) {
+      await markBaselineActionsComplete(user.id, 'thank_you_sent');
     }
 
     return NextResponse.json({ interview: data });

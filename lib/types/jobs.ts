@@ -183,6 +183,7 @@ export interface Interview {
   outcome?: InterviewOutcome;
   thank_you_email_subject?: string;
   thank_you_email_body?: string;
+  thank_you_sent_at?: string;
   created_at: string;
   updated_at: string;
 }

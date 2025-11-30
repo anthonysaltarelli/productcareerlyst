@@ -268,18 +268,18 @@ const BASELINE_ACTIONS: BaselineAction[] = [
   {
     actionId: 'interview-generate-questions',
     label: 'Generate interview questions with AI',
-    route: '/dashboard/interview',
-    triggerLogic: 'Triggered when interview questions are generated. Calls markBaselineActionsComplete(userId, "questions_generated"). NOTE: Trigger not yet implemented.',
-    userExplanation: 'Use AI to generate company-specific interview questions for practice.',
-    verified: false,
+    route: '/dashboard/jobs',
+    triggerLogic: 'Triggered when POST /api/jobs/interviews/[id]/generate-questions successfully creates questions. Calls markBaselineActionsComplete(userId, "questions_generated").',
+    userExplanation: 'Go to a job application, add an interview, and click "Generate Questions" to get AI-powered interview questions.',
+    verified: true,
   },
   {
     actionId: 'interview-send-thank-you',
     label: 'Send a thank you note',
-    route: '/dashboard/templates',
-    triggerLogic: 'Triggered when thank you note is sent. Calls markBaselineActionsComplete(userId, "thank_you_sent"). NOTE: Trigger not yet implemented.',
-    userExplanation: 'Send a thank you email after your interview using our templates.',
-    verified: false,
+    route: '/dashboard/jobs',
+    triggerLogic: 'Triggered when PATCH /api/jobs/interviews/[id] sets thank_you_sent_at. Calls markBaselineActionsComplete(userId, "thank_you_sent").',
+    userExplanation: 'Go to an interview page and click "Mark Thank You Sent" to track when you\'ve sent your thank you note.',
+    verified: true,
   },
 
   // Resource actions

@@ -137,12 +137,12 @@ export const BASELINE_ACTION_INFO: Record<string, ActionInfo> = {
     route: '/dashboard/interview',
   },
   'interview-generate-questions': {
-    explanation: 'Use AI to generate company-specific interview questions for practice.',
-    route: '/dashboard/interview',
+    explanation: 'Go to a job application, add an interview, and click "Generate Questions" to get AI-powered interview questions.',
+    route: '/dashboard/jobs',
   },
   'interview-send-thank-you': {
-    explanation: 'Send a thank you email after your interview using our templates.',
-    route: '/dashboard/templates',
+    explanation: 'Go to an interview page and click "Mark Thank You Sent" to track when you\'ve sent your thank you note.',
+    route: '/dashboard/jobs',
   },
 
   // Resource actions
