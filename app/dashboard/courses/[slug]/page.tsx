@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { notFound, redirect } from 'next/navigation';
-import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { CoursePageTracking } from '@/app/components/CoursePageTracking';
 import { TrackedLink } from '@/app/components/TrackedLink';
 
@@ -96,44 +95,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
   const course = await getCourseWithLessons(slug);
 
   if (!course) {
-    // Return a helpful error page instead of 404
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-8 text-center">
-          <span className="text-6xl mb-4 block">⚠️</span>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Course Not Found</h1>
-          <p className="text-gray-700 mb-6">
-            Looking for course: <code className="bg-yellow-100 px-2 py-1 rounded font-mono text-sm">{slug}</code>
-          </p>
-          <div className="bg-white border border-yellow-300 rounded-lg p-6 mb-6 text-left">
-            <h2 className="font-bold text-lg mb-3">Possible reasons:</h2>
-            <ol className="list-decimal list-inside space-y-2 text-gray-700">
-              <li>Database tables haven't been created yet</li>
-              <li>Course data hasn't been seeded</li>
-              <li>Course slug is incorrect</li>
-              <li>Course is not published</li>
-            </ol>
-          </div>
-          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6 text-left">
-            <h2 className="font-bold text-lg mb-3">To fix this:</h2>
-            <ol className="list-decimal list-inside space-y-2 text-gray-700 mb-4">
-              <li>Open Supabase SQL Editor</li>
-              <li>Run the SQL from <code className="bg-indigo-100 px-2 py-1 rounded font-mono text-xs">database/schema.sql</code></li>
-              <li>Then run <code className="bg-indigo-100 px-2 py-1 rounded font-mono text-xs">database/seed_data.sql</code></li>
-            </ol>
-            <p className="text-sm text-gray-600">
-              See <code className="bg-indigo-100 px-2 py-1 rounded font-mono text-xs">LEARNING_PLATFORM_SETUP.md</code> for detailed instructions.
-            </p>
-          </div>
-          <Link
-            href="/dashboard/courses"
-            className="inline-block mt-6 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            ← Back to Courses
-          </Link>
-        </div>
-      </div>
-    );
+    redirect('/dashboard/courses');
   }
 
   // Calculate lesson counts

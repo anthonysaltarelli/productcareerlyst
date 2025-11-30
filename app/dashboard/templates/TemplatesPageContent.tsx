@@ -45,6 +45,8 @@ const RESOURCE_BASELINE_TRIGGERS: Record<string, string> = {
   'PM Interview Frameworks': 'interview_frameworks_accessed',
   'Negotiation Scripts': 'negotiation_scripts_accessed',
   'Product Requirements Doc (PRD)': 'prd_template_accessed',
+  'Networking Scripts': 'networking_scripts_accessed',
+  'My 8 Stories': 'behavioral_prep_completed',
 };
 
 const resources: Resource[] = [

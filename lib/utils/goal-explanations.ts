@@ -111,14 +111,14 @@ export const BASELINE_ACTION_INFO: Record<string, ActionInfo> = {
     route: '/dashboard/jobs',
   },
   'networking-scripts': {
-    explanation: 'Access the networking email templates in the Resources section.',
+    explanation: 'Access the Networking Scripts resource in the PM Resources section to get email templates that convert to informational calls and referrals.',
     route: '/dashboard/templates',
   },
 
   // Interview prep actions
   'interview-prep-behavioral': {
-    explanation: 'Complete the My 8 Stories worksheet to prepare your behavioral interview responses.',
-    route: '/dashboard/interview',
+    explanation: 'Access the My 8 Stories worksheet in the PM Resources section to prepare your behavioral interview responses.',
+    route: '/dashboard/templates',
   },
   'interview-practice-mock': {
     explanation: 'Complete a mock interview session to practice your responses.',
