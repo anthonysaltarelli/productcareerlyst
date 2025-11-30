@@ -314,8 +314,8 @@ export default async function LessonPage({
                   />
                 </div>
 
-                {/* Next Lesson / Complete Course Button - Second on mobile, right on desktop */}
-                {nextLesson ? (
+                {/* Next Lesson Button - Second on mobile, right on desktop */}
+                {nextLesson && (
                   <TrackedLink
                     href={`/dashboard/courses/${slug}/lessons/${nextLesson.id}`}
                     linkId="lesson-page-next-lesson-link"
@@ -337,28 +337,6 @@ export default async function LessonPage({
                     Next Lesson
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </TrackedLink>
-                ) : (
-                  <TrackedLink
-                    href={`/dashboard/courses`}
-                    linkId="lesson-page-complete-course-link"
-                    eventName="User Clicked Complete Course Link"
-                    eventProperties={{
-                      'Course ID': course.id,
-                      'Course Title': course.title,
-                      'Course Slug': slug,
-                      'Total Lessons': course.lessons.length,
-                      'Lessons Completed': Object.values(progressMap).filter(Boolean).length,
-                      'Course Progress Percentage': 100,
-                      'Link Section': 'Lesson Navigation Bar',
-                      'Link Position': 'Right side of Navigation Bar (when last lesson)',
-                    }}
-                    className="flex items-center justify-center gap-2 w-full md:w-auto md:max-w-[160px] md:order-3 px-4 py-3 md:py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
-                  >
-                    Complete Course
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </TrackedLink>
                 )}
