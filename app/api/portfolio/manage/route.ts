@@ -305,6 +305,18 @@ export const PUT = async (request: NextRequest) => {
       return NextResponse.json({ error: 'Failed to update portfolio' }, { status: 500 });
     }
 
+    // Check if portfolio profile is complete (photo, bio, and at least 1 social link)
+    const hasPhoto = !!portfolio.profile_image_url;
+    const hasBio = !!portfolio.bio && portfolio.bio.trim().length > 0;
+    const socialLinks = portfolio.social_links as Record<string, string> | null;
+    const hasSocialLink = socialLinks && Object.values(socialLinks).some((link) => !!link && link.trim().length > 0);
+
+    if (hasPhoto && hasBio && hasSocialLink) {
+      markBaselineActionsComplete(user.id, 'portfolio_profile_completed').catch((err) => {
+        console.error('Error marking portfolio_profile_completed baseline action:', err);
+      });
+    }
+
     return NextResponse.json({ portfolio });
   } catch (error) {
     console.error('Error in PUT /api/portfolio/manage:', error);

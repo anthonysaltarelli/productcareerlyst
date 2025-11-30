@@ -37,7 +37,7 @@ export const BASELINE_ACTION_INFO: Record<string, ActionInfo> = {
     route: '/dashboard/portfolio',
   },
   'portfolio-profile': {
-    explanation: 'Fill out your portfolio profile with your bio, photo, and contact information.',
+    explanation: 'Fill out your portfolio profile with your bio, photo, and at least one social link (we recommend LinkedIn).',
     route: '/dashboard/portfolio/editor',
   },
   'portfolio-generate-ideas': {

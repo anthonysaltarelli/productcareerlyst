@@ -77,9 +77,9 @@ const BASELINE_ACTIONS: BaselineAction[] = [
     actionId: 'portfolio-profile',
     label: 'Complete your portfolio profile & bio',
     route: '/dashboard/portfolio/editor',
-    triggerLogic: 'Triggered when portfolio profile is saved. Calls markBaselineActionsComplete(userId, "portfolio_profile_completed"). NOTE: Trigger not yet implemented.',
-    userExplanation: 'Fill out your portfolio profile with your bio, photo, and contact information.',
-    verified: false,
+    triggerLogic: 'Triggered when PUT /api/portfolio/manage saves a portfolio with non-null profile_image_url, non-empty bio, and at least 1 social link. Calls markBaselineActionsComplete(userId, "portfolio_profile_completed").',
+    userExplanation: 'Fill out your portfolio profile with your bio, photo, and at least one social link (we recommend LinkedIn).',
+    verified: true,
   },
   {
     actionId: 'portfolio-generate-ideas',
