@@ -1,27 +1,26 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useOnboardingProgress } from '@/lib/hooks/useOnboardingProgress';
 import { PersonalInfoStep } from '@/app/components/onboarding/PersonalInfoStep';
 import { GoalsAndChallengesStep } from '@/app/components/onboarding/GoalsAndChallengesStep';
 import { PortfolioStep } from '@/app/components/onboarding/PortfolioStep';
+import { PlanDisplayStep, WeeklyGoalForConfirm } from '@/app/components/onboarding/PlanDisplayStep';
+import { ConfirmGoalsStep, WeeklyGoal } from '@/app/components/onboarding/ConfirmGoalsStep';
 import { TrialStep } from '@/app/components/onboarding/TrialStep';
 import { PageTracking } from '@/app/components/PageTracking';
 import { trackEvent } from '@/lib/amplitude/client';
+import type { PersonalizedPlan } from '@/lib/utils/planGenerator';
 
-// New onboarding flow steps
-// Phase 2A: Steps 1-3 (Personal Info, Goals, Portfolio)
-// Phase 2B will add: Steps 4-5 (Plan Display, Confirm Goals)
-// Phase 2C will integrate: Step 6 (Trial)
+// New onboarding flow steps - Phase 2B complete
 const ALL_STEPS = [
   { id: 'personal_info', name: 'Personal Info' },
   { id: 'goals', name: 'Goals & Challenges' },
   { id: 'portfolio', name: 'Portfolio' },
-  // Placeholder for Phase 2B:
-  // { id: 'plan_display', name: 'Your Plan' },
-  // { id: 'confirm_goals', name: 'Confirm Goals' },
+  { id: 'plan_display', name: 'Your Plan' },
+  { id: 'confirm_goals', name: 'Confirm Goals' },
   { id: 'trial', name: 'Start Free Trial' },
 ] as const;
 
@@ -31,6 +30,10 @@ export default function OnboardingPage() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean | null>(null);
   const [checkingSubscription, setCheckingSubscription] = useState(true);
+
+  // State for passing data between plan display and confirm goals steps
+  const [weeklyGoals, setWeeklyGoals] = useState<WeeklyGoalForConfirm[]>([]);
+  const [generatedPlan, setGeneratedPlan] = useState<PersonalizedPlan | null>(null);
 
   // Check if user has active subscription
   useEffect(() => {
@@ -189,6 +192,23 @@ export default function OnboardingPage() {
     }
   };
 
+  // Callback for PlanDisplayStep to save weekly goals for ConfirmGoalsStep
+  const handleSaveWeeklyGoals = useCallback((goals: WeeklyGoalForConfirm[]) => {
+    setWeeklyGoals(goals);
+  }, []);
+
+  // Callback for PlanDisplayStep to save the full plan
+  const handleSavePlan = useCallback((plan: PersonalizedPlan) => {
+    setGeneratedPlan(plan);
+  }, []);
+
+  // Callback for ConfirmGoalsStep to save confirmed goals (with user-adjusted values)
+  const handleSaveConfirmedGoals = useCallback(async (confirmedGoals: WeeklyGoal[]) => {
+    // Save to database will happen in Phase 2C/3
+    // For now, just store in state - the plan and goals will be saved after trial step
+    console.log('Confirmed goals:', confirmedGoals);
+  }, []);
+
   // Show loading while checking subscription or fetching progress
   if (loading || checkingSubscription) {
     return (
@@ -288,6 +308,23 @@ export default function OnboardingPage() {
           )}
           {currentStep.id === 'portfolio' && (
             <PortfolioStep onNext={handleNext} onBack={handleBack} />
+          )}
+          {currentStep.id === 'plan_display' && (
+            <PlanDisplayStep
+              onNext={handleNext}
+              onBack={handleBack}
+              onSaveWeeklyGoals={handleSaveWeeklyGoals}
+              onSavePlan={handleSavePlan}
+              existingPlan={generatedPlan}
+            />
+          )}
+          {currentStep.id === 'confirm_goals' && (
+            <ConfirmGoalsStep
+              onNext={handleNext}
+              onBack={handleBack}
+              weeklyGoals={weeklyGoals}
+              onSaveConfirmedGoals={handleSaveConfirmedGoals}
+            />
           )}
           {currentStep.id === 'trial' && (
             <TrialStep onBack={handleBack} />

@@ -26,6 +26,22 @@ export interface OnboardingProgress {
       hasPortfolio?: string;
       wantsPortfolio?: string | null;
     };
+    // Plan display step (Phase 2B)
+    plan_display?: {
+      planGenerated?: boolean;
+      generatedAt?: string;
+    };
+    // Confirm goals step (Phase 2B)
+    confirm_goals?: {
+      confirmedGoals?: Array<{
+        id: string;
+        label: string;
+        target: number | null;
+      }>;
+      totalGoals?: number;
+      enabledGoals?: number;
+      confirmedAt?: string;
+    };
     // Legacy steps (kept for backwards compatibility)
     resume_upload?: {
       versionId?: string;
