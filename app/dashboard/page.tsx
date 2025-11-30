@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { getDashboardStats } from '@/lib/utils/dashboard-stats'
 import { getUserSubscription } from '@/lib/utils/subscription'
+import { getUserPlanData } from '@/lib/utils/user-plan'
 import { DashboardWelcome } from '@/app/components/DashboardWelcome'
 import { DashboardStats } from '@/app/components/DashboardStats'
+import { UserPlanProgress } from '@/app/components/UserPlanProgress'
 import { OnboardingMilestones } from '@/app/components/OnboardingMilestones'
 import { FeatureDiscovery } from '@/app/components/FeatureDiscovery'
 import { SubscriptionPromotion } from '@/app/components/SubscriptionPromotion'
@@ -34,6 +36,9 @@ export default async function DashboardHome() {
 
   // Get subscription for auto-sync component
   const subscription = await getUserSubscription(user.id)
+
+  // Get user's plan data (from onboarding)
+  const planData = await getUserPlanData(user.id)
 
   // Get user creation date for tracking
   const userCreatedAt = user.created_at
@@ -68,6 +73,9 @@ export default async function DashboardHome() {
           totalJobApplications: stats.totalJobApplications,
         } : null}
       />
+
+      {/* User Plan Progress (from onboarding) */}
+      {planData && <UserPlanProgress planData={planData} />}
 
       {/* Onboarding Milestones */}
       {stats && (
