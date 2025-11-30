@@ -37,6 +37,9 @@ interface WizaRequestHistoryProps {
   onImportComplete?: () => void; // Callback when contacts are imported
 }
 
+const POLL_INTERVAL_MS = 5000; // 5 seconds
+const MAX_POLL_ATTEMPTS = 60; // 5 minutes total
+
 export const WizaRequestHistory = ({
   applicationId,
   currentRequestId,
@@ -45,13 +48,19 @@ export const WizaRequestHistory = ({
 }: WizaRequestHistoryProps) => {
   const [allRequests, setAllRequests] = useState<WizaRequest[]>([]);
   const [checkingStatus, setCheckingStatus] = useState<Set<string>>(new Set());
+  const [pollingRequests, setPollingRequests] = useState<Set<string>>(new Set());
   const fetchingRequestsRef = useRef<boolean>(false);
+  const pollIntervalsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const pollAttemptsRef = useRef<Map<string, number>>(new Map());
+  const isMountedRef = useRef<boolean>(true);
+  const importingRequestsRef = useRef<Set<string>>(new Set()); // Track requests currently being imported
+  const completedRequestsRef = useRef<Set<string>>(new Set()); // Track requests that have been completed to prevent re-polling
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
       year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
@@ -74,12 +83,43 @@ export const WizaRequestHistory = ({
     return 'bg-gray-100 text-gray-700 border-gray-400';
   };
 
+  // Check if a request is in an "in-between" status that should trigger polling
+  const isInProgressStatus = (status: string): boolean => {
+    const statusLower = status.toLowerCase();
+    return statusLower === 'processing' || statusLower === 'pending' || statusLower === 'queued';
+  };
+
+  // Stop polling for a specific request
+  const stopPolling = useCallback((requestId: string) => {
+    const interval = pollIntervalsRef.current.get(requestId);
+    if (interval) {
+      clearInterval(interval);
+      pollIntervalsRef.current.delete(requestId);
+    }
+    pollAttemptsRef.current.delete(requestId);
+    setPollingRequests(prev => {
+      const next = new Set(prev);
+      next.delete(requestId);
+      return next;
+    });
+  }, []);
+
+  // Stop all polling
+  const stopAllPolling = useCallback(() => {
+    pollIntervalsRef.current.forEach((interval) => {
+      clearInterval(interval);
+    });
+    pollIntervalsRef.current.clear();
+    pollAttemptsRef.current.clear();
+    setPollingRequests(new Set());
+  }, []);
+
   const fetchAllRequests = useCallback(async () => {
     if (!applicationId) {
       console.log('[WizaRequestHistory] No applicationId, skipping fetch');
       return;
     }
-    
+
     // Prevent duplicate concurrent fetches
     if (fetchingRequestsRef.current) {
       console.log('[WizaRequestHistory] Already fetching requests, skipping duplicate call');
@@ -88,13 +128,13 @@ export const WizaRequestHistory = ({
 
     fetchingRequestsRef.current = true;
     console.log('[WizaRequestHistory] Fetching requests for application_id:', applicationId);
-    
+
     // Safety timeout to reset ref if fetch takes too long
     const timeoutId = setTimeout(() => {
       console.warn('[WizaRequestHistory] Fetch timeout, resetting ref');
       fetchingRequestsRef.current = false;
     }, 10000); // 10 second timeout
-    
+
     try {
       const response = await fetch(
         `/api/jobs/wiza/requests?application_id=${encodeURIComponent(applicationId)}`
@@ -105,9 +145,9 @@ export const WizaRequestHistory = ({
       if (response.ok) {
         const data = await response.json();
         const requests = data.requests || [];
-        
+
         console.log('[WizaRequestHistory] Received requests:', requests.length);
-        
+
         // Deduplicate by ID to prevent duplicate rows
         const uniqueRequests = requests.reduce((acc: WizaRequest[], request: WizaRequest) => {
           if (!acc.find(r => r.id === request.id)) {
@@ -115,7 +155,7 @@ export const WizaRequestHistory = ({
           }
           return acc;
         }, []);
-        
+
         console.log('[WizaRequestHistory] Unique requests after deduplication:', uniqueRequests.length);
         setAllRequests(uniqueRequests);
       } else {
@@ -129,6 +169,190 @@ export const WizaRequestHistory = ({
       fetchingRequestsRef.current = false;
     }
   }, [applicationId]);
+
+  // Poll a single request and handle completion
+  const pollRequest = useCallback(async (request: WizaRequest): Promise<boolean> => {
+    if (!request.wiza_list_id || !request.company_id) {
+      console.log('[WizaRequestHistory] Cannot poll: missing wiza_list_id or company_id');
+      return false;
+    }
+
+    // Check if this request has already been completed or is being imported
+    if (completedRequestsRef.current.has(request.id)) {
+      console.log(`[WizaRequestHistory] Request ${request.id} already completed, skipping poll`);
+      return true; // Return true to stop polling
+    }
+
+    if (importingRequestsRef.current.has(request.id)) {
+      console.log(`[WizaRequestHistory] Request ${request.id} is currently being imported, skipping poll`);
+      return false; // Return false but don't do anything
+    }
+
+    try {
+      // Check list status
+      const statusResponse = await fetch(
+        `/api/jobs/wiza/get-list?list_id=${encodeURIComponent(request.wiza_list_id)}`
+      );
+
+      if (!statusResponse.ok) {
+        console.error('[WizaRequestHistory] Status check failed');
+        return false;
+      }
+
+      const statusData = await statusResponse.json();
+      const listData = statusData.list || statusData;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const wizaStatus = (listData as any).data?.status ||
+                        listData.status ||
+                        listData.wiza_status ||
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (listData as any).state ||
+                        'unknown';
+
+      const statusLower = String(wizaStatus).toLowerCase().trim();
+      const isComplete = statusLower === 'finished' ||
+                        statusLower === 'completed' ||
+                        statusLower === 'ready' ||
+                        statusLower === 'done';
+
+      console.log(`[WizaRequestHistory] Poll result for ${request.id}: status=${wizaStatus}, isComplete=${isComplete}`);
+
+      if (isComplete) {
+        // Double-check we haven't already started importing this request
+        if (importingRequestsRef.current.has(request.id) || completedRequestsRef.current.has(request.id)) {
+          console.log(`[WizaRequestHistory] Request ${request.id} already being handled, skipping import`);
+          return true;
+        }
+
+        // Mark as importing to prevent duplicate imports
+        importingRequestsRef.current.add(request.id);
+
+        // Fetch and import contacts
+        try {
+          const contactsResponse = await fetch(
+            `/api/jobs/wiza/list-contacts?list_id=${encodeURIComponent(request.wiza_list_id)}`
+          );
+
+          if (contactsResponse.ok) {
+            const contactsData = await contactsResponse.json();
+            const contacts = contactsData.contacts || [];
+
+            if (contacts.length > 0) {
+              // Import contacts automatically
+              const importResponse = await fetch('/api/jobs/wiza/import-contacts', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  list_id: request.wiza_list_id,
+                  company_id: request.company_id,
+                  application_id: request.application_id || applicationId,
+                }),
+              });
+
+              if (importResponse.ok) {
+                const importData = await importResponse.json();
+                const importedCount = importData.imported || contacts.length;
+
+                toast.success(`Successfully imported ${importedCount} contact${importedCount !== 1 ? 's' : ''}!`);
+
+                if (onImportComplete) {
+                  onImportComplete();
+                }
+              }
+            } else {
+              toast.info('Search completed but no contacts were found.');
+            }
+          }
+        } catch (err) {
+          console.error('[WizaRequestHistory] Error fetching/importing contacts:', err);
+        } finally {
+          // Mark as completed and remove from importing
+          completedRequestsRef.current.add(request.id);
+          importingRequestsRef.current.delete(request.id);
+        }
+        return true; // Complete
+      }
+
+      return false; // Still processing
+    } catch (err) {
+      console.error('[WizaRequestHistory] Error polling request:', err);
+      return false;
+    }
+  }, [applicationId, onImportComplete]);
+
+  // Start polling for a specific request
+  const startPollingForRequest = useCallback((request: WizaRequest) => {
+    if (!request.wiza_list_id || !request.company_id) {
+      return;
+    }
+
+    // Don't start if already polling this request
+    if (pollIntervalsRef.current.has(request.id)) {
+      console.log(`[WizaRequestHistory] Already polling request ${request.id}`);
+      return;
+    }
+
+    // Don't start if this request has already been completed or is being imported
+    if (completedRequestsRef.current.has(request.id)) {
+      console.log(`[WizaRequestHistory] Request ${request.id} already completed, not starting poll`);
+      return;
+    }
+
+    if (importingRequestsRef.current.has(request.id)) {
+      console.log(`[WizaRequestHistory] Request ${request.id} is being imported, not starting poll`);
+      return;
+    }
+
+    console.log(`[WizaRequestHistory] Starting auto-poll for request ${request.id}`);
+
+    pollAttemptsRef.current.set(request.id, 0);
+    setPollingRequests(prev => new Set(prev).add(request.id));
+
+    // Poll immediately first
+    pollRequest(request).then(isComplete => {
+      if (!isMountedRef.current) return;
+
+      if (isComplete) {
+        stopPolling(request.id);
+        fetchAllRequests();
+        return;
+      }
+
+      // Set up interval for continued polling
+      const interval = setInterval(async () => {
+        if (!isMountedRef.current) {
+          stopPolling(request.id);
+          return;
+        }
+
+        const attempts = (pollAttemptsRef.current.get(request.id) || 0) + 1;
+        pollAttemptsRef.current.set(request.id, attempts);
+
+        console.log(`[WizaRequestHistory] Polling attempt ${attempts}/${MAX_POLL_ATTEMPTS} for request ${request.id}`);
+
+        if (attempts >= MAX_POLL_ATTEMPTS) {
+          console.log(`[WizaRequestHistory] Max poll attempts reached for request ${request.id}`);
+          stopPolling(request.id);
+          toast.info('Status check timed out. You can manually check the status.', {
+            description: `Search for ${request.company?.name || request.search_name} is taking longer than expected.`,
+          });
+          return;
+        }
+
+        const isComplete = await pollRequest(request);
+
+        if (isComplete) {
+          stopPolling(request.id);
+          fetchAllRequests();
+        }
+      }, POLL_INTERVAL_MS);
+
+      pollIntervalsRef.current.set(request.id, interval);
+    });
+  }, [pollRequest, stopPolling, fetchAllRequests]);
 
   const handleCheckStatus = useCallback(async (request: WizaRequest) => {
     if (!request.wiza_list_id || !request.company_id) {
@@ -155,17 +379,19 @@ export const WizaRequestHistory = ({
 
       const statusData = await statusResponse.json();
       const listData = statusData.list || statusData;
-      
+
       // Extract status from various possible locations
-      const wizaStatus = (listData as any).data?.status || 
-                        listData.status || 
-                        listData.wiza_status || 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const wizaStatus = (listData as any).data?.status ||
+                        listData.status ||
+                        listData.wiza_status ||
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         (listData as any).state ||
                         'unknown';
-      
+
       const statusLower = String(wizaStatus).toLowerCase().trim();
-      const isComplete = statusLower === 'finished' || 
-                        statusLower === 'completed' || 
+      const isComplete = statusLower === 'finished' ||
+                        statusLower === 'completed' ||
                         statusLower === 'ready' ||
                         statusLower === 'done';
 
@@ -179,7 +405,7 @@ export const WizaRequestHistory = ({
           if (contactsResponse.ok) {
             const contactsData = await contactsResponse.json();
             const contacts = contactsData.contacts || [];
-            
+
             if (contacts.length > 0) {
               // Import contacts automatically
               const importResponse = await fetch('/api/jobs/wiza/import-contacts', {
@@ -197,13 +423,13 @@ export const WizaRequestHistory = ({
               if (importResponse.ok) {
                 const importData = await importResponse.json();
                 const importedCount = importData.imported || contacts.length;
-                
+
                 // Refresh the requests list
                 await fetchAllRequests();
-                
+
                 // Show success message
                 toast.success(`Successfully imported ${importedCount} contact${importedCount !== 1 ? 's' : ''}!`);
-                
+
                 // Call the import complete callback if provided
                 if (onImportComplete) {
                   onImportComplete();
@@ -246,6 +472,16 @@ export const WizaRequestHistory = ({
     }
   }, [applicationId, fetchAllRequests, onImportComplete, checkingStatus]);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+      stopAllPolling();
+    };
+  }, [stopAllPolling]);
+
   // Fetch requests when applicationId or refreshTrigger changes
   useEffect(() => {
     console.log('[WizaRequestHistory] Component mounted/applicationId changed, applicationId:', applicationId);
@@ -254,6 +490,28 @@ export const WizaRequestHistory = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applicationId, refreshTrigger]);
+
+  // Auto-start polling for any requests in "processing" status when requests change
+  useEffect(() => {
+    if (allRequests.length === 0) return;
+
+    // Find requests that are in processing status and should be polled
+    const processingRequests = allRequests.filter(
+      request => isInProgressStatus(request.status) &&
+                 request.wiza_list_id &&
+                 request.company_id &&
+                 !pollIntervalsRef.current.has(request.id) && // Not already polling
+                 !completedRequestsRef.current.has(request.id) && // Not already completed
+                 !importingRequestsRef.current.has(request.id) // Not currently being imported
+    );
+
+    if (processingRequests.length > 0) {
+      console.log(`[WizaRequestHistory] Found ${processingRequests.length} processing request(s), starting auto-poll`);
+      processingRequests.forEach(request => {
+        startPollingForRequest(request);
+      });
+    }
+  }, [allRequests, startPollingForRequest]);
 
   if (allRequests.length === 0) {
     return null;
@@ -265,6 +523,7 @@ export const WizaRequestHistory = ({
       <div className="space-y-3">
         {allRequests.map((request) => {
           const isCurrent = request.id === currentRequestId;
+          const isPolling = pollingRequests.has(request.id);
           return (
             <div
               key={request.id}
@@ -291,7 +550,7 @@ export const WizaRequestHistory = ({
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-2 text-sm text-gray-700">
                 <div className="font-medium">
                   Started Search on {formatDate(request.started_at || request.created_at)}
@@ -307,33 +566,43 @@ export const WizaRequestHistory = ({
                   </div>
                 )}
               </div>
-              
+
               {request.error_message && (
                 <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-[0.75rem] text-xs text-red-700 font-medium">
                   {request.error_message}
                 </div>
               )}
-              
-              {/* Show Check Status button for processing requests */}
+
+              {/* Show polling indicator or Check Status button for processing requests */}
               {request.status === 'processing' && request.wiza_list_id && (
                 <div className="mt-3">
-                  <button
-                    onClick={() => handleCheckStatus(request)}
-                    disabled={checkingStatus.has(request.id)}
-                    className="px-4 py-2 rounded-[0.75rem] bg-gradient-to-br from-blue-500 to-purple-500 shadow-[0_2px_0_0_rgba(59,130,246,0.4)] border-2 border-blue-600 hover:translate-y-0.5 hover:shadow-[0_1px_0_0_rgba(59,130,246,0.4)] font-black text-white text-xs transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center gap-2"
-                  >
-                    {checkingStatus.has(request.id) ? (
-                      <>
-                        <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Checking...
-                      </>
-                    ) : (
-                      'Check Status'
-                    )}
-                  </button>
+                  {isPolling ? (
+                    <div className="flex items-center gap-2 text-sm text-blue-700 font-semibold">
+                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Checking status automatically...
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleCheckStatus(request)}
+                      disabled={checkingStatus.has(request.id)}
+                      className="px-4 py-2 rounded-[0.75rem] bg-gradient-to-br from-blue-500 to-purple-500 shadow-[0_2px_0_0_rgba(59,130,246,0.4)] border-2 border-blue-600 hover:translate-y-0.5 hover:shadow-[0_1px_0_0_rgba(59,130,246,0.4)] font-black text-white text-xs transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center gap-2"
+                    >
+                      {checkingStatus.has(request.id) ? (
+                        <>
+                          <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Checking...
+                        </>
+                      ) : (
+                        'Check Status'
+                      )}
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -343,4 +612,3 @@ export const WizaRequestHistory = ({
     </div>
   );
 };
-
