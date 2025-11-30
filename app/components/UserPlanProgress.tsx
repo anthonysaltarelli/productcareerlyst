@@ -54,7 +54,6 @@ function formatTargetRole(role: string | null): string {
 
 export const UserPlanProgress = ({ planData }: UserPlanProgressProps) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
-  const [showAllBaseline, setShowAllBaseline] = useState(false);
 
   // Don't render if no plan
   if (!planData || !planData.hasPlan) {
@@ -163,7 +162,7 @@ export const UserPlanProgress = ({ planData }: UserPlanProgressProps) => {
             </div>
           ) : (
             <div className="space-y-3">
-              {sectionTitles.slice(0, showAllBaseline ? undefined : 2).map((sectionTitle) => {
+              {sectionTitles.map((sectionTitle) => {
                 const actions = groupedBaseline.get(sectionTitle) || [];
                 const { completed, total } = getSectionCompletion(sectionTitle);
                 const isExpanded = expandedSections.has(sectionTitle);
@@ -258,17 +257,6 @@ export const UserPlanProgress = ({ planData }: UserPlanProgressProps) => {
                   </div>
                 );
               })}
-
-              {sectionTitles.length > 2 && (
-                <button
-                  onClick={() => setShowAllBaseline(!showAllBaseline)}
-                  className="w-full py-2 text-sm font-bold text-purple-600 hover:text-purple-700 transition-colors"
-                >
-                  {showAllBaseline
-                    ? 'Show less'
-                    : `Show ${sectionTitles.length - 2} more sections`}
-                </button>
-              )}
             </div>
           )}
         </div>

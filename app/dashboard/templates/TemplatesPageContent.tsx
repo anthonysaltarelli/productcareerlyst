@@ -39,6 +39,14 @@ interface Resource {
   shadowColor: string;
 }
 
+// Map resource titles to baseline action triggers
+const RESOURCE_BASELINE_TRIGGERS: Record<string, string> = {
+  'Resume Guide': 'resume_guide_accessed',
+  'PM Interview Frameworks': 'interview_frameworks_accessed',
+  'Negotiation Scripts': 'negotiation_scripts_accessed',
+  'Product Requirements Doc (PRD)': 'prd_template_accessed',
+};
+
 const resources: Resource[] = [
   {
     title: 'Resume Guide',
@@ -534,6 +542,20 @@ export const TemplatesPageContent = ({
       e?.preventDefault();
       setSelectedResource(resource);
       setShowGateModal(true);
+      return;
+    }
+
+    // User has access - trigger baseline action if this resource has one
+    const baselineTrigger = RESOURCE_BASELINE_TRIGGERS[resource.title];
+    if (baselineTrigger) {
+      // Fire and forget - don't block the navigation
+      fetch('/api/goals/baseline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trigger: baselineTrigger }),
+      }).catch(() => {
+        // Silently fail - baseline tracking should never block user experience
+      });
     }
   }, [hasAccess]);
 
