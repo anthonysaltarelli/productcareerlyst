@@ -25,3 +25,4 @@ CREATE POLICY "Users can delete their own portfolio"
   ON portfolios FOR DELETE
   USING (auth.uid() = user_id);
 
+

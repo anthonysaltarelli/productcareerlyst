@@ -25,3 +25,4 @@ CREATE TABLE IF NOT EXISTS portfolio_categories (
 COMMENT ON TABLE portfolio_categories IS 'Categories/collections for organizing portfolio pages';
 COMMENT ON COLUMN portfolio_categories.display_order IS 'Order in which categories appear on the portfolio homepage';
 
+

@@ -34,3 +34,4 @@ export const TipTapReadOnlyWrapper = ({ content, className }: TipTapReadOnlyWrap
 
 export default TipTapReadOnlyWrapper;
 
+

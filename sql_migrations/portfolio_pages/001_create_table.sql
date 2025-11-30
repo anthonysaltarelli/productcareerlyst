@@ -40,3 +40,4 @@ COMMENT ON COLUMN portfolio_pages.content IS 'TipTap editor content stored as JS
 COMMENT ON COLUMN portfolio_pages.tags IS 'Array of tags for filtering and display';
 COMMENT ON COLUMN portfolio_pages.is_featured IS 'Featured pages appear prominently on portfolio homepage';
 
+

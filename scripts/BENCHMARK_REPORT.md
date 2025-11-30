@@ -163,3 +163,4 @@ The smaller models use significantly more tokens due to their reasoning process,
 
 The current implementation using gpt-5.1 is optimal. The user experience issue of "not seeing results" is a UX/timing problem, not a model problem. Solutions should focus on better progress indicators, background processing, and managing user expectations rather than switching models.
 
+

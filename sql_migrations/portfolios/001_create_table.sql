@@ -38,3 +38,4 @@ COMMENT ON TABLE portfolios IS 'User portfolios with profile information and set
 COMMENT ON COLUMN portfolios.slug IS 'Unique URL slug for public portfolio access (e.g., /p/username)';
 COMMENT ON COLUMN portfolios.social_links IS 'JSON object containing social media links';
 
+

@@ -42,3 +42,4 @@ COMMENT ON FUNCTION check_portfolio_slug_available IS
   'Checks if a portfolio slug is available. Bypasses RLS to see all portfolios. 
    Returns available=true if slug is not taken, or if the current user owns it.';
 
+
