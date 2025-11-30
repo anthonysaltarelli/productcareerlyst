@@ -76,7 +76,6 @@ const PLAN_GENERATION_SCHEMA = {
                   'weekly-company-research',
                   'weekly-course-lessons',
                   'weekly-follow-ups',
-                  'weekly-thank-you-notes',
                   'weekly-interview-prep',
                 ],
                 description: 'Must be from predefined weekly action IDs for tracking',
@@ -250,15 +249,15 @@ Resource Actions:
 - resource-prd-template: Access PRD Template
 
 Weekly Action IDs (for weeklyGoals - MUST use these):
-- weekly-applications: Apply to X quality roles (bounds: 5-25/week)
-- weekly-networking-calls: Schedule X networking calls (bounds: 2-5/week)
-- weekly-outreach-emails: Send X personalized outreach emails (bounds: 10-40/week)
-- weekly-interview-practice: Complete X mock interview sessions (bounds: 1-3/week)
-- weekly-company-research: Research X target companies deeply (bounds: 2-5/week)
-- weekly-course-lessons: Watch X course lessons (bounds: 3-10/week)
-- weekly-follow-ups: Follow up on X pending applications (bounds: 3-10/week)
-- weekly-thank-you-notes: Send thank you notes within 24hrs of each interview
-- weekly-interview-prep: Generate questions & prep for X upcoming interviews (bounds: 1-3/week)
+IMPORTANT: Frame all weekly actions as "per week" in the label (e.g., "Apply to 12 quality roles per week")
+- weekly-applications: Apply to X quality roles per week (bounds: 5-25/week)
+- weekly-networking-calls: Schedule X networking calls per week (bounds: 2-5/week)
+- weekly-outreach-emails: Send X personalized outreach emails per week (bounds: 10-40/week)
+- weekly-interview-practice: Complete X mock interview sessions per week (bounds: 1-3/week)
+- weekly-company-research: Research X target companies deeply per week (bounds: 2-5/week)
+- weekly-course-lessons: Watch X course lessons per week (bounds: 3-10/week)
+- weekly-follow-ups: Follow up on X pending applications per week (bounds: 3-10/week)
+- weekly-interview-prep: Generate questions & prep for X upcoming interviews per week (bounds: 1-3/week)
 
 ---
 
@@ -272,7 +271,10 @@ PERSONALIZATION REQUIREMENTS:
    - Be warm and encouraging but not cheesy
 
 2. Get Started (baselineActions): 2-4 sections of one-time setup actions
-   - Select from predefined action IDs ONLY
+   - PREFER predefined action IDs for trackable platform actions
+   - You MAY create custom IDs (prefix with "custom-") for highly personalized recommendations
+     * Examples: "custom-research-local-pm-salary", "custom-join-industry-slack", "custom-shadow-pm-friend"
+     * Use custom IDs when the user's struggles or background suggest specific advice not covered by platform features
    - Group logically by theme (e.g., "Stand Out With a Portfolio", "Master Your Materials")
    - 4-8 actions per section, ordered by priority
    - Include relevant courses naturally integrated

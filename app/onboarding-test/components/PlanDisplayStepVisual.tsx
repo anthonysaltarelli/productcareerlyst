@@ -4,10 +4,31 @@ import { useState, useMemo } from 'react';
 import { OnboardingData, generatePersonalizedPlan, ActionItem, PersonalizedPlan } from '../utils/planGenerator';
 import { PERSONAS } from '../data/personas';
 
-// Extended action item type that includes optional sublabel from AI
+// Extended action item type that includes optional sublabel and target from AI
 interface ExtendedActionItem extends ActionItem {
   sublabel?: string;
+  target?: number | null;
 }
+
+// Predefined action IDs for tracking
+const PREDEFINED_ACTION_IDS = new Set([
+  // Resume Actions
+  'resume-import', 'resume-analyze', 'resume-score-90', 'resume-export', 'resume-clone-tailored',
+  // Portfolio Actions
+  'portfolio-create', 'portfolio-profile', 'portfolio-generate-ideas', 'portfolio-first-case', 'portfolio-second-case', 'portfolio-publish',
+  // Course Actions
+  'course-resume-linkedin', 'course-portfolio', 'course-secure-referral', 'course-company-prep', 'course-pm-interviews', 'course-negotiation', 'course-pm-fundamentals',
+  // Job Search Actions
+  'job-add-first', 'job-add-target-companies', 'job-research-companies', 'job-track-applications',
+  // Networking Actions
+  'networking-add-contact', 'networking-find-contacts', 'networking-scripts',
+  // Interview Prep Actions
+  'interview-prep-behavioral', 'interview-practice-mock', 'interview-prep-product-design', 'interview-prep-strategy', 'interview-prep-metrics', 'interview-generate-questions', 'interview-send-thank-you',
+  // Resource Actions
+  'resource-resume-guide', 'resource-interview-frameworks', 'resource-negotiation-scripts', 'resource-prd-template',
+  // Weekly Actions
+  'weekly-applications', 'weekly-networking-calls', 'weekly-outreach-emails', 'weekly-interview-practice', 'weekly-company-research', 'weekly-course-lessons', 'weekly-follow-ups', 'weekly-interview-prep',
+]);
 
 interface PlanDisplayStepVisualProps {
   onNext: () => void;
@@ -63,6 +84,8 @@ export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData }: PlanDi
   };
 
   const renderActionItem = (action: ExtendedActionItem) => {
+    const isPredefined = PREDEFINED_ACTION_IDS.has(action.id);
+
     return (
       <div
         key={action.id}
@@ -76,9 +99,26 @@ export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData }: PlanDi
           className="mt-1 w-5 h-5 text-purple-600 rounded border-gray-300 cursor-not-allowed opacity-50"
         />
         <div className="flex-1">
-          <span className="text-gray-900 font-semibold">
-            {action.label}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-gray-900 font-semibold">
+              {action.label}
+            </span>
+            {isPredefined && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-purple-100 text-purple-700 border border-purple-200">
+                {action.id}
+              </span>
+            )}
+            {!isPredefined && action.id && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-yellow-100 text-yellow-700 border border-yellow-200">
+                custom: {action.id}
+              </span>
+            )}
+            {action.target !== undefined && action.target !== null && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+                target: {action.target}
+              </span>
+            )}
+          </div>
           {action.sublabel && (
             <p className="text-sm text-gray-500 mt-1">
               {action.sublabel}
