@@ -317,6 +317,13 @@ export const PUT = async (request: NextRequest) => {
       });
     }
 
+    // Check if portfolio was just published
+    if (body.is_published === true && portfolio.is_published) {
+      markBaselineActionsComplete(user.id, 'portfolio_published').catch((err) => {
+        console.error('Error marking portfolio_published baseline action:', err);
+      });
+    }
+
     return NextResponse.json({ portfolio });
   } catch (error) {
     console.error('Error in PUT /api/portfolio/manage:', error);

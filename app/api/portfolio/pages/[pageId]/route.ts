@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { PortfolioPageUpdateInput } from '@/lib/types/portfolio';
+import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
 
 interface RouteContext {
   params: Promise<{ pageId: string }>;
@@ -120,6 +121,28 @@ export const PUT = async (request: NextRequest, context: RouteContext) => {
 
     if (!page) {
       return NextResponse.json({ error: 'Page not found' }, { status: 404 });
+    }
+
+    // Check if page was just published and trigger baseline actions
+    if (body.is_published === true && page.is_published) {
+      // Count total published pages for this portfolio
+      const { count: publishedCount } = await supabase
+        .from('portfolio_pages')
+        .select('*', { count: 'exact', head: true })
+        .eq('portfolio_id', portfolio.id)
+        .eq('is_published', true);
+
+      if (publishedCount === 1) {
+        // First published page
+        markBaselineActionsComplete(user.id, 'portfolio_first_case_added').catch((err) => {
+          console.error('Error marking portfolio_first_case_added baseline action:', err);
+        });
+      } else if (publishedCount === 2) {
+        // Second published page
+        markBaselineActionsComplete(user.id, 'portfolio_second_case_added').catch((err) => {
+          console.error('Error marking portfolio_second_case_added baseline action:', err);
+        });
+      }
     }
 
     return NextResponse.json({ page });
