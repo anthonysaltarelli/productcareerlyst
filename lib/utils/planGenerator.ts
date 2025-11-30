@@ -475,9 +475,9 @@ const generateWeeklyGoals = (data: OnboardingData): ActionSection => {
   } else if (jobSearchStage === 'not_getting_offers') {
     actions.push(
       {
-        id: 'weekly-follow-ups',
-        label: 'Follow up on 5 pending applications',
-        target: 5,
+        id: 'weekly-outreach-emails',
+        label: 'Send 10 outreach emails to contacts',
+        target: 10,
         completed: false,
       },
       {

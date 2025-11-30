@@ -817,7 +817,11 @@ export default function JobDetailPage() {
                   <h3 className="text-xl font-black text-gray-900 mb-4">Key Contacts 👥</h3>
                   <div className="space-y-4">
                     {contacts.slice(0, 3).map((contact) => (
-                      <div key={contact.id} className="flex items-center gap-3 p-3 bg-gradient-to-br from-purple-50 to-pink-50 rounded-[1rem] border-2 border-purple-200">
+                      <Link
+                        key={contact.id}
+                        href={`/dashboard/jobs/contacts/${contact.id}`}
+                        className="flex items-center gap-3 p-3 bg-gradient-to-br from-purple-50 to-pink-50 rounded-[1rem] border-2 border-purple-200 hover:border-purple-400 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.3)] transition-all cursor-pointer"
+                      >
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-[0_4px_0_0_rgba(147,51,234,0.4)] flex items-center justify-center text-white font-black text-lg">
                           {contact.name.charAt(0)}
                         </div>
@@ -825,7 +829,7 @@ export default function JobDetailPage() {
                           <div className="font-bold text-gray-900 truncate">{contact.name}</div>
                           <div className="text-sm text-gray-700 font-semibold truncate">{contact.title}</div>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                   <button 
@@ -1078,126 +1082,120 @@ export default function JobDetailPage() {
                 </div>
               ) : (
                 contacts.map((contact) => (
-                  <div key={contact.id} className="p-5 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 hover:border-purple-400 hover:shadow-[0_10px_0_0_rgba(147,51,234,0.3)] transition-all">
-                    {/* Header with Avatar, Name, Title, and Relationship Tag */}
-                    <div className="flex items-start gap-4 mb-3">
-                      {/* Avatar */}
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-[0_4px_0_0_rgba(147,51,234,0.4)] flex items-center justify-center text-white font-black text-xl flex-shrink-0">
-                        {contact.name.split(' ').map(n => n[0]).join('')}
-                      </div>
+                  <div key={contact.id} className="relative">
+                    <Link
+                      href={`/dashboard/jobs/contacts/${contact.id}`}
+                      className="block p-5 pr-16 rounded-[2rem] bg-white shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-300 hover:border-purple-400 hover:shadow-[0_10px_0_0_rgba(147,51,234,0.3)] transition-all cursor-pointer"
+                    >
+                      {/* Header with Avatar, Name, Title, and Relationship Tag */}
+                      <div className="flex items-start gap-4 mb-3">
+                        {/* Avatar */}
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-[0_4px_0_0_rgba(147,51,234,0.4)] flex items-center justify-center text-white font-black text-xl flex-shrink-0">
+                          {contact.name.split(' ').map(n => n[0]).join('')}
+                        </div>
 
-                      {/* Name, Title, and Relationship */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-3 mb-2">
-                          <div className="flex-1 min-w-0">
+                        {/* Name, Title, and Relationship */}
+                        <div className="flex-1 min-w-0">
+                          <div className="mb-2">
                             <h3 className="text-xl font-black text-gray-900 truncate">{contact.name}</h3>
                             {contact.title && (
                               <p className="text-gray-700 font-semibold text-sm mt-1 truncate">{contact.title}</p>
                             )}
-                          </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
                             {contact.relationship && (
-                              <span className="px-3 py-1.5 bg-blue-100 text-blue-700 border-2 border-blue-400 rounded-[0.75rem] text-xs font-black capitalize whitespace-nowrap">
+                              <span className="inline-block mt-2 px-3 py-1.5 bg-blue-100 text-blue-700 border-2 border-blue-400 rounded-[0.75rem] text-xs font-black capitalize">
                                 {contact.relationship.replace('_', ' ')}
                               </span>
                             )}
-                            {/* Edit and Delete Buttons */}
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={() => handleEditContact(contact)}
-                                className="p-2 rounded-[0.75rem] bg-purple-50 border-2 border-purple-200 text-purple-700 hover:bg-purple-100 transition-colors"
-                                aria-label="Edit contact"
-                              >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </div>
+
+                          {/* Contact Info */}
+                          <div className="flex items-center gap-4 flex-wrap text-sm font-semibold">
+                            {contact.email && (
+                              <span className="flex items-center gap-1.5 text-gray-700">
+                                <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
-                              </button>
-                              <button
-                                onClick={() => setDeletingContact({ id: contact.id, name: contact.name })}
-                                className="p-2 rounded-[0.75rem] bg-red-50 border-2 border-red-200 text-red-700 hover:bg-red-100 transition-colors"
-                                aria-label="Delete contact"
-                              >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                <span className="truncate">Email</span>
+                              </span>
+                            )}
+                            {contact.linkedin_url && (
+                              <span className="flex items-center gap-1.5 text-gray-600">
+                                <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
                                 </svg>
-                              </button>
-                            </div>
+                                <span className="truncate">LinkedIn</span>
+                              </span>
+                            )}
+                            {contact.phone && (
+                              <span className="flex items-center gap-1.5 text-gray-600">
+                                <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                                <span className="truncate">Phone</span>
+                              </span>
+                            )}
                           </div>
                         </div>
+                      </div>
 
-                        {/* Contact Info */}
-                        <div className="flex items-center gap-4 flex-wrap text-sm font-semibold">
-                          {contact.email && (
-                            <a href={`mailto:${contact.email}`} className="flex items-center gap-1.5 text-gray-700 hover:text-blue-600 transition-colors">
-                              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                              </svg>
-                              <span className="truncate">Email</span>
-                            </a>
-                          )}
-                          {contact.linkedin_url && (
-                            <a href={contact.linkedin_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-gray-600 hover:text-blue-600 transition-colors">
-                              <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                              </svg>
-                              <span className="truncate">LinkedIn</span>
-                            </a>
-                          )}
-                          {contact.phone && (
-                            <a href={`tel:${contact.phone}`} className="flex items-center gap-1.5 text-gray-600 hover:text-blue-600 transition-colors">
-                              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                              </svg>
-                              <span className="truncate">Phone</span>
-                            </a>
-                          )}
+                      {/* Last Contact */}
+                      {contact.last_contact_date && (
+                        <div className="text-sm text-gray-600 mb-2 pt-2 border-t border-gray-200">
+                          Last contact: {handleFormatDate(contact.last_contact_date)}
                         </div>
-                      </div>
-                    </div>
+                      )}
 
-                    {/* Last Contact */}
-                    {contact.last_contact_date && (
-                      <div className="text-sm text-gray-600 mb-2 pt-2 border-t border-gray-200">
-                        Last contact: {handleFormatDate(contact.last_contact_date)}
-                      </div>
-                    )}
-
-                    {/* Interactions */}
-                    {contact.interactions && contact.interactions.length > 0 && (
-                      <div className="pt-2 border-t border-gray-200">
-                        <div className="text-sm font-bold text-gray-700 mb-2">Recent Interactions ({contact.interactions.length})</div>
-                        <div className="space-y-2">
-                          {contact.interactions.slice(0, 2).map((interaction) => (
-                            <div key={interaction.id} className="flex items-start gap-3 text-sm p-3 bg-gray-50 rounded-[1rem]">
-                              <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                {interaction.type === 'email' && (
-                                  <svg className="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                  </svg>
-                                )}
-                                {interaction.type === 'linkedin' && (
-                                  <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                                  </svg>
-                                )}
-                                {interaction.type === 'phone' && (
-                                  <svg className="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                  </svg>
-                                )}
+                      {/* Interactions */}
+                      {contact.interactions && contact.interactions.length > 0 && (
+                        <div className="pt-2 border-t border-gray-200">
+                          <div className="text-sm font-bold text-gray-700 mb-2">Recent Interactions ({contact.interactions.length})</div>
+                          <div className="space-y-2">
+                            {contact.interactions.slice(0, 2).map((interaction) => (
+                              <div key={interaction.id} className="flex items-start gap-3 text-sm p-3 bg-gray-50 rounded-[1rem]">
+                                <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  {interaction.type === 'email' && (
+                                    <svg className="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                  )}
+                                  {interaction.type === 'linkedin' && (
+                                    <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                                    </svg>
+                                  )}
+                                  {interaction.type === 'phone' && (
+                                    <svg className="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    </svg>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-gray-900 font-bold">{interaction.summary}</div>
+                                  <div className="text-xs text-gray-500">{handleFormatDate(interaction.date)}</div>
+                                  {interaction.notes && (
+                                    <div className="text-gray-600 mt-1">{interaction.notes}</div>
+                                  )}
+                                </div>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="text-gray-900 font-bold">{interaction.summary}</div>
-                                <div className="text-xs text-gray-500">{handleFormatDate(interaction.date)}</div>
-                                {interaction.notes && (
-                                  <div className="text-gray-600 mt-1">{interaction.notes}</div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </Link>
+                    {/* Delete Button - positioned absolutely to not interfere with the Link */}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDeletingContact({ id: contact.id, name: contact.name });
+                      }}
+                      className="absolute top-4 right-4 p-2 rounded-[0.75rem] bg-red-50 border-2 border-red-200 text-red-700 hover:bg-red-100 transition-colors z-10"
+                      aria-label="Delete contact"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   </div>
                 ))
               )}

@@ -19,8 +19,11 @@ export const WEEKLY_GOAL_TRIGGERS = {
   mock_interview_completed: ['weekly-interview-practice'],
   negotiation_practice_completed: ['weekly-interview-practice'],
 
-  // Follow-up events
-  application_followed_up: ['weekly-follow-ups'],
+  // Course lesson events
+  lesson_completed: ['weekly-course-lessons'],
+
+  // Company research events
+  company_researched: ['weekly-company-research'],
 } as const;
 
 export type WeeklyGoalTrigger = keyof typeof WEEKLY_GOAL_TRIGGERS;

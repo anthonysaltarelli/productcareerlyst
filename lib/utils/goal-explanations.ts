@@ -221,10 +221,6 @@ export const WEEKLY_GOAL_INFO: Record<string, ActionInfo> = {
     explanation: 'Complete lessons from the PM career courses to build your skills.',
     route: '/dashboard/courses',
   },
-  'weekly-follow-ups': {
-    explanation: 'Follow up on pending job applications to stay top of mind.',
-    route: '/dashboard/jobs',
-  },
   'weekly-interview-prep': {
     explanation: 'Generate tailored questions and prep materials for upcoming interviews.',
     route: '/dashboard/interview',

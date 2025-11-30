@@ -27,7 +27,7 @@ const PREDEFINED_ACTION_IDS = new Set([
   // Resource Actions
   'resource-resume-guide', 'resource-interview-frameworks', 'resource-negotiation-scripts', 'resource-prd-template',
   // Weekly Actions
-  'weekly-applications', 'weekly-networking-calls', 'weekly-outreach-emails', 'weekly-interview-practice', 'weekly-company-research', 'weekly-course-lessons', 'weekly-follow-ups', 'weekly-interview-prep',
+  'weekly-applications', 'weekly-networking-calls', 'weekly-outreach-emails', 'weekly-interview-practice', 'weekly-company-research', 'weekly-course-lessons', 'weekly-interview-prep',
 ]);
 
 // Weekly goal type for passing to ConfirmGoalsStepVisual

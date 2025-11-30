@@ -198,6 +198,8 @@ export interface InterviewQuestion {
   updated_at: string;
 }
 
+export type OutreachStatus = 'not_contacted' | 'contacted' | 'replied' | 'no_response';
+
 export interface Contact {
   id: string;
   user_id: string;
@@ -211,6 +213,9 @@ export interface Contact {
   relationship?: ContactRelationship;
   last_contact_date?: string; // ISO date string
   notes?: string;
+  outreach_status?: OutreachStatus;
+  last_contacted_at?: string;
+  outreach_count?: number;
   created_at: string;
   updated_at: string;
 }

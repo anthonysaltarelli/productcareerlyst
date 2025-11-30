@@ -4,6 +4,7 @@ import {
   markBaselineActionsComplete,
   type BaselineTrigger,
 } from '@/lib/utils/baseline-actions';
+import { incrementWeeklyGoalProgress } from '@/lib/utils/weekly-goals';
 
 // Valid interview types matching the job application center
 const VALID_INTERVIEW_TYPES = [
@@ -142,6 +143,9 @@ export async function POST(request: NextRequest) {
     if (trigger) {
       await markBaselineActionsComplete(user.id, trigger);
     }
+
+    // Increment weekly interview practice goal
+    await incrementWeeklyGoalProgress(user.id, 'interview_practice_completed');
 
     return NextResponse.json({
       success: true,

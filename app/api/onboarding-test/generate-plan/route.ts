@@ -75,7 +75,6 @@ const PLAN_GENERATION_SCHEMA = {
                   'weekly-interview-practice',
                   'weekly-company-research',
                   'weekly-course-lessons',
-                  'weekly-follow-ups',
                   'weekly-interview-prep',
                 ],
                 description: 'Must be from predefined weekly action IDs for tracking',
@@ -255,7 +254,6 @@ IMPORTANT: Frame all weekly actions as "per week" in the label (e.g., "Apply to 
 - weekly-interview-practice: Complete X mock interview sessions per week (bounds: 1-3/week)
 - weekly-company-research: Research X target companies deeply per week (bounds: 2-5/week)
 - weekly-course-lessons: Watch X course lessons per week (bounds: 3-10/week)
-- weekly-follow-ups: Follow up on X pending applications per week (bounds: 3-10/week)
 - weekly-interview-prep: Generate questions & prep for X upcoming interviews per week (bounds: 1-3/week)
 
 ---

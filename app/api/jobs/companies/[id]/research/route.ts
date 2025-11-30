@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateResearch, ALL_RESEARCH_TYPES, ResearchType } from '@/lib/utils/perplexity';
 import { isResearchValid } from '@/lib/utils/perplexity';
 import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
+import { incrementWeeklyGoalProgress } from '@/lib/utils/weekly-goals';
 
 /**
  * GET /api/jobs/companies/[id]/research
@@ -72,6 +73,7 @@ export const GET = async (
 
     // Mark baseline action complete when accessing existing research
     // This covers the case where a user views research that was already generated
+    // Note: Weekly goal only increments on POST (new research generation), not on GET (viewing)
     if (research && research.length > 0) {
       markBaselineActionsComplete(user.id, 'company_researched').catch((err) => {
         console.error('Error marking company_researched baseline action (GET):', err);
@@ -233,6 +235,9 @@ export const POST = async (
         markBaselineActionsComplete(user.id, 'company_researched').catch((err) => {
           console.error('Error marking company_researched baseline action:', err);
         });
+        incrementWeeklyGoalProgress(user.id, 'company_researched').catch((err) => {
+          console.error('Error incrementing company_researched weekly goal:', err);
+        });
 
         return NextResponse.json({
           success: true,
@@ -327,6 +332,9 @@ export const POST = async (
       // Mark baseline action complete for company research (multiple types)
       markBaselineActionsComplete(user.id, 'company_researched').catch((err) => {
         console.error('Error marking company_researched baseline action (batch):', err);
+      });
+      incrementWeeklyGoalProgress(user.id, 'company_researched').catch((err) => {
+        console.error('Error incrementing company_researched weekly goal (batch):', err);
       });
 
       // Return immediately

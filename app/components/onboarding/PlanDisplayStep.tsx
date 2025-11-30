@@ -66,7 +66,6 @@ const PREDEFINED_ACTION_IDS = new Set([
   'weekly-interview-practice',
   'weekly-company-research',
   'weekly-course-lessons',
-  'weekly-follow-ups',
   'weekly-interview-prep',
 ]);
 

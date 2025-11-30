@@ -23,7 +23,6 @@ const WEEKLY_GOAL_INFO: Record<string, { displayName: string; description: strin
   'weekly-interview-practice': { displayName: 'Mock Interviews', description: 'Practice interview sessions', unit: 'per week', min: 1, max: 5 },
   'weekly-company-research': { displayName: 'Company Research', description: 'Research target companies deeply', unit: 'per week', min: 1, max: 10 },
   'weekly-course-lessons': { displayName: 'Course Lessons', description: 'Watch lessons from courses', unit: 'per week', min: 1, max: 15 },
-  'weekly-follow-ups': { displayName: 'Application Follow-ups', description: 'Follow up on pending applications', unit: 'per week', min: 1, max: 15 },
   'weekly-interview-prep': { displayName: 'Interview Prep', description: 'Generate questions & prep for interviews', unit: 'per week', min: 1, max: 5 },
 };
 

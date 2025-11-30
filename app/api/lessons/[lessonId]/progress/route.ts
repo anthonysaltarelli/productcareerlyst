@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { markBaselineActionsComplete, type BaselineTrigger } from '@/lib/utils/baseline-actions';
+import { incrementWeeklyGoalProgress } from '@/lib/utils/weekly-goals';
 
 // Map course slugs to baseline triggers
 const COURSE_COMPLETION_TRIGGERS: Record<string, BaselineTrigger> = {
@@ -32,7 +33,8 @@ async function checkCourseCompletion(
       return;
     }
 
-    const courseSlug = (lesson.courses as { slug: string } | null)?.slug;
+    const courses = lesson.courses as { slug: string } | { slug: string }[] | null;
+    const courseSlug = Array.isArray(courses) ? courses[0]?.slug : courses?.slug;
     if (!courseSlug) return;
 
     // Check if this course has a completion trigger
@@ -117,9 +119,15 @@ export async function POST(
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
-      // Check if course is now fully completed
+      // Check if course is now fully completed and increment weekly goal
       if (completed) {
         checkCourseCompletion(supabase, user.id, lessonId);
+        // Only increment weekly goal if this is a new completion (was not already completed)
+        if (!existingProgress.completed) {
+          incrementWeeklyGoalProgress(user.id, 'lesson_completed').catch((err) => {
+            console.error('Error incrementing weekly goal for lesson:', err);
+          });
+        }
       }
 
       return NextResponse.json({ success: true, data });
@@ -141,9 +149,13 @@ export async function POST(
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
-      // Check if course is now fully completed
+      // Check if course is now fully completed and increment weekly goal
       if (completed) {
         checkCourseCompletion(supabase, user.id, lessonId);
+        // Increment weekly goal for new lesson completion
+        incrementWeeklyGoalProgress(user.id, 'lesson_completed').catch((err) => {
+          console.error('Error incrementing weekly goal for lesson:', err);
+        });
       }
 
       return NextResponse.json({ success: true, data });

@@ -65,13 +65,6 @@ const WEEKLY_GOAL_INFO: Record<
     min: 1,
     max: 15,
   },
-  'weekly-follow-ups': {
-    displayName: 'Application Follow-ups',
-    description: 'Follow up on pending applications',
-    unit: 'per week',
-    min: 1,
-    max: 15,
-  },
   'weekly-interview-prep': {
     displayName: 'Interview Prep',
     description: 'Generate questions & prep for interviews',
