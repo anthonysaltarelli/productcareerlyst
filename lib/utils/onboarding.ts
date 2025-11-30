@@ -7,6 +7,26 @@ export interface OnboardingProgress {
   completed_steps: string[];
   skipped_steps: string[];
   progress_data: {
+    // New onboarding flow steps
+    personal_info?: {
+      firstName?: string;
+      lastName?: string;
+      careerStage?: string;
+      currentRole?: string;
+      currentSalary?: number;
+    };
+    goals?: {
+      targetRole?: string;
+      timeline?: string;
+      struggles?: string;
+      jobSearchStage?: string;
+      interviewConfidence?: number;
+    };
+    portfolio?: {
+      hasPortfolio?: string;
+      wantsPortfolio?: string | null;
+    };
+    // Legacy steps (kept for backwards compatibility)
     resume_upload?: {
       versionId?: string;
       uploadedAt?: string;

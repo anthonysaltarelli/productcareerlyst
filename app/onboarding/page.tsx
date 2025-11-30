@@ -4,20 +4,25 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useOnboardingProgress } from '@/lib/hooks/useOnboardingProgress';
-import { ResumeUploadStep } from '@/app/components/onboarding/ResumeUploadStep';
-import { BaselineStep } from '@/app/components/onboarding/BaselineStep';
-import { GoalsStep } from '@/app/components/onboarding/GoalsStep';
-import { FeaturesStep } from '@/app/components/onboarding/FeaturesStep';
+import { PersonalInfoStep } from '@/app/components/onboarding/PersonalInfoStep';
+import { GoalsAndChallengesStep } from '@/app/components/onboarding/GoalsAndChallengesStep';
+import { PortfolioStep } from '@/app/components/onboarding/PortfolioStep';
 import { TrialStep } from '@/app/components/onboarding/TrialStep';
 import { PageTracking } from '@/app/components/PageTracking';
 import { trackEvent } from '@/lib/amplitude/client';
 
+// New onboarding flow steps
+// Phase 2A: Steps 1-3 (Personal Info, Goals, Portfolio)
+// Phase 2B will add: Steps 4-5 (Plan Display, Confirm Goals)
+// Phase 2C will integrate: Step 6 (Trial)
 const ALL_STEPS = [
-  { id: 'resume_upload', name: 'Resume Upload' },
-  { id: 'baseline', name: 'Baseline' },
-  { id: 'targets', name: 'Goals' },
-  { id: 'features', name: 'Features' },
-  { id: 'trial', name: 'Trial' },
+  { id: 'personal_info', name: 'Personal Info' },
+  { id: 'goals', name: 'Goals & Challenges' },
+  { id: 'portfolio', name: 'Portfolio' },
+  // Placeholder for Phase 2B:
+  // { id: 'plan_display', name: 'Your Plan' },
+  // { id: 'confirm_goals', name: 'Confirm Goals' },
+  { id: 'trial', name: 'Start Free Trial' },
 ] as const;
 
 export default function OnboardingPage() {
@@ -33,7 +38,7 @@ export default function OnboardingPage() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        
+
         if (!user) {
           setCheckingSubscription(false);
           return;
@@ -55,7 +60,7 @@ export default function OnboardingPage() {
         // If user has active subscription, mark onboarding complete and redirect
         if (hasSubscription) {
           await markComplete();
-          
+
           // Track event (non-blocking)
           setTimeout(() => {
             try {
@@ -66,7 +71,7 @@ export default function OnboardingPage() {
               });
             } catch (error) {
               if (process.env.NODE_ENV === 'development') {
-                console.warn('⚠️ Tracking error (non-blocking):', error);
+                console.warn('Tracking error (non-blocking):', error);
               }
             }
           }, 0);
@@ -86,16 +91,10 @@ export default function OnboardingPage() {
   }, [markComplete, router]);
 
   // Filter out trial step if user has active subscription
-  // Note: If hasActiveSubscription is true, user will be redirected, so this only matters when false
   const STEPS = useMemo(() => {
-    // If subscription check is complete and user doesn't have subscription, show all steps including trial
-    // If subscription check is complete and user has subscription, they'll be redirected (but filter trial just in case)
-    // If subscription check is not complete, show all steps (will be filtered once check completes)
     if (hasActiveSubscription === false) {
       return ALL_STEPS;
     }
-    // If hasActiveSubscription is true or null, filter out trial
-    // (true = will redirect, null = still checking)
     return ALL_STEPS.filter(step => step.id !== 'trial');
   }, [hasActiveSubscription]);
 
@@ -119,13 +118,13 @@ export default function OnboardingPage() {
       const nextIndex = currentStepIndex + 1;
       const currentStep = STEPS[currentStepIndex];
       const nextStep = STEPS[nextIndex];
-      
-      // Refresh progress to get latest completed_steps (e.g., from background uploads)
+
+      // Refresh progress to get latest completed_steps
       refresh();
-      
+
       setCurrentStepIndex(nextIndex);
       setCurrentStep(STEPS[nextIndex].id);
-      
+
       // Track step navigation (non-blocking)
       setTimeout(() => {
         try {
@@ -143,7 +142,7 @@ export default function OnboardingPage() {
           });
         } catch (error) {
           if (process.env.NODE_ENV === 'development') {
-            console.warn('⚠️ Tracking error (non-blocking):', error);
+            console.warn('Tracking error (non-blocking):', error);
           }
         }
       }, 0);
@@ -155,10 +154,10 @@ export default function OnboardingPage() {
       const currentStep = STEPS[currentStepIndex];
       const prevIndex = currentStepIndex - 1;
       const prevStep = STEPS[prevIndex];
-      
+
       setCurrentStepIndex(prevIndex);
       setCurrentStep(STEPS[prevIndex].id);
-      
+
       // Track step navigation (non-blocking)
       setTimeout(() => {
         try {
@@ -177,7 +176,7 @@ export default function OnboardingPage() {
           });
         } catch (error) {
           if (process.env.NODE_ENV === 'development') {
-            console.warn('⚠️ Tracking error (non-blocking):', error);
+            console.warn('Tracking error (non-blocking):', error);
           }
         }
       }, 0);
@@ -193,7 +192,7 @@ export default function OnboardingPage() {
   // Show loading while checking subscription or fetching progress
   if (loading || checkingSubscription) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-gray-600 font-semibold">Loading...</p>
@@ -208,7 +207,7 @@ export default function OnboardingPage() {
   const skippedSteps = progress?.skipped_steps || [];
 
   return (
-    <div className="min-h-screen pt-6 pb-8 sm:py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 pt-6 pb-8 sm:py-12 px-4">
       <PageTracking pageName="Onboarding" />
       <div className="max-w-6xl mx-auto">
         {/* Header */}
@@ -281,17 +280,14 @@ export default function OnboardingPage() {
 
         {/* Step Content */}
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border-2 border-gray-200 p-[3px] sm:p-8 md:p-12">
-          {currentStep.id === 'resume_upload' && (
-            <ResumeUploadStep onNext={handleNext} onSkip={handleSkip} />
+          {currentStep.id === 'personal_info' && (
+            <PersonalInfoStep onNext={handleNext} />
           )}
-          {currentStep.id === 'baseline' && (
-            <BaselineStep onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
+          {currentStep.id === 'goals' && (
+            <GoalsAndChallengesStep onNext={handleNext} onBack={handleBack} />
           )}
-          {currentStep.id === 'targets' && (
-            <GoalsStep onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
-          )}
-          {currentStep.id === 'features' && (
-            <FeaturesStep onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
+          {currentStep.id === 'portfolio' && (
+            <PortfolioStep onNext={handleNext} onBack={handleBack} />
           )}
           {currentStep.id === 'trial' && (
             <TrialStep onBack={handleBack} />
@@ -301,4 +297,3 @@ export default function OnboardingPage() {
     </div>
   );
 }
-
