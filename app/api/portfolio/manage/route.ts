@@ -7,6 +7,7 @@ import {
   PortfolioCategoryWithPages,
   PortfolioAPIResponse,
 } from '@/lib/types/portfolio';
+import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
 
 // Type for the RPC function response
 interface SlugCheckResult {
@@ -214,6 +215,11 @@ export const POST = async (request: NextRequest) => {
       console.error('Error creating default categories:', categoriesError);
       // Don't fail the whole request, just log the error
     }
+
+    // Mark baseline action complete for creating portfolio
+    markBaselineActionsComplete(user.id, 'portfolio_created').catch((err) => {
+      console.error('Error marking portfolio_created baseline action:', err);
+    });
 
     return NextResponse.json({ portfolio }, { status: 201 });
   } catch (error) {

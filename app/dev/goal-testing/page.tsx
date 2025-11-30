@@ -61,7 +61,7 @@ const BASELINE_ACTIONS: BaselineAction[] = [
     route: '/dashboard/resume',
     triggerLogic: 'Triggered when POST /api/resume/versions/[versionId]/clone completes successfully. Calls markBaselineActionsComplete(userId, "resume_cloned").',
     userExplanation: 'Click "Clone" on your master resume to create a tailored version for a specific job.',
-    verified: false,
+    verified: true,
   },
 
   // Portfolio actions
@@ -69,9 +69,9 @@ const BASELINE_ACTIONS: BaselineAction[] = [
     actionId: 'portfolio-create',
     label: 'Create your Product Portfolio',
     route: '/dashboard/portfolio',
-    triggerLogic: 'Triggered when portfolio is first created. Calls markBaselineActionsComplete(userId, "portfolio_created"). NOTE: Trigger not yet implemented.',
+    triggerLogic: 'Triggered when POST /api/portfolio/manage creates a new portfolio. Calls markBaselineActionsComplete(userId, "portfolio_created").',
     userExplanation: 'Go to Dashboard > Portfolio and click "Create Portfolio" to get started.',
-    verified: false,
+    verified: true,
   },
   {
     actionId: 'portfolio-profile',
