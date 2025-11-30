@@ -39,10 +39,11 @@ function formatTimeline(timeline: string | null): string {
   return timelineMap[timeline] || timeline;
 }
 
-// Format target role for display (convert enum to human-readable)
+// Format target role for display (convert old enum to human-readable, or return as-is for new format)
 function formatTargetRole(role: string | null): string {
   if (!role) return '';
-  const roleMap: Record<string, string> = {
+  // Legacy enum mappings for backwards compatibility
+  const legacyRoleMap: Record<string, string> = {
     'associate_product_manager': 'Associate Product Manager',
     'product_manager': 'Product Manager',
     'senior_product_manager': 'Senior Product Manager',
@@ -51,7 +52,8 @@ function formatTargetRole(role: string | null): string {
     'vp_of_product': 'VP of Product',
     'chief_product_officer': 'Chief Product Officer',
   };
-  return roleMap[role] || role;
+  // Return mapped value for legacy enums, or the role as-is for new format
+  return legacyRoleMap[role] || role;
 }
 
 export const UserPlanProgress = ({ planData }: UserPlanProgressProps) => {

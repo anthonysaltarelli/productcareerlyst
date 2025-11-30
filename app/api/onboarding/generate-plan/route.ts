@@ -138,6 +138,18 @@ const getJobSearchStageLabel = (stage: string): string => {
   return stageMap[stage] || stage;
 };
 
+// Helper to get portfolio status description
+const getPortfolioStatusLabel = (hasPortfolio?: string, wantsPortfolio?: string | null): string => {
+  if (hasPortfolio === 'yes') {
+    return 'Already has a product portfolio';
+  } else if (hasPortfolio === 'no' && wantsPortfolio === 'yes') {
+    return 'Does not have a portfolio but wants to create one';
+  } else if (hasPortfolio === 'no' && wantsPortfolio === 'no') {
+    return 'Does not have a portfolio and is not interested in creating one';
+  }
+  return 'Portfolio status unknown';
+};
+
 // Build the comprehensive prompt
 const buildPrompt = (data: OnboardingData): string => {
   const firstName = data.personalInfo?.firstName || 'there';
@@ -154,6 +166,10 @@ const buildPrompt = (data: OnboardingData): string => {
     : 'job searching';
   const struggles = data.goals?.struggles || 'general job search challenges';
   const interviewConfidence = data.goals?.interviewConfidence || 3;
+  const portfolioStatus = getPortfolioStatusLabel(
+    data.portfolio?.hasPortfolio,
+    data.portfolio?.wantsPortfolio
+  );
 
   // Calculate target date
   const targetDate = calculateTargetDate(timeline);
@@ -191,6 +207,7 @@ USER PROFILE:
 - Timeline: ${timeline.replace('_', ' ')} (target: ${targetDateStr})
 - Job Search Stage: ${jobSearchStage}
 - Interview Confidence: ${interviewConfidence}/5
+- Portfolio Status: ${portfolioStatus}
 - Their Struggles (PERSONALIZE HEAVILY based on this): "${struggles}"
 
 ---

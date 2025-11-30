@@ -16,10 +16,20 @@ interface GoalsAndChallengesStepVisualProps {
 }
 
 const TARGET_ROLES = [
-  { value: 'associate_product_manager', label: 'Associate Product Manager' },
-  { value: 'product_manager', label: 'Product Manager' },
-  { value: 'senior_product_manager', label: 'Senior Product Manager' },
-  { value: 'director_of_product', label: 'Director of Product' },
+  "Product Management Intern",
+  "Associate Product Manager",
+  "Product Manager",
+  "Product Manager II",
+  "Senior Product Manager",
+  "Lead Product Manager",
+  "Staff Product Manager",
+  "Principal Product Manager",
+  "Group Product Manager",
+  "Director of Product Management",
+  "Senior Director of Product Management",
+  "VP of Product",
+  "Senior VP of Product",
+  "Chief Product Officer",
 ] as const;
 
 const TIMELINES = [
@@ -63,18 +73,13 @@ export const GoalsAndChallengesStepVisual = ({ onNext, onBack, onDataUpdate }: G
   const [highlightedTargetRoleIndex, setHighlightedTargetRoleIndex] = useState<number | null>(null);
   const [shouldShowJobSearchQuestions] = useState<boolean>(true);
   
-  const getTargetRoleLabel = (value: string): string => {
-    const role = TARGET_ROLES.find(r => r.value === value);
-    return role ? role.label : '';
-  };
-  
-  const [targetRoleInput, setTargetRoleInput] = useState<string>(getTargetRoleLabel(targetRole));
-  
+  const [targetRoleInput, setTargetRoleInput] = useState<string>(targetRole);
+
   const filteredTargetRoleSuggestions = TARGET_ROLES.filter((role) => {
     if (!targetRoleInput) {
       return true;
     }
-    return role.label.toLowerCase().includes(targetRoleInput.toLowerCase());
+    return role.toLowerCase().includes(targetRoleInput.toLowerCase());
   }).slice(0, 10);
 
   const handleTargetRoleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,18 +87,18 @@ export const GoalsAndChallengesStepVisual = ({ onNext, onBack, onDataUpdate }: G
     setTargetRoleInput(nextValue);
     setIsTargetRoleDropdownOpen(true);
     setHighlightedTargetRoleIndex(null);
-    
-    const matchingRole = TARGET_ROLES.find(r => r.label.toLowerCase() === nextValue.toLowerCase());
+
+    const matchingRole = TARGET_ROLES.find(r => r.toLowerCase() === nextValue.toLowerCase());
     if (matchingRole) {
-      setTargetRole(matchingRole.value);
+      setTargetRole(matchingRole);
     } else {
       setTargetRole('');
     }
   };
 
-  const handleSelectTargetRole = (role: typeof TARGET_ROLES[number]) => {
-    setTargetRole(role.value);
-    setTargetRoleInput(role.label);
+  const handleSelectTargetRole = (role: string) => {
+    setTargetRole(role);
+    setTargetRoleInput(role);
     setIsTargetRoleDropdownOpen(false);
     setHighlightedTargetRoleIndex(null);
   };
@@ -267,16 +272,16 @@ export const GoalsAndChallengesStepVisual = ({ onNext, onBack, onDataUpdate }: G
                 const isHighlighted = highlightedTargetRoleIndex === index;
 
                 return (
-                  <li key={role.value} role="option" aria-selected={isHighlighted}>
+                  <li key={role} role="option" aria-selected={isHighlighted}>
                     <button
                       type="button"
                       className={`flex w-full items-center px-4 py-2 text-left text-sm font-semibold ${
                         isHighlighted ? 'bg-purple-50 text-purple-700' : 'hover:bg-gray-50 text-gray-800'
                       }`}
                       onClick={() => handleSelectTargetRole(role)}
-                      aria-label={`Select role ${role.label}`}
+                      aria-label={`Select role ${role}`}
                     >
-                      {role.label}
+                      {role}
                     </button>
                   </li>
                 );

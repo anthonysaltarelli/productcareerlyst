@@ -11,10 +11,20 @@ interface GoalsAndChallengesStepProps {
 }
 
 const TARGET_ROLES = [
-  { value: 'associate_product_manager', label: 'Associate Product Manager' },
-  { value: 'product_manager', label: 'Product Manager' },
-  { value: 'senior_product_manager', label: 'Senior Product Manager' },
-  { value: 'director_of_product', label: 'Director of Product' },
+  "Product Management Intern",
+  "Associate Product Manager",
+  "Product Manager",
+  "Product Manager II",
+  "Senior Product Manager",
+  "Lead Product Manager",
+  "Staff Product Manager",
+  "Principal Product Manager",
+  "Group Product Manager",
+  "Director of Product Management",
+  "Senior Director of Product Management",
+  "VP of Product",
+  "Senior VP of Product",
+  "Chief Product Officer",
 ] as const;
 
 const TIMELINES = [
@@ -22,13 +32,6 @@ const TIMELINES = [
   { value: '3_months', label: 'Within 3 months' },
   { value: '6_months', label: 'Within 6 months' },
   { value: '1_year', label: 'Within 1 year' },
-] as const;
-
-const STRUGGLE_SUGGESTIONS = [
-  'I struggle with getting interviews despite applying to many positions.',
-  'I have trouble writing a strong resume that stands out to recruiters.',
-  'I need help building a product portfolio to showcase my work.',
-  'I find it difficult to network effectively with other product managers.',
 ] as const;
 
 const JOB_SEARCH_STAGES = [
@@ -62,18 +65,13 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
   const [showTooltip, setShowTooltip] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const getTargetRoleLabel = (value: string): string => {
-    const role = TARGET_ROLES.find(r => r.value === value);
-    return role ? role.label : '';
-  };
-
   // Load saved data on mount
   useEffect(() => {
     if (progress?.progress_data?.goals) {
       const saved = progress.progress_data.goals;
       if (saved.targetRole) {
         setTargetRole(saved.targetRole);
-        setTargetRoleInput(getTargetRoleLabel(saved.targetRole));
+        setTargetRoleInput(saved.targetRole);
       }
       if (saved.timeline) setTimeline(saved.timeline);
       if (saved.struggles) setStruggles(saved.struggles);
@@ -95,7 +93,7 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
 
   const filteredTargetRoleSuggestions = TARGET_ROLES.filter((role) => {
     if (!targetRoleInput) return true;
-    return role.label.toLowerCase().includes(targetRoleInput.toLowerCase());
+    return role.toLowerCase().includes(targetRoleInput.toLowerCase());
   }).slice(0, 10);
 
   const handleTargetRoleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,17 +102,17 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
     setIsTargetRoleDropdownOpen(true);
     setHighlightedTargetRoleIndex(null);
 
-    const matchingRole = TARGET_ROLES.find(r => r.label.toLowerCase() === nextValue.toLowerCase());
+    const matchingRole = TARGET_ROLES.find(r => r.toLowerCase() === nextValue.toLowerCase());
     if (matchingRole) {
-      setTargetRole(matchingRole.value);
+      setTargetRole(matchingRole);
     } else {
       setTargetRole('');
     }
   };
 
-  const handleSelectTargetRole = (role: typeof TARGET_ROLES[number]) => {
-    setTargetRole(role.value);
-    setTargetRoleInput(role.label);
+  const handleSelectTargetRole = (role: string) => {
+    setTargetRole(role);
+    setTargetRoleInput(role);
     setIsTargetRoleDropdownOpen(false);
     setHighlightedTargetRoleIndex(null);
   };
@@ -155,18 +153,10 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
     }
   };
 
-  const handleSuggestionClick = useCallback((suggestion: string) => {
-    if (struggles.trim() === '') {
-      setStruggles(suggestion);
-    } else if (!struggles.includes(suggestion)) {
-      setStruggles(prev => prev.trim() ? `${prev.trim()} ${suggestion}` : suggestion);
-    }
-  }, [struggles]);
-
   const canProceed =
     targetRole !== '' &&
     timeline !== '' &&
-    struggles.trim().length >= 10 &&
+    struggles.trim().length >= 20 &&
     struggles.trim().length <= 500 &&
     jobSearchStage !== '' &&
     interviewConfidence !== null;
@@ -175,7 +165,7 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
     const missing: string[] = [];
     if (!targetRole) missing.push('Target Role');
     if (!timeline) missing.push('Timeline');
-    if (struggles.trim().length < 10) missing.push('Struggles (at least 10 characters)');
+    if (struggles.trim().length < 20) missing.push('Struggles (at least 20 characters)');
     if (struggles.trim().length > 500) missing.push('Struggles (reduce to 500 characters or less)');
     if (!jobSearchStage) missing.push('Job Search Stage');
     if (interviewConfidence === null) missing.push('Interview Confidence');
@@ -184,7 +174,7 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
 
   const missingFields = getMissingFields();
   const strugglesCharCount = struggles.length;
-  const strugglesCharStatus = strugglesCharCount < 10 ? 'too_short' : strugglesCharCount > 500 ? 'too_long' : 'good';
+  const strugglesCharStatus = strugglesCharCount < 20 ? 'too_short' : strugglesCharCount > 500 ? 'too_long' : 'good';
 
   const handleContinue = useCallback(async () => {
     if (!canProceed || isSaving) return;
@@ -262,16 +252,16 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
               {filteredTargetRoleSuggestions.map((role, index) => {
                 const isHighlighted = highlightedTargetRoleIndex === index;
                 return (
-                  <li key={role.value} role="option" aria-selected={isHighlighted}>
+                  <li key={role} role="option" aria-selected={isHighlighted}>
                     <button
                       type="button"
                       className={`flex w-full items-center px-4 py-2 text-left text-sm font-semibold ${
                         isHighlighted ? 'bg-purple-50 text-purple-700' : 'hover:bg-gray-50 text-gray-800'
                       }`}
                       onClick={() => handleSelectTargetRole(role)}
-                      aria-label={`Select role ${role.label}`}
+                      aria-label={`Select role ${role}`}
                     >
-                      {role.label}
+                      {role}
                     </button>
                   </li>
                 );
@@ -379,24 +369,6 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
             What have you been struggling with the most? *
           </label>
 
-          {/* Suggestions */}
-          <div className="mb-3 space-y-2">
-            {STRUGGLE_SUGGESTIONS.map((suggestion) => (
-              <button
-                key={suggestion}
-                type="button"
-                onClick={() => handleSuggestionClick(suggestion)}
-                className={`w-full text-left px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
-                  struggles.includes(suggestion)
-                    ? 'border-purple-500 bg-purple-50 text-purple-700'
-                    : 'border-gray-200 bg-white text-gray-700 hover:border-purple-300 hover:bg-purple-50'
-                }`}
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
-
           <textarea
             id="struggles"
             value={struggles}
@@ -414,8 +386,8 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
           />
           <div className="mt-2 flex items-center justify-between">
             <p className="text-sm text-gray-500 font-medium">
-              {strugglesCharCount < 10
-                ? `Please provide more detail (at least 10 characters, ${10 - strugglesCharCount} more needed)`
+              {strugglesCharCount < 20
+                ? `Please provide more detail (at least 20 characters, ${20 - strugglesCharCount} more needed)`
                 : strugglesCharCount > 500
                   ? 'Please keep it to 500 characters or less'
                   : 'Great! This helps us create a better plan for you.'}

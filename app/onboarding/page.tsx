@@ -129,6 +129,9 @@ export default function OnboardingPage() {
       setCurrentStepIndex(nextIndex);
       setCurrentStep(STEPS[nextIndex].id);
 
+      // Scroll to top of the page for better UX
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
       // Track step navigation (non-blocking)
       setTimeout(() => {
         try {
@@ -161,6 +164,9 @@ export default function OnboardingPage() {
 
       setCurrentStepIndex(prevIndex);
       setCurrentStep(STEPS[prevIndex].id);
+
+      // Scroll to top of the page for better UX
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
       // Track step navigation (non-blocking)
       setTimeout(() => {

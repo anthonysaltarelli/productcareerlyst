@@ -35,15 +35,20 @@ export interface PersonalizedPlan {
   weeklyGoals: ActionSection;
 }
 
-// Helper to get role display name
+// Helper to get role display name (handles legacy enum values and new direct values)
 const getRoleDisplayName = (roleValue: string): string => {
-  const roleMap: Record<string, string> = {
+  // Legacy enum mappings for backwards compatibility
+  const legacyRoleMap: Record<string, string> = {
     'associate_product_manager': 'Associate Product Manager',
     'product_manager': 'Product Manager',
     'senior_product_manager': 'Senior Product Manager',
     'director_of_product': 'Director of Product',
+    'group_product_manager': 'Group Product Manager',
+    'vp_of_product': 'VP of Product',
+    'chief_product_officer': 'Chief Product Officer',
   };
-  return roleMap[roleValue] || roleValue;
+  // Return mapped value for legacy enums, or the role as-is for new format
+  return legacyRoleMap[roleValue] || roleValue;
 };
 
 // Helper to get job search stage label
