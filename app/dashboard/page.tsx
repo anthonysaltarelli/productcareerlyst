@@ -3,12 +3,8 @@ import { getDashboardStats } from '@/lib/utils/dashboard-stats'
 import { getUserSubscription } from '@/lib/utils/subscription'
 import { getUserPlanData } from '@/lib/utils/user-plan'
 import { DashboardWelcome } from '@/app/components/DashboardWelcome'
-import { DashboardStats } from '@/app/components/DashboardStats'
 import { UserPlanProgress } from '@/app/components/UserPlanProgress'
-import { OnboardingMilestones } from '@/app/components/OnboardingMilestones'
-import { FeatureDiscovery } from '@/app/components/FeatureDiscovery'
 import { SubscriptionPromotion } from '@/app/components/SubscriptionPromotion'
-import { DashboardNextSteps } from '@/app/components/DashboardNextSteps'
 import { AutoSyncSubscription } from '@/app/components/billing/AutoSyncSubscription'
 import { DashboardPageTracking } from '@/app/components/DashboardPageTracking'
 import { DashboardHomeContent } from '@/app/components/DashboardHomeContent'
@@ -64,69 +60,8 @@ export default async function DashboardHome() {
         subscription={stats?.subscription || { plan: null, status: null, isActive: false }}
       />
 
-      {/* Quick Stats */}
-      <DashboardStats
-        stats={stats ? {
-          lessonsCompleted: stats.lessonsCompleted,
-          coursesCompleted: stats.coursesCompleted,
-          highestResumeScore: stats.highestResumeScore,
-          totalJobApplications: stats.totalJobApplications,
-        } : null}
-      />
-
       {/* User Plan Progress (from onboarding) */}
       {planData && <UserPlanProgress planData={planData} />}
-
-      {/* Onboarding Milestones */}
-      {stats && (
-        <OnboardingMilestones
-          milestones={stats.milestones}
-          stats={stats}
-          subscription={subscription ? {
-            plan: subscription.plan,
-            status: subscription.status,
-            isActive: subscription.status === 'active' || subscription.status === 'trialing',
-          } : null}
-        />
-      )}
-
-      {/* Feature Discovery */}
-      <FeatureDiscovery
-        stats={stats ? {
-          lessonsCompleted: stats.lessonsCompleted,
-          coursesCompleted: stats.coursesCompleted,
-          highestResumeScore: stats.highestResumeScore,
-          totalJobApplications: stats.totalJobApplications,
-          resumeVersionsCount: stats.resumeVersionsCount,
-          contactsCount: stats.contactsCount,
-          companiesResearchedCount: stats.companiesResearchedCount,
-        } : null}
-        fullStats={stats}
-        subscription={subscription ? {
-          plan: subscription.plan,
-          status: subscription.status,
-          isActive: subscription.status === 'active' || subscription.status === 'trialing',
-        } : null}
-      />
-
-      {/* Next Steps */}
-      {stats && (
-        <DashboardNextSteps
-          milestones={stats.milestones}
-          stats={{
-            lessonsCompleted: stats.lessonsCompleted,
-            coursesCompleted: stats.coursesCompleted,
-            highestResumeScore: stats.highestResumeScore,
-            totalJobApplications: stats.totalJobApplications,
-          }}
-          fullStats={stats}
-          subscription={subscription ? {
-            plan: subscription.plan,
-            status: subscription.status,
-            isActive: subscription.status === 'active' || subscription.status === 'trialing',
-          } : null}
-        />
-      )}
 
       {/* Subscription Promotion (only shows if not subscribed) */}
       {stats && (
