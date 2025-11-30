@@ -1,8 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { CheckCircle, Circle, ChevronDown, ChevronUp, Target, Rocket } from 'lucide-react';
+import Link from 'next/link';
+import { CheckCircle, Circle, ChevronDown, ChevronUp, Target, Rocket, HelpCircle } from 'lucide-react';
 import type { UserPlanData } from '@/app/api/dashboard/plan/route';
+import { Tooltip } from '@/app/components/ui/Tooltip';
+import { getBaselineActionInfo, getWeeklyGoalInfo } from '@/lib/utils/goal-explanations';
 
 interface UserPlanProgressProps {
   planData: UserPlanData | null;
@@ -206,29 +209,50 @@ export const UserPlanProgress = ({ planData }: UserPlanProgressProps) => {
                     </button>
                     {isExpanded && (
                       <div className="px-3 pb-3 space-y-2">
-                        {actions.map((action) => (
-                          <div
-                            key={action.id}
-                            className={`flex items-start gap-2 p-2 rounded-lg ${
-                              action.isCompleted ? 'bg-green-100/50' : 'bg-white'
-                            }`}
-                          >
-                            {action.isCompleted ? (
-                              <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                            ) : (
-                              <Circle className="w-4 h-4 text-gray-300 mt-0.5 flex-shrink-0" />
-                            )}
-                            <span
-                              className={`text-sm font-medium ${
-                                action.isCompleted
-                                  ? 'text-green-800 line-through'
-                                  : 'text-gray-700'
+                        {actions.map((action) => {
+                          const actionInfo = getBaselineActionInfo(action.actionId);
+                          return (
+                            <div
+                              key={action.id}
+                              className={`flex items-start gap-2 p-2 rounded-lg ${
+                                action.isCompleted ? 'bg-green-100/50' : 'bg-white'
                               }`}
                             >
-                              {action.label}
-                            </span>
-                          </div>
-                        ))}
+                              {action.isCompleted ? (
+                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                              ) : (
+                                <Circle className="w-4 h-4 text-gray-300 mt-0.5 flex-shrink-0" />
+                              )}
+                              {actionInfo?.route ? (
+                                <Link
+                                  href={actionInfo.route}
+                                  className={`text-sm font-medium flex-1 transition-all ${
+                                    action.isCompleted
+                                      ? 'text-green-800 line-through'
+                                      : 'text-gray-700 hover:text-purple-600 hover:font-bold hover:underline'
+                                  }`}
+                                >
+                                  {action.label}
+                                </Link>
+                              ) : (
+                                <span
+                                  className={`text-sm font-medium flex-1 ${
+                                    action.isCompleted
+                                      ? 'text-green-800 line-through'
+                                      : 'text-gray-700'
+                                  }`}
+                                >
+                                  {action.label}
+                                </span>
+                              )}
+                              {actionInfo?.explanation && (
+                                <Tooltip content={actionInfo.explanation} position="left">
+                                  <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help flex-shrink-0" />
+                                </Tooltip>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -274,6 +298,7 @@ export const UserPlanProgress = ({ planData }: UserPlanProgressProps) => {
                 const target = progress?.targetCount || goal.targetCount;
                 const percentage = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
                 const isComplete = current >= target;
+                const goalInfo = getWeeklyGoalInfo(goal.goalId);
 
                 return (
                   <div
@@ -285,22 +310,40 @@ export const UserPlanProgress = ({ planData }: UserPlanProgressProps) => {
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-start gap-2 flex-1">
                         {isComplete ? (
-                          <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                          <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
                         ) : (
-                          <Circle className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <Circle className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
                         )}
-                        <span
-                          className={`font-bold text-sm ${
-                            isComplete ? 'text-green-800' : 'text-gray-900'
-                          }`}
-                        >
-                          {goal.label}
-                        </span>
+                        {goalInfo?.route ? (
+                          <Link
+                            href={goalInfo.route}
+                            className={`font-bold text-sm transition-all flex-1 ${
+                              isComplete
+                                ? 'text-green-800'
+                                : 'text-gray-900 hover:text-purple-600 hover:underline'
+                            }`}
+                          >
+                            {goal.label}
+                          </Link>
+                        ) : (
+                          <span
+                            className={`font-bold text-sm flex-1 ${
+                              isComplete ? 'text-green-800' : 'text-gray-900'
+                            }`}
+                          >
+                            {goal.label}
+                          </span>
+                        )}
+                        {goalInfo?.explanation && (
+                          <Tooltip content={goalInfo.explanation} position="top">
+                            <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help flex-shrink-0 mt-0.5" />
+                          </Tooltip>
+                        )}
                       </div>
                       <span
-                        className={`text-sm font-bold ${
+                        className={`text-sm font-bold flex-shrink-0 ml-2 ${
                           isComplete ? 'text-green-600' : 'text-gray-600'
                         }`}
                       >
