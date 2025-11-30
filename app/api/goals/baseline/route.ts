@@ -60,6 +60,95 @@ export async function POST(request: NextRequest) {
   }
 }
 
+interface ToggleBaselineRequest {
+  actionId: string;
+  isCompleted: boolean;
+}
+
+/**
+ * PATCH /api/goals/baseline
+ * Manually toggle a baseline action's completion status
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = (await request.json()) as ToggleBaselineRequest;
+    const { actionId, isCompleted } = body;
+
+    if (!actionId || typeof isCompleted !== 'boolean') {
+      return NextResponse.json(
+        { error: 'actionId and isCompleted are required' },
+        { status: 400 }
+      );
+    }
+
+    // Update the specific baseline action
+    const { data: updatedAction, error: updateError } = await supabase
+      .from('user_baseline_actions')
+      .update({ is_completed: isCompleted })
+      .eq('user_id', user.id)
+      .eq('action_id', actionId)
+      .select('id, action_id, label, is_completed')
+      .single();
+
+    if (updateError) {
+      console.error('Error updating baseline action:', updateError);
+      return NextResponse.json(
+        { error: 'Failed to update baseline action' },
+        { status: 500 }
+      );
+    }
+
+    // Check if all baseline actions are now complete and update user_plans
+    const { count: incompleteCount } = await supabase
+      .from('user_baseline_actions')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_completed', false);
+
+    const allComplete = incompleteCount === 0;
+
+    // Update user_plans baseline_all_complete status
+    await supabase
+      .from('user_plans')
+      .update({
+        baseline_all_complete: allComplete,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', user.id);
+
+    // Log the manual toggle event
+    await supabase.from('goal_events').insert({
+      user_id: user.id,
+      event_type: 'baseline_action_manual_toggle',
+      goal_id: actionId,
+      metadata: {
+        action_id: actionId,
+        is_completed: isCompleted,
+        manual: true,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      action: updatedAction,
+      allComplete,
+    });
+  } catch (error) {
+    console.error('Error in baseline PATCH API:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
 /**
  * GET /api/goals/baseline
  * Get all baseline actions and their completion status for the current user
