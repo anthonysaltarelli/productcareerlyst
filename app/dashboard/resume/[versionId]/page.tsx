@@ -2147,6 +2147,17 @@ export default function ResumeEditorPage({ params }: Props) {
         'Total Exports': 1, // TODO: Track this properly
       });
 
+      // Trigger baseline action completion for resume export
+      try {
+        await fetch('/api/goals/baseline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trigger: 'resume_exported' }),
+        });
+      } catch {
+        // Silently fail - baseline tracking should never block
+      }
+
       // Create download link with improved filename
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');

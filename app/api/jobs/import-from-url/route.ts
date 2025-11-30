@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
 
 // JSON Schema for structured output - extracting job and company data
 // Note: With strict mode, all properties must be in required array or be nullable
@@ -446,8 +447,18 @@ Be thorough and extract all available information. If information is not availab
           );
         }
 
+        // Mark baseline actions complete for adding a job
+        markBaselineActionsComplete(user.id, 'job_added').catch((err) => {
+          console.error('Error marking job_added baseline action:', err);
+        });
+
+        // Mark baseline action for adding to wishlist (target companies)
+        markBaselineActionsComplete(user.id, 'target_companies_added').catch((err) => {
+          console.error('Error marking target_companies_added baseline action:', err);
+        });
+
         return NextResponse.json(
-          { 
+          {
             application,
             message: 'Job imported successfully'
           },

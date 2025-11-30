@@ -213,6 +213,17 @@ export default function ResumeLanding({ versions, isLoadingVersions = false, onE
           // Silently fail - tracking should never block
         }
       }, 0);
+
+      // Trigger baseline action completion for resume export
+      try {
+        await fetch('/api/goals/baseline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trigger: 'resume_exported' }),
+        });
+      } catch {
+        // Silently fail - baseline tracking should never block
+      }
     } catch (err) {
       console.error('Error downloading PDF:', err);
       
