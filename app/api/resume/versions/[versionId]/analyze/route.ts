@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
 
 // Get current month-year string (YYYY-MM)
 const getCurrentMonthYear = (): string => {
@@ -1042,6 +1043,29 @@ export const POST = async (
         throw insertError;
       }
       savedAnalysis = data;
+    }
+
+    // Mark baseline actions complete for resume analysis
+    markBaselineActionsComplete(user.id, 'resume_analyzed').catch((err) => {
+      console.error('Error marking resume_analyzed baseline action:', err);
+    });
+
+    // Check score thresholds and mark corresponding baseline actions
+    const overallScore = extractedData.overallScore;
+    if (overallScore >= 70) {
+      markBaselineActionsComplete(user.id, 'resume_score_70').catch((err) => {
+        console.error('Error marking resume_score_70 baseline action:', err);
+      });
+    }
+    if (overallScore >= 80) {
+      markBaselineActionsComplete(user.id, 'resume_score_80').catch((err) => {
+        console.error('Error marking resume_score_80 baseline action:', err);
+      });
+    }
+    if (overallScore >= 90) {
+      markBaselineActionsComplete(user.id, 'resume_score_90').catch((err) => {
+        console.error('Error marking resume_score_90 baseline action:', err);
+      });
     }
 
     // Mark onboarding analysis as used if this was an onboarding request

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
 
 // GET /api/jobs/contacts - Get contacts for user (optionally filtered by company or application)
 export const GET = async (request: NextRequest) => {
@@ -114,6 +115,11 @@ export const POST = async (request: NextRequest) => {
         { status: 500 }
       );
     }
+
+    // Mark baseline action complete for adding a contact
+    markBaselineActionsComplete(user.id, 'contact_added').catch((err) => {
+      console.error('Error marking contact_added baseline action:', err);
+    });
 
     return NextResponse.json(
       { contact: data },

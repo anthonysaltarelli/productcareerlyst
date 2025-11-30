@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getWizaListContacts } from '@/lib/utils/wiza';
+import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
 
 /**
  * POST /api/jobs/wiza/import-contacts
@@ -144,6 +145,14 @@ export const POST = async (request: NextRequest) => {
         .eq('id', wizaRequest.id);
     }
 
+    // Mark baseline actions complete for importing contacts
+    markBaselineActionsComplete(user.id, 'contacts_found').catch((err) => {
+      console.error('Error marking contacts_found baseline action:', err);
+    });
+    markBaselineActionsComplete(user.id, 'contact_added').catch((err) => {
+      console.error('Error marking contact_added baseline action:', err);
+    });
+
     return NextResponse.json({
       imported: importedCount,
       contacts: insertedContacts || [],
@@ -151,8 +160,8 @@ export const POST = async (request: NextRequest) => {
   } catch (error) {
     console.error('Error importing contacts:', error);
     return NextResponse.json(
-      { 
-        error: error instanceof Error ? error.message : 'Failed to import contacts' 
+      {
+        error: error instanceof Error ? error.message : 'Failed to import contacts'
       },
       { status: 500 }
     );

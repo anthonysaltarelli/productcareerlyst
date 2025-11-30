@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
+import { incrementWeeklyGoalProgress } from '@/lib/utils/weekly-goals';
 
 // GET /api/jobs/applications/[id] - Get a specific application
 export const GET = async (
@@ -87,6 +89,17 @@ export const PATCH = async (
         { error: 'Failed to update application' },
         { status: 500 }
       );
+    }
+
+    // If status was changed to 'applied', increment weekly goal and mark baseline action
+    if (body.status === 'applied') {
+      incrementWeeklyGoalProgress(user.id, 'job_applied').catch((err) => {
+        console.error('Error incrementing job_applied weekly goal:', err);
+      });
+
+      markBaselineActionsComplete(user.id, 'application_tracked').catch((err) => {
+        console.error('Error marking application_tracked baseline action:', err);
+      });
     }
 
     return NextResponse.json({ application: data });

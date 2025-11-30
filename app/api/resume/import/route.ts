@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { slugify, generateUniqueSlug } from '@/lib/utils/slugify';
 import mammoth from 'mammoth';
+import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
 
 // Maximum file size: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -782,6 +783,11 @@ export const POST = async (request: NextRequest) => {
       `)
       .eq('id', version.id)
       .single();
+
+    // Step 9: Mark baseline action as complete (non-blocking)
+    markBaselineActionsComplete(user.id, 'resume_imported').catch((err) => {
+      console.error('Error marking resume_imported baseline action:', err);
+    });
 
     return NextResponse.json({
       version: completeResume,

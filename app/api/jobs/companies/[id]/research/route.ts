@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { generateResearch, ALL_RESEARCH_TYPES, ResearchType } from '@/lib/utils/perplexity';
 import { isResearchValid } from '@/lib/utils/perplexity';
+import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
 
 /**
  * GET /api/jobs/companies/[id]/research
@@ -219,6 +220,11 @@ export const POST = async (
             { status: 500 }
           );
         }
+
+        // Mark baseline action complete for company research
+        markBaselineActionsComplete(user.id, 'company_researched').catch((err) => {
+          console.error('Error marking company_researched baseline action:', err);
+        });
 
         return NextResponse.json({
           success: true,

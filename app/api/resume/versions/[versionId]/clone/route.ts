@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
 
 // POST /api/resume/versions/[versionId]/clone - Clone a resume version (typically from master)
 export const POST = async (
@@ -288,6 +289,11 @@ export const POST = async (
         console.error('Error creating default styles:', defaultStylesError);
       }
     }
+
+    // Mark baseline action complete for resume clone
+    markBaselineActionsComplete(user.id, 'resume_cloned').catch((err) => {
+      console.error('Error marking resume_cloned baseline action:', err);
+    });
 
     return NextResponse.json(
       { version: newVersion },

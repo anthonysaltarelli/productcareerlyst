@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
 
 // JSON Schema for structured output
 const PORTFOLIO_IDEAS_SCHEMA = {
@@ -475,6 +476,11 @@ export const POST = async (request: NextRequest) => {
       .select('id, idea_number, company_name, problem_description, hypothesis, user_segment')
       .eq('request_id', requestRecord.id)
       .order('idea_number', { ascending: true });
+
+    // Mark baseline action complete for generating portfolio ideas
+    markBaselineActionsComplete(user.id, 'portfolio_idea_generated').catch((err) => {
+      console.error('Error marking portfolio_idea_generated baseline action:', err);
+    });
 
     return NextResponse.json({
       request: {
