@@ -131,12 +131,18 @@ export const PersonalInfoStepVisual = ({ onNext, onBack, onDataUpdate }: Persona
   const [showTooltip, setShowTooltip] = useState<boolean>(false);
 
   // Track previous values to avoid unnecessary updates
-  const prevValuesRef = useRef({
-    firstName,
-    lastName,
-    currentRole,
-    careerStage,
-    currentSalary,
+  const prevValuesRef = useRef<{
+    firstName?: string;
+    lastName?: string;
+    currentRole?: string;
+    careerStage?: string;
+    currentSalary?: number;
+  }>({
+    firstName: firstName || undefined,
+    lastName: lastName || undefined,
+    currentRole: currentRole || undefined,
+    careerStage: careerStage || undefined,
+    currentSalary: currentSalary ? parseInt(currentSalary, 10) : undefined,
   });
 
   // Update parent data when fields change
@@ -159,11 +165,11 @@ export const PersonalInfoStepVisual = ({ onNext, onBack, onDataUpdate }: Persona
 
     if (hasChanged && onDataUpdate) {
       prevValuesRef.current = {
-        firstName: currentValues.firstName || '',
-        lastName: currentValues.lastName || '',
-        currentRole: currentValues.currentRole || '',
-        careerStage: currentValues.careerStage || '',
-        currentSalary: currentValues.currentSalary || '',
+        firstName: currentValues.firstName,
+        lastName: currentValues.lastName,
+        currentRole: currentValues.currentRole,
+        careerStage: currentValues.careerStage,
+        currentSalary: currentValues.currentSalary,
       };
       onDataUpdate(currentValues);
     }
