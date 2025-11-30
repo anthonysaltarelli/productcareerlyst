@@ -69,6 +69,19 @@ export default function OnboardingTestPage() {
     }
   };
 
+  const handleStepClick = useCallback((stepIndex: number) => {
+    if (stepIndex >= 0 && stepIndex < STEPS.length) {
+      setCurrentStepIndex(stepIndex);
+    }
+  }, [STEPS.length]);
+
+  const handleStepKeyDown = useCallback((e: React.KeyboardEvent, stepIndex: number) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleStepClick(stepIndex);
+    }
+  }, [handleStepClick]);
+
   const updatePersonalInfo = useCallback((data: Partial<OnboardingData['personalInfo']>) => {
     setOnboardingData((prev) => ({
       ...prev,
@@ -137,22 +150,32 @@ export default function OnboardingTestPage() {
                   }`}
                 >
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all ${
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Go to step ${index + 1}: ${step.name}`}
+                    onClick={() => handleStepClick(index)}
+                    onKeyDown={(e) => handleStepKeyDown(e, index)}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all cursor-pointer hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
                       isCurrent
                         ? 'bg-purple-600 text-white scale-110'
                         : isCompleted
-                          ? 'bg-green-500 text-white'
+                          ? 'bg-green-500 text-white hover:bg-green-600'
                           : isSkipped
-                            ? 'bg-yellow-500 text-white'
+                            ? 'bg-yellow-500 text-white hover:bg-yellow-600'
                             : isPast
-                              ? 'bg-gray-300 text-gray-600'
-                              : 'bg-gray-200 text-gray-400'
+                              ? 'bg-gray-300 text-gray-600 hover:bg-gray-400'
+                              : 'bg-gray-200 text-gray-400 hover:bg-gray-300'
                     }`}
                   >
                     {isCompleted ? '✓' : index + 1}
                   </div>
                   <div
-                    className={`text-xs text-center ${
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Go to step ${index + 1}: ${step.name}`}
+                    onClick={() => handleStepClick(index)}
+                    onKeyDown={(e) => handleStepKeyDown(e, index)}
+                    className={`text-xs text-center cursor-pointer hover:underline focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1 rounded px-1 ${
                       isCurrent ? 'text-purple-600' : 'text-gray-600'
                     }`}
                   >

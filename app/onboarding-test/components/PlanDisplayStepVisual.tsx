@@ -1,8 +1,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { OnboardingData, generatePersonalizedPlan, ActionItem } from '../utils/planGenerator';
-import { PERSONAS, Persona } from '../data/personas';
+import { OnboardingData, generatePersonalizedPlan, ActionItem, PersonalizedPlan } from '../utils/planGenerator';
+import { PERSONAS } from '../data/personas';
+
+// Extended action item type that includes optional sublabel from AI
+interface ExtendedActionItem extends ActionItem {
+  sublabel?: string;
+}
 
 interface PlanDisplayStepVisualProps {
   onNext: () => void;
@@ -12,15 +17,52 @@ interface PlanDisplayStepVisualProps {
 
 export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData }: PlanDisplayStepVisualProps) => {
   const [selectedPersonaId, setSelectedPersonaId] = useState<string>('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [aiPlan, setAiPlan] = useState<PersonalizedPlan | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Generate personalized plan based on onboarding data
-  const plan = useMemo(() => generatePersonalizedPlan(onboardingData), [onboardingData]);
+  // Generate fallback plan based on onboarding data (deterministic)
+  const fallbackPlan = useMemo(() => generatePersonalizedPlan(onboardingData), [onboardingData]);
 
-  const handleGetPlan = () => {
-    // Button does nothing for now - placeholder for OpenAI integration
+  // Use AI plan if available, otherwise use fallback
+  const plan = aiPlan || fallbackPlan;
+
+  const handleGetPlan = async () => {
+    if (!selectedPersonaId) return;
+
+    const selectedPersona = PERSONAS.find(p => p.id === selectedPersonaId);
+    if (!selectedPersona) return;
+
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/onboarding-test/generate-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          onboardingData: selectedPersona.data,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to generate plan');
+      }
+
+      const data = await response.json();
+      setAiPlan(data.plan);
+    } catch (err) {
+      console.error('Error generating plan:', err);
+      setError(err instanceof Error ? err.message : 'Failed to generate plan');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const renderActionItem = (action: ActionItem) => {
+  const renderActionItem = (action: ExtendedActionItem) => {
     return (
       <div
         key={action.id}
@@ -33,9 +75,16 @@ export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData }: PlanDi
           readOnly
           className="mt-1 w-5 h-5 text-purple-600 rounded border-gray-300 cursor-not-allowed opacity-50"
         />
-        <span className="flex-1 text-gray-900 font-semibold">
-          {action.label}
-        </span>
+        <div className="flex-1">
+          <span className="text-gray-900 font-semibold">
+            {action.label}
+          </span>
+          {action.sublabel && (
+            <p className="text-sm text-gray-500 mt-1">
+              {action.sublabel}
+            </p>
+          )}
+        </div>
       </div>
     );
   };
@@ -58,8 +107,13 @@ export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData }: PlanDi
             <select
               id="persona-select"
               value={selectedPersonaId}
-              onChange={(e) => setSelectedPersonaId(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 font-semibold bg-white h-[48px]"
+              onChange={(e) => {
+                setSelectedPersonaId(e.target.value);
+                setAiPlan(null); // Clear previous AI plan when persona changes
+                setError(null);
+              }}
+              disabled={isGenerating}
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 font-semibold bg-white h-[48px] disabled:opacity-50"
             >
               <option value="">Select a persona...</option>
               {PERSONAS.map((persona) => (
@@ -71,16 +125,36 @@ export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData }: PlanDi
           </div>
           <button
             onClick={handleGetPlan}
-            disabled={!selectedPersonaId}
-            className="w-full sm:w-auto px-6 md:px-8 h-[48px] bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm md:text-base whitespace-nowrap flex items-center justify-center"
+            disabled={!selectedPersonaId || isGenerating}
+            className="w-full sm:w-auto px-6 md:px-8 h-[48px] bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm md:text-base whitespace-nowrap flex items-center justify-center gap-2"
           >
-            Get Plan
+            {isGenerating ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Generating...
+              </>
+            ) : (
+              'Get Plan'
+            )}
           </button>
         </div>
         {selectedPersonaId && (
           <p className="mt-3 text-sm text-gray-600 font-medium">
             Selected: {PERSONAS.find(p => p.id === selectedPersonaId)?.name}
           </p>
+        )}
+        {error && (
+          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600 font-medium">{error}</p>
+          </div>
+        )}
+        {aiPlan && (
+          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm text-green-600 font-medium">✨ AI-generated plan loaded!</p>
+          </div>
         )}
       </div>
 
