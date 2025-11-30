@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { TrackedLink } from '@/app/components/TrackedLink';
 import { TemplatesPageTracking } from '@/app/components/TemplatesPageTracking';
+import { PremiumResourceGate } from '@/app/components/PremiumResourceGate';
 import { trackEvent } from '@/lib/amplitude/client';
 import { getDashboardTrackingContext } from '@/lib/utils/dashboard-tracking-context';
 import {
@@ -247,6 +248,13 @@ export const TemplatesPageContent = ({
   const resourceRefs = useRef<Map<string, HTMLElement>>(new Map());
   const hoverTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const scrollTracked = useRef(false);
+
+  // Premium gate state
+  const [showGateModal, setShowGateModal] = useState(false);
+  const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
+
+  // Check if user has access to premium resources (Learn or Accelerate plan)
+  const hasAccess = subscription?.isActive && (subscription?.plan === 'learn' || subscription?.plan === 'accelerate');
 
   // Track template access on page load (existing functionality)
   useEffect(() => {
@@ -516,11 +524,18 @@ export const TemplatesPageContent = ({
   }, [resourcesClickedThisSession, getUserStateContext, isFirstTimeClickingResource]);
 
   // Handle resource click (update session state)
-  const handleResourceClick = useCallback((resource: Resource) => {
+  const handleResourceClick = useCallback((resource: Resource, e?: React.MouseEvent) => {
     const resourceId = getResourceId(resource.title);
     setResourcesClickedThisSession((prev) => [...prev, resourceId]);
     setLastResourceClicked(resourceId);
-  }, []);
+
+    // If user doesn't have access, prevent navigation and show gate modal
+    if (!hasAccess) {
+      e?.preventDefault();
+      setSelectedResource(resource);
+      setShowGateModal(true);
+    }
+  }, [hasAccess]);
 
   // Handle resource hover
   const handleResourceHover = useCallback((resource: Resource, index: number) => {
@@ -607,35 +622,68 @@ export const TemplatesPageContent = ({
               onMouseLeave={() => handleResourceHoverEnd(resourceId)}
             >
               <TrackedLink
-                href={resource.url}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={hasAccess ? resource.url : '#'}
+                target={hasAccess ? '_blank' : undefined}
+                rel={hasAccess ? 'noopener noreferrer' : undefined}
                 linkId={`templates-page-resource-${resourceId}`}
                 eventName="User Clicked PM Template Resource"
                 eventProperties={getResourceClickProperties(resource, index)}
-                className={`block p-6 rounded-[2rem] bg-gradient-to-br ${resource.color} border-2 ${resource.borderColor} hover:translate-y-1 transition-all duration-200 cursor-pointer`}
+                className={`block p-6 rounded-[2rem] bg-gradient-to-br ${resource.color} border-2 ${resource.borderColor} hover:translate-y-1 transition-all duration-200 cursor-pointer relative`}
                 style={{
                   boxShadow: `0 10px 0 0 ${resource.shadowColor}`,
                   '--shadow-color': resource.shadowColor,
                 } as React.CSSProperties & { '--shadow-color': string }}
                 tabIndex={0}
-                ariaLabel={`Open ${resource.title}`}
-                onClick={() => handleResourceClick(resource)}
+                ariaLabel={hasAccess ? `Open ${resource.title}` : `Unlock ${resource.title}`}
+                onClick={(e) => handleResourceClick(resource, e)}
               >
+                {/* Lock badge for non-subscribers */}
+                {!hasAccess && (
+                  <div className="absolute top-3 right-3 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center border border-gray-200 shadow-sm">
+                    <svg className="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                )}
                 <span className="text-4xl mb-3 block">{resource.icon}</span>
                 <h3 className="text-lg font-bold text-gray-800 mb-2">{resource.title}</h3>
                 <p className="text-sm text-gray-700 font-medium mb-4">{resource.description}</p>
                 <span className="text-sm font-black text-gray-800 hover:text-gray-900 inline-flex items-center gap-1">
-                  Open Resource
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
+                  {hasAccess ? (
+                    <>
+                      Open Resource
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </>
+                  ) : (
+                    <>
+                      Unlock Resource
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </>
+                  )}
                 </span>
               </TrackedLink>
             </div>
           );
         })}
       </div>
+
+      {/* Premium Resource Gate Modal */}
+      {showGateModal && selectedResource && (
+        <PremiumResourceGate
+          resourceTitle={selectedResource.title}
+          resourceId={getResourceId(selectedResource.title)}
+          resourceCategory={getResourceCategory(selectedResource.title)}
+          currentPlan={subscription?.plan || null}
+          onClose={() => {
+            setShowGateModal(false);
+            setSelectedResource(null);
+          }}
+        />
+      )}
     </div>
   );
 };

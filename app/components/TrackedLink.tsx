@@ -15,7 +15,7 @@ interface TrackedLinkProps {
   tabIndex?: number;
   ariaLabel?: string;
   style?: React.CSSProperties;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
 }
 
 /**
@@ -39,7 +39,7 @@ export const TrackedLink = ({
   const handleClick = (e: React.MouseEvent) => {
     // Call onClick immediately - don't wait for tracking
     if (onClick) {
-      onClick();
+      onClick(e);
     }
     // Fire tracking in the background - don't block navigation
     // Use setTimeout to ensure it doesn't block the click handler
