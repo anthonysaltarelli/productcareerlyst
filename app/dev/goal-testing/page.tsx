@@ -221,7 +221,7 @@ const BASELINE_ACTIONS: BaselineAction[] = [
     route: '/dashboard/templates',
     triggerLogic: 'Triggered when user clicks "Networking Scripts" resource on PM Templates page. TemplatesPageContent.tsx maps resource to "networking_scripts_accessed" trigger which calls POST /api/goals/baseline.',
     userExplanation: 'Access the networking email templates in the Resources section.',
-    verified: false,
+    verified: true,
   },
 
   // Interview prep actions
@@ -231,7 +231,7 @@ const BASELINE_ACTIONS: BaselineAction[] = [
     route: '/dashboard/templates',
     triggerLogic: 'Triggered when user clicks "My 8 Stories" resource on PM Templates page. TemplatesPageContent.tsx maps resource to "behavioral_prep_completed" trigger which calls POST /api/goals/baseline.',
     userExplanation: 'Complete the My 8 Stories worksheet to prepare your behavioral interview responses.',
-    verified: false,
+    verified: true,
   },
   {
     actionId: 'interview-practice-mock',
