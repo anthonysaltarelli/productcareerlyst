@@ -71,10 +71,29 @@ export const PATCH = async (
 
     const body = await request.json();
 
+    // If status is being changed to 'applied', auto-set applied_date if not already set
+    const updateData = { ...body };
+    if (body.status === 'applied' && !body.applied_date) {
+      // Check if applied_date is already set on the existing record
+      const { data: existing } = await supabase
+        .from('job_applications')
+        .select('applied_date')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .single();
+
+      if (!existing?.applied_date) {
+        // Use local date to avoid timezone issues (toISOString uses UTC which can be a day off)
+        const now = new Date();
+        const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        updateData.applied_date = localDate;
+      }
+    }
+
     // Update application (RLS ensures user can only update their own)
     const { data, error } = await supabase
       .from('job_applications')
-      .update(body)
+      .update(updateData)
       .eq('id', id)
       .eq('user_id', user.id)
       .select(`

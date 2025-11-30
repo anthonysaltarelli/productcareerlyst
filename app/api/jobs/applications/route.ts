@@ -80,6 +80,14 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
+    // Auto-set applied_date if status is 'applied' and no date provided
+    let appliedDate = body.applied_date;
+    if (!appliedDate && body.status === 'applied') {
+      // Use local date to avoid timezone issues (toISOString uses UTC which can be a day off)
+      const now = new Date();
+      appliedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+
     // Create application
     const { data, error } = await supabase
       .from('job_applications')
@@ -96,7 +104,7 @@ export const POST = async (request: NextRequest) => {
         description: body.description,
         status: body.status || 'wishlist',
         priority: body.priority || 'medium',
-        applied_date: body.applied_date,
+        applied_date: appliedDate,
         deadline: body.deadline,
         notes: body.notes,
       })

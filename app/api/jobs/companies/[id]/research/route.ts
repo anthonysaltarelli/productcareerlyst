@@ -70,6 +70,14 @@ export const GET = async (
       };
     });
 
+    // Mark baseline action complete when accessing existing research
+    // This covers the case where a user views research that was already generated
+    if (research && research.length > 0) {
+      markBaselineActionsComplete(user.id, 'company_researched').catch((err) => {
+        console.error('Error marking company_researched baseline action (GET):', err);
+      });
+    }
+
     return NextResponse.json({
       research: researchByType,
       company_name: company?.name || 'Unknown',
@@ -315,6 +323,11 @@ export const POST = async (
         .catch((error) => {
           console.error('Fatal error in batch research generation:', error);
         });
+
+      // Mark baseline action complete for company research (multiple types)
+      markBaselineActionsComplete(user.id, 'company_researched').catch((err) => {
+        console.error('Error marking company_researched baseline action (batch):', err);
+      });
 
       // Return immediately
       console.log('Returning success response (research generation continues in background)');

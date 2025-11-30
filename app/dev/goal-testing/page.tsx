@@ -185,17 +185,17 @@ const BASELINE_ACTIONS: BaselineAction[] = [
     actionId: 'job-research-companies',
     label: 'Research companies using AI insights',
     route: '/dashboard/jobs',
-    triggerLogic: 'Triggered when POST /api/jobs/companies/[id]/research completes successfully. Calls markBaselineActionsComplete(userId, "company_researched").',
+    triggerLogic: 'Triggered when: (1) POST /api/jobs/companies/[id]/research generates new research (single or batch), or (2) GET /api/jobs/companies/[id]/research returns existing research. Both call markBaselineActionsComplete(userId, "company_researched").',
     userExplanation: 'Click "Research" on any company to get AI-powered insights about the company.',
-    verified: false,
+    verified: true,
   },
   {
     actionId: 'job-track-applications',
     label: 'Track an application status',
     route: '/dashboard/jobs',
-    triggerLogic: 'Triggered when job status is changed to "applied". Calls markBaselineActionsComplete(userId, "application_tracked").',
+    triggerLogic: 'Triggered when job status is changed to "applied" via PATCH /api/jobs/applications/[id] or POST /api/jobs/applications. Auto-sets applied_date to current date if not provided. Calls markBaselineActionsComplete(userId, "application_tracked") and incrementWeeklyGoalProgress(userId, "job_applied").',
     userExplanation: 'Update a job\'s status to "Applied" to track your application progress.',
-    verified: false,
+    verified: true,
   },
 
   // Networking actions
