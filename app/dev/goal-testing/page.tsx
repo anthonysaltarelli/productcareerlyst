@@ -29,7 +29,7 @@ const BASELINE_ACTIONS: BaselineAction[] = [
     route: '/dashboard/resume',
     triggerLogic: 'Triggered when POST /api/resume/import completes successfully. Calls markBaselineActionsComplete(userId, "resume_imported").',
     userExplanation: 'Go to Dashboard > Resume and click "Import Resume" to upload your PDF or DOCX resume file.',
-    verified: false,
+    verified: true,
   },
   {
     actionId: 'resume-analyze',
@@ -37,7 +37,7 @@ const BASELINE_ACTIONS: BaselineAction[] = [
     route: '/dashboard/resume',
     triggerLogic: 'Triggered when POST /api/resume/versions/[versionId]/analyze completes successfully. Calls markBaselineActionsComplete(userId, "resume_analyzed").',
     userExplanation: 'After importing your resume, click "Analyze" to get an AI-powered score and recommendations.',
-    verified: false,
+    verified: true,
   },
   {
     actionId: 'resume-score-90',
@@ -45,7 +45,7 @@ const BASELINE_ACTIONS: BaselineAction[] = [
     route: '/dashboard/resume',
     triggerLogic: 'Triggered when resume analysis returns overallScore >= 90. Calls markBaselineActionsComplete(userId, "resume_score_90").',
     userExplanation: 'Polish your resume to perfection until your score reaches 90 or higher.',
-    verified: false,
+    verified: true,
   },
   {
     actionId: 'resume-export',
