@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { OnboardingData, generatePersonalizedPlan, ActionItem, PersonalizedPlan } from '../utils/planGenerator';
 import { PERSONAS } from '../data/personas';
 
@@ -30,17 +30,42 @@ const PREDEFINED_ACTION_IDS = new Set([
   'weekly-applications', 'weekly-networking-calls', 'weekly-outreach-emails', 'weekly-interview-practice', 'weekly-company-research', 'weekly-course-lessons', 'weekly-follow-ups', 'weekly-interview-prep',
 ]);
 
+// Weekly goal type for passing to ConfirmGoalsStepVisual
+export interface WeeklyGoalForConfirm {
+  id: string;
+  label: string;
+  target: number | null;
+}
+
 interface PlanDisplayStepVisualProps {
   onNext: () => void;
   onBack: () => void;
   onboardingData: OnboardingData;
+  onSaveWeeklyGoals?: (goals: WeeklyGoalForConfirm[]) => void;
 }
 
-export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData }: PlanDisplayStepVisualProps) => {
-  const [selectedPersonaId, setSelectedPersonaId] = useState<string>('');
+export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData, onSaveWeeklyGoals }: PlanDisplayStepVisualProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiPlan, setAiPlan] = useState<PersonalizedPlan | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
+  const [selectedPersonaId, setSelectedPersonaId] = useState<string>('');
+  const hasGeneratedRef = useRef(false);
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
+
+  const INITIAL_ITEMS_TO_SHOW = 3;
+
+  const toggleSection = (sectionIndex: number) => {
+    setExpandedSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionIndex)) {
+        newSet.delete(sectionIndex);
+      } else {
+        newSet.add(sectionIndex);
+      }
+      return newSet;
+    });
+  };
 
   // Generate fallback plan based on onboarding data (deterministic)
   const fallbackPlan = useMemo(() => generatePersonalizedPlan(onboardingData), [onboardingData]);
@@ -48,12 +73,8 @@ export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData }: PlanDi
   // Use AI plan if available, otherwise use fallback
   const plan = aiPlan || fallbackPlan;
 
-  const handleGetPlan = async () => {
-    if (!selectedPersonaId) return;
-
-    const selectedPersona = PERSONAS.find(p => p.id === selectedPersonaId);
-    if (!selectedPersona) return;
-
+  // Function to generate plan from data
+  const generatePlan = async (data: OnboardingData) => {
     setIsGenerating(true);
     setError(null);
 
@@ -64,7 +85,7 @@ export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData }: PlanDi
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          onboardingData: selectedPersona.data,
+          onboardingData: data,
         }),
       });
 
@@ -73,14 +94,50 @@ export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData }: PlanDi
         throw new Error(errorData.error || 'Failed to generate plan');
       }
 
-      const data = await response.json();
-      setAiPlan(data.plan);
+      const responseData = await response.json();
+      setAiPlan(responseData.plan);
     } catch (err) {
       console.error('Error generating plan:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate plan');
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // Auto-generate plan on mount using user's onboarding data
+  useEffect(() => {
+    if (!hasGeneratedRef.current) {
+      hasGeneratedRef.current = true;
+      generatePlan(onboardingData);
+    }
+  }, [onboardingData]);
+
+  // Handle persona-based plan generation (debug mode)
+  const handleGetPersonaPlan = async () => {
+    if (!selectedPersonaId) return;
+
+    const selectedPersona = PERSONAS.find(p => p.id === selectedPersonaId);
+    if (!selectedPersona) return;
+
+    await generatePlan(selectedPersona.data);
+  };
+
+  // Regenerate with current onboarding data
+  const handleRegenerate = async () => {
+    await generatePlan(onboardingData);
+  };
+
+  // Handle "Get Started on this Plan" - save weekly goals and continue
+  const handleContinue = () => {
+    if (onSaveWeeklyGoals && plan.weeklyGoals?.actions) {
+      const goalsToSave: WeeklyGoalForConfirm[] = plan.weeklyGoals.actions.map((action: ExtendedActionItem) => ({
+        id: action.id,
+        label: action.label,
+        target: action.target ?? null,
+      }));
+      onSaveWeeklyGoals(goalsToSave);
+    }
+    onNext();
   };
 
   const renderActionItem = (action: ExtendedActionItem) => {
@@ -103,17 +160,17 @@ export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData }: PlanDi
             <span className="text-gray-900 font-semibold">
               {action.label}
             </span>
-            {isPredefined && (
+            {showDebugPanel && isPredefined && (
               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-purple-100 text-purple-700 border border-purple-200">
                 {action.id}
               </span>
             )}
-            {!isPredefined && action.id && (
+            {showDebugPanel && !isPredefined && action.id && (
               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-yellow-100 text-yellow-700 border border-yellow-200">
                 custom: {action.id}
               </span>
             )}
-            {action.target !== undefined && action.target !== null && (
+            {showDebugPanel && action.target !== undefined && action.target !== null && (
               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 border border-green-200">
                 target: {action.target}
               </span>
@@ -129,74 +186,120 @@ export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData }: PlanDi
     );
   };
 
+  // Loading state
+  if (isGenerating && !aiPlan) {
+    return (
+      <div className="max-w-4xl mx-auto p-4 md:p-8">
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-6">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-purple-200 rounded-full"></div>
+            <div className="w-16 h-16 border-4 border-purple-500 rounded-full absolute top-0 left-0 animate-spin border-t-transparent"></div>
+          </div>
+          <div className="text-center">
+            <h3 className="text-xl md:text-2xl font-black text-gray-900 mb-2">
+              Creating Your Personalized Plan
+            </h3>
+            <p className="text-gray-600 font-medium">
+              Analyzing your goals and crafting the perfect roadmap...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
       <div className="mb-6 md:mb-8">
         <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-3 md:mb-4">
           Your Customized Plan
         </h2>
+        {/* Debug toggle - small clickable area in corner */}
+        <button
+          onClick={() => setShowDebugPanel(!showDebugPanel)}
+          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          title="Toggle debug panel"
+        >
+          {showDebugPanel ? '🔧 Hide Debug' : '🔧'}
+        </button>
       </div>
 
-      {/* Persona Selector */}
-      <div className="mb-6 md:mb-8 bg-white rounded-xl border-2 border-gray-200 p-4 md:p-6">
-        <label htmlFor="persona-select" className="block text-base md:text-lg font-bold text-gray-900 mb-3">
-          Test with Different Personas
-        </label>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1">
-            <select
-              id="persona-select"
-              value={selectedPersonaId}
-              onChange={(e) => {
-                setSelectedPersonaId(e.target.value);
-                setAiPlan(null); // Clear previous AI plan when persona changes
-                setError(null);
-              }}
-              disabled={isGenerating}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 font-semibold bg-white h-[48px] disabled:opacity-50"
-            >
-              <option value="">Select a persona...</option>
-              {PERSONAS.map((persona) => (
-                <option key={persona.id} value={persona.id}>
-                  {persona.name} - {persona.description}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            onClick={handleGetPlan}
-            disabled={!selectedPersonaId || isGenerating}
-            className="w-full sm:w-auto px-6 md:px-8 h-[48px] bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm md:text-base whitespace-nowrap flex items-center justify-center gap-2"
-          >
-            {isGenerating ? (
-              <>
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Generating...
-              </>
-            ) : (
-              'Get Plan'
+      {/* Debug Panel - Hidden by default */}
+      {showDebugPanel && (
+        <div className="mb-6 md:mb-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 p-4 md:p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Debug Panel</span>
+            {aiPlan && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                AI Plan Active
+              </span>
             )}
+          </div>
+
+          {/* Regenerate with current data */}
+          <div className="mb-4">
+            <button
+              onClick={handleRegenerate}
+              disabled={isGenerating}
+              className="px-4 py-2 text-sm font-bold text-purple-600 border-2 border-purple-200 rounded-lg hover:bg-purple-50 disabled:opacity-50 transition-colors"
+            >
+              {isGenerating ? 'Regenerating...' : '↻ Regenerate Plan'}
+            </button>
+          </div>
+
+          {/* Persona Selector */}
+          <label htmlFor="persona-select" className="block text-sm font-bold text-gray-700 mb-2">
+            Test with Different Personas
+          </label>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1">
+              <select
+                id="persona-select"
+                value={selectedPersonaId}
+                onChange={(e) => {
+                  setSelectedPersonaId(e.target.value);
+                  setError(null);
+                }}
+                disabled={isGenerating}
+                className="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-purple-500 focus:outline-none text-sm font-medium bg-white disabled:opacity-50"
+              >
+                <option value="">Select a persona...</option>
+                {PERSONAS.map((persona) => (
+                  <option key={persona.id} value={persona.id}>
+                    {persona.name} - {persona.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={handleGetPersonaPlan}
+              disabled={!selectedPersonaId || isGenerating}
+              className="px-4 py-2 bg-gray-800 text-white text-sm font-bold rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isGenerating ? 'Loading...' : 'Load Persona'}
+            </button>
+          </div>
+          {error && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600 font-medium">{error}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Error state (non-debug) */}
+      {error && !showDebugPanel && (
+        <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+          <p className="text-red-600 font-medium mb-2">Something went wrong generating your plan.</p>
+          <button
+            onClick={handleRegenerate}
+            disabled={isGenerating}
+            className="text-sm font-bold text-red-600 underline hover:no-underline"
+          >
+            Try again
           </button>
         </div>
-        {selectedPersonaId && (
-          <p className="mt-3 text-sm text-gray-600 font-medium">
-            Selected: {PERSONAS.find(p => p.id === selectedPersonaId)?.name}
-          </p>
-        )}
-        {error && (
-          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-600 font-medium">{error}</p>
-          </div>
-        )}
-        {aiPlan && (
-          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm text-green-600 font-medium">✨ AI-generated plan loaded!</p>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Summary Section */}
       <div className="mb-6 md:mb-8">
@@ -217,22 +320,53 @@ export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData }: PlanDi
             Get Started
           </h3>
           <div className="space-y-6">
-            {plan.baselineActions.map((section, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-xl border-2 border-gray-200 p-4 md:p-6"
-              >
-                <h4 className="text-lg md:text-xl font-black text-gray-900 mb-2">
-                  {section.title}
-                </h4>
-                <p className="text-sm md:text-base text-gray-700 font-semibold mb-4">
-                  {section.description}
-                </p>
-                <div className="space-y-2">
-                  {section.actions.map(renderActionItem)}
+            {plan.baselineActions.map((section, index) => {
+              const isExpanded = expandedSections.has(index);
+              const hasMoreItems = section.actions.length > INITIAL_ITEMS_TO_SHOW;
+              const visibleActions = isExpanded
+                ? section.actions
+                : section.actions.slice(0, INITIAL_ITEMS_TO_SHOW);
+              const hiddenCount = section.actions.length - INITIAL_ITEMS_TO_SHOW;
+
+              return (
+                <div
+                  key={index}
+                  className="bg-white rounded-xl border-2 border-gray-200 p-4 md:p-6"
+                >
+                  <h4 className="text-lg md:text-xl font-black text-gray-900 mb-2">
+                    {section.title}
+                  </h4>
+                  <p className="text-sm md:text-base text-gray-700 font-semibold mb-4">
+                    {section.description}
+                  </p>
+                  <div className="space-y-2">
+                    {visibleActions.map(renderActionItem)}
+                  </div>
+                  {hasMoreItems && (
+                    <button
+                      onClick={() => toggleSection(index)}
+                      className="mt-3 text-sm font-bold text-purple-600 hover:text-purple-700 transition-colors flex items-center gap-1"
+                    >
+                      {isExpanded ? (
+                        <>
+                          <span>Show less</span>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
+                        </>
+                      ) : (
+                        <>
+                          <span>Show {hiddenCount} more</span>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -261,7 +395,7 @@ export const PlanDisplayStepVisual = ({ onNext, onBack, onboardingData }: PlanDi
           ← Back
         </button>
         <button
-          onClick={onNext}
+          onClick={handleContinue}
           className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all text-sm md:text-base"
         >
           Get Started on this Plan

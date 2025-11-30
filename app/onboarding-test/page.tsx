@@ -5,7 +5,7 @@ import { PersonalInfoStepVisual } from './components/PersonalInfoStepVisual';
 import { GoalsAndChallengesStepVisual } from './components/GoalsAndChallengesStepVisual';
 import { PortfolioQuestionStepVisual } from './components/PortfolioQuestionStepVisual';
 import { PlanDisplayStepVisual } from './components/PlanDisplayStepVisual';
-import { ActionableGoalsStepVisual } from './components/ActionableGoalsStepVisual';
+import { ConfirmGoalsStepVisual, type WeeklyGoal } from './components/ConfirmGoalsStepVisual';
 import { TrialStepVisual } from './components/TrialStepVisual';
 import { OnboardingData } from './utils/planGenerator';
 
@@ -14,7 +14,7 @@ const ALL_STEPS = [
   { id: 'goals', name: 'Goals & Challenges' },
   { id: 'portfolio', name: 'Portfolio' },
   { id: 'plan_display', name: 'Your Plan' },
-  { id: 'actionable_goals', name: 'Set Goals' },
+  { id: 'actionable_goals', name: 'Confirm Goals' },
   { id: 'trial', name: 'Start Free Trial' },
 ] as const;
 
@@ -46,6 +46,7 @@ export default function OnboardingTestPage() {
       actionable_goals: {},
     },
   });
+  const [weeklyGoals, setWeeklyGoals] = useState<WeeklyGoal[]>([]);
 
   const STEPS = useMemo(() => {
     return ALL_STEPS;
@@ -94,6 +95,10 @@ export default function OnboardingTestPage() {
       ...prev,
       goals: { ...prev.goals, ...data },
     }));
+  }, []);
+
+  const handleSaveWeeklyGoals = useCallback((goals: WeeklyGoal[]) => {
+    setWeeklyGoals(goals);
   }, []);
 
   const currentStep = STEPS[currentStepIndex];
@@ -209,14 +214,19 @@ export default function OnboardingTestPage() {
             <PortfolioQuestionStepVisual onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
           )}
           {currentStep.id === 'plan_display' && (
-            <PlanDisplayStepVisual 
-              onNext={handleNext} 
-              onBack={handleBack} 
+            <PlanDisplayStepVisual
+              onNext={handleNext}
+              onBack={handleBack}
               onboardingData={onboardingData}
+              onSaveWeeklyGoals={handleSaveWeeklyGoals}
             />
           )}
           {currentStep.id === 'actionable_goals' && (
-            <ActionableGoalsStepVisual onNext={handleNext} onBack={handleBack} onSkip={handleSkip} />
+            <ConfirmGoalsStepVisual
+              onNext={handleNext}
+              onBack={handleBack}
+              weeklyGoals={weeklyGoals}
+            />
           )}
           {currentStep.id === 'trial' && (
             <TrialStepVisual onBack={handleBack} />
