@@ -41,3 +41,4 @@ COMMENT ON COLUMN portfolio_pages.tags IS 'Array of tags for filtering and displ
 COMMENT ON COLUMN portfolio_pages.is_featured IS 'Featured pages appear prominently on portfolio homepage';
 
 
+

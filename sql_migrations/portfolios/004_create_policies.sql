@@ -26,3 +26,4 @@ CREATE POLICY "Users can delete their own portfolio"
   USING (auth.uid() = user_id);
 
 
+

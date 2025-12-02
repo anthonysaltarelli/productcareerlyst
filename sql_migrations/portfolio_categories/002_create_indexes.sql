@@ -4,3 +4,4 @@ CREATE INDEX IF NOT EXISTS idx_portfolio_categories_portfolio_id ON portfolio_ca
 CREATE INDEX IF NOT EXISTS idx_portfolio_categories_display_order ON portfolio_categories(portfolio_id, display_order);
 
 
+

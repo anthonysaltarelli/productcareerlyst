@@ -9,3 +9,4 @@ CREATE INDEX IF NOT EXISTS idx_portfolio_pages_is_featured ON portfolio_pages(po
 CREATE INDEX IF NOT EXISTS idx_portfolio_pages_tags ON portfolio_pages USING GIN(tags);
 
 
+

@@ -39,3 +39,4 @@ COMMENT ON COLUMN portfolios.slug IS 'Unique URL slug for public portfolio acces
 COMMENT ON COLUMN portfolios.social_links IS 'JSON object containing social media links';
 
 
+

@@ -26,3 +26,4 @@ COMMENT ON TABLE portfolio_categories IS 'Categories/collections for organizing 
 COMMENT ON COLUMN portfolio_categories.display_order IS 'Order in which categories appear on the portfolio homepage';
 
 
+
