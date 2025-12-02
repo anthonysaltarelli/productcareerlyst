@@ -194,7 +194,7 @@ export const DashboardNavigation = ({ fullScreen = false, onNavClick }: Dashboar
         eventName="User Clicked Dashboard Navigation Link"
         linkId={fullScreen ? 'mobile-nav-templates-link' : 'dashboard-nav-templates-link'}
         eventProperties={{
-          'Link Text': 'PM Templates',
+          'Link Text': 'PM Resources',
           'Link Destination': '/dashboard/templates',
           'Link Section': fullScreen ? 'Mobile Navigation' : 'Sidebar Navigation',
           'Link Position': 'Main Navigation',
@@ -205,7 +205,7 @@ export const DashboardNavigation = ({ fullScreen = false, onNavClick }: Dashboar
         onClick={onNavClick}
       >
         <FileSpreadsheet className={iconClass} />
-        <span>PM Templates</span>
+        <span>PM Resources</span>
       </NavLink>
       
       {/* Billing Section */}

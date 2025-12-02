@@ -143,7 +143,7 @@ const resources: Resource[] = [
   {
     title: 'Questions & Answers',
     description: 'View dozens of potential interview questions and answers',
-    url: 'https://docs.google.com/document/d/18NHHSmKziFwbMLbIuZDA88PAEWM8YJkYFCIJZOUVF2I',
+    url: '/dashboard/interview',
     icon: '❓',
     color: 'from-orange-200 to-yellow-200',
     borderColor: 'border-orange-300',
@@ -647,8 +647,8 @@ export const TemplatesPageContent = ({
             >
               <TrackedLink
                 href={hasAccess ? resource.url : '#'}
-                target={hasAccess ? '_blank' : undefined}
-                rel={hasAccess ? 'noopener noreferrer' : undefined}
+                target={hasAccess && (resource.url.startsWith('http') || resource.url.startsWith('mailto:')) ? '_blank' : undefined}
+                rel={hasAccess && (resource.url.startsWith('http') || resource.url.startsWith('mailto:')) ? 'noopener noreferrer' : undefined}
                 linkId={`templates-page-resource-${resourceId}`}
                 eventName="User Clicked PM Template Resource"
                 eventProperties={getResourceClickProperties(resource, index)}

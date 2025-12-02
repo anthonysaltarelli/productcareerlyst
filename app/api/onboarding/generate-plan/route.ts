@@ -140,11 +140,11 @@ const getJobSearchStageLabel = (stage: string): string => {
 
 // Helper to get portfolio status description
 const getPortfolioStatusLabel = (hasPortfolio?: string, wantsPortfolio?: string | null): string => {
-  if (hasPortfolio === 'yes') {
+  if (hasPortfolio === 'have_portfolio') {
     return 'Already has a product portfolio';
-  } else if (hasPortfolio === 'no' && wantsPortfolio === 'yes') {
+  } else if (hasPortfolio === 'no_portfolio_want_one') {
     return 'Does not have a portfolio but wants to create one';
-  } else if (hasPortfolio === 'no' && wantsPortfolio === 'no') {
+  } else if (hasPortfolio === 'no_portfolio_not_interested') {
     return 'Does not have a portfolio and is not interested in creating one';
   }
   return 'Portfolio status unknown';
