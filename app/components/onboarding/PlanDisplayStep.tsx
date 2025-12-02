@@ -99,6 +99,9 @@ export const PlanDisplayStep = ({
   const [isSaving, setIsSaving] = useState(false);
   const hasGeneratedRef = useRef(existingPlan !== null && existingPlan !== undefined);
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const [progressPercent, setProgressPercent] = useState(0);
+  const startTimeRef = useRef<number | null>(null);
 
   const INITIAL_ITEMS_TO_SHOW = 3;
 
@@ -129,10 +132,59 @@ export const PlanDisplayStep = ({
   // If no plan is available and there's an error, we show an error state
   const plan = aiPlan;
 
+  // Loading messages that rotate during plan generation
+  const loadingMessages = [
+    { text: 'Analyzing your career goals and background...', icon: '🎯' },
+    { text: 'Crafting personalized action items for your journey...', icon: '✨' },
+    { text: 'Designing your custom roadmap to success...', icon: '🗺️' },
+    { text: 'Optimizing weekly goals based on your timeline...', icon: '📈' },
+    { text: 'Finalizing your personalized plan...', icon: '🎨' },
+    { text: 'Almost there! Adding the finishing touches...', icon: '🚀' },
+  ];
+
+  // Rotate loading messages and update progress when loading
+  useEffect(() => {
+    const isLoading = isGenerating || (!aiPlan && !error);
+    
+    if (!isLoading) {
+      setLoadingMessageIndex(0);
+      setProgressPercent(0);
+      startTimeRef.current = null;
+      return;
+    }
+
+    // Initialize start time
+    if (startTimeRef.current === null) {
+      startTimeRef.current = Date.now();
+    }
+
+    // Update progress based on elapsed time (30 seconds average)
+    const progressInterval = setInterval(() => {
+      if (startTimeRef.current) {
+        const elapsed = Date.now() - startTimeRef.current;
+        const estimatedTotal = 30000; // 30 seconds
+        const percent = Math.min(95, Math.floor((elapsed / estimatedTotal) * 100));
+        setProgressPercent(percent);
+      }
+    }, 200);
+
+    // Rotate messages every 5 seconds
+    const messageInterval = setInterval(() => {
+      setLoadingMessageIndex((prev) => (prev + 1) % loadingMessages.length);
+    }, 5000);
+
+    return () => {
+      clearInterval(progressInterval);
+      clearInterval(messageInterval);
+    };
+  }, [isGenerating, aiPlan, error, loadingMessages.length]);
+
   // Function to generate plan from data
   const generatePlan = async (data: OnboardingData) => {
     setIsGenerating(true);
     setError(null);
+    setProgressPercent(0);
+    startTimeRef.current = Date.now();
 
     try {
       const response = await fetch('/api/onboarding/generate-plan', {
@@ -151,13 +203,18 @@ export const PlanDisplayStep = ({
       }
 
       const responseData = await response.json();
-      setAiPlan(responseData.plan);
+      setProgressPercent(100);
+      // Small delay to show 100% before setting plan
+      setTimeout(() => {
+        setAiPlan(responseData.plan);
+      }, 300);
     } catch (err) {
       console.error('Error generating plan:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate plan');
       // Use fallback plan on error
-    } finally {
       setIsGenerating(false);
+    } finally {
+      // Don't set isGenerating to false here - let the setTimeout above handle it
     }
   };
 
@@ -246,21 +303,72 @@ export const PlanDisplayStep = ({
     );
   };
 
-  // Loading state
+  // Enhanced loading state with progress and rotating messages
   if (isGenerating && !aiPlan) {
+    const currentMessage = loadingMessages[loadingMessageIndex];
+
     return (
       <div className="max-w-4xl mx-auto p-4 md:p-8">
-        <div className="flex flex-col items-center justify-center min-h-[400px] gap-6">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-purple-200 rounded-full"></div>
-            <div className="w-16 h-16 border-4 border-purple-500 rounded-full absolute top-0 left-0 animate-spin border-t-transparent"></div>
+        <div className="flex flex-col items-center justify-center min-h-[500px] gap-8">
+          {/* Animated gradient background circle */}
+          <div className="relative w-32 h-32 md:w-40 md:h-40">
+            {/* Outer pulsing ring */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400 via-pink-400 to-orange-400 opacity-20 animate-pulse"></div>
+            
+            {/* Middle rotating ring */}
+            <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-purple-500 border-r-pink-500 animate-spin"></div>
+            
+            {/* Inner spinning circle */}
+            <div className="absolute inset-4 rounded-full border-4 border-purple-200"></div>
+            <div className="absolute inset-4 rounded-full border-4 border-purple-500 border-t-transparent animate-spin" style={{ animationDuration: '1s' }}></div>
+            
+            {/* Center icon */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-4xl md:text-5xl animate-bounce" style={{ animationDuration: '2s' }}>
+                {currentMessage.icon}
+              </div>
+            </div>
           </div>
-          <div className="text-center">
-            <h3 className="text-xl md:text-2xl font-black text-gray-900 mb-2">
+
+          {/* Progress bar */}
+          <div className="w-full max-w-md">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-bold text-gray-600">Creating your plan...</span>
+              <span className="text-sm font-black text-purple-600">{progressPercent}%</span>
+            </div>
+            <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden relative">
+              <div
+                className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 rounded-full transition-all duration-300 ease-out relative"
+                style={{ width: `${progressPercent}%` }}
+              >
+                {/* Shimmer effect */}
+                <div 
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                  style={{
+                    width: '50%',
+                    animation: 'shimmer 2s ease-in-out infinite',
+                  }}
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Rotating message */}
+          <div className="text-center space-y-4">
+            <h3 className="text-2xl md:text-3xl font-black bg-gradient-to-br from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent mb-2">
               Creating Your Personalized Plan
             </h3>
-            <p className="text-gray-600 font-medium">
-              Analyzing your goals and crafting the perfect roadmap...
+            <div className="min-h-[60px] flex items-center justify-center">
+              <p className="text-lg md:text-xl text-gray-700 font-semibold transition-opacity duration-500">
+                {currentMessage.text}
+              </p>
+            </div>
+          </div>
+
+          {/* Fun facts or tips while waiting */}
+          <div className="mt-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 max-w-md">
+            <p className="text-sm text-gray-600 font-medium text-center">
+              💡 <span className="font-semibold">Did you know?</span> Your plan is being customized based on your specific career stage, goals, and timeline.
             </p>
           </div>
         </div>
@@ -318,20 +426,72 @@ export const PlanDisplayStep = ({
   }
 
   // Still loading initial plan (no error yet), or plan is null for any other reason
-  if (!plan) {
+  // Use the same enhanced loading state
+  if (!plan && !error) {
+    const currentMessage = loadingMessages[loadingMessageIndex] || loadingMessages[0];
+
     return (
       <div className="max-w-4xl mx-auto p-4 md:p-8">
-        <div className="flex flex-col items-center justify-center min-h-[400px] gap-6">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-purple-200 rounded-full"></div>
-            <div className="w-16 h-16 border-4 border-purple-500 rounded-full absolute top-0 left-0 animate-spin border-t-transparent"></div>
+        <div className="flex flex-col items-center justify-center min-h-[500px] gap-8">
+          {/* Animated gradient background circle */}
+          <div className="relative w-32 h-32 md:w-40 md:h-40">
+            {/* Outer pulsing ring */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400 via-pink-400 to-orange-400 opacity-20 animate-pulse"></div>
+            
+            {/* Middle rotating ring */}
+            <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-purple-500 border-r-pink-500 animate-spin"></div>
+            
+            {/* Inner spinning circle */}
+            <div className="absolute inset-4 rounded-full border-4 border-purple-200"></div>
+            <div className="absolute inset-4 rounded-full border-4 border-purple-500 border-t-transparent animate-spin" style={{ animationDuration: '1s' }}></div>
+            
+            {/* Center icon */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-4xl md:text-5xl animate-bounce" style={{ animationDuration: '2s' }}>
+                {currentMessage.icon}
+              </div>
+            </div>
           </div>
-          <div className="text-center">
-            <h3 className="text-xl md:text-2xl font-black text-gray-900 mb-2">
-              Preparing Your Plan
+
+          {/* Progress bar */}
+          <div className="w-full max-w-md">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-bold text-gray-600">Preparing your plan...</span>
+              <span className="text-sm font-black text-purple-600">{progressPercent}%</span>
+            </div>
+            <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden relative">
+              <div
+                className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 rounded-full transition-all duration-300 ease-out relative"
+                style={{ width: `${progressPercent}%` }}
+              >
+                {/* Shimmer effect */}
+                <div 
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                  style={{
+                    width: '50%',
+                    animation: 'shimmer 2s ease-in-out infinite',
+                  }}
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Rotating message */}
+          <div className="text-center space-y-4">
+            <h3 className="text-2xl md:text-3xl font-black bg-gradient-to-br from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent mb-2">
+              Creating Your Personalized Plan
             </h3>
-            <p className="text-gray-600 font-medium">
-              Just a moment...
+            <div className="min-h-[60px] flex items-center justify-center">
+              <p className="text-lg md:text-xl text-gray-700 font-semibold transition-opacity duration-500">
+                {currentMessage.text}
+              </p>
+            </div>
+          </div>
+
+          {/* Fun facts or tips while waiting */}
+          <div className="mt-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 max-w-md">
+            <p className="text-sm text-gray-600 font-medium text-center">
+              💡 <span className="font-semibold">Did you know?</span> Your plan is being customized based on your specific career stage, goals, and timeline.
             </p>
           </div>
         </div>

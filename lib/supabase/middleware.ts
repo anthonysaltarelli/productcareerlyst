@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
+import { getOnboardingRedirectPath } from '@/lib/utils/onboarding'
 
 export const updateSession = async (request: NextRequest) => {
   let supabaseResponse = NextResponse.next({
@@ -35,10 +36,12 @@ export const updateSession = async (request: NextRequest) => {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Redirect logged-in users from home to dashboard
+  // Redirect logged-in users from home to appropriate destination
+  // Check onboarding status to route to /onboarding if incomplete, /dashboard if complete
   if (user && request.nextUrl.pathname === '/') {
+    const redirectPath = await getOnboardingRedirectPath(user.id)
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    url.pathname = redirectPath
     return NextResponse.redirect(url)
   }
 

@@ -134,6 +134,22 @@ export async function getOnboardingProgress(userId: string): Promise<OnboardingP
   }
 }
 
+/**
+ * Get the correct redirect path based on onboarding status
+ * Returns '/dashboard' if onboarding is complete, '/onboarding' if incomplete
+ * Defaults to '/onboarding' if check fails (to be safe and not block users)
+ */
+export async function getOnboardingRedirectPath(userId: string): Promise<string> {
+  try {
+    const complete = await isOnboardingComplete(userId);
+    return complete ? '/dashboard' : '/onboarding';
+  } catch (error) {
+    console.error('Error in getOnboardingRedirectPath:', error);
+    // Default to onboarding if check fails to prevent blocking users
+    return '/onboarding';
+  }
+}
+
 
 
 
