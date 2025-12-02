@@ -1133,9 +1133,9 @@ export const TrialStep = ({ onBack, plan, confirmedGoals }: TrialStepProps) => {
                   router.push('/dashboard');
                   router.refresh();
                 }}
-                className="w-full px-6 py-3 text-gray-600 font-bold hover:text-gray-800 transition-colors"
+                className="w-full px-6 py-3 bg-gray-200 hover:bg-gray-300 border-2 border-gray-300 text-gray-800 font-black rounded-xl transition-all duration-200"
               >
-                I don't want a free trial
+                Yes, I don't want a free 7 day trial
               </button>
             </div>
           </div>
