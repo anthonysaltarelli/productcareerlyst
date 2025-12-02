@@ -129,11 +129,8 @@ export const PlanDisplayStep = ({
   const planStats = useMemo(() => {
     if (!plan) return null;
 
-    // Count total milestones (all actions across all baseline sections)
-    const totalMilestones = plan.baselineActions.reduce(
-      (total, section) => total + section.actions.length,
-      0
-    );
+    // Count total milestones (number of baseline sections)
+    const totalMilestones = plan.baselineActions.length;
 
     // Count weekly actions
     const totalWeeklyActions = plan.weeklyGoals?.actions?.length || 0;
