@@ -500,6 +500,11 @@ export const PlanDisplayStep = ({
   }
 
   // At this point, plan is guaranteed to be non-null
+  // Type guard to satisfy TypeScript
+  if (!plan) {
+    return null; // This should never happen due to early returns above
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
       <div className="mb-6 md:mb-8">
