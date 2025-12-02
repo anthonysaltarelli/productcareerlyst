@@ -8,7 +8,6 @@ import { PersonalInfoStep } from '@/app/components/onboarding/PersonalInfoStep';
 import { GoalsAndChallengesStep } from '@/app/components/onboarding/GoalsAndChallengesStep';
 import { PortfolioStep } from '@/app/components/onboarding/PortfolioStep';
 import { PlanDisplayStep, WeeklyGoalForConfirm } from '@/app/components/onboarding/PlanDisplayStep';
-import { ConfirmGoalsStep, WeeklyGoal } from '@/app/components/onboarding/ConfirmGoalsStep';
 import { TrialStep } from '@/app/components/onboarding/TrialStep';
 import { PageTracking } from '@/app/components/PageTracking';
 import { trackEvent } from '@/lib/amplitude/client';
@@ -20,7 +19,6 @@ const ALL_STEPS = [
   { id: 'goals', name: 'Goals & Challenges' },
   { id: 'portfolio', name: 'Portfolio' },
   { id: 'plan_display', name: 'Your Plan' },
-  { id: 'confirm_goals', name: 'Confirm Goals' },
   { id: 'trial', name: 'Start Free Trial' },
 ] as const;
 
@@ -31,10 +29,9 @@ export default function OnboardingPage() {
   const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean | null>(null);
   const [checkingSubscription, setCheckingSubscription] = useState(true);
 
-  // State for passing data between plan display and confirm goals steps
+  // State for passing data between plan display and trial steps
   const [weeklyGoals, setWeeklyGoals] = useState<WeeklyGoalForConfirm[]>([]);
   const [generatedPlan, setGeneratedPlan] = useState<PersonalizedPlan | null>(null);
-  const [confirmedGoals, setConfirmedGoals] = useState<WeeklyGoal[]>([]);
 
   // Check if user has active subscription
   useEffect(() => {
@@ -199,7 +196,7 @@ export default function OnboardingPage() {
     }
   };
 
-  // Callback for PlanDisplayStep to save weekly goals for ConfirmGoalsStep
+  // Callback for PlanDisplayStep to save weekly goals for TrialStep
   const handleSaveWeeklyGoals = useCallback((goals: WeeklyGoalForConfirm[]) => {
     setWeeklyGoals(goals);
   }, []);
@@ -207,12 +204,6 @@ export default function OnboardingPage() {
   // Callback for PlanDisplayStep to save the full plan
   const handleSavePlan = useCallback((plan: PersonalizedPlan) => {
     setGeneratedPlan(plan);
-  }, []);
-
-  // Callback for ConfirmGoalsStep to save confirmed goals (with user-adjusted values)
-  const handleSaveConfirmedGoals = useCallback((goals: WeeklyGoal[]) => {
-    // Store confirmed goals in state - they will be saved to database in TrialStep
-    setConfirmedGoals(goals);
   }, []);
 
   // Show loading while checking subscription or fetching progress
@@ -324,19 +315,11 @@ export default function OnboardingPage() {
               existingPlan={generatedPlan}
             />
           )}
-          {currentStep.id === 'confirm_goals' && (
-            <ConfirmGoalsStep
-              onNext={handleNext}
-              onBack={handleBack}
-              weeklyGoals={weeklyGoals}
-              onSaveConfirmedGoals={handleSaveConfirmedGoals}
-            />
-          )}
           {currentStep.id === 'trial' && (
             <TrialStep
               onBack={handleBack}
               plan={generatedPlan}
-              confirmedGoals={confirmedGoals}
+              confirmedGoals={weeklyGoals}
             />
           )}
         </div>

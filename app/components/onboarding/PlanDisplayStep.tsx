@@ -69,7 +69,7 @@ const PREDEFINED_ACTION_IDS = new Set([
   'weekly-interview-prep',
 ]);
 
-// Weekly goal type for passing to ConfirmGoalsStep
+// Weekly goal type for passing to TrialStep
 export interface WeeklyGoalForConfirm {
   id: string;
   label: string;
@@ -98,12 +98,17 @@ export const PlanDisplayStep = ({
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const hasGeneratedRef = useRef(existingPlan !== null && existingPlan !== undefined);
-  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [progressPercent, setProgressPercent] = useState(0);
   const startTimeRef = useRef<number | null>(null);
 
-  const INITIAL_ITEMS_TO_SHOW = 3;
+  // Timeline labels mapping
+  const TIMELINE_LABELS: Record<string, string> = {
+    '1_month': 'Within 1 month',
+    '3_months': 'Within 3 months',
+    '6_months': 'Within 6 months',
+    '1_year': 'Within 1 year',
+  };
 
   // Collect onboarding data from progress
   const onboardingData: OnboardingData = useMemo(() => {
@@ -116,21 +121,35 @@ export const PlanDisplayStep = ({
     };
   }, [progress]);
 
-  const toggleSection = (sectionIndex: number) => {
-    setExpandedSections((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(sectionIndex)) {
-        newSet.delete(sectionIndex);
-      } else {
-        newSet.add(sectionIndex);
-      }
-      return newSet;
-    });
-  };
-
   // The plan to display - only use AI-generated plan
   // If no plan is available and there's an error, we show an error state
   const plan = aiPlan;
+
+  // Calculate plan statistics
+  const planStats = useMemo(() => {
+    if (!plan) return null;
+
+    // Count total milestones (all actions across all baseline sections)
+    const totalMilestones = plan.baselineActions.reduce(
+      (total, section) => total + section.actions.length,
+      0
+    );
+
+    // Count weekly actions
+    const totalWeeklyActions = plan.weeklyGoals?.actions?.length || 0;
+
+    // Get target role and timeline from progress
+    const targetRole = progress?.progress_data?.goals?.targetRole || 'your target role';
+    const timelineValue = progress?.progress_data?.goals?.timeline || '';
+    const timeline = timelineValue ? TIMELINE_LABELS[timelineValue] || timelineValue : 'your timeline';
+
+    return {
+      totalMilestones,
+      totalWeeklyActions,
+      targetRole,
+      timeline,
+    };
+  }, [plan, progress]);
 
   // Loading messages that rotate during plan generation
   const loadingMessages = [
@@ -276,31 +295,6 @@ export const PlanDisplayStep = ({
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const renderActionItem = (action: ExtendedActionItem) => {
-    return (
-      <div
-        key={action.id}
-        className="flex items-start gap-3 p-3 md:p-4 rounded-xl border-2 border-gray-200 bg-white"
-      >
-        <input
-          type="checkbox"
-          checked={false}
-          disabled
-          readOnly
-          className="mt-1 w-5 h-5 text-purple-600 rounded border-gray-300 cursor-not-allowed opacity-50"
-        />
-        <div className="flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-gray-900 font-semibold">{action.label}</span>
-          </div>
-          {action.sublabel && (
-            <p className="text-sm text-gray-500 mt-1">{action.sublabel}</p>
-          )}
-        </div>
-      </div>
-    );
   };
 
   // Enhanced loading state with progress and rotating messages
@@ -505,16 +499,20 @@ export const PlanDisplayStep = ({
     return null; // This should never happen due to early returns above
   }
 
+  if (!planStats) {
+    return null;
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
-      <div className="mb-6 md:mb-8">
+      <div className="mb-8">
         <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-3 md:mb-4">
           Your Customized Plan
         </h2>
       </div>
 
       {/* Summary Section */}
-      <div className="mb-6 md:mb-8">
+      <div className="mb-8">
         <h3 className="text-xl md:text-2xl font-black text-gray-900 mb-4">Summary</h3>
         <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-4 md:p-8">
           <p className="text-base md:text-lg text-gray-800 font-semibold leading-relaxed">
@@ -523,88 +521,87 @@ export const PlanDisplayStep = ({
         </div>
       </div>
 
-      {/* Get Started - One-time Actions */}
-      {plan.baselineActions.length > 0 && (
-        <div className="mb-6 md:mb-8">
-          <h3 className="text-xl md:text-2xl font-black text-gray-900 mb-4">Get Started</h3>
-          <div className="space-y-6">
-            {plan.baselineActions.map((section, index) => {
-              const isExpanded = expandedSections.has(index);
-              const hasMoreItems = section.actions.length > INITIAL_ITEMS_TO_SHOW;
-              const visibleActions = isExpanded
-                ? section.actions
-                : section.actions.slice(0, INITIAL_ITEMS_TO_SHOW);
-              const hiddenCount = section.actions.length - INITIAL_ITEMS_TO_SHOW;
-
-              return (
-                <div
-                  key={index}
-                  className="bg-white rounded-xl border-2 border-gray-200 p-4 md:p-6"
-                >
-                  <h4 className="text-lg md:text-xl font-black text-gray-900 mb-2">
-                    {section.title}
-                  </h4>
-                  <p className="text-sm md:text-base text-gray-700 font-semibold mb-4">
-                    {section.description}
-                  </p>
-                  <div className="space-y-2">{visibleActions.map(renderActionItem)}</div>
-                  {hasMoreItems && (
-                    <button
-                      onClick={() => toggleSection(index)}
-                      className="mt-3 text-sm font-bold text-purple-600 hover:text-purple-700 transition-colors flex items-center gap-1"
-                    >
-                      {isExpanded ? (
-                        <>
-                          <span>Show less</span>
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 15l7-7 7 7"
-                            />
-                          </svg>
-                        </>
-                      ) : (
-                        <>
-                          <span>Show {hiddenCount} more</span>
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </>
-                      )}
-                    </button>
-                  )}
+      {/* Plan Summary Stats */}
+      <div className="mb-8 space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          {/* Milestones Card */}
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-6 md:p-8">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span className="text-3xl">🎯</span>
+              </div>
+              <div>
+                <div className="text-3xl md:text-4xl font-black text-gray-900 mb-1">
+                  {planStats.totalMilestones}
                 </div>
-              );
-            })}
+                <div className="text-base md:text-lg font-semibold text-gray-700">
+                  {planStats.totalMilestones === 1 ? 'Milestone' : 'Milestones'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Weekly Actions Card */}
+          <div className="bg-gradient-to-br from-pink-50 to-orange-50 border-2 border-pink-200 rounded-2xl p-6 md:p-8">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span className="text-3xl">📈</span>
+              </div>
+              <div>
+                <div className="text-3xl md:text-4xl font-black text-gray-900 mb-1">
+                  {planStats.totalWeeklyActions}
+                </div>
+                <div className="text-base md:text-lg font-semibold text-gray-700">
+                  {planStats.totalWeeklyActions === 1 ? 'Weekly Action' : 'Weekly Actions'}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      )}
 
-      {/* Land The Offer - Weekly Actions */}
-      <div className="mb-6 md:mb-8">
-        <h3 className="text-xl md:text-2xl font-black text-gray-900 mb-4">Land The Offer</h3>
-        <div className="bg-white rounded-xl border-2 border-gray-200 p-4 md:p-6">
-          <p className="text-sm md:text-base text-gray-700 font-semibold mb-4">
-            {plan.weeklyGoals.description}
-          </p>
-          <div className="space-y-2">{plan.weeklyGoals.actions.map(renderActionItem)}</div>
+        {/* Target Role & Timeline Highlight */}
+        <div className="bg-gradient-to-br from-purple-100 via-pink-100 to-orange-100 border-2 border-purple-300 rounded-2xl p-6 md:p-8">
+          <div className="text-center space-y-3">
+            <div className="text-sm md:text-base font-bold text-gray-600 uppercase tracking-wide">
+              Your Goal
+            </div>
+            <div className="text-xl md:text-2xl font-black bg-gradient-to-br from-purple-700 via-pink-600 to-orange-600 bg-clip-text text-transparent">
+              {planStats.targetRole}
+            </div>
+            <div className="text-base md:text-lg font-semibold text-gray-700">
+              {planStats.timeline}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Full Plan Available Message */}
+      <div className="mb-8 bg-white border-2 border-gray-200 rounded-2xl p-6 md:p-8">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
+            <svg
+              className="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg md:text-xl font-black text-gray-900 mb-2">
+              Full Plan Available on Dashboard
+            </h3>
+            <p className="text-base md:text-lg text-gray-700 font-semibold leading-relaxed">
+              Your complete personalized plan with all milestones, weekly actions, and detailed steps is ready and waiting for you on your dashboard. You can access it anytime to track your progress and stay on course toward landing your dream role.
+            </p>
+          </div>
         </div>
       </div>
 
