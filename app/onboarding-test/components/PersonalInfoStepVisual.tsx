@@ -23,6 +23,9 @@ const CAREER_STAGES = [
 ] as const;
 
 const ROLE_SUGGESTIONS = [
+  'Graduate Student',
+  'Recent College Graduate',
+  'Unemployed',
   'Product Manager',
   'Senior Product Manager',
   'Group Product Manager',

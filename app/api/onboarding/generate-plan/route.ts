@@ -11,7 +11,7 @@ const PLAN_GENERATION_SCHEMA = {
     summary: {
       type: 'string',
       description:
-        'A personalized, motivating 2-3 sentence paragraph addressing the user by name, acknowledging their background and struggles, validating their goal, and setting the tone for their plan',
+        'A personalized, emotionally compelling 2-3 sentence paragraph that immediately gives the user a sense of grounded confidence and smart urgency. The summary must clearly show that you understand their specific situation, reveal the exact obstacles holding them back, and present a focused, proven path that makes success feel simpler, faster, and more achievable than going it alone. Make the user feel seen, supported, and strategically equipped, while subtly highlighting that this structured plan offers a meaningful advantage over the guesswork most candidates rely on—ultimately leading them to feel that following this plan is the most logical and effective next step in their journey to landing a PM offer.',
     },
     baselineActions: {
       type: 'array',
@@ -286,10 +286,14 @@ PERSONALIZATION REQUIREMENTS:
 
 1. Summary (2-3 sentences):
    - Address ${firstName} directly by name
-   - Acknowledge their specific background as a ${currentRole}
-   - Reference their stated struggles explicitly ("${struggles}")
-   - Validate their goal of becoming a ${targetRole} and create excitement
-   - Be warm and encouraging but not cheesy
+   - Immediately give them a sense of grounded confidence and smart urgency
+   - Clearly show that you understand their specific situation as a ${currentRole} trying to become a ${targetRole}
+   - Reveal the exact obstacles holding them back by explicitly referencing their stated struggles ("${struggles}")
+   - Present a focused, proven path that makes success feel simpler, faster, and more achievable than going it alone
+   - Make them feel seen, supported, and strategically equipped
+   - Subtly highlight that this structured plan offers a meaningful advantage over the guesswork most candidates rely on
+   - Lead them to feel that following this plan is the most logical and effective next step in their journey to landing a PM offer
+   - Be warm and encouraging but not cheesy—focus on strategic clarity and emotional resonance
 
 2. Get Started (baselineActions): 2-4 sections of one-time setup actions
    - PREFER predefined action IDs for trackable platform actions

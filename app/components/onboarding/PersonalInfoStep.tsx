@@ -454,6 +454,9 @@ const ROLE_SUGGESTIONS = [
   "Head of Growth (Early-Stage Startup)",
   "Head of Customer Experience (Startup)",
   "General Manager (Business Unit / Country with digital focus)",
+  "Graduate Student",
+  "Recent College Graduate",
+  "Unemployed",
 ] as const;
 
 export const PersonalInfoStep = ({ onNext, onBack }: PersonalInfoStepProps) => {
