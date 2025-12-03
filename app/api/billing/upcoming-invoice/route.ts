@@ -181,6 +181,50 @@ export const GET = async (request: NextRequest) => {
       // Customer balance already retrieved in parallel above
       const customerBalance = (customer as any)?.balance || 0;
 
+      // Check if subscription is canceled
+      if (stripeSubscription.status === 'canceled') {
+        return NextResponse.json({
+          amount_due: 0,
+          currency: null,
+          period_start: null,
+          period_end: null,
+          subtotal: 0,
+          total: 0,
+          description: null,
+          discount: null,
+          no_upcoming_invoice: true,
+          reason: 'subscription_canceled',
+        });
+      }
+
+      // Check if subscription has no payment method and will cancel at trial end
+      const hasPaymentMethod = Boolean(
+        stripeSubscription.default_payment_method ||
+        stripeSubscription.default_source ||
+        (customer as any)?.invoice_settings?.default_payment_method ||
+        (customer as any)?.default_source
+      );
+
+      // Check trial settings to see if it will cancel without payment method
+      const trialSettings = (stripeSubscription as any).trial_settings;
+      const willCancelWithoutPayment = trialSettings?.end_behavior?.missing_payment_method === 'cancel';
+      const isTrialWithoutPayment = stripeSubscription.status === 'trialing' && !hasPaymentMethod && willCancelWithoutPayment;
+
+      if (isTrialWithoutPayment) {
+        return NextResponse.json({
+          amount_due: 0,
+          currency: null,
+          period_start: null,
+          period_end: null,
+          subtotal: 0,
+          total: 0,
+          description: null,
+          discount: null,
+          no_upcoming_invoice: true,
+          reason: 'trial_will_cancel_no_payment_method',
+        });
+      }
+
       // OPTIMIZATION 3: Try createPreview first (most accurate), skip retrieveUpcoming if it fails
       // This reduces sequential API calls
       try {
@@ -223,9 +267,46 @@ export const GET = async (request: NextRequest) => {
             payment_overdue: isPreviewOverdue,
           });
         }
-      } catch (previewError) {
-        // Fall through to calculated fallback - don't try retrieveUpcoming
-        console.log('[Upcoming Invoice] Preview failed, using calculated fallback');
+      } catch (previewError: any) {
+        // Handle specific Stripe errors for trial without payment method and canceled subscriptions
+        if (previewError?.code === 'invoice_upcoming_none') {
+          const errorMessage = previewError?.message || '';
+          
+          if (errorMessage.includes('cancel at the end of the trial') || 
+              errorMessage.includes('trial_settings') ||
+              errorMessage.includes('missing_payment_method')) {
+            return NextResponse.json({
+              amount_due: 0,
+              currency: null,
+              period_start: null,
+              period_end: null,
+              subtotal: 0,
+              total: 0,
+              description: null,
+              discount: null,
+              no_upcoming_invoice: true,
+              reason: 'trial_will_cancel_no_payment_method',
+            });
+          }
+          
+          if (errorMessage.includes('canceled subscription')) {
+            return NextResponse.json({
+              amount_due: 0,
+              currency: null,
+              period_start: null,
+              period_end: null,
+              subtotal: 0,
+              total: 0,
+              description: null,
+              discount: null,
+              no_upcoming_invoice: true,
+              reason: 'subscription_canceled',
+            });
+          }
+        }
+        
+        // Fall through to calculated fallback for other errors
+        console.log('[Upcoming Invoice] Preview failed, using calculated fallback:', previewError?.message || previewError);
       }
 
       // Fallback: Calculate amount_due accounting for customer balance/credits AND discounts
@@ -254,6 +335,43 @@ export const GET = async (request: NextRequest) => {
         payment_overdue: isPaymentOverdue, // Flag to indicate if payment is overdue
       });
     } catch (error: any) {
+      // Handle specific Stripe errors
+      if (error?.code === 'invoice_upcoming_none') {
+        const errorMessage = error?.message || '';
+        
+        if (errorMessage.includes('cancel at the end of the trial') || 
+            errorMessage.includes('trial_settings') ||
+            errorMessage.includes('missing_payment_method')) {
+          return NextResponse.json({
+            amount_due: 0,
+            currency: null,
+            period_start: null,
+            period_end: null,
+            subtotal: 0,
+            total: 0,
+            description: null,
+            discount: null,
+            no_upcoming_invoice: true,
+            reason: 'trial_will_cancel_no_payment_method',
+          });
+        }
+        
+        if (errorMessage.includes('canceled subscription')) {
+          return NextResponse.json({
+            amount_due: 0,
+            currency: null,
+            period_start: null,
+            period_end: null,
+            subtotal: 0,
+            total: 0,
+            description: null,
+            discount: null,
+            no_upcoming_invoice: true,
+            reason: 'subscription_canceled',
+          });
+        }
+      }
+      
       // If there's an error, return zero amount
       console.error('Error fetching upcoming invoice details:', error);
       return NextResponse.json({
@@ -264,6 +382,7 @@ export const GET = async (request: NextRequest) => {
         subtotal: 0,
         total: 0,
         description: null,
+        discount: null,
       });
     }
   } catch (error) {

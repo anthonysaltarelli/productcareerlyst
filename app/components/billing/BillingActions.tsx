@@ -141,6 +141,7 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
   const [showPaymentUpdate, setShowPaymentUpdate] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [hasPaymentMethod, setHasPaymentMethod] = useState<boolean | null>(null);
 
   // Ensure cancel_at_period_end is properly converted to boolean
   const cancelAtPeriodEnd = subscription?.cancel_at_period_end as any;
@@ -153,17 +154,21 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
   const handleCancelClick = () => {
     if (!subscription) return;
     const userState = getUserStateContextFromSubscription(subscription, null);
+    const isTrialWithoutPaymentMethod = subscription.status === 'trialing' && hasPaymentMethod === false;
+    const cancelButtonText = isTrialWithoutPaymentMethod ? 'Cancel Trial' : 'Cancel Subscription';
     
-    trackEvent('User Clicked Cancel Subscription Button', {
+    trackEvent(isTrialWithoutPaymentMethod ? 'User Clicked Cancel Trial Button' : 'User Clicked Cancel Subscription Button', {
       'Button Section': 'Billing Actions Section',
       'Button Position': 'Right side of Manage Subscription Card',
-      'Button Text': 'Cancel Subscription',
+      'Button Text': cancelButtonText,
       'Current Plan': subscription.plan,
       'Current Billing Cadence': subscription.billing_cadence,
       'Days Since Subscription Start': userState.daysSinceSubscriptionStart,
       'Days Until Period End': userState.daysUntilPeriodEnd,
       'Has Used Feature': false,
       'Feature Usage Count': 0,
+      'Has Payment Method': hasPaymentMethod,
+      'Is Trial Without Payment Method': isTrialWithoutPaymentMethod,
     });
     setShowCancelConfirm(true);
   };
@@ -268,9 +273,34 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
     router.refresh();
   };
 
+  // Fetch payment method status
+  useEffect(() => {
+    if (!subscription) return;
+
+    const fetchPaymentMethodStatus = async () => {
+      try {
+        const response = await fetch('/api/billing/payment-method-status');
+        if (response.ok) {
+          const data = await response.json();
+          setHasPaymentMethod(data.hasPaymentMethod);
+        }
+      } catch (error) {
+        console.error('Error fetching payment method status:', error);
+        setHasPaymentMethod(false);
+      }
+    };
+
+    fetchPaymentMethodStatus();
+  }, [subscription]);
+
   if (!subscription) {
     return null;
   }
+
+  const isCanceled = subscription.status === 'canceled';
+  const isTrialWithoutPaymentMethod = subscription.status === 'trialing' && hasPaymentMethod === false;
+  const paymentButtonText = hasPaymentMethod === false ? 'Add Payment Method' : 'Update Payment Method';
+  const cancelButtonText = isTrialWithoutPaymentMethod ? 'Cancel Trial' : 'Cancel Subscription';
 
   return (
     <>
@@ -289,69 +319,98 @@ export const BillingActions = ({ subscription }: BillingActionsProps) => {
           </div>
         )}
 
-        <div className="flex gap-4">
-          <TrackedButton
-            onClick={handlePaymentMethodUpdate}
-            buttonId="billing-page-update-payment-method-button"
-            eventName="User Clicked Update Payment Method Button"
-            eventProperties={{
-              'Button Section': 'Billing Actions Section',
-              'Button Position': 'Left side of Manage Subscription Card',
-              'Button Text': 'Update Payment Method',
-              'Current Plan': subscription.plan,
-              'Subscription Status': subscription.status,
-              'Has Past Due': subscription.status === 'past_due',
-            }}
-            disabled={loading}
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-purple-200"
-          >
-            <CreditCard className="w-4 h-4" />
-            Update Payment Method
-          </TrackedButton>
+        {isCanceled ? (
+          <div className="p-6 bg-gray-50 border-2 border-gray-200 rounded-xl">
+            <p className="text-gray-700 font-semibold mb-4">
+              This subscription has been canceled. To continue using Product Careerlyst, please create a new subscription.
+            </p>
+            <div className="flex gap-4">
+              <TrackedButton
+                onClick={() => router.push('/dashboard/billing/plans')}
+                buttonId="billing-page-view-plans-button"
+                eventName="User Clicked View Plans Button"
+                eventProperties={{
+                  'Button Section': 'Billing Actions Section',
+                  'Button Position': 'Left side of Manage Subscription Card',
+                  'Button Text': 'View Plans',
+                  'Current Plan': subscription.plan,
+                  'Subscription Status': subscription.status,
+                }}
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 transition-colors border-2 border-purple-200"
+              >
+                View Plans
+              </TrackedButton>
+            </div>
+          </div>
+        ) : (
+          <div className="flex gap-4">
+            <TrackedButton
+              onClick={handlePaymentMethodUpdate}
+              buttonId="billing-page-update-payment-method-button"
+              eventName={hasPaymentMethod === false ? "User Clicked Add Payment Method Button" : "User Clicked Update Payment Method Button"}
+              eventProperties={{
+                'Button Section': 'Billing Actions Section',
+                'Button Position': 'Left side of Manage Subscription Card',
+                'Button Text': paymentButtonText,
+                'Current Plan': subscription.plan,
+                'Subscription Status': subscription.status,
+                'Has Past Due': subscription.status === 'past_due',
+                'Has Payment Method': hasPaymentMethod,
+                'Is Trial Without Payment Method': isTrialWithoutPaymentMethod,
+              }}
+              disabled={loading}
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-purple-200"
+            >
+              <CreditCard className="w-4 h-4" />
+              {paymentButtonText}
+            </TrackedButton>
 
-          {willCancel ? (
-            <TrackedButton
-              onClick={handleReactivateSubscription}
-              buttonId="billing-page-reactivate-subscription-button"
-              eventName="User Clicked Reactivate Subscription Button"
-              eventProperties={{
-                'Button Section': 'Billing Actions Section',
-                'Button Position': 'Right side of Manage Subscription Card',
-                'Button Text': 'Reactivate Subscription',
-                'Current Plan': subscription.plan,
-                'Current Billing Cadence': subscription.billing_cadence,
-                'Days Until Period End': getUserStateContextFromSubscription(subscription, null).daysUntilPeriodEnd,
-              }}
-              disabled={loading}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-green-100 text-green-700 font-bold hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-green-200"
-            >
-              <RotateCcw className="w-4 h-4" />
-              {loading ? 'Reactivating...' : 'Reactivate Subscription'}
-            </TrackedButton>
-          ) : (
-            <TrackedButton
-              onClick={handleCancelClick}
-              buttonId="billing-page-cancel-subscription-button"
-              eventName="User Clicked Cancel Subscription Button"
-              eventProperties={{
-                'Button Section': 'Billing Actions Section',
-                'Button Position': 'Right side of Manage Subscription Card',
-                'Button Text': 'Cancel Subscription',
-                'Current Plan': subscription.plan,
-                'Current Billing Cadence': subscription.billing_cadence,
-                'Days Since Subscription Start': getUserStateContextFromSubscription(subscription, null).daysSinceSubscriptionStart,
-                'Days Until Period End': getUserStateContextFromSubscription(subscription, null).daysUntilPeriodEnd,
-                'Has Used Feature': false,
-                'Feature Usage Count': 0,
-              }}
-              disabled={loading}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-red-100 text-red-700 font-bold hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-red-200"
-            >
-              <X className="w-4 h-4" />
-              Cancel Subscription
-            </TrackedButton>
-          )}
-        </div>
+            {willCancel ? (
+              <TrackedButton
+                onClick={handleReactivateSubscription}
+                buttonId="billing-page-reactivate-subscription-button"
+                eventName="User Clicked Reactivate Subscription Button"
+                eventProperties={{
+                  'Button Section': 'Billing Actions Section',
+                  'Button Position': 'Right side of Manage Subscription Card',
+                  'Button Text': 'Reactivate Subscription',
+                  'Current Plan': subscription.plan,
+                  'Current Billing Cadence': subscription.billing_cadence,
+                  'Days Until Period End': getUserStateContextFromSubscription(subscription, null).daysUntilPeriodEnd,
+                }}
+                disabled={loading}
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-green-100 text-green-700 font-bold hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-green-200"
+              >
+                <RotateCcw className="w-4 h-4" />
+                {loading ? 'Reactivating...' : 'Reactivate Subscription'}
+              </TrackedButton>
+            ) : (
+              <TrackedButton
+                onClick={handleCancelClick}
+                buttonId="billing-page-cancel-subscription-button"
+                eventName={isTrialWithoutPaymentMethod ? "User Clicked Cancel Trial Button" : "User Clicked Cancel Subscription Button"}
+                eventProperties={{
+                  'Button Section': 'Billing Actions Section',
+                  'Button Position': 'Right side of Manage Subscription Card',
+                  'Button Text': cancelButtonText,
+                  'Current Plan': subscription.plan,
+                  'Current Billing Cadence': subscription.billing_cadence,
+                  'Days Since Subscription Start': getUserStateContextFromSubscription(subscription, null).daysSinceSubscriptionStart,
+                  'Days Until Period End': getUserStateContextFromSubscription(subscription, null).daysUntilPeriodEnd,
+                  'Has Used Feature': false,
+                  'Feature Usage Count': 0,
+                  'Has Payment Method': hasPaymentMethod,
+                  'Is Trial Without Payment Method': isTrialWithoutPaymentMethod,
+                }}
+                disabled={loading}
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-red-100 text-red-700 font-bold hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-red-200"
+              >
+                <X className="w-4 h-4" />
+                {cancelButtonText}
+              </TrackedButton>
+            )}
+          </div>
+        )}
       </div>
 
       {showPaymentUpdate && (

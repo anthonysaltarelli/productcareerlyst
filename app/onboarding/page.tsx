@@ -7,19 +7,14 @@ import { useOnboardingProgress } from '@/lib/hooks/useOnboardingProgress';
 import { PersonalInfoStep } from '@/app/components/onboarding/PersonalInfoStep';
 import { GoalsAndChallengesStep } from '@/app/components/onboarding/GoalsAndChallengesStep';
 import { PortfolioStep } from '@/app/components/onboarding/PortfolioStep';
-import { PlanDisplayStep, WeeklyGoalForConfirm } from '@/app/components/onboarding/PlanDisplayStep';
-import { TrialStep } from '@/app/components/onboarding/TrialStep';
 import { PageTracking } from '@/app/components/PageTracking';
 import { trackEvent } from '@/lib/amplitude/client';
-import type { PersonalizedPlan } from '@/lib/utils/planGenerator';
 
-// New onboarding flow steps - Phase 2B complete
+// Simplified onboarding flow - 3 steps only
 const ALL_STEPS = [
   { id: 'personal_info', name: 'Personal Info' },
   { id: 'goals', name: 'Goals & Challenges' },
   { id: 'portfolio', name: 'Portfolio' },
-  { id: 'plan_display', name: 'Your Plan' },
-  { id: 'trial', name: 'Start Free Trial' },
 ] as const;
 
 export default function OnboardingPage() {
@@ -29,9 +24,6 @@ export default function OnboardingPage() {
   const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean | null>(null);
   const [checkingSubscription, setCheckingSubscription] = useState(true);
 
-  // State for passing data between plan display and trial steps
-  const [weeklyGoals, setWeeklyGoals] = useState<WeeklyGoalForConfirm[]>([]);
-  const [generatedPlan, setGeneratedPlan] = useState<PersonalizedPlan | null>(null);
 
   // Check if user has active subscription
   useEffect(() => {
@@ -91,13 +83,7 @@ export default function OnboardingPage() {
     checkSubscription();
   }, [markComplete, router]);
 
-  // Filter out trial step if user has active subscription
-  const STEPS = useMemo(() => {
-    if (hasActiveSubscription === false) {
-      return ALL_STEPS;
-    }
-    return ALL_STEPS.filter(step => step.id !== 'trial');
-  }, [hasActiveSubscription]);
+  const STEPS = useMemo(() => ALL_STEPS, []);
 
   // Initialize step from progress (only if subscription check is complete)
   useEffect(() => {
@@ -105,14 +91,9 @@ export default function OnboardingPage() {
       const stepIndex = STEPS.findIndex((s) => s.id === progress.current_step);
       if (stepIndex >= 0) {
         setCurrentStepIndex(stepIndex);
-      } else {
-        // If current step is 'trial' but it's filtered out, go to last step
-        if (progress.current_step === 'trial' && hasActiveSubscription === false) {
-          setCurrentStepIndex(STEPS.length - 1);
-        }
       }
     }
-  }, [progress, checkingSubscription, hasActiveSubscription, STEPS]);
+  }, [progress, checkingSubscription, STEPS]);
 
   const handleNext = () => {
     if (currentStepIndex < STEPS.length - 1) {
@@ -195,16 +176,6 @@ export default function OnboardingPage() {
       handleNext();
     }
   };
-
-  // Callback for PlanDisplayStep to save weekly goals for TrialStep
-  const handleSaveWeeklyGoals = useCallback((goals: WeeklyGoalForConfirm[]) => {
-    setWeeklyGoals(goals);
-  }, []);
-
-  // Callback for PlanDisplayStep to save the full plan
-  const handleSavePlan = useCallback((plan: PersonalizedPlan) => {
-    setGeneratedPlan(plan);
-  }, []);
 
   // Show loading while checking subscription or fetching progress
   if (loading || checkingSubscription) {
@@ -305,22 +276,6 @@ export default function OnboardingPage() {
           )}
           {currentStep.id === 'portfolio' && (
             <PortfolioStep onNext={handleNext} onBack={handleBack} />
-          )}
-          {currentStep.id === 'plan_display' && (
-            <PlanDisplayStep
-              onNext={handleNext}
-              onBack={handleBack}
-              onSaveWeeklyGoals={handleSaveWeeklyGoals}
-              onSavePlan={handleSavePlan}
-              existingPlan={generatedPlan}
-            />
-          )}
-          {currentStep.id === 'trial' && (
-            <TrialStep
-              onBack={handleBack}
-              plan={generatedPlan}
-              confirmedGoals={weeklyGoals}
-            />
           )}
         </div>
       </div>

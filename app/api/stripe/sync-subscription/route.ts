@@ -270,12 +270,55 @@ export const POST = async (request: NextRequest) => {
       stripe_price_id: priceId,
     };
 
-    // Upsert subscription
-    const { error: dbError } = await supabaseAdmin
+    // Check if there's an existing subscription with the same (user_id, stripe_customer_id)
+    // but different stripe_subscription_id (e.g., when upgrading from trial to paid)
+    const { data: existingRecord } = await supabaseAdmin
+      .from('subscriptions')
+      .select('stripe_subscription_id')
+      .eq('user_id', user.id)
+      .eq('stripe_customer_id', customerId)
+      .maybeSingle();
+
+    // If there's an existing record with a different subscription ID, delete it first
+    // This handles the case where a user upgrades from trial to paid (new subscription created)
+    if (existingRecord && existingRecord.stripe_subscription_id !== stripeSubscription.id) {
+      console.log(`[Sync] Deleting old subscription ${existingRecord.stripe_subscription_id} before syncing new one ${stripeSubscription.id}`);
+      const { error: deleteError } = await supabaseAdmin
+        .from('subscriptions')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('stripe_customer_id', customerId);
+      
+      if (deleteError) {
+        console.error('Error deleting old subscription:', deleteError);
+        // Continue anyway - the upsert might still work if the old record gets updated
+      }
+    }
+
+    // Upsert subscription - try both conflict resolution strategies
+    let dbError = null;
+    
+    // First try: upsert on stripe_subscription_id (most common case)
+    const { error: error1 } = await supabaseAdmin
       .from('subscriptions')
       .upsert(subscriptionData, {
         onConflict: 'stripe_subscription_id',
       });
+    
+    if (error1 && error1.code === '23505') {
+      // If that fails due to unique constraint on (user_id, stripe_customer_id),
+      // try updating the existing record instead
+      console.log('[Sync] First upsert failed, trying update on user_id + customer_id');
+      const { error: error2 } = await supabaseAdmin
+        .from('subscriptions')
+        .update(subscriptionData)
+        .eq('user_id', user.id)
+        .eq('stripe_customer_id', customerId);
+      
+      dbError = error2;
+    } else {
+      dbError = error1;
+    }
 
     if (dbError) {
       console.error('Error syncing subscription to database:', dbError);

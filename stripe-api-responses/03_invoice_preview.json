@@ -1,0 +1,9 @@
+{
+  "error": {
+    "code": "invoice_upcoming_none",
+    "doc_url": "https://stripe.com/docs/error-codes/invoice-upcoming-none",
+    "message": "The subscription will cancel at the end of the trial instead of generating an invoice because the customer has not provided a payment method and trial_settings[end_behavior][missing_payment_method] is set to `cancel`.",
+    "request_log_url": "https://dashboard.stripe.com/test/logs/req_8nD6wfejoyWBg7?t=1764736050",
+    "type": "invalid_request_error"
+  }
+}

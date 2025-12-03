@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -251,13 +251,18 @@ const PaymentFormContent = ({
 export default function SelectBillingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [selectedBilling, setSelectedBilling] = useState<'monthly' | 'quarterly' | 'yearly'>('yearly');
+  
+  // Get URL parameters first, before using them in useState
+  const plan = searchParams.get('plan') as 'learn' | 'accelerate' | null;
+  const billingFromUrl = searchParams.get('billing') as 'monthly' | 'quarterly' | 'yearly' | null;
+  
+  const [selectedBilling, setSelectedBilling] = useState<'monthly' | 'quarterly' | 'yearly'>(
+    billingFromUrl || 'yearly'
+  );
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loadingClientSecret, setLoadingClientSecret] = useState(false);
-
-  const plan = searchParams.get('plan') as 'learn' | 'accelerate' | null;
   const [subscription, setSubscription] = useState<any>(null);
   const [accountCreatedAt, setAccountCreatedAt] = useState<string | null>(null);
   const [pageTracked, setPageTracked] = useState(false);
@@ -268,6 +273,7 @@ export default function SelectBillingPage() {
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<CouponDetails | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
+  const autoContinuedRef = useRef(false);
   
   // Helper function to calculate discounted price
   const calculateDiscountedPrice = (originalPrice: number): number => {
@@ -415,6 +421,13 @@ export default function SelectBillingPage() {
     }
   }, [plan, router]);
 
+  // Update selectedBilling when URL parameter changes
+  useEffect(() => {
+    if (billingFromUrl && ['monthly', 'quarterly', 'yearly'].includes(billingFromUrl)) {
+      setSelectedBilling(billingFromUrl);
+    }
+  }, [billingFromUrl]);
+
   if (!plan) {
     return null;
   }
@@ -503,6 +516,66 @@ export default function SelectBillingPage() {
       setLoadingClientSecret(false);
     }
   };
+
+  // Auto-show payment form if both plan and billing are provided in URL (skip billing selection step)
+  useEffect(() => {
+    if (plan && billingFromUrl && ['monthly', 'quarterly', 'yearly'].includes(billingFromUrl) && !showPaymentForm && !loadingClientSecret && !clientSecret && !autoContinuedRef.current) {
+      autoContinuedRef.current = true; // Mark as auto-continued to prevent multiple runs
+      
+      // Automatically proceed to payment form when coming from trial upgrade
+      const autoContinue = async () => {
+        const planData = plans[plan];
+        const billingData = planData[billingFromUrl];
+        const monthlyEquivalent =
+          billingFromUrl === 'monthly'
+            ? billingData.price
+            : billingFromUrl === 'quarterly'
+              ? billingData.price / 3
+              : billingData.price / 12;
+
+        trackEvent('User Auto-Continued to Payment Form', {
+          'Button Section': 'Auto-Navigation',
+          'Button Position': 'Automatic',
+          'Plan Selected': plan,
+          'Billing Cycle Selected': billingFromUrl,
+          'Price': billingData.price,
+          'Monthly Equivalent': monthlyEquivalent,
+          'Source': 'trial_upgrade_section',
+        });
+
+        setShowPaymentForm(true);
+        setLoadingClientSecret(true);
+        
+        try {
+          const response = await fetch('/api/stripe/create-payment-intent', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              plan: plan,
+              billingCadence: billingFromUrl,
+            }),
+          });
+
+          if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || 'Failed to create payment intent');
+          }
+
+          const { clientSecret: secret } = await response.json();
+          setClientSecret(secret);
+        } catch (err) {
+          console.error('Error creating payment intent:', err);
+        } finally {
+          setLoadingClientSecret(false);
+        }
+      };
+
+      autoContinue();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan, billingFromUrl]); // Only run when plan or billingFromUrl changes initially
 
   const handleSuccess = async () => {
     setIsProcessing(true);

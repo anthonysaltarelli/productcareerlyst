@@ -25,6 +25,8 @@ interface UpcomingInvoice {
   } | null;
   refunded?: boolean;
   payment_overdue?: boolean;
+  no_upcoming_invoice?: boolean;
+  reason?: 'trial_will_cancel_no_payment_method' | 'subscription_canceled';
 }
 
 export const BillingStatus = ({ subscription }: BillingStatusProps) => {
@@ -33,6 +35,7 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
   const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
   const [trialProgress, setTrialProgress] = useState<number | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [hasPaymentMethod, setHasPaymentMethod] = useState<boolean | null>(null);
   
   if (!subscription) {
     return null;
@@ -88,6 +91,16 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
           const data = await response.json();
           console.log('Upcoming invoice data:', data);
           setUpcomingInvoice(data);
+        } else {
+          // Even if response is not ok, try to parse the data in case it contains useful info
+          try {
+            const data = await response.json();
+            if (data.no_upcoming_invoice) {
+              setUpcomingInvoice(data);
+            }
+          } catch (parseError) {
+            console.error('Error parsing error response:', parseError);
+          }
         }
       } catch (error) {
         console.error('Error fetching upcoming invoice:', error);
@@ -96,7 +109,26 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
       }
     };
 
+    const fetchPaymentMethodStatus = async () => {
+      if (!subscription) {
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/billing/payment-method-status');
+        if (response.ok) {
+          const data = await response.json();
+          setHasPaymentMethod(data.hasPaymentMethod);
+        }
+      } catch (error) {
+        console.error('Error fetching payment method status:', error);
+        // Default to false if we can't check
+        setHasPaymentMethod(false);
+      }
+    };
+
     fetchUpcomingInvoice();
+    fetchPaymentMethodStatus();
   }, [subscription]);
 
   // Calculate trial progress and days remaining only on client side after mount
@@ -303,7 +335,7 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
                   {billingLabels[subscription.billing_cadence]}
                 </span>
               </div>
-              {upcomingInvoice && (
+              {upcomingInvoice && !upcomingInvoice.no_upcoming_invoice && (
                 <>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600 font-semibold">First Charge</span>
@@ -344,10 +376,29 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
                   </div>
                 </>
               )}
+              {upcomingInvoice?.no_upcoming_invoice && upcomingInvoice.reason === 'trial_will_cancel_no_payment_method' && (
+                <div className="p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
+                  <p className="text-yellow-800 font-semibold text-sm">
+                    ⚠️ Your trial will end on {formatDate(subscription.trial_end) || 'the trial end date'}. 
+                    Add a payment method before then to continue your subscription, or it will be canceled automatically.
+                  </p>
+                </div>
+              )}
+              {upcomingInvoice?.no_upcoming_invoice && upcomingInvoice.reason === 'subscription_canceled' && (
+                <div className="p-4 bg-gray-50 border-2 border-gray-200 rounded-xl">
+                  <p className="text-gray-700 font-semibold text-sm">
+                    This subscription has been canceled. No upcoming charges.
+                  </p>
+                </div>
+              )}
             </div>
-            <p className="mt-4 text-sm text-gray-600 font-semibold">
-              Your card will be charged on {formatDate(subscription.trial_end) || 'the trial end date'}.
-            </p>
+            {hasPaymentMethod !== null && (
+              <p className="mt-4 text-sm text-gray-600 font-semibold">
+                {hasPaymentMethod 
+                  ? `Your card will be charged on ${formatDate(subscription.trial_end) || 'the trial end date'}.`
+                  : `Add a payment method before ${formatDate(subscription.trial_end) || 'the trial end date'} to continue your subscription.`}
+              </p>
+            )}
           </div>
 
           {/* Trial Ending Soon Warning */}
@@ -369,7 +420,7 @@ export const BillingStatus = ({ subscription }: BillingStatusProps) => {
             {formatDate(subscription.current_period_end) || 'N/A'}
           </div>
         </div>
-        {upcomingInvoice && !willCancel ? (
+        {upcomingInvoice && !willCancel && !upcomingInvoice.no_upcoming_invoice ? (
           <div className={`p-4 rounded-xl ${upcomingInvoice.payment_overdue ? 'bg-orange-50 border-2 border-orange-200' : 'bg-gray-50'}`}>
             <div className="text-sm text-gray-600 font-semibold mb-1">Next Payment</div>
             {upcomingInvoice.payment_overdue && (

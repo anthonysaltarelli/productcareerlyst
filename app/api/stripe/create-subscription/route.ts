@@ -31,9 +31,17 @@ export const POST = async (request: NextRequest) => {
     const body = await request.json();
     const { plan, billingCadence, paymentMethodId, trialPeriodDays, couponCode } = body;
 
-    if (!plan || !billingCadence || !paymentMethodId) {
+    if (!plan || !billingCadence) {
       return NextResponse.json(
-        { error: 'Plan, billing cadence, and payment method are required' },
+        { error: 'Plan and billing cadence are required' },
+        { status: 400 }
+      );
+    }
+
+    // If no payment method and no trial, require payment method
+    if (!paymentMethodId && (!trialPeriodDays || trialPeriodDays <= 0)) {
+      return NextResponse.json(
+        { error: 'Payment method is required when no trial period is specified' },
         { status: 400 }
       );
     }
@@ -107,51 +115,53 @@ export const POST = async (request: NextRequest) => {
       }
     }
 
-    // Check if payment method is already attached to the correct customer
-    // The setup intent should have already attached it, but we verify here
-    try {
-      const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
-      
-      if (!paymentMethod.customer) {
-        // Not attached to any customer, attach it
-        await stripe.paymentMethods.attach(paymentMethodId, {
-          customer: customerId,
-        });
-      } else if (paymentMethod.customer !== customerId) {
-        // Attached to a different customer - this shouldn't happen with our flow
-        // but if it does, we can't reuse the payment method
-        return NextResponse.json(
-          { error: 'Payment method is associated with a different account. Please use a different card.' },
-          { status: 400 }
-        );
+    // Only attach payment method if provided
+    if (paymentMethodId) {
+      // Check if payment method is already attached to the correct customer
+      // The setup intent should have already attached it, but we verify here
+      try {
+        const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+        
+        if (!paymentMethod.customer) {
+          // Not attached to any customer, attach it
+          await stripe.paymentMethods.attach(paymentMethodId, {
+            customer: customerId,
+          });
+        } else if (paymentMethod.customer !== customerId) {
+          // Attached to a different customer - this shouldn't happen with our flow
+          // but if it does, we can't reuse the payment method
+          return NextResponse.json(
+            { error: 'Payment method is associated with a different account. Please use a different card.' },
+            { status: 400 }
+          );
+        }
+        // If already attached to this customer, no action needed
+      } catch (attachError: any) {
+        // Handle specific Stripe errors
+        if (attachError.code === 'resource_already_exists' || 
+            attachError.message?.includes('already been attached')) {
+          // Payment method is already attached, continue
+        } else if (attachError.message?.includes('previously used') || 
+                   attachError.message?.includes('may not be used again')) {
+          // Payment method was detached and can't be reused
+          return NextResponse.json(
+            { error: 'This payment method cannot be reused. Please enter a new card.' },
+            { status: 400 }
+          );
+        } else {
+          throw attachError;
+        }
       }
-      // If already attached to this customer, no action needed
-    } catch (attachError: any) {
-      // Handle specific Stripe errors
-      if (attachError.code === 'resource_already_exists' || 
-          attachError.message?.includes('already been attached')) {
-        // Payment method is already attached, continue
-      } else if (attachError.message?.includes('previously used') || 
-                 attachError.message?.includes('may not be used again')) {
-        // Payment method was detached and can't be reused
-        return NextResponse.json(
-          { error: 'This payment method cannot be reused. Please enter a new card.' },
-          { status: 400 }
-        );
-      } else {
-        throw attachError;
-      }
+
+      // Set as default payment method
+      await stripe.customers.update(customerId, {
+        invoice_settings: {
+          default_payment_method: paymentMethodId,
+        },
+      });
     }
 
-    // Set as default payment method
-    await stripe.customers.update(customerId, {
-      invoice_settings: {
-        default_payment_method: paymentMethodId,
-      },
-    });
-
-    // Create subscription with payment method
-    // Using default_payment_method ensures immediate payment
+    // Create subscription
     const subscriptionParams: any = {
       customer: customerId,
       items: [
@@ -159,17 +169,34 @@ export const POST = async (request: NextRequest) => {
           price: priceId,
         },
       ],
-      default_payment_method: paymentMethodId,
       metadata: {
         user_id: user.id,
         plan,
         billing_cadence: billingCadence,
       },
+      // Save payment method when added later (if not provided now)
+      payment_settings: {
+        save_default_payment_method: 'on_subscription',
+      },
     };
+
+    // Add payment method if provided
+    if (paymentMethodId) {
+      subscriptionParams.default_payment_method = paymentMethodId;
+    }
 
     // Add trial period if specified (for onboarding)
     if (trialPeriodDays && typeof trialPeriodDays === 'number' && trialPeriodDays > 0) {
       subscriptionParams.trial_period_days = trialPeriodDays;
+      
+      // Configure what happens if trial ends without payment method
+      if (!paymentMethodId) {
+        subscriptionParams.trial_settings = {
+          end_behavior: {
+            missing_payment_method: 'cancel', // Cancel subscription if no payment method by trial end
+          },
+        };
+      }
     }
 
     // Add coupon/promotion code if specified
@@ -351,12 +378,53 @@ async function syncSubscriptionToDatabase(
     stripe_price_id: priceId,
   };
 
-  // Upsert subscription
-  const { error } = await supabaseAdmin
+  // Check if there's an existing subscription with the same (user_id, stripe_customer_id)
+  // but different stripe_subscription_id (e.g., when upgrading from trial to paid)
+  const { data: existingRecord } = await supabaseAdmin
+    .from('subscriptions')
+    .select('stripe_subscription_id')
+    .eq('user_id', userId)
+    .eq('stripe_customer_id', customerId)
+    .maybeSingle();
+
+  // If there's an existing record with a different subscription ID, delete it first
+  if (existingRecord && existingRecord.stripe_subscription_id !== subscription.id) {
+    console.log(`[Create Subscription] Deleting old subscription ${existingRecord.stripe_subscription_id} before syncing new one ${subscription.id}`);
+    const { error: deleteError } = await supabaseAdmin
+      .from('subscriptions')
+      .delete()
+      .eq('user_id', userId)
+      .eq('stripe_customer_id', customerId);
+    
+    if (deleteError) {
+      console.error('Error deleting old subscription:', deleteError);
+    }
+  }
+
+  // Upsert subscription - try both conflict resolution strategies
+  let error = null;
+  
+  // First try: upsert on stripe_subscription_id (most common case)
+  const { error: error1 } = await supabaseAdmin
     .from('subscriptions')
     .upsert(subscriptionData, {
       onConflict: 'stripe_subscription_id',
     });
+  
+  if (error1 && error1.code === '23505') {
+    // If that fails due to unique constraint on (user_id, stripe_customer_id),
+    // try updating the existing record instead
+    console.log('[Create Subscription] First upsert failed, trying update on user_id + customer_id');
+    const { error: error2 } = await supabaseAdmin
+      .from('subscriptions')
+      .update(subscriptionData)
+      .eq('user_id', userId)
+      .eq('stripe_customer_id', customerId);
+    
+    error = error2;
+  } else {
+    error = error1;
+  }
 
   if (error) {
     console.error('Error syncing subscription to database:', error);

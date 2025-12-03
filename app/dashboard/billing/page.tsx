@@ -9,6 +9,8 @@ import { PlanSwitcher } from '@/app/components/billing/PlanSwitcher';
 import { InvoicesList } from '@/app/components/billing/InvoicesList';
 import { PlanComparison } from '@/app/components/billing/PlanComparison';
 import { BillingPageTracking } from '@/app/components/billing/BillingPageTracking';
+import { TrialBillingStatus } from '@/app/components/billing/TrialBillingStatus';
+import { TrialUpgradeSection } from '@/app/components/billing/TrialUpgradeSection';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 import { Sparkles, Rocket, Zap } from 'lucide-react';
 
@@ -94,7 +96,47 @@ export default async function BillingPage() {
     );
   }
 
-  // If subscription exists, show management interface
+  // If subscription is in trial, show simplified trial interface
+  if (subscription && subscription.status === 'trialing') {
+    return (
+      <>
+        <MobileDashboardHeader title="Billing" />
+        <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-8 px-4 pt-20 md:pt-8">
+          <div className="max-w-6xl mx-auto">
+            <BillingPageTracking subscription={subscription} accountCreatedAt={user.created_at} />
+            <AutoSyncSubscription subscription={subscription} />
+            <SuccessHandler />
+            
+            <div className="mb-8">
+              <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-2">
+                Billing & Subscription
+              </h1>
+              <p className="text-gray-700 font-semibold">
+                Manage your subscription and billing information
+              </p>
+            </div>
+
+            {/* Trial Status */}
+            <div className="mb-6 max-w-4xl mx-auto">
+              <TrialBillingStatus subscription={subscription} />
+            </div>
+
+            {/* Upgrade to Paid Plan */}
+            <div className="mb-6 max-w-4xl mx-auto">
+              <TrialUpgradeSection subscription={subscription} />
+            </div>
+
+            {/* Plan Comparison Table */}
+            <div className="mb-6">
+              <PlanComparison hideContinueButtons={true} />
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // If subscription exists and is not in trial, show management interface
   return (
     <>
       <MobileDashboardHeader title="Billing" />

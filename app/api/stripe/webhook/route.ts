@@ -461,12 +461,53 @@ async function syncSubscriptionToDatabase(
     stripe_price_id: priceId,
   };
 
-  // Upsert subscription
-  const { error } = await supabaseAdmin
+  // Check if there's an existing subscription with the same (user_id, stripe_customer_id)
+  // but different stripe_subscription_id (e.g., when upgrading from trial to paid)
+  const { data: existingRecord } = await supabaseAdmin
+    .from('subscriptions')
+    .select('stripe_subscription_id')
+    .eq('user_id', userId)
+    .eq('stripe_customer_id', customerId)
+    .maybeSingle();
+
+  // If there's an existing record with a different subscription ID, delete it first
+  if (existingRecord && existingRecord.stripe_subscription_id !== subscription.id) {
+    console.log(`[Webhook] Deleting old subscription ${existingRecord.stripe_subscription_id} before syncing new one ${subscription.id}`);
+    const { error: deleteError } = await supabaseAdmin
+      .from('subscriptions')
+      .delete()
+      .eq('user_id', userId)
+      .eq('stripe_customer_id', customerId);
+    
+    if (deleteError) {
+      console.error('Error deleting old subscription:', deleteError);
+    }
+  }
+
+  // Upsert subscription - try both conflict resolution strategies
+  let error = null;
+  
+  // First try: upsert on stripe_subscription_id (most common case)
+  const { error: error1 } = await supabaseAdmin
     .from('subscriptions')
     .upsert(subscriptionData, {
       onConflict: 'stripe_subscription_id',
     });
+  
+  if (error1 && error1.code === '23505') {
+    // If that fails due to unique constraint on (user_id, stripe_customer_id),
+    // try updating the existing record instead
+    console.log('[Webhook] First upsert failed, trying update on user_id + customer_id');
+    const { error: error2 } = await supabaseAdmin
+      .from('subscriptions')
+      .update(subscriptionData)
+      .eq('user_id', userId)
+      .eq('stripe_customer_id', customerId);
+    
+    error = error2;
+  } else {
+    error = error1;
+  }
 
   if (error) {
     console.error('Error syncing subscription to database:', error);

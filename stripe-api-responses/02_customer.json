@@ -1,0 +1,31 @@
+{
+  "id": "cus_TXC21PBcMHMwOg",
+  "object": "customer",
+  "address": null,
+  "balance": 0,
+  "created": 1764735995,
+  "currency": "usd",
+  "default_source": null,
+  "delinquent": false,
+  "description": null,
+  "discount": null,
+  "email": "anthsalt+newonboarding5@gmail.com",
+  "invoice_prefix": "FASHXYLX",
+  "invoice_settings": {
+    "custom_fields": null,
+    "default_payment_method": null,
+    "footer": null,
+    "rendering_options": null
+  },
+  "livemode": false,
+  "metadata": {
+    "user_id": "f603686d-6c2e-4723-90f3-f60383e4f703"
+  },
+  "name": null,
+  "next_invoice_sequence": 2,
+  "phone": null,
+  "preferred_locales": [],
+  "shipping": null,
+  "tax_exempt": "none",
+  "test_clock": null
+}

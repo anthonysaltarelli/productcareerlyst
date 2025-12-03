@@ -1,8 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useOnboardingProgress } from '@/lib/hooks/useOnboardingProgress';
 import { trackEvent } from '@/lib/amplitude/client';
+import { Loader2, CheckCircle, Sparkles, Rocket, Zap, Calendar } from 'lucide-react';
+import type { PersonalizedPlan, OnboardingData } from '@/lib/utils/planGenerator';
 
 interface PortfolioStepProps {
   onNext: () => void;
@@ -15,12 +18,22 @@ const PORTFOLIO_STATUS_OPTIONS = [
   { value: 'no_portfolio_not_interested', label: "No, and I'm not interested in creating one" },
 ] as const;
 
+const TRIAL_DAYS = 7;
+
 export const PortfolioStep = ({ onNext, onBack }: PortfolioStepProps) => {
-  const { progress, updateStep } = useOnboardingProgress();
+  const router = useRouter();
+  const { progress, updateStep, markComplete } = useOnboardingProgress();
   const [hasPortfolio, setHasPortfolio] = useState<string>('');
   const [wantsPortfolio, setWantsPortfolio] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showTooltip, setShowTooltip] = useState<boolean>(false);
+  
+  // Finish button states
+  const [isFinishing, setIsFinishing] = useState(false);
+  const [finishStep, setFinishStep] = useState<'idle' | 'saving' | 'generating' | 'creating_trial' | 'completing' | 'done'>('idle');
+  const [trialStartDate, setTrialStartDate] = useState<Date | null>(null);
+  const [trialEndDate, setTrialEndDate] = useState<Date | null>(null);
+  const [generatedPlan, setGeneratedPlan] = useState<PersonalizedPlan | null>(null);
 
   // Load saved data on mount
   useEffect(() => {
@@ -38,6 +51,15 @@ export const PortfolioStep = ({ onNext, onBack }: PortfolioStepProps) => {
       }
     }
   }, [progress]);
+
+  // Calculate trial dates
+  useEffect(() => {
+    const start = new Date();
+    const end = new Date();
+    end.setDate(end.getDate() + TRIAL_DAYS);
+    setTrialStartDate(start);
+    setTrialEndDate(end);
+  }, []);
 
   const canProceed = hasPortfolio !== '';
 
@@ -60,20 +82,52 @@ export const PortfolioStep = ({ onNext, onBack }: PortfolioStepProps) => {
     }
   };
 
-  const handleContinue = useCallback(async () => {
-    if (!canProceed || isSaving) return;
+  const formatDate = (date: Date): string => {
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
 
-    setIsSaving(true);
+  // Build onboarding data from progress
+  const buildOnboardingData = (): OnboardingData => {
+    const progressData = progress?.progress_data || {};
+    return {
+      personalInfo: progressData.personal_info,
+      goals: progressData.goals,
+      portfolio: {
+        hasPortfolio,
+        wantsPortfolio,
+      },
+    };
+  };
+
+  // Extract weekly goals from plan for saving
+  const extractWeeklyGoals = (plan: PersonalizedPlan) => {
+    return plan.weeklyGoals.actions.map((action) => ({
+      id: action.id,
+      label: action.label,
+      target: action.target || null,
+    }));
+  };
+
+  const handleFinish = useCallback(async () => {
+    if (!canProceed || isFinishing) return;
+
+    setIsFinishing(true);
+    setFinishStep('saving');
+
     try {
+      // Step 1: Save portfolio step data
       const stepData = {
         hasPortfolio,
         wantsPortfolio,
       };
-
-      // Save to database
       await updateStep('portfolio', stepData);
 
-      // Track Amplitude event
+      // Track step completion
       trackEvent('Onboarding Step Completed', {
         'Step': 'portfolio',
         'Step Name': 'Portfolio',
@@ -81,13 +135,209 @@ export const PortfolioStep = ({ onNext, onBack }: PortfolioStepProps) => {
         'Wants Portfolio': wantsPortfolio,
       });
 
-      onNext();
+      setFinishStep('generating');
+
+      // Step 2: Generate plan
+      const onboardingData = buildOnboardingData();
+      const planResponse = await fetch('/api/onboarding/generate-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ onboardingData }),
+      });
+
+      if (!planResponse.ok) {
+        const errorData = await planResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to generate plan');
+      }
+
+      const planData = await planResponse.json();
+      const plan = planData.plan as PersonalizedPlan;
+      setGeneratedPlan(plan);
+
+      setFinishStep('creating_trial');
+
+      // Step 3: Save plan and goals
+      const weeklyGoals = extractWeeklyGoals(plan);
+      const completeResponse = await fetch('/api/onboarding/complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plan,
+          confirmedGoals: weeklyGoals,
+        }),
+      });
+
+      if (!completeResponse.ok) {
+        const errorData = await completeResponse.json().catch(() => ({}));
+        console.error('Error completing onboarding:', errorData);
+        // Continue anyway - plan might have been saved
+      }
+
+      // Step 4: Create trial subscription (no payment method)
+      const trialResponse = await fetch('/api/stripe/create-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plan: 'accelerate',
+          billingCadence: 'yearly', // Default to yearly
+          trialPeriodDays: TRIAL_DAYS,
+          // No paymentMethodId - this creates a trial without payment method
+        }),
+      });
+
+      if (!trialResponse.ok) {
+        const errorData = await trialResponse.json().catch(() => ({}));
+        console.error('Error creating trial subscription:', errorData);
+        // Continue anyway - user can still access dashboard
+      }
+
+      setFinishStep('completing');
+
+      // Step 5: Mark onboarding as complete
+      await markComplete();
+
+      // Track completion
+      trackEvent('Onboarding Completed', {
+        'Page Route': '/onboarding',
+        'Final Step': 'portfolio',
+        'Has Portfolio': hasPortfolio,
+        'Wants Portfolio': wantsPortfolio,
+        'Trial Period Days': TRIAL_DAYS,
+        'Plan Generated': true,
+        'Trial Created': trialResponse.ok,
+      });
+
+      setFinishStep('done');
+
+      // Small delay to show success state, then redirect
+      setTimeout(() => {
+        router.push('/dashboard');
+        router.refresh();
+      }, 1500);
     } catch (error) {
-      console.error('Error saving portfolio info:', error);
-    } finally {
-      setIsSaving(false);
+      console.error('Error finishing onboarding:', error);
+      trackEvent('Onboarding Finish Error', {
+        'Page Route': '/onboarding',
+        'Step': 'portfolio',
+        'Error': error instanceof Error ? error.message : 'Unknown error',
+        'Finish Step': finishStep,
+      });
+      setIsFinishing(false);
+      setFinishStep('idle');
+      // Show error to user
+      alert('There was an error setting up your account. Please try again or contact support.');
     }
-  }, [canProceed, isSaving, hasPortfolio, wantsPortfolio, updateStep, onNext]);
+  }, [canProceed, isFinishing, hasPortfolio, wantsPortfolio, updateStep, markComplete, router, progress, finishStep]);
+
+  // Show loading/finishing state
+  if (isFinishing) {
+    return (
+      <div className="max-w-2xl mx-auto p-4 md:p-8">
+        <div className="mb-6 md:mb-8 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full mb-4">
+            {finishStep === 'done' ? (
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            ) : (
+              <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
+            )}
+          </div>
+          <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-3 md:mb-4">
+            {finishStep === 'done' ? 'All Set!' : 'Setting Up Your Account...'}
+          </h2>
+          <p className="text-base md:text-lg text-gray-700 font-semibold">
+            {finishStep === 'done' 
+              ? 'Redirecting you to your dashboard...'
+              : finishStep === 'saving'
+              ? 'Saving your information...'
+              : finishStep === 'generating'
+              ? 'Generating your personalized plan...'
+              : finishStep === 'creating_trial'
+              ? 'Creating your free trial...'
+              : finishStep === 'completing'
+              ? 'Finalizing setup...'
+              : 'Please wait...'}
+          </p>
+        </div>
+
+        {/* Trial Info Display */}
+        {trialStartDate && trialEndDate && finishStep !== 'idle' && (
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-6 md:p-8 mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Calendar className="w-6 h-6 text-purple-600" />
+              <h3 className="text-xl font-black text-gray-900">Your Free Trial</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="bg-white rounded-xl p-4 border-2 border-purple-200">
+                <p className="text-sm font-semibold text-gray-600 mb-1">Trial Period</p>
+                <p className="text-lg font-black text-gray-900">
+                  {formatDate(trialStartDate)} - {formatDate(trialEndDate)}
+                </p>
+              </div>
+              <div className="bg-white rounded-xl p-4 border-2 border-purple-200">
+                <p className="text-sm font-semibold text-gray-600 mb-2">What You Get:</p>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    Full access to all Accelerate features
+                  </li>
+                  <li className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    AI-powered resume analysis and optimization
+                  </li>
+                  <li className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    Company research and contact discovery
+                  </li>
+                  <li className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    Custom interview questions and practice
+                  </li>
+                  <li className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    Product Portfolio builder
+                  </li>
+                </ul>
+              </div>
+              <div className="flex items-center gap-2 p-3 bg-purple-100 rounded-xl">
+                <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0" />
+                <Rocket className="w-5 h-5 text-pink-600 flex-shrink-0" />
+                <Zap className="w-5 h-5 text-orange-600 flex-shrink-0" />
+                <p className="text-sm font-bold text-purple-900">
+                  No credit card required. Cancel anytime.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Progress indicator */}
+        {finishStep !== 'done' && (
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+              style={{
+                width: finishStep === 'saving' 
+                  ? '20%' 
+                  : finishStep === 'generating'
+                  ? '40%'
+                  : finishStep === 'creating_trial'
+                  ? '70%'
+                  : finishStep === 'completing'
+                  ? '90%'
+                  : '10%'
+              }}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-8">
@@ -166,11 +416,18 @@ export const PortfolioStep = ({ onNext, onBack }: PortfolioStepProps) => {
           onMouseLeave={() => setShowTooltip(false)}
         >
           <button
-            onClick={handleContinue}
-            disabled={!canProceed || isSaving}
+            onClick={handleFinish}
+            disabled={!canProceed || isFinishing}
             className="w-full sm:w-auto px-6 md:px-8 py-3 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm md:text-base"
           >
-            {isSaving ? 'Saving...' : 'Continue →'}
+            {isFinishing ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Setting Up...
+              </span>
+            ) : (
+              'Finish'
+            )}
           </button>
           {showTooltip && !canProceed && missingFields.length > 0 && (
             <div className="absolute bottom-full right-0 mb-2 px-4 py-3 bg-gray-900 text-white text-sm font-semibold rounded-lg shadow-xl z-50 min-w-[200px] sm:min-w-[250px]">
@@ -192,7 +449,8 @@ export const PortfolioStep = ({ onNext, onBack }: PortfolioStepProps) => {
         <div className="flex justify-start">
           <button
             onClick={onBack}
-            className="px-4 md:px-6 py-3 text-gray-600 font-bold hover:text-gray-800 transition-colors text-sm md:text-base"
+            disabled={isFinishing}
+            className="px-4 md:px-6 py-3 text-gray-600 font-bold hover:text-gray-800 transition-colors text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ← Back
           </button>

@@ -1,0 +1,7 @@
+{
+  "error": {
+    "message": "The Upcoming Invoice API does not support `billing_mode = flexible` subscriptions. To preview invoices for these subscriptions, use the Create Preview Invoice API instead.",
+    "request_log_url": "https://dashboard.stripe.com/test/logs/req_OsIvqHmzaSf4MW?t=1764736051",
+    "type": "invalid_request_error"
+  }
+}
