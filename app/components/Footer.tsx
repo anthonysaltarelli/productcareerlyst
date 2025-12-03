@@ -108,6 +108,22 @@ export const Footer = () => {
                   Testimonials
                 </NavLink>
               </li>
+              <li>
+                <TrackedLink
+                  href="/contact"
+                  className="text-gray-300 hover:text-purple-400 font-medium transition-colors duration-200"
+                  eventName="User Clicked Contact Link"
+                  linkId="footer-contact-link"
+                  eventProperties={{
+                    'Link Section': 'Footer',
+                    'Link Position': 'Quick Links section',
+                    'Link Type': 'Page Link',
+                    'Link Text': 'Contact',
+                  }}
+                >
+                  Contact
+                </TrackedLink>
+              </li>
             </ul>
           </div>
 

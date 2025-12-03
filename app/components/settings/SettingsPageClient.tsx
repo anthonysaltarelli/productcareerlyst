@@ -4,13 +4,14 @@ import { useState, useEffect, useRef } from 'react'
 import { ProfileInformation } from '@/app/components/settings/ProfileInformation'
 import { AccountInformation } from '@/app/components/settings/AccountInformation'
 import { LogOutSection } from '@/app/components/settings/LogOutSection'
+import { ContactUsSection } from '@/app/components/settings/ContactUsSection'
 import { TrackedButton } from '@/app/components/TrackedButton'
 import { trackEvent } from '@/lib/amplitude/client'
 import { getDashboardTrackingContext } from '@/lib/utils/dashboard-tracking-context'
 import type { DashboardStats } from '@/app/api/dashboard/stats/route'
 import { useFlags } from 'launchdarkly-react-client-sdk'
 
-type SettingsTab = 'profile' | 'account' | 'logout'
+type SettingsTab = 'profile' | 'account' | 'contact' | 'logout'
 
 interface Subscription {
   plan: 'learn' | 'accelerate' | null
@@ -36,6 +37,7 @@ export const SettingsPageClient = ({
   const [tabStartTime, setTabStartTime] = useState<Record<SettingsTab, number>>({
     profile: Date.now(),
     account: 0,
+    contact: 0,
     logout: 0,
   })
   const [tabsVisited, setTabsVisited] = useState<SettingsTab[]>(['profile'])
@@ -108,6 +110,9 @@ export const SettingsPageClient = ({
       const timeSpentOnAccount = tabStartTime.account > 0
         ? Math.floor((currentTime - tabStartTime.account) / 1000)
         : 0
+      const timeSpentOnContact = tabStartTime.contact > 0
+        ? Math.floor((currentTime - tabStartTime.contact) / 1000)
+        : 0
       const timeSpentOnLogout = tabStartTime.logout > 0
         ? Math.floor((currentTime - tabStartTime.logout) / 1000)
         : 0
@@ -126,6 +131,7 @@ export const SettingsPageClient = ({
         'Tabs Visited': tabsVisited,
         'Time Spent on Profile Tab': timeSpentOnProfile,
         'Time Spent on Account Tab': timeSpentOnAccount,
+        'Time Spent on Contact Tab': timeSpentOnContact,
         'Time Spent on Logout Tab': timeSpentOnLogout,
         'Tab Switches Count': tabSwitchesCount,
         'Profile Updated': profileUpdated,
@@ -139,6 +145,7 @@ export const SettingsPageClient = ({
   const tabs = [
     { id: 'profile' as SettingsTab, label: 'Profile Information', buttonId: 'settings-tab-profile-button' },
     { id: 'account' as SettingsTab, label: 'Account Information', buttonId: 'settings-tab-account-button' },
+    { id: 'contact' as SettingsTab, label: 'Contact Us', buttonId: 'settings-tab-contact-button' },
     { id: 'logout' as SettingsTab, label: 'Log Out', buttonId: 'settings-tab-logout-button' },
   ]
 
@@ -173,7 +180,7 @@ export const SettingsPageClient = ({
                   buttonId={tab.buttonId}
                   eventProperties={{
                     'Button Section': 'Settings Navigation',
-                    'Button Position': index === 0 ? 'First Tab Button' : index === 1 ? 'Second Tab Button' : 'Third Tab Button',
+                    'Button Position': index === 0 ? 'First Tab Button' : index === 1 ? 'Second Tab Button' : index === 2 ? 'Third Tab Button' : 'Fourth Tab Button',
                     'Button Text': tab.label,
                     'Button Type': 'Tab Navigation',
                     'Button Context': 'Horizontal carousel navigation',
@@ -211,7 +218,7 @@ export const SettingsPageClient = ({
                   buttonId={tab.buttonId}
                   eventProperties={{
                     'Button Section': 'Settings Navigation',
-                    'Button Position': index === 0 ? 'First Tab Button' : index === 1 ? 'Second Tab Button' : 'Third Tab Button',
+                    'Button Position': index === 0 ? 'First Tab Button' : index === 1 ? 'Second Tab Button' : index === 2 ? 'Third Tab Button' : 'Fourth Tab Button',
                     'Button Text': tab.label,
                     'Button Type': 'Tab Navigation',
                     'Button Context': 'Left sidebar navigation',
@@ -247,6 +254,9 @@ export const SettingsPageClient = ({
                   featureFlags={featureFlags}
                   onPasswordChanged={() => setPasswordChanged(true)}
                 />
+              )}
+              {activeTab === 'contact' && (
+                <ContactUsSection />
               )}
               {activeTab === 'logout' && (
                 <LogOutSection
