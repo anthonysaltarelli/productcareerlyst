@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 
@@ -31,7 +31,7 @@ const getNPSColor = (rating: number): string => {
   return 'text-green-600';
 };
 
-export default function FeedbackPage() {
+const FeedbackPageContent = () => {
   const searchParams = useSearchParams();
   const [rating, setRating] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<string>('');
@@ -265,6 +265,23 @@ export default function FeedbackPage() {
         </div>
       </div>
     </div>
+  );
+};
+
+export default function FeedbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-purple-600 mx-auto mb-4" />
+            <p className="text-gray-700 font-semibold">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <FeedbackPageContent />
+    </Suspense>
   );
 }
 
