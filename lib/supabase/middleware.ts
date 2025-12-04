@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getOnboardingRedirectPath } from '@/lib/utils/onboarding'
+import { checkAdminStatus } from '@/lib/utils/admin'
 
 export const updateSession = async (request: NextRequest) => {
   let supabaseResponse = NextResponse.next({
@@ -62,6 +63,25 @@ export const updateSession = async (request: NextRequest) => {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
     return NextResponse.redirect(url)
+  }
+
+  // Protect /admin routes - only admins can access
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (!user) {
+      // Redirect to login if not authenticated
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth/login'
+      return NextResponse.redirect(url)
+    }
+    
+    // Check if user is admin
+    const isAdmin = await checkAdminStatus(user.id)
+    if (!isAdmin) {
+      // Redirect non-admins to dashboard
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
