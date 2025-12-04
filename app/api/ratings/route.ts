@@ -42,7 +42,16 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      console.error('Error parsing request body:', e);
+      return NextResponse.json(
+        { error: 'Invalid request format' },
+        { status: 400 }
+      );
+    }
     const { rating, feedback, source, user_id: userIdParam } = body;
 
     // Validate rating
@@ -67,20 +76,25 @@ export async function POST(request: NextRequest) {
     let ratingData;
     let ratingError;
 
-    if (userId) {
-      // Check if rating already exists for this user
+    // If user is authenticated, we can check for existing rating and update
+    // If user is not authenticated but has userIdParam, we'll try to insert (RLS will handle uniqueness)
+    if (userId && user?.id) {
+      // Authenticated user - check if rating exists and update or insert
       const { data: existingRating, error: checkError } = await supabase
         .from('nps_ratings')
         .select('id')
         .eq('user_id', userId)
         .maybeSingle();
 
+      // Log check errors but don't fail - we'll try insert/update anyway
       if (checkError && checkError.code !== 'PGRST116') {
-        console.error('Error checking existing rating:', checkError);
-        return NextResponse.json(
-          { error: 'Failed to check existing rating' },
-          { status: 500 }
-        );
+        console.error('Error checking existing rating (non-fatal):', {
+          code: checkError.code,
+          message: checkError.message,
+          userId,
+          isAuthenticated: !!user,
+        });
+        // Continue to try insert - if it exists, we'll get a unique constraint error
       }
 
       if (existingRating) {
@@ -100,42 +114,71 @@ export async function POST(request: NextRequest) {
         ratingData = result.data;
         ratingError = result.error;
       } else {
-        // Insert new rating
-        const result = await supabase
-          .from('nps_ratings')
-          .insert({
-            user_id: userId,
-            rating: ratingNum,
-            feedback: feedback || null,
-            source: source || null,
-          })
-          .select()
-          .single();
+        // Insert new rating - use function to ensure it works
+        const { data: functionResult, error: functionError } = await supabase.rpc('insert_nps_rating', {
+          p_user_id: userId,
+          p_rating: ratingNum,
+          p_feedback: feedback || null,
+          p_source: source || null,
+        });
         
-        ratingData = result.data;
-        ratingError = result.error;
+        if (functionError) {
+          ratingError = functionError;
+        } else if (functionResult && functionResult.length > 0) {
+          ratingData = functionResult[0];
+          ratingError = null;
+        } else {
+          ratingError = { code: 'UNKNOWN', message: 'Function returned no data' };
+        }
+      }
+    } else if (userId && !user?.id) {
+      // Unauthenticated user with userIdParam - use function to bypass RLS
+      const { data: functionResult, error: functionError } = await supabase.rpc('insert_nps_rating', {
+        p_user_id: userId,
+        p_rating: ratingNum,
+        p_feedback: feedback || null,
+        p_source: source || null,
+      });
+      
+      if (functionError) {
+        ratingError = functionError;
+      } else if (functionResult && functionResult.length > 0) {
+        ratingData = functionResult[0];
+        ratingError = null;
+      } else {
+        // Function returned no rows (shouldn't happen, but handle it)
+        ratingError = { code: 'UNKNOWN', message: 'Function returned no data' };
       }
     } else {
-      // Insert new rating for unauthenticated users (always insert, no conflict)
-      const result = await supabase
-        .from('nps_ratings')
-        .insert({
-          user_id: null,
-          rating: ratingNum,
-          feedback: feedback || null,
-          source: source || null,
-        })
-        .select()
-        .single();
+      // No user_id - insert new rating for unauthenticated users
+      // Use function for consistency
+      const { data: functionResult, error: functionError } = await supabase.rpc('insert_nps_rating', {
+        p_user_id: null,
+        p_rating: ratingNum,
+        p_feedback: feedback || null,
+        p_source: source || null,
+      });
       
-      ratingData = result.data;
-      ratingError = result.error;
+      if (functionError) {
+        ratingError = functionError;
+      } else if (functionResult && functionResult.length > 0) {
+        ratingData = functionResult[0];
+        ratingError = null;
+      } else {
+        ratingError = { code: 'UNKNOWN', message: 'Function returned no data' };
+      }
     }
 
     if (ratingError) {
-      console.error('Error saving rating:', ratingError);
+      console.error('Error saving rating:', {
+        code: ratingError.code,
+        message: ratingError.message,
+        details: ratingError.details,
+        userId,
+        isAuthenticated: !!user,
+      });
       return NextResponse.json(
-        { error: 'Failed to save rating' },
+        { error: 'Unable to save your rating. Please try again.' },
         { status: 500 }
       );
     }

@@ -71,8 +71,27 @@ const FeedbackPageContent = () => {
             });
 
             if (!response.ok) {
-              const errorData = await response.json();
-              throw new Error(errorData.error || 'Failed to save rating');
+              // Log error but don't block the user - they can still submit the form
+              let errorData = {};
+              try {
+                const text = await response.text();
+                if (text) {
+                  errorData = JSON.parse(text);
+                }
+              } catch (e) {
+                // Response might not be JSON, that's okay
+                console.error('Error parsing error response:', e);
+              }
+              console.error('Error saving rating from URL params:', {
+                status: response.status,
+                statusText: response.statusText,
+                errorData,
+              });
+              // Set the rating from URL param anyway so user can see it and submit
+              setRating(ratingNum);
+              setInitialLoadComplete(true);
+              setIsLoading(false);
+              return;
             }
 
             const { rating: savedRating } = await response.json();
@@ -84,7 +103,7 @@ const FeedbackPageContent = () => {
           }
         }
 
-        // Otherwise, load existing rating
+        // Otherwise, load existing rating (only works if authenticated)
         const response = await fetch('/api/ratings');
         if (response.ok) {
           const { rating: existingRating } = await response.json();
@@ -95,8 +114,9 @@ const FeedbackPageContent = () => {
         }
         setInitialLoadComplete(true);
       } catch (err) {
+        // Log error but don't show it to user - allow them to use the form
         console.error('Error loading rating:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load rating');
+        // Don't set error state - just allow user to proceed
       } finally {
         setIsLoading(false);
       }
@@ -129,15 +149,26 @@ const FeedbackPageContent = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save rating');
+        let errorMessage = 'Unable to save your rating. Please try again.';
+        try {
+          const text = await response.text();
+          if (text) {
+            const errorData = JSON.parse(text);
+            errorMessage = errorData.error || errorMessage;
+          }
+        } catch (e) {
+          // Response might not be JSON, use default message
+          console.error('Error parsing error response:', e);
+        }
+        throw new Error(errorMessage);
       }
 
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 3000);
     } catch (err) {
       console.error('Error saving rating:', err);
-      setError(err instanceof Error ? err.message : 'Failed to save rating');
+      // Show user-friendly error message
+      setError('Unable to save your rating. Please try again.');
     } finally {
       setIsSaving(false);
     }
