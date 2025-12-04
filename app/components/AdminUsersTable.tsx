@@ -36,6 +36,8 @@ export const AdminUsersTable = () => {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedPlan, setSelectedPlan] = useState<string>('all')
+  const [selectedStatus, setSelectedStatus] = useState<string>('all')
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -83,11 +85,98 @@ export const AdminUsersTable = () => {
     )
   }
 
+  // Filter users based on selected filters
+  const filteredUsers = users.filter((user) => {
+    // Filter by plan
+    if (selectedPlan !== 'all') {
+      if (selectedPlan === 'none' && user.subscriptionPlan !== null) {
+        return false
+      }
+      if (selectedPlan !== 'none' && user.subscriptionPlan !== selectedPlan) {
+        return false
+      }
+    }
+
+    // Filter by status
+    if (selectedStatus !== 'all') {
+      if (selectedStatus === 'none' && user.subscriptionStatus !== null) {
+        return false
+      }
+      if (selectedStatus !== 'none' && user.subscriptionStatus !== selectedStatus) {
+        return false
+      }
+    }
+
+    return true
+  })
+
+  const hasActiveFilters = selectedPlan !== 'all' || selectedStatus !== 'all'
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-900">Recent Users</h2>
-        <p className="text-sm text-gray-600 mt-1">Last 100 users (excluding test accounts)</p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Recent Users</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              {hasActiveFilters
+                ? `Showing ${filteredUsers.length} of ${users.length} users`
+                : `Last 100 users (excluding test accounts)`
+              }
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label htmlFor="plan-filter" className="text-sm font-medium text-gray-700">
+              Plan:
+            </label>
+            <select
+              id="plan-filter"
+              value={selectedPlan}
+              onChange={(e) => setSelectedPlan(e.target.value)}
+              className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All</option>
+              <option value="learn">Learn</option>
+              <option value="accelerate">Accelerate</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="status-filter" className="text-sm font-medium text-gray-700">
+              Status:
+            </label>
+            <select
+              id="status-filter"
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="trialing">Trialing</option>
+              <option value="canceled">Canceled</option>
+              <option value="past_due">Past Due</option>
+              <option value="incomplete">Incomplete</option>
+              <option value="incomplete_expired">Incomplete Expired</option>
+              <option value="unpaid">Unpaid</option>
+              <option value="paused">Paused</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+          {(hasActiveFilters) && (
+            <button
+              onClick={() => {
+                setSelectedPlan('all')
+                setSelectedStatus('all')
+              }}
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       </div>
       
       <div className="overflow-x-auto">
@@ -124,14 +213,17 @@ export const AdminUsersTable = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {users.length === 0 ? (
+            {filteredUsers.length === 0 ? (
               <tr>
                 <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
-                  No users found
+                  {hasActiveFilters
+                    ? 'No users match the selected filters'
+                    : 'No users found'
+                  }
                 </td>
               </tr>
             ) : (
-              users.map((user) => (
+              filteredUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatDate(user.createdAt)}
@@ -170,8 +262,10 @@ export const AdminUsersTable = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing'
+                      user.subscriptionStatus === 'active'
                         ? 'bg-green-100 text-green-800'
+                        : user.subscriptionStatus === 'trialing'
+                        ? 'bg-yellow-100 text-yellow-800'
                         : user.subscriptionStatus === 'canceled'
                         ? 'bg-red-100 text-red-800'
                         : user.subscriptionStatus
