@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { checkAdminStatus } from '@/lib/utils/admin'
 import { AdminStats } from '@/app/components/AdminStats'
+import { AdminUsersTable } from '@/app/components/AdminUsersTable'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -27,7 +28,10 @@ export default async function AdminPage() {
         <p className="text-gray-600">System administration and analytics</p>
       </div>
 
-      <AdminStats />
+      <div className="space-y-8">
+        <AdminStats />
+        <AdminUsersTable />
+      </div>
     </div>
   )
 }
