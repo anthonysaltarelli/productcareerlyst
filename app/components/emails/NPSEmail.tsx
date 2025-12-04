@@ -15,17 +15,62 @@ export const NPSEmail = ({
   const feedbackUrl = `${baseUrl}/feedback?user_id=${userId}&source=email`;
 
   return (
-    <table
-      width="100%"
-      cellPadding="0"
-      cellSpacing="0"
-      style={{
-        fontFamily: 'system-ui, -apple-system, Arial, sans-serif',
-        backgroundColor: '#fef3e7',
-        margin: '0',
-        padding: '0',
-      }}
-    >
+    <>
+      <style>{`
+        .mobile-label-above,
+        .mobile-label-below {
+          display: none !important;
+        }
+        @media only screen and (max-width: 600px) {
+          .labels-container {
+            display: none !important;
+          }
+          .mobile-label-above {
+            display: block !important;
+            text-align: center !important;
+            font-size: 14px !important;
+            font-weight: 700 !important;
+            color: #374151 !important;
+            margin-bottom: 12px !important;
+          }
+          .mobile-label-below {
+            display: block !important;
+            text-align: center !important;
+            font-size: 14px !important;
+            font-weight: 700 !important;
+            color: #374151 !important;
+            margin-top: 4px !important;
+            margin-bottom: 20px !important;
+          }
+          .rating-buttons-table {
+            margin-bottom: 4px !important;
+          }
+          .rating-button-cell {
+            display: block !important;
+            width: 100% !important;
+            padding: 6px 0 !important;
+          }
+          .rating-button {
+            width: 100% !important;
+            padding: 14px !important;
+            box-sizing: border-box !important;
+          }
+          .call-to-action {
+            margin-top: 20px !important;
+          }
+        }
+      `}</style>
+      <table
+        width="100%"
+        cellPadding="0"
+        cellSpacing="0"
+        style={{
+          fontFamily: 'system-ui, -apple-system, Arial, sans-serif',
+          backgroundColor: '#fef3e7',
+          margin: '0',
+          padding: '0',
+        }}
+      >
       <tr>
         <td align="center" style={{ padding: '20px 0' }}>
           <table
@@ -43,7 +88,6 @@ export const NPSEmail = ({
             {/* Header with gradient background */}
             <tr>
               <td
-                bgcolor="#a855f7"
                 style={{
                   background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
                   backgroundColor: '#a855f7', // Fallback for clients that don't support gradients
@@ -89,7 +133,7 @@ export const NPSEmail = ({
                     margin: '0 0 24px 0',
                   }}
                 >
-                  Thank you for signing up for a Product Careerlyst account. We're excited to help you grow in your product career.
+                  Thank you for signing up for a Product Careerlyst account. We're excited you've given us the opportunity to help you grow in your product career.
                 </p>
 
                 {/* Question */}
@@ -104,8 +148,8 @@ export const NPSEmail = ({
                   Quick question: How likely are you to recommend us to a friend?
                 </p>
 
-                {/* Labels */}
-                <table width="100%" cellPadding="0" cellSpacing="0" style={{ marginBottom: '12px' }}>
+                {/* Labels - Desktop: horizontal, Mobile: hidden (replaced by mobile labels) */}
+                <table width="100%" cellPadding="0" cellSpacing="0" className="labels-container" style={{ marginBottom: '12px' }}>
                   <tr>
                     <td width="50%" style={{ padding: '0 4px' }}>
                       <span
@@ -132,11 +176,16 @@ export const NPSEmail = ({
                   </tr>
                 </table>
 
+                {/* Mobile label above buttons */}
+                <div className="mobile-label-above">Not likely</div>
+
                 {/* Rating buttons - using table for email compatibility */}
+                {/* Desktop: horizontal layout, Mobile: vertical stack via media queries */}
                 <table
                   width="100%"
-                  cellPadding="4"
+                  cellPadding="0"
                   cellSpacing="4"
+                  className="rating-buttons-table"
                   style={{ marginBottom: '20px' }}
                 >
                   <tr>
@@ -144,6 +193,7 @@ export const NPSEmail = ({
                       <td
                         key={i}
                         align="center"
+                        className="rating-button-cell"
                         style={{
                           width: `${100 / 11}%`,
                           padding: '4px',
@@ -151,6 +201,7 @@ export const NPSEmail = ({
                       >
                         <a
                           href={`${feedbackUrl}&rating=${i}`}
+                          className="rating-button"
                           style={{
                             display: 'block',
                             textAlign: 'center',
@@ -171,8 +222,12 @@ export const NPSEmail = ({
                   </tr>
                 </table>
 
+                {/* Mobile label below buttons */}
+                <div className="mobile-label-below">Very likely</div>
+
                 {/* Call to action text */}
                 <p
+                  className="call-to-action"
                   style={{
                     color: '#6b7280',
                     fontSize: '14px',
@@ -231,5 +286,6 @@ export const NPSEmail = ({
         </td>
       </tr>
     </table>
+    </>
   );
 };
