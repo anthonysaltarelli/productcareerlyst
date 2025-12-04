@@ -53,10 +53,14 @@ export const LogOutModal = ({
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const scrollPositionRef = useRef(0)
+  const isMountedRef = useRef(true)
 
   // Ensure we're on the client before using createPortal
   useEffect(() => {
     setMounted(true)
+    return () => {
+      isMountedRef.current = false
+    }
   }, [])
 
   // Handle body scroll lock when modal is open
@@ -65,26 +69,31 @@ export const LogOutModal = ({
       // Save current scroll position before locking
       scrollPositionRef.current = window.scrollY
       
-      // Lock body scroll
-      document.body.style.overflow = 'hidden'
-      document.body.style.position = 'fixed'
-      document.body.style.top = `-${scrollPositionRef.current}px`
-      document.body.style.left = '0'
-      document.body.style.right = '0'
-      document.body.style.width = '100%'
+      // Lock body scroll - check if body exists
+      if (typeof document !== 'undefined' && document.body) {
+        document.body.style.overflow = 'hidden'
+        document.body.style.position = 'fixed'
+        document.body.style.top = `-${scrollPositionRef.current}px`
+        document.body.style.left = '0'
+        document.body.style.right = '0'
+        document.body.style.width = '100%'
+      }
 
       return () => {
-        // Restore body scroll
-        document.body.style.overflow = ''
-        document.body.style.position = ''
-        document.body.style.top = ''
-        document.body.style.left = ''
-        document.body.style.right = ''
-        document.body.style.width = ''
-        
-        // Restore scroll position
-        if (scrollPositionRef.current > 0) {
-          window.scrollTo(0, scrollPositionRef.current)
+        // Only restore if component is still mounted and body exists
+        if (isMountedRef.current && typeof document !== 'undefined' && document.body) {
+          // Restore body scroll
+          document.body.style.overflow = ''
+          document.body.style.position = ''
+          document.body.style.top = ''
+          document.body.style.left = ''
+          document.body.style.right = ''
+          document.body.style.width = ''
+          
+          // Restore scroll position
+          if (scrollPositionRef.current > 0) {
+            window.scrollTo(0, scrollPositionRef.current)
+          }
         }
       }
     }
@@ -140,12 +149,21 @@ export const LogOutModal = ({
       // Close modal first to ensure cleanup
       onClose()
 
-      // Small delay to ensure modal cleanup completes before navigation
-      // This prevents React from trying to remove DOM nodes during navigation
-      setTimeout(() => {
-        router.push('/auth/login')
-        router.refresh()
-      }, 100)
+      // Mark as unmounting to prevent cleanup issues
+      isMountedRef.current = false
+
+      // Use requestAnimationFrame to ensure React has time to clean up the portal
+      // before navigation happens
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // Small delay to ensure modal cleanup completes before navigation
+          // This prevents React from trying to remove DOM nodes during navigation
+          setTimeout(() => {
+            router.push('/auth/login')
+            router.refresh()
+          }, 50)
+        })
+      })
     } catch (error) {
       console.error('Error logging out:', error)
       setLoading(false)
@@ -265,5 +283,10 @@ export const LogOutModal = ({
 
   // Use portal to render modal at document.body level
   // This ensures fixed positioning works correctly and prevents DOM manipulation errors during navigation
+  // Only render portal if body exists and component is mounted
+  if (!mounted || typeof document === 'undefined' || !document.body) {
+    return null
+  }
+
   return createPortal(modalContent, document.body)
 }

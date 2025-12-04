@@ -22,16 +22,16 @@ export default function Home() {
                 <div className="flex justify-center gap-4 mb-4 sm:mb-6 flex-wrap">
                   <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/80 backdrop-blur-sm border-2 border-purple-300 shadow-lg">
                     <span className="text-xs sm:text-sm font-bold text-purple-700">
-                      ✨ AI-Powered
+                      For Aspiring PMs and Growing PMs Alike
                     </span>
                   </div>
                 </div>
 
                 <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight text-center">
-                  Level Up Your Product Management Career
+                  Stand Out and Land the Product Manager Offer You Actually Want
                 </h2>
                 <p className="text-base sm:text-lg md:text-xl text-gray-700 font-semibold mb-6 sm:mb-8 text-center">
-                  Stop feeling stuck. Start crushing it.
+                  A complete suite of AI tools, courses, and resources to help you break into product or accelerate your path to Senior, Staff, and beyond.
                 </p>
 
                 {/* Outcome highlights */}
