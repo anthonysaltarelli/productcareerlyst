@@ -68,3 +68,4 @@ WHERE LOWER(u.email) NOT LIKE '%anth%'
   AND op.created_at >= NOW() - INTERVAL '7 days'
 ORDER BY op.created_at DESC;
 
+

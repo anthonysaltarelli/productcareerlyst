@@ -26,3 +26,4 @@ COMMENT ON COLUMN portfolios.work_experience IS 'JSON array of work experience e
 
 
 
+
