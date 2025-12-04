@@ -217,14 +217,14 @@ const FeedbackPageContent = () => {
 
           {/* NPS Scale */}
           <div className="mb-8">
-            {/* Labels above the scale */}
-            <div className="flex justify-between mb-2 px-1">
+            {/* Labels - centered on mobile, at edges on larger screens */}
+            <div className="flex justify-center sm:justify-between mb-2 px-1">
               <span className="text-sm font-bold text-gray-700">Not likely</span>
-              <span className="text-sm font-bold text-gray-700">Very likely</span>
+              <span className="hidden sm:block text-sm font-bold text-gray-700">Very likely</span>
             </div>
 
-            {/* Scale buttons - all on one row, no wrapping */}
-            <div className="flex gap-1.5 sm:gap-2 mb-4">
+            {/* Scale buttons - vertical on mobile, horizontal on larger screens */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-1.5 mb-2 sm:mb-4">
               {Array.from({ length: 11 }, (_, i) => (
                 <button
                   key={i}
@@ -234,7 +234,7 @@ const FeedbackPageContent = () => {
                     setIsSaved(false);
                   }}
                   className={`
-                    flex-1 py-3 px-2 sm:px-3 rounded-[1rem] border-2 font-black text-sm sm:text-base
+                    w-full sm:flex-1 py-3 px-2 sm:px-3 rounded-[1rem] border-2 font-black text-sm sm:text-base
                     transition-all duration-200 min-w-0
                     ${rating === i
                       ? 'bg-gradient-to-br from-purple-600 to-pink-600 text-white border-purple-600 shadow-[0_4px_0_0_rgba(147,51,234,0.5)] scale-105'
@@ -246,6 +246,11 @@ const FeedbackPageContent = () => {
                   {i}
                 </button>
               ))}
+            </div>
+
+            {/* "Very likely" label below stack on mobile, hidden on larger screens */}
+            <div className="flex justify-center sm:hidden mt-2">
+              <span className="text-sm font-bold text-gray-700">Very likely</span>
             </div>
           </div>
 
