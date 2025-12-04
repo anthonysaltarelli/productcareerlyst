@@ -36,7 +36,7 @@ export async function GET() {
       }
     );
 
-    // Get all users (no filtering - show all including test accounts)
+    // Get all users (will filter out test accounts below)
     const { data: allUsersData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
       page: 1,
       perPage: 1000, // Get more users for NPS page
@@ -52,13 +52,22 @@ export async function GET() {
 
     const allUsers = allUsersData?.users || [];
 
+    // Filter out test accounts
+    const filteredUsers = allUsers.filter((u) => {
+      const email = u.email?.toLowerCase() || '';
+      return (
+        !email.includes('anthsalt') &&
+        !email.includes('anth.saltarelli')
+      );
+    });
+
     // Sort by created_at descending (most recent first)
-    allUsers.sort((a, b) => {
+    filteredUsers.sort((a, b) => {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
 
     // Get user IDs
-    const userIds = allUsers.map((u) => u.id);
+    const userIds = filteredUsers.map((u) => u.id);
 
     // If no users, return empty array
     if (userIds.length === 0) {
@@ -91,7 +100,7 @@ export async function GET() {
     });
 
     // Combine data
-    const usersWithData = allUsers.map((user) => {
+    const usersWithData = filteredUsers.map((user) => {
       const profile = profileMap.get(user.id);
       const subscription = subscriptionMap.get(user.id);
 

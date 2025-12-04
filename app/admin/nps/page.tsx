@@ -79,7 +79,7 @@ export default function NPSPage() {
   const fetchEmailHistory = async (userId: string) => {
     try {
       const response = await fetch(`/api/admin/nps/email-history?userId=${userId}`);
-      
+    
       if (!response.ok) {
         throw new Error('Failed to fetch email history');
       }
@@ -128,7 +128,7 @@ export default function NPSPage() {
         type: 'success',
         text: `NPS email sent successfully to ${user.email}`,
       });
-
+      
       // Refresh email history for this user
       await fetchEmailHistory(user.id);
       
@@ -192,32 +192,32 @@ export default function NPSPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">NPS Email Management</h1>
         <p className="text-gray-600">Send NPS emails to users and track send history</p>
-      </div>
+            </div>
 
-      {/* Message Display */}
-      {message && (
-        <div
+            {/* Message Display */}
+            {message && (
+              <div
           className={`mb-6 p-4 rounded-lg border-2 flex items-center gap-3 ${
-            message.type === 'success'
-              ? 'bg-green-50 border-green-300 text-green-800'
-              : 'bg-red-50 border-red-300 text-red-800'
-          }`}
-        >
-          {message.type === 'success' ? (
-            <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
-          ) : (
-            <AlertCircle className="h-5 w-5 flex-shrink-0" />
-          )}
-          <p className="font-semibold">{message.text}</p>
-        </div>
-      )}
+                  message.type === 'success'
+                    ? 'bg-green-50 border-green-300 text-green-800'
+                    : 'bg-red-50 border-red-300 text-red-800'
+                }`}
+              >
+                {message.type === 'success' ? (
+                  <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                )}
+                <p className="font-semibold">{message.text}</p>
+              </div>
+            )}
 
       {/* Users Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">All Users</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Showing {users.length} users (including test accounts)
+            Showing {users.length} users
           </p>
         </div>
         
@@ -309,15 +309,15 @@ export default function NPSPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <div className="flex items-center gap-2">
-                            <button
+            <button
                               onClick={() => handleSendEmail(user)}
                               disabled={isSending}
                               className="px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs font-medium flex items-center gap-1"
-                            >
+            >
                               {isSending ? (
                                 <>
                                   <Loader2 className="w-3 h-3 animate-spin" />
-                                  Sending...
+                  Sending...
                                 </>
                               ) : (
                                 <>
@@ -397,10 +397,10 @@ export default function NPSPage() {
                                             {email.error_message ? (
                                               <span className="text-red-600 text-xs">
                                                 {email.error_message}
-                                              </span>
-                                            ) : (
+                </span>
+              ) : (
                                               '-'
-                                            )}
+              )}
                                           </td>
                                         </tr>
                                       ))}
@@ -419,18 +419,18 @@ export default function NPSPage() {
             </tbody>
           </table>
         </div>
-      </div>
+        </div>
 
-      {/* Info Box */}
-      <div className="mt-6 bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
-        <h3 className="font-semibold text-purple-900 mb-2">About NPS Emails</h3>
-        <ul className="text-sm text-purple-800 space-y-1 list-disc list-inside">
-          <li>Emails are sent from: Anthony from Product Careerlyst &lt;team@productcareerlyst.com&gt;</li>
-          <li>Subject line: "Thank you + one quick question"</li>
-          <li>Rating clicks will redirect to /feedback with source=email</li>
-          <li>If the user has a first name in their profile, it will be personalized</li>
+        {/* Info Box */}
+        <div className="mt-6 bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
+          <h3 className="font-semibold text-purple-900 mb-2">About NPS Emails</h3>
+          <ul className="text-sm text-purple-800 space-y-1 list-disc list-inside">
+            <li>Emails are sent from: Anthony from Product Careerlyst &lt;team@productcareerlyst.com&gt;</li>
+            <li>Subject line: "Thank you + one quick question"</li>
+            <li>Rating clicks will redirect to /feedback with source=email</li>
+            <li>If the user has a first name in their profile, it will be personalized</li>
           <li>All email sends are logged in the database with delivery status</li>
-        </ul>
+          </ul>
       </div>
     </div>
   );
