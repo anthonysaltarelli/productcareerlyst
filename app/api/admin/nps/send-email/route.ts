@@ -96,12 +96,44 @@ export async function POST(request: NextRequest) {
       html: emailHtml,
     });
 
+    // Log email send to database
     if (emailError) {
       console.error('Error sending NPS email:', emailError);
+      
+      // Log failed send
+      await supabaseAdmin
+        .from('nps_email_sends')
+        .insert({
+          user_id: userId,
+          email: email.trim(),
+          status: 'failed',
+          error_message: JSON.stringify(emailError),
+          sent_at: new Date().toISOString(),
+        })
+        .catch((err) => {
+          console.error('Error logging failed email send:', err);
+        });
+
       return NextResponse.json(
         { error: 'Failed to send email', details: emailError },
         { status: 500 }
       );
+    }
+
+    // Log successful send
+    const { error: logError } = await supabaseAdmin
+      .from('nps_email_sends')
+      .insert({
+        user_id: userId,
+        email: email.trim(),
+        resend_email_id: emailData?.id || null,
+        status: 'sent',
+        sent_at: new Date().toISOString(),
+      });
+
+    if (logError) {
+      console.error('Error logging email send:', logError);
+      // Don't fail the request if logging fails, but log the error
     }
 
     return NextResponse.json({
