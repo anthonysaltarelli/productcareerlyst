@@ -5,3 +5,4 @@ ALTER TABLE portfolio_pages ENABLE ROW LEVEL SECURITY;
 
 
 
+

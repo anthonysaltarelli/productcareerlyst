@@ -19,8 +19,9 @@ Build a comprehensive email outreach system leveraging Resend's scheduled email 
 - Examples: "trial_sequence", "onboarding_followup", "upgrade_welcome"
 
 - `email_flow_steps` - Individual emails within a sequence
-- Fields: id, flow_id, step_order, days_offset, template_id, template_version, subject_override, metadata (JSONB)
-- `days_offset`: Days from trigger event (0 = immediate, 1 = +1 day, etc.)
+- Fields: id, flow_id, step_order, days_offset, minutes_offset, template_id, template_version, subject_override, metadata (JSONB)
+- `days_offset`: Days from trigger event (0 = immediate, 1 = +1 day, etc.) - Used in production
+- `minutes_offset`: Minutes from trigger event (0 = immediate, 1 = +1 minute, etc.) - Used for testing
 
 - `scheduled_emails` - Track all scheduled emails
 - Fields: id, user_id, email_address, flow_id, flow_step_id, template_id, template_version, resend_email_id, resend_scheduled_id, status (pending/scheduled/sent/cancelled/failed), scheduled_at, sent_at, cancelled_at, metadata (JSONB), created_at, updated_at
@@ -64,8 +65,16 @@ Build a comprehensive email outreach system leveraging Resend's scheduled email 
 **Webhook Handler (`lib/email/webhooks.ts`)**
 
 - `handleResendWebhook()` - Process Resend webhook events
+- `verifyWebhookSignature()` - Verify webhook authenticity using Resend SDK
 - Update `scheduled_emails` status based on events
 - Log events to `email_events` table
+
+**Webhook Manager (`lib/email/webhook-manager.ts`)**
+
+- `createDevelopmentWebhook()` - Create webhook for local development using Resend MCP
+- `updateDevelopmentWebhook()` - Update webhook endpoint when ngrok URL changes
+- `deleteDevelopmentWebhook()` - Clean up development webhook
+- `getWebhookSecret()` - Retrieve webhook signing secret
 
 **Location:** `lib/email/` directory
 
@@ -98,14 +107,22 @@ Build a comprehensive email outreach system leveraging Resend's scheduled email 
 
 - `POST /api/email/webhook` - Resend webhook endpoint
 - Handle: email.sent, email.delivered, email.opened, email.clicked, email.bounced, email.complained
+- Verify webhook signature using Resend SDK
+- Use raw request body for signature verification
+
+**Webhook Management (Development):**
+
+- `POST /api/email/webhooks/setup-dev` - Create/update development webhook (uses Resend MCP)
+- `GET /api/email/webhooks/dev-status` - Get development webhook status
+- `DELETE /api/email/webhooks/dev` - Delete development webhook
 
 **Location:** `app/api/email/` directory
 
-### 4. Integration Points
+### 4. Integration Points (Phase 2 - Future)
 
 **User Event Triggers:**
 
-Create event listeners/hooks that trigger email flows:
+Create event listeners/hooks that trigger email flows (NOT in Phase 1):
 
 - `onUserSignsUp()` → Schedule OTP email (immediate)
 - `onUserConfirmsAccount()` → Schedule +1 day and +4 day follow-ups
@@ -117,10 +134,12 @@ Create event listeners/hooks that trigger email flows:
 
 **Location:**
 
-- Event handlers in `lib/email/triggers.ts`
-- Integration in existing API routes (signup, onboarding, subscription webhooks, etc.)
+- Event handlers in `lib/email/triggers.ts` (Phase 2)
+- Integration in existing API routes (signup, onboarding, subscription webhooks, etc.) (Phase 2)
 
-### 5. Admin Dashboard
+**Note:** Phase 1 focuses on dashboard testing only. Product integration happens in Phase 2.
+
+### 5. Admin Dashboard (Phase 1 - Testing Focus)
 
 **New Admin Page: `app/admin/emails/page.tsx`**
 
@@ -129,32 +148,46 @@ Create event listeners/hooks that trigger email flows:
 1. **Email Flows Visualization**
 
 - Visual flowchart showing all flows
-- Display: flow name, trigger event, cancel events, steps with days offset
+- Display: flow name, trigger event, cancel events, steps with time offset
+- Show both days_offset (production) and minutes_offset (testing) values
 - Color-coded by status (active/inactive)
+- **Manual Trigger Buttons**: Test trigger for each flow
+- **Test Mode Toggle**: Switch between minutes (testing) and days (production) mode
 
-2. **Scheduled Emails View**
+2. **Manual Flow Testing**
+
+- **Trigger Flow Button**: Manually trigger any flow for a selected user
+- **Cancel Flow Button**: Manually cancel a flow for a user (tests cancel triggers)
+- **User Selector**: Choose user to test with
+- **Flow Selector**: Choose which flow to test
+- **Test Mode Indicator**: Shows "Testing Mode: Minutes" or "Production Mode: Days"
+- When in test mode, all time offsets use minutes (1 day = 1 minute)
+
+3. **Scheduled Emails View**
 
 - Table: User, Email, Flow, Step, Template, Scheduled At, Status
 - Filters: User, Flow, Status, Date Range
 - Actions: Cancel individual, Cancel sequence, Cancel all for user
+- **Manual Cancel Buttons**: Test cancellation logic
 
-3. **Email History**
+4. **Email History**
 
 - Table: User, Email, Subject, Sent At, Delivered, Opened, Clicked, Status
 - Filters: User, Date Range, Status
 - Show delivery status from Resend webhooks
 
-4. **Template Management**
+5. **Template Management**
 
 - List all templates with versions
 - Edit templates (React Email components)
 - Activate/deactivate versions
 - A/B test configuration
 
-5. **Test Email Sender**
+6. **Test Email Sender**
 
 - Form: Select template, enter test email, send
 - Preview rendered HTML
+- Use Resend test addresses: `delivered@resend.dev`, `bounced@resend.dev`, etc.
 
 **Location:** `app/admin/emails/` directory
 
@@ -169,7 +202,9 @@ Create event listeners/hooks that trigger email flows:
 **Scheduling:**
 
 - Use `scheduledAt` parameter with ISO 8601 timestamps
-- Calculate timestamps: `triggerDate + daysOffset`
+- Calculate timestamps: 
+  - Production: `triggerDate + daysOffset`
+  - Testing: `triggerDate + minutesOffset` (1 day = 1 minute)
 - Store `resend_email_id` from response for cancellation
 
 **Cancellation:**
@@ -178,36 +213,52 @@ Create event listeners/hooks that trigger email flows:
 - Update `scheduled_emails.status = 'cancelled'`
 - Handle errors gracefully (email may already be sent)
 
+**Webhook Management (Using Resend MCP):**
+
+- Use Resend MCP to programmatically manage webhooks for local development
+- Create/update/delete webhooks via API during development
+- Store webhook IDs for easy management
+
 **Location:** `lib/email/resend-client.ts`
 
-### 7. Initial Email Flows Implementation
+### 7. Initial Email Flows Implementation (Phase 1 - Testing)
 
 **Priority 1: Trial Sequence**
 
 - Flow: `trial_sequence`
-- Trigger: `onboarding_completed`
-- Steps:
-- Day 0: Welcome to 7-day trial
-- Day 1: How to make the most of your trial
-- Day 2-5: Educational content (4 emails)
-- Day 6: Last day on trial
-- Day 7: Your trial ended
-- Day 14: Are you still interested?
-- Day 21: 50% discount
-- Day 28: 50% reminder + final email
-- Cancel triggers: `user_upgraded`, `subscription_created`
+- Trigger: `onboarding_completed` (manual in dashboard for Phase 1)
+- Steps (Production - days_offset):
+  - Day 0: Welcome to 7-day trial
+  - Day 1: How to make the most of your trial
+  - Day 2-5: Educational content (4 emails)
+  - Day 6: Last day on trial
+  - Day 7: Your trial ended
+  - Day 14: Are you still interested?
+  - Day 21: 50% discount
+  - Day 28: 50% reminder + final email
+- Steps (Testing - minutes_offset):
+  - Minute 0: Welcome to 7-day trial
+  - Minute 1: How to make the most of your trial
+  - Minutes 2-5: Educational content (4 emails)
+  - Minute 6: Last day on trial
+  - Minute 7: Your trial ended
+  - Minute 14: Are you still interested?
+  - Minute 21: 50% discount
+  - Minute 28: 50% reminder + final email
+- Cancel triggers: `user_upgraded`, `subscription_created` (manual in dashboard for Phase 1)
 
 **Priority 2: Single Emails**
 
-- OTP email (immediate on signup)
-- Account confirmation follow-ups (+1 day, +4 days)
-- Upgrade welcome email
-- NPS email (+14 days after upgrade)
+- OTP email (immediate on signup) - Manual trigger in dashboard
+- Account confirmation follow-ups (+1 day = +1 minute in test, +4 days = +4 minutes in test)
+- Upgrade welcome email - Manual trigger in dashboard
+- NPS email (+14 days = +14 minutes in test)
 
 **Location:**
 
 - Flow definitions: Database seed or migration
 - Templates: `app/components/emails/` (extend existing)
+- Both `days_offset` and `minutes_offset` stored in `email_flow_steps` table
 
 ### 8. Template System
 
@@ -236,30 +287,112 @@ Create event listeners/hooks that trigger email flows:
 
 ### 10. Testing & Development
 
+**Local Webhook Testing:**
+
+1. **Tunnel Setup:**
+   - Use ngrok or VS Code Port Forwarding to expose local server
+   - Example: `ngrok http 3000` → `https://example123.ngrok.io`
+   - Webhook endpoint: `https://example123.ngrok.io/api/email/webhook`
+
+2. **Webhook Management via Resend MCP:**
+   - Use Resend MCP to programmatically create/update webhooks
+   - Create development webhook pointing to ngrok URL
+   - Update webhook endpoint when ngrok URL changes
+   - Delete development webhook when done testing
+   - Store webhook ID for easy management
+
+3. **Webhook Verification:**
+   - Use `resend.webhooks.verify()` from Resend SDK
+   - Verify using Svix headers: `svix-id`, `svix-timestamp`, `svix-signature`
+   - Use raw request body (not parsed JSON) for verification
+   - Store `RESEND_WEBHOOK_SECRET` from webhook details page
+
+4. **Test Email Addresses:**
+   - Use Resend test addresses for safe testing:
+     - `delivered@resend.dev` - Simulates successful delivery
+     - `bounced@resend.dev` - Simulates hard bounce
+     - `complained@resend.dev` - Simulates spam complaint
+     - `delayed@resend.dev` - Simulates delivery delay
+   - Use labels: `delivered+signup@resend.dev` for tracking different flows
+
+5. **Webhook Event Testing:**
+   - Send test emails to test addresses
+   - Verify webhook events are received and processed
+   - Check `email_events` table for logged events
+   - Verify `scheduled_emails` status updates
+
 **Test Email Functionality:**
 
 - Admin interface to send test emails
 - Preview rendered templates
 - Test scheduling with short delays (e.g., "in 1 minute")
+- Use test email addresses for safe testing
 
 **Development Mode:**
 
 - Log all email operations to console
 - Option to disable actual sending in dev
 - Mock Resend responses for testing
+- Auto-create/update development webhook on server start
 
-## Implementation Order
+## Implementation Phases
+
+### Phase 1: Dashboard Testing (Initial Implementation)
+
+**Goal:** Build complete email system with manual testing in admin dashboard. Use minutes instead of days for rapid iteration.
 
 1. **Database Schema** - Create all tables and migrations
+   - Add `minutes_offset` field to `email_flow_steps` for testing
+   - Keep `days_offset` for production use later
+
 2. **Core Services** - Email, Template, Flow services
+   - Support both minutes_offset (testing) and days_offset (production)
+   - Time offset selection based on test mode flag
+
 3. **Resend Integration** - Client wrapper, scheduling, cancellation
+   - Support both minutes and days for scheduling
+
 4. **Webhook Handler** - Process Resend events
-5. **API Routes** - Email management endpoints
-6. **Event Triggers** - Integrate with user events
-7. **Admin Dashboard** - Visualization and management UI
+   - Webhook verification using Resend SDK
+   - Local webhook testing setup with ngrok
+
+5. **Webhook Management** - Use Resend MCP for local development
+   - Create/update/delete webhooks programmatically
+   - Auto-configure development webhook on server start
+   - Store webhook configuration
+
+6. **API Routes** - Email management endpoints
+   - Manual trigger endpoints for testing
+   - Test mode parameter support
+
+7. **Admin Dashboard** - Testing-focused UI
+   - Manual trigger buttons for each flow
+   - Test mode toggle (minutes vs days)
+   - Visual flow diagram with test controls
+   - Schedule/cancel testing interface
+   - Webhook status indicator
+
 8. **Initial Flows** - Trial sequence + key single emails
+   - Configure with minutes_offset for testing (e.g., +1 day = +1 minute)
+   - Store both days_offset and minutes_offset in database
+
 9. **Template System** - Create initial templates
-10. **Testing** - Test email functionality
+
+10. **Testing Infrastructure** - Complete test email functionality
+    - Test email sender with Resend test addresses
+    - Webhook event testing and verification
+
+### Phase 2: Product Integration (Future)
+
+**Goal:** Integrate email triggers into actual user events in the product.
+
+1. **Event Triggers** - Integrate with user events
+   - Connect to signup, onboarding, upgrade, etc.
+   - Switch from minutes_offset to days_offset
+
+2. **Production Flows** - Update flows to use days_offset
+
+3. **Monitoring** - Production monitoring and alerting
 
 ## Files to Create/Modify
 
@@ -290,27 +423,38 @@ Create event listeners/hooks that trigger email flows:
 - `app/components/emails/UpgradeWelcomeEmail.tsx`
 - `app/components/emails/OTPEmail.tsx` (if not exists)
 
-**Modified Files:**
+**Modified Files (Phase 2):**
 
-- `app/api/auth/signup/route.ts` (or wherever signup happens) - Add OTP email trigger
-- `app/api/onboarding/complete/route.ts` (or similar) - Add trial sequence trigger
-- `app/api/stripe/webhook/route.ts` - Add upgrade welcome email trigger
+- `app/api/auth/signup/route.ts` (or wherever signup happens) - Add OTP email trigger (Phase 2)
+- `app/api/onboarding/complete/route.ts` (or similar) - Add trial sequence trigger (Phase 2)
+- `app/api/stripe/webhook/route.ts` - Add upgrade welcome email trigger (Phase 2)
 - Existing email components - Ensure they follow template pattern
 
 ## Environment Variables
 
 - `RESEND_API_KEY` (already exists)
-- `RESEND_WEBHOOK_SECRET` (new - for webhook verification)
+- `RESEND_WEBHOOK_SECRET` (new - for webhook verification, get from Resend dashboard)
 - `RESEND_FROM_EMAIL` (already exists)
+- `NGROK_URL` (optional - for local development webhook testing)
+- `NODE_ENV` - Use to determine test vs production mode
 
 ## Success Criteria
 
-- Can schedule single emails and sequences
-- Can cancel individual emails, sequences, or all user emails
-- Webhooks update email status in real-time
+**Phase 1 (Dashboard Testing):**
+- Can schedule single emails and sequences from admin dashboard
+- Can cancel individual emails, sequences, or all user emails from dashboard
+- Manual trigger buttons work for all flows
+- Test mode (minutes) works correctly (1 day = 1 minute)
+- Webhooks update email status in real-time during local testing
 - Admin can view all scheduled emails and history
 - Templates are versioned and editable
-- Trial sequence triggers on onboarding completion
-- Cancellation logic works when user upgrades
 - Test emails can be sent from admin interface
 - Visual flow diagram shows all email sequences
+- Local webhook testing works with ngrok
+- Resend MCP can manage webhooks programmatically
+
+**Phase 2 (Product Integration):**
+- Trial sequence triggers automatically on onboarding completion
+- Cancellation logic works when user upgrades
+- All flows use days_offset in production
+- Production webhooks configured and verified

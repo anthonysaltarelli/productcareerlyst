@@ -41,3 +41,4 @@ COMMENT ON COLUMN portfolios.social_links IS 'JSON object containing social medi
 
 
 
+
