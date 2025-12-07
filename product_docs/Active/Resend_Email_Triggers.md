@@ -8,7 +8,7 @@ Build a comprehensive email outreach system leveraging Resend's scheduled email 
 
 - **Email Preferences & Unsubscribe**: Full compliance with CAN-SPAM/GDPR
   - Transactional vs Marketing email classification
-  - Unsubscribe pages (unauthenticated) and Settings integration
+  - Unsubscribe pages (unauthenticated) and Settings page integration (authenticated)
   - Topic-level email preferences
   - Automatic cancellation of scheduled marketing emails on unsubscribe
 - **ConvertKit Integration**: Two-way sync for newsletter
@@ -610,69 +610,450 @@ Create event listeners/hooks that trigger email flows (NOT in Phase 1):
 - Mock Resend responses for testing
 - Auto-create/update development webhook on server start
 
+## Implementation Plan
+
+### Milestone Overview
+
+This implementation plan breaks down the email system into 12 testable milestones. Each milestone includes:
+- ✅ Checkbox to track completion
+- Clear deliverables
+- Step-by-step testing instructions
+- Dependencies on previous milestones
+
+**Important:** Work through milestones sequentially. Only check off a milestone after you've completed all testing steps and confirmed functionality works correctly.
+
+---
+
+### Milestone 1: Database Schema & Migrations
+**Status:** ⬜ Not Started
+
+**Deliverables:**
+- Create SQL migration file: `sql_migrations/email_system/001_create_tables.sql`
+- All 8 tables with proper indexes and constraints:
+  - `email_templates`
+  - `email_flows`
+  - `email_flow_steps`
+  - `scheduled_emails` (with all required fields: is_test, flow_trigger_id, idempotency_key, etc.)
+  - `email_events`
+  - `email_template_versions`
+  - `user_email_preferences`
+  - `email_suppressions`
+  - `email_unsubscribe_tokens`
+- Unique constraints on idempotency_key, flow_trigger_id combinations
+- All indexes as specified in architecture
+
+**Testing Steps:**
+1. Run migration against your database
+2. Verify all tables exist: `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE 'email%';`
+3. Check indexes exist: `SELECT indexname FROM pg_indexes WHERE tablename LIKE 'email%';`
+4. Verify constraints: Check for unique constraint on `scheduled_emails.idempotency_key`
+5. Test insert into each table with sample data to ensure schema is correct
+6. Verify JSONB fields accept valid JSON
+
+**Dependencies:** None
+
+---
+
+### Milestone 2: Resend Client Integration
+**Status:** ⬜ Not Started
+
+**Deliverables:**
+- Create `lib/email/resend-client.ts`
+- Functions: `scheduleEmail()`, `cancelEmail()`, `sendEmail()` (immediate)
+- Handle Resend API errors gracefully
+- Support `scheduledAt` parameter with ISO 8601 timestamps
+- Store `resend_email_id` from responses
+- Environment variable validation (`RESEND_API_KEY`, `RESEND_FROM_EMAIL`)
+
+**Testing Steps:**
+1. Create test file: `scripts/test-resend-client.ts`
+2. Test immediate email send: Call `sendEmail()` with test recipient
+3. Verify email arrives in inbox
+4. Test scheduled email: Call `scheduleEmail()` with `scheduledAt` 2 minutes in future
+5. Verify email scheduled in Resend dashboard
+6. Test cancellation: Call `cancelEmail()` with `resend_email_id`
+7. Verify email cancelled in Resend dashboard
+8. Test error handling: Try sending with invalid API key (should handle gracefully)
+
+**Dependencies:** Milestone 1 (database tables exist)
+
+---
+
+### Milestone 3: Template System (Basic)
+**Status:** ⬜ Not Started
+
+**Deliverables:**
+- Create `lib/email/templates.ts`
+- Functions: `getTemplate()`, `renderTemplate()`, `createTemplateVersion()`
+- Create at least 2 React Email components:
+  - `app/components/emails/TrialWelcomeEmail.tsx`
+  - `app/components/emails/OTPEmail.tsx`
+- Template rendering with `@react-email/render`
+- Support for dynamic variables ({{firstName}}, {{userId}}, etc.)
+- Store templates in `email_templates` table
+
+**Testing Steps:**
+1. Create template via SQL or API: Insert into `email_templates` table
+2. Test `getTemplate()`: Retrieve template by ID
+3. Test `renderTemplate()`: Render React Email component to HTML
+4. Verify HTML output is valid and includes all dynamic variables
+5. Test template versioning: Create new version, verify `version` increments
+6. Test template with sample data: Render with `{ firstName: "Test", userId: "123" }`
+7. Verify unsubscribe link placeholder works: `{{unsubscribe_url}}` in marketing templates
+
+**Dependencies:** Milestone 1 (database schema)
+
+---
+
+### Milestone 4: Email Service (Basic Scheduling)
+**Status:** ⬜ Not Started
+
+**Deliverables:**
+- Create `lib/email/service.ts`
+- Functions: `scheduleEmail()`, `cancelEmail()`, `getScheduledEmailsForUser()`
+- Idempotency key checking (prevent duplicate sends)
+- Database transaction support
+- Store scheduled emails in `scheduled_emails` table
+- Status tracking: pending → scheduled → sent
+- Integration with Resend client
+
+**Testing Steps:**
+1. Test single email scheduling:
+   - Call `scheduleEmail()` with test user and template
+   - Verify record created in `scheduled_emails` table
+   - Verify `resend_email_id` stored
+   - Check status is 'scheduled'
+2. Test idempotency:
+   - Call `scheduleEmail()` twice with same `idempotency_key`
+   - Verify only one email scheduled (second call returns existing)
+3. Test cancellation:
+   - Schedule email, then call `cancelEmail()`
+   - Verify status updated to 'cancelled' in database
+   - Verify email cancelled in Resend
+4. Test `getScheduledEmailsForUser()`:
+   - Schedule multiple emails for user
+   - Retrieve list, verify all emails returned
+5. Test database transaction: Schedule email, verify atomicity
+
+**Dependencies:** Milestone 1, 2, 3
+
+---
+
+### Milestone 5: Flow System
+**Status:** ⬜ Not Started
+
+**Deliverables:**
+- Create `lib/email/flows.ts`
+- Functions: `getFlowByTrigger()`, `getFlowSteps()`, `shouldCancelFlow()`
+- Create `lib/email/service.ts` function: `scheduleSequence()`
+- Support for `time_offset_minutes` field
+- Test mode multiplier logic (1 minute = 1 day for testing)
+- Flow trigger ID generation (prevent duplicate flow triggers)
+- Transaction-based sequence scheduling
+
+**Testing Steps:**
+1. Seed database with trial sequence flow:
+   - Insert into `email_flows`: `trial_sequence` flow
+   - Insert into `email_flow_steps`: 8 steps with time_offset_minutes (0, 1, 2, 3, 4, 5, 6, 7 for testing)
+2. Test `getFlowByTrigger()`: Retrieve flow by trigger event name
+3. Test `getFlowSteps()`: Get all steps for a flow, verify order
+4. Test `scheduleSequence()`:
+   - Trigger trial sequence for test user
+   - Verify all 8 emails scheduled in database
+   - Verify `flow_trigger_id` prevents duplicates (try triggering twice)
+   - Check `scheduled_at` times are correct (0, 1, 2, 3, 4, 5, 6, 7 minutes from now)
+5. Test cancellation: `cancelSequence()` cancels all remaining emails
+6. Test `shouldCancelFlow()`: Check if flow should cancel based on user events
+
+**Dependencies:** Milestone 1, 2, 3, 4
+
+---
+
+### Milestone 6: Webhook Handler (Basic)
+**Status:** ⬜ Not Started
+
+**Deliverables:**
+- Create `lib/email/webhooks.ts`
+- Create `app/api/email/webhook/route.ts`
+- Functions: `handleResendWebhook()`, `verifyWebhookSignature()`
+- Process events: `email.sent`, `email.delivered`
+- Update `scheduled_emails.status` based on events
+- Log events to `email_events` table
+- Webhook signature verification using Resend SDK
+- Idempotent processing (prevent duplicate event processing)
+
+**Testing Steps:**
+1. Set up ngrok tunnel: `ngrok http 3000`
+2. Configure webhook in Resend dashboard pointing to ngrok URL
+3. Get webhook secret from Resend, set `RESEND_WEBHOOK_SECRET` env var
+4. Send test email via Resend API
+5. Verify webhook received: Check server logs for webhook request
+6. Verify signature verification: Test with invalid signature (should reject)
+7. Verify event processing:
+   - Check `email_events` table has new record
+   - Check `scheduled_emails.status` updated to 'sent' or 'delivered'
+8. Test idempotency: Send same webhook twice, verify only processed once
+9. Test with email not in database: Webhook for email sent outside system (should handle gracefully)
+
+**Dependencies:** Milestone 1, 2, 4
+
+---
+
+### Milestone 7: API Routes (Basic)
+**Status:** ⬜ Not Started
+
+**Deliverables:**
+- Create `app/api/email/schedule/route.ts` (POST)
+- Create `app/api/email/cancel/route.ts` (POST)
+- Create `app/api/email/scheduled/[userId]/route.ts` (GET)
+- Create `app/api/email/test/route.ts` (POST - admin only)
+- Admin authentication checks
+- Idempotency key validation
+- Test mode support (`is_test` flag)
+
+**Testing Steps:**
+1. Test `POST /api/email/schedule`:
+   - Send request with `flowId`, `userId`, `idempotencyKey`
+   - Verify 200 response
+   - Check database for scheduled emails
+2. Test `POST /api/email/cancel`:
+   - Schedule email, then cancel via API
+   - Verify status updated in database
+3. Test `GET /api/email/scheduled/:userId`:
+   - Schedule emails for user
+   - Retrieve via API, verify all returned
+4. Test `POST /api/email/test`:
+   - Send test email with template ID
+   - Verify email arrives
+   - Check `is_test` flag set in database
+5. Test admin-only access: Try accessing without admin auth (should fail)
+6. Test idempotency: Send same request twice, verify no duplicates
+
+**Dependencies:** Milestone 1, 2, 3, 4, 5
+
+---
+
+### Milestone 8: Admin Dashboard (Basic - Test Email Sender)
+**Status:** ⬜ Not Started
+
+**Deliverables:**
+- Create `app/admin/emails/page.tsx` (basic structure)
+- Test Email Sender section:
+  - Template selector dropdown
+  - Test email input field (default: `anthsalt+<template>@gmail.com`)
+  - Resend test addresses dropdown
+  - Recipient display (prominently shown)
+  - Send button
+  - Preview rendered HTML
+- Admin authentication check
+- Integration with `/api/email/test` endpoint
+
+**Testing Steps:**
+1. Navigate to `/admin/emails` (must be logged in as admin)
+2. Verify Test Email Sender section visible
+3. Test default email generation:
+   - Select template
+   - Verify default email shows: `anthsalt+<template-name>@gmail.com`
+4. Test manual email override:
+   - Enter custom email address
+   - Verify recipient display updates in real-time
+5. Test Resend test addresses:
+   - Select `delivered@resend.dev` from dropdown
+   - Verify recipient display shows selected address
+6. Test email sending:
+   - Select template and recipient
+   - Click send
+   - Verify confirmation dialog shows recipient email
+   - Confirm send
+   - Verify email arrives
+7. Test preview: Click preview button, verify HTML renders correctly
+
+**Dependencies:** Milestone 3, 7
+
+---
+
+### Milestone 9: Email Preferences & Unsubscribe System
+**Status:** ⬜ Not Started
+
+**Deliverables:**
+- Create `lib/email/preferences.ts`
+- Functions: `getUserEmailPreferences()`, `unsubscribeUser()`, `checkCanSendEmail()`, `cancelScheduledMarketingEmails()`
+- Create `app/api/email/preferences/route.ts` (GET, PATCH)
+- Create `app/api/email/unsubscribe/[token]/route.ts` (GET, POST)
+- Create `app/unsubscribe/[token]/page.tsx`
+- Token generation and validation
+- Unsubscribe link in marketing emails
+- Automatic cancellation of scheduled marketing emails on unsubscribe
+
+**Testing Steps:**
+1. Test preference creation:
+   - User signs up, verify `user_email_preferences` record created
+   - Check `marketing_emails_enabled` defaults to `true`
+2. Test `checkCanSendEmail()`:
+   - User with preferences enabled: Should return `true`
+   - User unsubscribed: Should return `false`
+   - Email in suppressions: Should return `false`
+3. Test unsubscribe via token:
+   - Generate unsubscribe token for user
+   - Visit `/unsubscribe/:token` page
+   - Verify page loads (unauthenticated)
+   - Click unsubscribe button
+   - Verify `marketing_emails_enabled = false` in database
+   - Verify `unsubscribed_at` timestamp set
+4. Test scheduled email cancellation on unsubscribe:
+   - Schedule 3 marketing emails for user
+   - Unsubscribe user
+   - Verify all 3 emails cancelled in database (status = 'cancelled')
+   - Verify emails cancelled in Resend
+   - Verify transactional emails NOT cancelled
+5. Test unsubscribe page UI:
+   - Verify unsubscribe confirmation message
+   - Verify resubscribe button works
+   - Test topic-level preferences (if implemented)
+
+**Dependencies:** Milestone 1, 4, 5
+
+---
+
+### Milestone 10: ConvertKit Integration
+**Status:** ⬜ Not Started
+
+**Deliverables:**
+- Create `lib/email/convertkit-sync.ts`
+- Functions: `syncToConvertKit()`, `syncFromConvertKit()`, `handleConvertKitWebhook()`
+- Create `app/api/email/convertkit-webhook/route.ts`
+- Newsletter preference sync (Form ID: 7348426)
+- Two-way sync: App ↔ ConvertKit
+- Store `convertkit_subscriber_id` in preferences
+
+**Testing Steps:**
+1. Test App → ConvertKit sync:
+   - User enables newsletter preference in app
+   - Verify user subscribed to ConvertKit form 7348426
+   - Check `convertkit_subscriber_id` stored in database
+   - User disables newsletter: Verify unsubscribed from ConvertKit
+2. Test ConvertKit → App sync:
+   - Set up ConvertKit webhook pointing to `/api/email/convertkit-webhook`
+   - Unsubscribe user in ConvertKit dashboard
+   - Verify webhook received
+   - Check app preferences updated (`marketing_emails_enabled = false`)
+   - Verify scheduled marketing emails cancelled
+3. Test bounce/complaint handling:
+   - Simulate bounce in ConvertKit
+   - Verify webhook received
+   - Check `email_suppressions` table has new record
+   - Verify email address suppressed
+
+**Dependencies:** Milestone 1, 9
+
+---
+
+### Milestone 11: Complete Admin Dashboard
+**Status:** ⬜ Not Started
+
+**Deliverables:**
+- Complete `app/admin/emails/page.tsx` with all sections:
+  1. Email Flows Visualization (flowchart)
+  2. Manual Flow Testing (trigger/cancel buttons)
+  3. Scheduled Emails View (table with filters)
+  4. Email History (table with delivery status)
+  5. Template Management (list, edit, versions)
+  6. Test Email Sender (from Milestone 8)
+- Test mode toggle (minutes vs days)
+- User selector for testing
+- Flow selector
+- Recipient display for all actions
+- Visual flow diagram
+
+**Testing Steps:**
+1. Test Email Flows Visualization:
+   - Verify all flows displayed
+   - Check trigger events and cancel events shown
+   - Verify time offsets displayed (both minutes and days)
+   - Test mode toggle: Switch between minutes/days, verify display updates
+2. Test Manual Flow Testing:
+   - Select user from dropdown
+   - Select flow from dropdown
+   - Verify recipient email displayed: "All emails will be sent to: [email]"
+   - Click "Trigger Flow" button
+   - Verify confirmation dialog shows recipient
+   - Confirm trigger
+   - Verify all flow steps scheduled in database
+   - Check emails arrive at correct times (in test mode: minutes)
+3. Test Scheduled Emails View:
+   - Verify table shows all scheduled emails
+   - Test filters: Filter by user, flow, status
+   - Test cancel actions: Cancel individual, cancel sequence, cancel all
+   - Verify status updates in real-time
+4. Test Email History:
+   - Send test emails
+   - Verify history table shows sent emails
+   - Check delivery status from webhooks (delivered, opened, clicked)
+   - Test date range filter
+5. Test Template Management:
+   - List all templates
+   - Create new template version
+   - Activate version
+   - Verify version locking: Scheduled emails use old version
+
+**Dependencies:** Milestone 1, 2, 3, 4, 5, 6, 7, 8
+
+---
+
+### Milestone 12: Production Readiness & Testing
+**Status:** ⬜ Not Started
+
+**Deliverables:**
+- Settings page integration: `app/dashboard/settings/notifications/page.tsx`
+- Webhook management: `lib/email/webhook-manager.ts` (Resend MCP integration)
+- Error handling improvements (retry logic, dead letter queue)
+- Production webhook configuration
+- Test mode safeguards (block non-test emails in production)
+- Complete test coverage of all flows
+- Documentation updates
+
+**Testing Steps:**
+1. Test Settings Page Integration:
+   - Navigate to `/dashboard/settings/notifications`
+   - Verify email preferences section visible
+   - Test global marketing toggle
+   - Test topic-level preferences
+   - Verify changes sync to database immediately
+   - Test newsletter preference syncs to ConvertKit
+2. Test Webhook Management (Development):
+   - Use Resend MCP to create development webhook
+   - Update webhook endpoint when ngrok URL changes
+   - Verify webhook status endpoint works
+   - Test webhook deletion
+3. Test Production Safeguards:
+   - Set `NODE_ENV=production`
+   - Try sending test email to non-test address (should be blocked)
+   - Verify `is_test` flag required for test operations
+4. Test All Email Flows End-to-End:
+   - Trial sequence: Trigger, verify all 8 emails sent
+   - Test cancellation: Trigger flow, then cancel, verify emails cancelled
+   - Test unsubscribe: Trigger flow, unsubscribe user, verify emails cancelled
+5. Test Error Scenarios:
+   - Resend API failure (should handle gracefully)
+   - Database connection failure
+   - Invalid webhook signature
+   - Duplicate idempotency keys
+6. Production Webhook Setup:
+   - Configure production webhook in Resend dashboard
+   - Verify webhook secret stored securely
+   - Test webhook receives events in production
+
+**Dependencies:** All previous milestones
+
+---
+
 ## Implementation Phases
 
 ### Phase 1: Dashboard Testing (Initial Implementation)
 
 **Goal:** Build complete email system with manual testing in admin dashboard. Use minutes instead of days for rapid iteration.
 
-1. **Database Schema** - Create all tables and migrations
-   - Single `time_offset_minutes` field (not separate days/minutes)
-   - Add email preferences and suppressions tables
-   - Add unsubscribe tokens table
-   - Add all missing fields to `scheduled_emails` (is_test, flow_trigger_id, etc.)
-
-2. **Core Services** - Email, Template, Flow services
-   - Single `time_offset_minutes` field with test mode multiplier
-   - Email preferences service
-   - ConvertKit sync service
-   - Pre-send checks (preferences + suppressions)
-   - Idempotency key handling
-   - Transaction-based sequence scheduling
-
-3. **Resend Integration** - Client wrapper, scheduling, cancellation
-   - Support both minutes and days for scheduling
-
-4. **Webhook Handler** - Process Resend events
-   - Webhook verification using Resend SDK
-   - Local webhook testing setup with ngrok
-
-5. **Webhook Management** - Use Resend MCP for local development
-   - Create/update/delete webhooks programmatically
-   - Auto-configure development webhook on server start
-   - Store webhook configuration
-
-6. **API Routes** - Email management endpoints
-   - Manual trigger endpoints for testing
-   - Test mode parameter support
-
-7. **Admin Dashboard** - Testing-focused UI
-   - Manual trigger buttons for each flow
-   - Test mode toggle (minutes vs days)
-   - Visual flow diagram with test controls
-   - Schedule/cancel testing interface
-   - Webhook status indicator
-
-8. **Initial Flows** - Trial sequence + key single emails
-   - Configure with time_offset_minutes (use test multiplier for testing)
-   - Mark email_type (transactional vs marketing) for each step
-   - Include unsubscribe links in marketing emails
-
-9. **Template System** - Create initial templates
-
-10. **Testing Infrastructure** - Complete test email functionality
-    - Test email sender with Resend test addresses
-    - Webhook event testing and verification
-
-11. **Unsubscribe System** - Unsubscribe pages and preferences
-    - Unsubscribe page (unauthenticated)
-    - Settings page integration
-    - Token generation and validation
-
-12. **ConvertKit Integration** - Two-way sync
-    - ConvertKit webhook handler
-    - Newsletter preference sync
-    - Subscriber ID tracking
+Complete all 12 milestones above before moving to Phase 2.
 
 ### Phase 2: Product Integration (Future)
 
