@@ -61,7 +61,8 @@ export type ResendWebhookEventType =
   | 'email.opened'
   | 'email.clicked'
   | 'email.bounced'
-  | 'email.complained';
+  | 'email.complained'
+  | 'email.scheduled';
 
 /**
  * Database event type enum values
@@ -70,8 +71,15 @@ type DatabaseEventType = 'sent' | 'delivered' | 'opened' | 'clicked' | 'bounced'
 
 /**
  * Map Resend webhook event type to database enum value
+ * 
+ * Note: 'email.scheduled' events are not logged to email_events table
+ * since we already track scheduling status in scheduled_emails table
  */
-const mapResendEventTypeToDatabase = (resendType: ResendWebhookEventType): DatabaseEventType => {
+const mapResendEventTypeToDatabase = (resendType: ResendWebhookEventType): DatabaseEventType | null => {
+  // Skip 'email.scheduled' - we already track this in scheduled_emails.status
+  if (resendType === 'email.scheduled') {
+    return null;
+  }
   // Remove 'email.' prefix to match database enum
   return resendType.replace('email.', '') as DatabaseEventType;
 };
@@ -150,6 +158,11 @@ const isEventAlreadyProcessed = async (
   // Map Resend event type to database enum value
   const dbEventType = mapResendEventTypeToDatabase(eventType);
 
+  // 'email.scheduled' events are not logged, so they're never "already processed"
+  if (dbEventType === null) {
+    return false;
+  }
+
   const { data, error } = await supabase
     .from('email_events')
     .select('id')
@@ -178,11 +191,17 @@ const isEventAlreadyProcessed = async (
 const logWebhookEvent = async (
   event: ResendWebhookEvent,
   scheduledEmailId: string | null = null
-): Promise<string> => {
+): Promise<string | null> => {
   const supabase = getSupabaseAdmin();
 
   // Map Resend event type to database enum value
   const dbEventType = mapResendEventTypeToDatabase(event.type);
+
+  // Skip logging 'email.scheduled' events - we already track this in scheduled_emails.status
+  if (dbEventType === null) {
+    console.log(`[Webhook] Skipping logging of ${event.type} event (already tracked in scheduled_emails)`);
+    return null;
+  }
 
   const { data, error } = await supabase
     .from('email_events')
@@ -469,6 +488,12 @@ export const handleResendWebhook = async (
 
       case 'email.complained':
         await handleComplainedEvent(event, scheduledEmail);
+        break;
+
+      case 'email.scheduled':
+        // 'email.scheduled' events are informational - we already track scheduling
+        // in scheduled_emails.status, so we just log and skip
+        console.log(`[Webhook] Received scheduled confirmation for email ${event.data.email_id}`);
         break;
 
       default:
