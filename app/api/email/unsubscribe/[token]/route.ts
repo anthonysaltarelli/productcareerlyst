@@ -68,7 +68,7 @@ export async function POST(
   try {
     const { token } = await params;
     const body = await request.json();
-    const { reason, email_topics } = body;
+    const { reason } = body;
 
     if (!token) {
       return NextResponse.json(
@@ -103,18 +103,6 @@ export async function POST(
       tokenData.emailAddress,
       reason
     );
-
-    // If email_topics provided, update topics (for topic-level preferences)
-    if (email_topics && Array.isArray(email_topics)) {
-      const { updateEmailPreferences } = await import('@/lib/email/preferences');
-      await updateEmailPreferences(
-        tokenData.userId,
-        tokenData.emailAddress,
-        {
-          email_topics,
-        }
-      );
-    }
 
     // Get updated preferences
     const preferences = await getUserEmailPreferences(

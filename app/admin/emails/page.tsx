@@ -154,7 +154,7 @@ export default function AdminEmailsPage() {
       fetchScheduledEmails();
     } else if (activeTab === 'schedule' || activeTab === 'flow-testing') {
       fetchUsers();
-      if (activeTab === 'flows' || activeTab === 'flow-testing') {
+      if (activeTab === 'flow-testing') {
         fetchFlows();
       }
     } else if (activeTab === 'flows') {

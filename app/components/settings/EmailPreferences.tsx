@@ -36,15 +36,6 @@ export const EmailPreferences = ({
   const [success, setSuccess] = useState(false);
   const [preferences, setPreferences] = useState<EmailPreferences | null>(null);
   const [marketingEnabled, setMarketingEnabled] = useState(true);
-  const [emailTopics, setEmailTopics] = useState<string[]>([]);
-
-  // Available email topics
-  const availableTopics = [
-    { id: 'trial_sequence', label: 'Trial sequence emails' },
-    { id: 'product_updates', label: 'Product updates' },
-    { id: 'newsletter', label: 'Newsletter (Product Careerlyst Newsletter)' },
-    { id: 'feature_announcements', label: 'Feature announcements' },
-  ];
 
   useEffect(() => {
     const fetchPreferences = async () => {
@@ -60,7 +51,6 @@ export const EmailPreferences = ({
 
         setPreferences(data.preferences);
         setMarketingEnabled(data.preferences?.marketing_emails_enabled ?? true);
-        setEmailTopics(data.preferences?.email_topics || []);
         setLoading(false);
       } catch (err) {
         setError('Failed to load email preferences');
@@ -84,7 +74,6 @@ export const EmailPreferences = ({
         },
         body: JSON.stringify({
           marketing_emails_enabled: marketingEnabled,
-          email_topics: emailTopics,
         }),
       });
 
@@ -108,15 +97,6 @@ export const EmailPreferences = ({
     }
   };
 
-  const toggleTopic = (topicId: string) => {
-    setEmailTopics((prev) => {
-      if (prev.includes(topicId)) {
-        return prev.filter((id) => id !== topicId);
-      } else {
-        return [...prev, topicId];
-      }
-    });
-  };
 
   if (loading) {
     return (
@@ -173,51 +153,6 @@ export const EmailPreferences = ({
         )}
       </div>
 
-      {/* Topic-Level Preferences */}
-      <div className="mb-8">
-        <h3 className="text-xl font-black text-gray-900 mb-4">Email Topics</h3>
-        <p className="text-gray-600 text-sm mb-4">
-          Choose which types of emails you'd like to receive:
-        </p>
-        <div className="space-y-3">
-          {availableTopics.map((topic) => (
-            <label
-              key={topic.id}
-              className="flex items-center p-4 bg-gray-50 rounded-[1rem] cursor-pointer hover:bg-gray-100 transition-colors"
-            >
-              <input
-                type="checkbox"
-                checked={emailTopics.includes(topic.id)}
-                onChange={() => toggleTopic(topic.id)}
-                disabled={!marketingEnabled}
-                className="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500 mr-3 disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-              <span className={`text-gray-700 font-medium ${!marketingEnabled ? 'opacity-50' : ''}`}>
-                {topic.label}
-              </span>
-            </label>
-          ))}
-        </div>
-        {!marketingEnabled && (
-          <p className="mt-2 text-sm text-gray-500">
-            Enable marketing emails above to select specific topics
-          </p>
-        )}
-      </div>
-
-      {/* Newsletter Status */}
-      {emailTopics.includes('newsletter') && preferences?.convertkit_subscriber_id && (
-        <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-[1rem]">
-          <p className="text-sm text-blue-700">
-            <strong>Newsletter Status:</strong> Subscribed to Product Careerlyst Newsletter
-            {preferences.convertkit_synced_at && (
-              <span className="block mt-1">
-                Last synced: {new Date(preferences.convertkit_synced_at).toLocaleDateString()}
-              </span>
-            )}
-          </p>
-        </div>
-      )}
 
       {/* Save Button */}
       <div className="flex justify-end">

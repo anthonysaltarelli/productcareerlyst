@@ -1,11 +1,10 @@
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import { cancelEmail as resendCancelEmail } from './resend-client';
-import { addSubscriberToForm } from '@/lib/utils/convertkit';
 
 /**
  * Email Preferences Service
  * 
- * Handles user email preferences, unsubscribe functionality, and ConvertKit sync.
+ * Handles user email preferences and unsubscribe functionality.
  * Includes automatic cancellation of scheduled marketing emails on unsubscribe.
  */
 
@@ -276,7 +275,6 @@ async function processResendCancellationAsync(
  * - Sets marketing_emails_enabled = false
  * - Sets unsubscribed_at timestamp
  * - Cancels all scheduled marketing emails
- * - Syncs to ConvertKit if newsletter was enabled
  * 
  * @param userId User UUID
  * @param emailAddress Email address
@@ -289,10 +287,6 @@ export const unsubscribeUser = async (
   reason?: string
 ): Promise<UserEmailPreferences> => {
   const supabase = getSupabaseAdmin();
-
-  // Get current preferences
-  const preferences = await getUserEmailPreferences(userId, emailAddress);
-  const hadNewsletter = preferences?.email_topics?.includes('newsletter') || false;
 
   // Update preferences
   const { data: updated, error: updateError } = await supabase
@@ -314,18 +308,6 @@ export const unsubscribeUser = async (
   // Cancel all scheduled marketing emails
   await cancelScheduledMarketingEmails(userId, emailAddress);
 
-  // Sync to ConvertKit if newsletter was enabled
-  if (hadNewsletter && preferences?.convertkit_subscriber_id) {
-    try {
-      // Note: ConvertKit unsubscribe will be handled in convertkit-sync.ts (Milestone 10)
-      // For now, we'll just log that sync is needed
-      console.log(`[unsubscribeUser] Newsletter was enabled, ConvertKit sync needed for ${emailAddress}`);
-    } catch (error) {
-      // Don't fail unsubscribe if ConvertKit sync fails
-      console.error('[unsubscribeUser] Failed to sync unsubscribe to ConvertKit:', error);
-    }
-  }
-
   return updated as UserEmailPreferences;
 };
 
@@ -334,7 +316,6 @@ export const unsubscribeUser = async (
  * 
  * - Sets marketing_emails_enabled = true
  * - Clears unsubscribed_at timestamp
- * - Syncs to ConvertKit if newsletter preference is enabled
  * 
  * @param userId User UUID
  * @param emailAddress Email address
@@ -345,10 +326,6 @@ export const resubscribeUser = async (
   emailAddress: string
 ): Promise<UserEmailPreferences> => {
   const supabase = getSupabaseAdmin();
-
-  // Get current preferences
-  const preferences = await getUserEmailPreferences(userId, emailAddress);
-  const hasNewsletter = preferences?.email_topics?.includes('newsletter') || false;
 
   // Update preferences
   const { data: updated, error: updateError } = await supabase
@@ -365,18 +342,6 @@ export const resubscribeUser = async (
 
   if (updateError) {
     throw new Error(`Failed to resubscribe user: ${updateError.message}`);
-  }
-
-  // Sync to ConvertKit if newsletter preference is enabled
-  if (hasNewsletter) {
-    try {
-      const CONVERTKIT_NEWSLETTER_FORM_ID = parseInt(process.env.CONVERTKIT_NEWSLETTER_FORM_ID || '7348426');
-      await addSubscriberToForm(CONVERTKIT_NEWSLETTER_FORM_ID, emailAddress);
-      console.log(`[resubscribeUser] Synced resubscribe to ConvertKit for ${emailAddress}`);
-    } catch (error) {
-      // Don't fail resubscribe if ConvertKit sync fails
-      console.error('[resubscribeUser] Failed to sync resubscribe to ConvertKit:', error);
-    }
   }
 
   return updated as UserEmailPreferences;
@@ -403,8 +368,6 @@ export const updateEmailPreferences = async (
 
   // Get current preferences
   const currentPreferences = await getUserEmailPreferences(userId, emailAddress);
-  const hadNewsletter = currentPreferences?.email_topics?.includes('newsletter') || false;
-  const willHaveNewsletter = updates.email_topics?.includes('newsletter') || false;
 
   // If disabling marketing emails, cancel scheduled emails
   if (updates.marketing_emails_enabled === false && currentPreferences?.marketing_emails_enabled) {
@@ -445,23 +408,6 @@ export const updateEmailPreferences = async (
 
   if (updateError) {
     throw new Error(`Failed to update email preferences: ${updateError.message}`);
-  }
-
-  // Sync ConvertKit if newsletter preference changed
-  if (hadNewsletter !== willHaveNewsletter) {
-    try {
-      const CONVERTKIT_NEWSLETTER_FORM_ID = parseInt(process.env.CONVERTKIT_NEWSLETTER_FORM_ID || '7348426');
-      if (willHaveNewsletter) {
-        await addSubscriberToForm(CONVERTKIT_NEWSLETTER_FORM_ID, emailAddress);
-        console.log(`[updateEmailPreferences] Synced newsletter subscribe to ConvertKit for ${emailAddress}`);
-      } else {
-        // Note: ConvertKit unsubscribe will be handled in convertkit-sync.ts (Milestone 10)
-        console.log(`[updateEmailPreferences] Newsletter disabled, ConvertKit unsubscribe needed for ${emailAddress}`);
-      }
-    } catch (error) {
-      // Don't fail update if ConvertKit sync fails
-      console.error('[updateEmailPreferences] Failed to sync to ConvertKit:', error);
-    }
   }
 
   return updated as UserEmailPreferences;

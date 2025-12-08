@@ -35,16 +35,7 @@ export default function UnsubscribePage() {
   const [success, setSuccess] = useState(false);
   const [preferences, setPreferences] = useState<EmailPreferences | null>(null);
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
-  const [emailTopics, setEmailTopics] = useState<string[]>([]);
   const [unsubscribeReason, setUnsubscribeReason] = useState('');
-
-  // Available email topics
-  const availableTopics = [
-    { id: 'trial_sequence', label: 'Trial sequence emails' },
-    { id: 'product_updates', label: 'Product updates' },
-    { id: 'newsletter', label: 'Newsletter (Product Careerlyst Newsletter)' },
-    { id: 'feature_announcements', label: 'Feature announcements' },
-  ];
 
   useEffect(() => {
     if (!token) return;
@@ -62,7 +53,6 @@ export default function UnsubscribePage() {
 
         setTokenData(data.token);
         setPreferences(data.preferences);
-        setEmailTopics(data.preferences?.email_topics || []);
         setLoading(false);
       } catch (err) {
         setError('Failed to load unsubscribe page');
@@ -87,7 +77,6 @@ export default function UnsubscribePage() {
         },
         body: JSON.stringify({
           reason: unsubscribeReason || null,
-          email_topics: emailTopics,
         }),
       });
 
@@ -136,15 +125,6 @@ export default function UnsubscribePage() {
     }
   };
 
-  const toggleTopic = (topicId: string) => {
-    setEmailTopics((prev) => {
-      if (prev.includes(topicId)) {
-        return prev.filter((id) => id !== topicId);
-      } else {
-        return [...prev, topicId];
-      }
-    });
-  };
 
   if (loading) {
     return (
@@ -247,30 +227,6 @@ export default function UnsubscribePage() {
                   <p className="text-red-700 font-semibold">{error}</p>
                 </div>
               )}
-
-              {/* Topic-Level Preferences */}
-              <div className="mb-6">
-                <h2 className="text-xl font-black text-gray-900 mb-4">Email Topics</h2>
-                <p className="text-gray-600 text-sm mb-4">
-                  Choose which types of emails you'd like to receive:
-                </p>
-                <div className="space-y-3">
-                  {availableTopics.map((topic) => (
-                    <label
-                      key={topic.id}
-                      className="flex items-center p-4 bg-gray-50 rounded-[1rem] cursor-pointer hover:bg-gray-100 transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={emailTopics.includes(topic.id)}
-                        onChange={() => toggleTopic(topic.id)}
-                        className="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500 mr-3"
-                      />
-                      <span className="text-gray-700 font-medium">{topic.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
 
               {/* Unsubscribe Reason (Optional) */}
               <div className="mb-6">

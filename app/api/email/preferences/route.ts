@@ -67,7 +67,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { marketing_emails_enabled, email_topics, unsubscribe_reason } = body;
+    const { marketing_emails_enabled, unsubscribe_reason } = body;
 
     // Validate input
     if (marketing_emails_enabled !== undefined && typeof marketing_emails_enabled !== 'boolean') {
@@ -77,19 +77,11 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    if (email_topics !== undefined && !Array.isArray(email_topics)) {
-      return NextResponse.json(
-        { error: 'email_topics must be an array' },
-        { status: 400 }
-      );
-    }
-
     const updated = await updateEmailPreferences(
       user.id,
       user.email,
       {
         marketing_emails_enabled,
-        email_topics,
         unsubscribe_reason,
       }
     );
