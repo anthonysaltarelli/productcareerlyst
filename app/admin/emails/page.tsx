@@ -91,6 +91,7 @@ export default function AdminEmailsPage() {
   
   // Scheduling state
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [selectedScheduleUserId, setSelectedScheduleUserId] = useState<string>('');
   const [testEmailAddress, setTestEmailAddress] = useState<string>('anthsalt+test@gmail.com');
   const [scheduledMinutes, setScheduledMinutes] = useState<number>(2);
   const [schedulingLoading, setSchedulingLoading] = useState(false);
@@ -151,11 +152,13 @@ export default function AdminEmailsPage() {
       fetchTemplates();
     } else if (activeTab === 'scheduled') {
       fetchScheduledEmails();
-    } else if (activeTab === 'flows' || activeTab === 'flow-testing') {
-      fetchFlows();
-      if (activeTab === 'flow-testing') {
-        fetchUsers();
+    } else if (activeTab === 'schedule' || activeTab === 'flow-testing') {
+      fetchUsers();
+      if (activeTab === 'flows' || activeTab === 'flow-testing') {
+        fetchFlows();
       }
+    } else if (activeTab === 'flows') {
+      fetchFlows();
     }
   }, [activeTab, statusFilter, isTestFilter]);
 
@@ -275,13 +278,16 @@ export default function AdminEmailsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          userId: selectedScheduleUserId || undefined, // Include userId for unsubscribe link generation
           emailAddress: testEmailAddress,
           templateId: selectedTemplateId,
           scheduledAt,
           isTest: true,
           variables: {
-            firstName: 'Test',
-            userId: 'test-user-123',
+            firstName: selectedScheduleUserId 
+              ? users.find(u => u.id === selectedScheduleUserId)?.firstName || 'Test'
+              : 'Test',
+            userId: selectedScheduleUserId || 'test-user-123',
           },
         }),
       });
@@ -299,6 +305,7 @@ export default function AdminEmailsPage() {
 
       // Reset form
       setSelectedTemplateId('');
+      setSelectedScheduleUserId('');
       setTestEmailAddress('anthsalt+test@gmail.com');
       setScheduledMinutes(2);
 
@@ -410,7 +417,8 @@ export default function AdminEmailsPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/admin/users');
+      // Include test accounts for email testing (needed for unsubscribe link testing)
+      const response = await fetch('/api/admin/users?includeTestAccounts=true');
       
       if (!response.ok) {
         throw new Error('Failed to fetch users');
@@ -946,6 +954,28 @@ export default function AdminEmailsPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* User Selection (for unsubscribe links) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                User (Optional - Required for unsubscribe links)
+              </label>
+              <select
+                value={selectedScheduleUserId}
+                onChange={(e) => setSelectedScheduleUserId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              >
+                <option value="">No user (no unsubscribe link)</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.firstName || user.email} ({user.email})
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Select a user to generate unsubscribe links for marketing emails. Leave empty for test emails without unsubscribe.
+              </p>
             </div>
 
             {/* Email Address */}

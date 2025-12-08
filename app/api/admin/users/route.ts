@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import { checkAdminStatus } from '@/lib/utils/admin'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -24,6 +24,10 @@ export async function GET() {
       )
     }
 
+    // Check if includeTestAccounts query parameter is set
+    const { searchParams } = new URL(request.url)
+    const includeTestAccounts = searchParams.get('includeTestAccounts') === 'true'
+
     // Use service role client for admin operations
     const supabaseAdmin = createSupabaseAdmin(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,7 +40,7 @@ export async function GET() {
       }
     )
 
-    // Get recent users (last 100, excluding test accounts)
+    // Get recent users (last 100, excluding test accounts by default)
     const { data: allUsersData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
       page: 1,
       perPage: 100,
@@ -52,14 +56,16 @@ export async function GET() {
 
     const allUsers = allUsersData?.users || []
 
-    // Filter out test accounts
-    const filteredUsers = allUsers.filter((u) => {
-      const email = u.email?.toLowerCase() || ''
-      return (
-        !email.includes('anthsalt') &&
-        !email.includes('anth.saltarelli')
-      )
-    })
+    // Filter out test accounts (unless includeTestAccounts is true)
+    const filteredUsers = includeTestAccounts 
+      ? allUsers
+      : allUsers.filter((u) => {
+          const email = u.email?.toLowerCase() || ''
+          return (
+            !email.includes('anthsalt') &&
+            !email.includes('anth.saltarelli')
+          )
+        })
 
     // Sort by created_at descending (most recent first)
     filteredUsers.sort((a, b) => {

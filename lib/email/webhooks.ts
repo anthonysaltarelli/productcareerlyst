@@ -67,19 +67,12 @@ export type ResendWebhookEventType =
 /**
  * Database event type enum values
  */
-type DatabaseEventType = 'sent' | 'delivered' | 'opened' | 'clicked' | 'bounced' | 'complained';
+type DatabaseEventType = 'sent' | 'delivered' | 'opened' | 'clicked' | 'bounced' | 'complained' | 'scheduled';
 
 /**
  * Map Resend webhook event type to database enum value
- * 
- * Note: 'email.scheduled' events are not logged to email_events table
- * since we already track scheduling status in scheduled_emails table
  */
-const mapResendEventTypeToDatabase = (resendType: ResendWebhookEventType): DatabaseEventType | null => {
-  // Skip 'email.scheduled' - we already track this in scheduled_emails.status
-  if (resendType === 'email.scheduled') {
-    return null;
-  }
+const mapResendEventTypeToDatabase = (resendType: ResendWebhookEventType): DatabaseEventType => {
   // Remove 'email.' prefix to match database enum
   return resendType.replace('email.', '') as DatabaseEventType;
 };
@@ -158,11 +151,6 @@ const isEventAlreadyProcessed = async (
   // Map Resend event type to database enum value
   const dbEventType = mapResendEventTypeToDatabase(eventType);
 
-  // 'email.scheduled' events are not logged, so they're never "already processed"
-  if (dbEventType === null) {
-    return false;
-  }
-
   const { data, error } = await supabase
     .from('email_events')
     .select('id')
@@ -191,17 +179,11 @@ const isEventAlreadyProcessed = async (
 const logWebhookEvent = async (
   event: ResendWebhookEvent,
   scheduledEmailId: string | null = null
-): Promise<string | null> => {
+): Promise<string> => {
   const supabase = getSupabaseAdmin();
 
   // Map Resend event type to database enum value
   const dbEventType = mapResendEventTypeToDatabase(event.type);
-
-  // Skip logging 'email.scheduled' events - we already track this in scheduled_emails.status
-  if (dbEventType === null) {
-    console.log(`[Webhook] Skipping logging of ${event.type} event (already tracked in scheduled_emails)`);
-    return null;
-  }
 
   const { data, error } = await supabase
     .from('email_events')

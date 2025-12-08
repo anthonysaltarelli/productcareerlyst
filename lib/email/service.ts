@@ -2,6 +2,7 @@ import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import { scheduleEmail as resendScheduleEmail, cancelEmail as resendCancelEmail, calculateScheduledAt } from './resend-client';
 import { getTemplate, renderTemplate } from './templates';
 import { getFlowById, getFlowSteps, generateFlowTriggerId } from './flows';
+import { checkCanSendEmail, generateUnsubscribeToken } from './preferences';
 
 /**
  * Email Service for Email System
@@ -102,11 +103,89 @@ export const scheduleEmail = async (params: ScheduleEmailParams): Promise<Schedu
     throw new Error(`Template ${params.templateId} not found`);
   }
 
+  // Determine email type from template metadata or params
+  const emailType = template.metadata?.email_type || params.metadata?.email_type || 'marketing';
+
+  // Check preferences before scheduling marketing emails
+  if (emailType === 'marketing' && params.userId) {
+    const canSend = await checkCanSendEmail(
+      params.userId,
+      params.emailAddress,
+      'marketing'
+    );
+
+    if (!canSend) {
+      // User unsubscribed or email suppressed - return early with suppressed status
+      const { data: suppressedEmail, error: insertError } = await supabase
+        .from('scheduled_emails')
+        .insert({
+          user_id: params.userId,
+          email_address: params.emailAddress,
+          template_id: params.templateId,
+          template_version: template.version,
+          template_snapshot: {
+            id: template.id,
+            name: template.name,
+            subject: template.subject,
+            html_content: template.html_content,
+            text_content: template.text_content,
+            version: template.version,
+            metadata: template.metadata,
+          },
+          resend_email_id: null,
+          resend_scheduled_id: null,
+          status: 'suppressed',
+          scheduled_at: params.scheduledAt,
+          is_test: params.isTest || false,
+          idempotency_key: params.idempotencyKey,
+          metadata: {
+            ...(params.metadata || {}),
+            email_type: emailType,
+            suppression_reason: 'user_preferences',
+          },
+        })
+        .select()
+        .single();
+
+      if (insertError && insertError.code !== '23505') {
+        throw new Error(`Failed to record suppressed email: ${insertError.message}`);
+      }
+
+      // If insert failed due to duplicate idempotency key, fetch existing
+      if (insertError?.code === '23505') {
+        const { data: existingEmail } = await supabase
+          .from('scheduled_emails')
+          .select('*')
+          .eq('idempotency_key', params.idempotencyKey)
+          .single();
+
+        if (existingEmail) {
+          return existingEmail as ScheduledEmail;
+        }
+      }
+
+      return suppressedEmail as ScheduledEmail;
+    }
+  }
+
+  // Generate unsubscribe URL for marketing emails
+  let unsubscribeUrl = params.unsubscribeUrl;
+  if (emailType === 'marketing' && !unsubscribeUrl && params.userId) {
+    try {
+      const token = await generateUnsubscribeToken(params.userId, params.emailAddress);
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://productcareerlyst.com';
+      unsubscribeUrl = `${baseUrl}/unsubscribe/${token}`;
+    } catch (error) {
+      console.error('Failed to generate unsubscribe token:', error);
+      // Continue without unsubscribe URL (should not happen, but don't block email)
+    }
+  }
+
   // Render template
   const html = await renderTemplate(
     template,
     params.variables || {},
-    params.unsubscribeUrl
+    unsubscribeUrl
   );
 
   // Store template snapshot for version locking
@@ -158,7 +237,10 @@ export const scheduleEmail = async (params: ScheduleEmailParams): Promise<Schedu
       scheduled_at: params.scheduledAt,
       is_test: params.isTest || false,
       idempotency_key: params.idempotencyKey,
-      metadata: params.metadata || {},
+      metadata: {
+        ...(params.metadata || {}),
+        email_type: emailType,
+      },
     })
     .select()
     .single();
@@ -462,6 +544,37 @@ export const scheduleSequence = async (
     // Use step's locked template version
     const templateVersion = step.template_version;
 
+    // Determine email type from step
+    const emailType = step.email_type || template.metadata?.email_type || 'marketing';
+
+    // Check preferences before scheduling marketing emails
+    if (emailType === 'marketing' && params.userId) {
+      const canSend = await checkCanSendEmail(
+        params.userId,
+        params.emailAddress,
+        'marketing'
+      );
+
+      if (!canSend) {
+        // User unsubscribed or email suppressed - skip this step
+        console.log(`[scheduleSequence] Skipping step ${step.step_order} - user unsubscribed or email suppressed`);
+        continue;
+      }
+    }
+
+    // Generate unsubscribe URL for marketing emails
+    let unsubscribeUrl = params.variables?.unsubscribeUrl;
+    if (emailType === 'marketing' && !unsubscribeUrl && params.userId) {
+      try {
+        const token = await generateUnsubscribeToken(params.userId, params.emailAddress);
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://productcareerlyst.com';
+        unsubscribeUrl = `${baseUrl}/unsubscribe/${token}`;
+      } catch (error) {
+        console.error(`[scheduleSequence] Failed to generate unsubscribe token for step ${step.step_order}:`, error);
+        // Continue without unsubscribe URL (should not happen, but don't block email)
+      }
+    }
+
     // Render template with step order and flow name
     const html = await renderTemplate(
       template,
@@ -470,8 +583,9 @@ export const scheduleSequence = async (
         stepOrder: step.step_order,
         flowName: flow.name,
         firstName: params.variables?.firstName || 'Test User',
+        unsubscribeUrl,
       },
-      params.variables?.unsubscribeUrl
+      unsubscribeUrl
     );
 
     // Store template snapshot for version locking

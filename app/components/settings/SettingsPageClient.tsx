@@ -5,13 +5,14 @@ import { ProfileInformation } from '@/app/components/settings/ProfileInformation
 import { AccountInformation } from '@/app/components/settings/AccountInformation'
 import { LogOutSection } from '@/app/components/settings/LogOutSection'
 import { ContactUsSection } from '@/app/components/settings/ContactUsSection'
+import { EmailPreferences } from '@/app/components/settings/EmailPreferences'
 import { TrackedButton } from '@/app/components/TrackedButton'
 import { trackEvent } from '@/lib/amplitude/client'
 import { getDashboardTrackingContext } from '@/lib/utils/dashboard-tracking-context'
 import type { DashboardStats } from '@/app/api/dashboard/stats/route'
 import { useFlags } from 'launchdarkly-react-client-sdk'
 
-type SettingsTab = 'profile' | 'account' | 'contact' | 'logout'
+type SettingsTab = 'profile' | 'account' | 'notifications' | 'contact' | 'logout'
 
 interface Subscription {
   plan: 'learn' | 'accelerate' | null
@@ -37,6 +38,7 @@ export const SettingsPageClient = ({
   const [tabStartTime, setTabStartTime] = useState<Record<SettingsTab, number>>({
     profile: Date.now(),
     account: 0,
+    notifications: 0,
     contact: 0,
     logout: 0,
   })
@@ -110,6 +112,9 @@ export const SettingsPageClient = ({
       const timeSpentOnAccount = tabStartTime.account > 0
         ? Math.floor((currentTime - tabStartTime.account) / 1000)
         : 0
+      const timeSpentOnNotifications = tabStartTime.notifications > 0
+        ? Math.floor((currentTime - tabStartTime.notifications) / 1000)
+        : 0
       const timeSpentOnContact = tabStartTime.contact > 0
         ? Math.floor((currentTime - tabStartTime.contact) / 1000)
         : 0
@@ -131,6 +136,7 @@ export const SettingsPageClient = ({
         'Tabs Visited': tabsVisited,
         'Time Spent on Profile Tab': timeSpentOnProfile,
         'Time Spent on Account Tab': timeSpentOnAccount,
+        'Time Spent on Notifications Tab': timeSpentOnNotifications,
         'Time Spent on Contact Tab': timeSpentOnContact,
         'Time Spent on Logout Tab': timeSpentOnLogout,
         'Tab Switches Count': tabSwitchesCount,
@@ -145,6 +151,7 @@ export const SettingsPageClient = ({
   const tabs = [
     { id: 'profile' as SettingsTab, label: 'Profile Information', buttonId: 'settings-tab-profile-button' },
     { id: 'account' as SettingsTab, label: 'Account Information', buttonId: 'settings-tab-account-button' },
+    { id: 'notifications' as SettingsTab, label: 'Notifications', buttonId: 'settings-tab-notifications-button' },
     { id: 'contact' as SettingsTab, label: 'Contact Us', buttonId: 'settings-tab-contact-button' },
     { id: 'logout' as SettingsTab, label: 'Log Out', buttonId: 'settings-tab-logout-button' },
   ]
@@ -253,6 +260,14 @@ export const SettingsPageClient = ({
                   userCreatedAt={userCreatedAt}
                   featureFlags={featureFlags}
                   onPasswordChanged={() => setPasswordChanged(true)}
+                />
+              )}
+              {activeTab === 'notifications' && (
+                <EmailPreferences
+                  stats={stats}
+                  subscription={subscription}
+                  userCreatedAt={userCreatedAt}
+                  featureFlags={featureFlags}
                 />
               )}
               {activeTab === 'contact' && (
