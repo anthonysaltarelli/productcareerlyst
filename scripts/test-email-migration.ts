@@ -60,18 +60,24 @@ async function runTests() {
 
   // Test 2: Verify indexes exist
   console.log('\nTest 2: Verifying indexes exist...');
-  const { data: indexes, error: indexesError } = await supabase
-    .rpc('exec_sql', {
-      query: `
-        SELECT indexname 
-        FROM pg_indexes 
-        WHERE tablename LIKE 'email%' 
-        ORDER BY tablename, indexname;
-      `
-    }).catch(() => {
-      // RPC might not exist, try direct query via raw SQL if possible
-      return { data: null, error: { message: 'Cannot query indexes directly' } };
-    });
+  let indexes: any = null;
+  let indexesError: any = null;
+  try {
+    const result = await supabase
+      .rpc('exec_sql', {
+        query: `
+          SELECT indexname 
+          FROM pg_indexes 
+          WHERE tablename LIKE 'email%' 
+          ORDER BY tablename, indexname;
+        `
+      });
+    indexes = result.data;
+    indexesError = result.error;
+  } catch (error) {
+    // RPC might not exist, try direct query via raw SQL if possible
+    indexesError = { message: 'Cannot query indexes directly' };
+  }
 
   // Alternative: Check for specific critical indexes by trying to query with them
   const criticalIndexes = [
@@ -121,8 +127,10 @@ async function runTests() {
           idempotency_key: 'test-unique-key-1' // Same key
         } as any);
 
-      const uniqueConstraintWorks = insertError2?.message.includes('unique') || 
-                                   insertError2?.message.includes('duplicate');
+      const uniqueConstraintWorks = Boolean(
+        insertError2?.message?.includes('unique') || 
+        insertError2?.message?.includes('duplicate')
+      );
       
       results.push({
         name: 'Unique constraint: scheduled_emails.idempotency_key',

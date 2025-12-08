@@ -83,16 +83,30 @@ export const sendEmail = async (params: SendEmailParams): Promise<ResendEmailRes
 
     const fromEmail = params.from || process.env.RESEND_FROM_EMAIL!;
 
-    const { data, error } = await resend.emails.send({
+    // Build email options, only including defined properties
+    const emailOptions: any = {
       from: fromEmail,
       to: params.to,
       subject: params.subject,
-      html: params.html,
-      text: params.text,
-      reply_to: params.replyTo,
-      headers: params.headers,
-      tags: params.tags,
-    });
+    };
+
+    if (params.html) {
+      emailOptions.html = params.html;
+    }
+    if (params.text) {
+      emailOptions.text = params.text;
+    }
+    if (params.replyTo) {
+      emailOptions.replyTo = params.replyTo;
+    }
+    if (params.headers) {
+      emailOptions.headers = params.headers;
+    }
+    if (params.tags) {
+      emailOptions.tags = params.tags;
+    }
+
+    const { data, error } = await resend.emails.send(emailOptions);
 
     if (error) {
       throw new Error(`Resend API error: ${JSON.stringify(error)}`);
@@ -150,7 +164,7 @@ export const scheduleEmail = async (
       subject: params.subject,
       html: params.html,
       text: params.text,
-      reply_to: params.replyTo,
+      replyTo: params.replyTo,
       headers: params.headers,
       tags: params.tags,
       scheduledAt: params.scheduledAt, // ISO 8601 format - camelCase for Node.js SDK

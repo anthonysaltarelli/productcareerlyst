@@ -189,7 +189,8 @@ async function testTemplateSystem() {
       subject: 'Welcome to Your 7-Day Trial! 🚀 (Updated)',
       metadata: {
         ...activeTrialTemplate.metadata,
-      },
+        component_path: activeTrialTemplate.metadata?.component_path || '',
+      } as any,
       is_active: false, // Don't activate yet
     });
     console.log('  ✅ Created new version:', newVersion.version);

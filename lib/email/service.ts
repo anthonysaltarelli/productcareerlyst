@@ -431,7 +431,7 @@ export const scheduleSequence = async (
   const emailProcessingData: Array<{
     step: typeof steps[0];
     template: any;
-    scheduledAt: Date;
+    scheduledAt: string; // ISO 8601 timestamp string
     html: string;
     subject: string;
   }> = [];
@@ -621,7 +621,7 @@ async function processResendSchedulingAsync(
   emailProcessingData: Array<{
     step: any;
     template: any;
-    scheduledAt: Date;
+    scheduledAt: string; // ISO 8601 timestamp string
     html: string;
     subject: string;
   }>,

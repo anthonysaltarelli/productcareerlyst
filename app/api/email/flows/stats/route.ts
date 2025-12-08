@@ -61,7 +61,7 @@ export async function GET() {
       // Get scheduled emails for this flow
       const { data: scheduledEmails, error: emailsError } = await supabaseAdmin
         .from('scheduled_emails')
-        .select('id, status, flow_trigger_id, triggered_at, scheduled_at, sent_at, is_test')
+        .select('id, status, flow_trigger_id, triggered_at, scheduled_at, sent_at, is_test, user_id, email_address')
         .eq('flow_id', flowId);
 
       if (emailsError) {
