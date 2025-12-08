@@ -52,6 +52,23 @@ export const AdminNavigation = ({ fullScreen = false, onNavClick }: AdminNavigat
         <Mail className={iconClass} />
         <span>NPS</span>
       </NavLink>
+      <NavLink
+        href="/admin/emails"
+        eventName="Admin Clicked Navigation Link"
+        linkId={fullScreen ? 'mobile-admin-nav-emails-link' : 'admin-nav-emails-link'}
+        eventProperties={{
+          'Link Text': 'Email Templates',
+          'Link Destination': '/admin/emails',
+          'Link Section': fullScreen ? 'Mobile Navigation' : 'Sidebar Navigation',
+          'Link Position': 'Main Navigation',
+          'Link Type': 'Navigation Link',
+        }}
+        className={baseNavLinkClass}
+        onClick={onNavClick}
+      >
+        <Mail className={iconClass} />
+        <span>Email Templates</span>
+      </NavLink>
     </nav>
   )
 }
