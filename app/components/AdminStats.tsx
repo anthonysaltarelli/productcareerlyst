@@ -80,7 +80,7 @@ export const AdminStats = () => {
             </div>
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            Excluding test accounts (anthsalt, anth.saltarelli)
+            Verified users only (have signed in), excluding test accounts
           </p>
         </div>
 
@@ -100,7 +100,7 @@ export const AdminStats = () => {
             </div>
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            Since Monday, excluding test accounts
+            Verified users only (have signed in), since Monday, excluding test accounts
           </p>
         </div>
       </div>
