@@ -54,7 +54,7 @@ export const TrialDay14NeedHelpEmail = ({
                 overflow: 'hidden',
               }}
             >
-              {/* Header */}
+              {/* Product Careerlyst Header - Clickable */}
               <tr>
                 <td
                   style={{
@@ -64,17 +64,18 @@ export const TrialDay14NeedHelpEmail = ({
                     textAlign: 'center',
                   }}
                 >
-                  <h1
+                  <a
+                    href={`${baseUrl}/dashboard`}
                     style={{
                       color: '#ffffff',
-                      fontSize: '28px',
+                      fontSize: '24px',
                       fontWeight: '800',
-                      margin: '0',
-                      lineHeight: '1.3',
+                      textDecoration: 'none',
+                      display: 'inline-block',
                     }}
                   >
-                    Not Sure Where to Start? We're Here
-                  </h1>
+                    Product Careerlyst
+                  </a>
                 </td>
               </tr>
 

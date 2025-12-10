@@ -54,27 +54,28 @@ export const TrialDay28DiscountReminderEmail = ({
                 overflow: 'hidden',
               }}
             >
-              {/* Header */}
+              {/* Product Careerlyst Header - Clickable */}
               <tr>
                 <td
                   style={{
-                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                    backgroundColor: '#f59e0b',
+                    background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
+                    backgroundColor: '#a855f7',
                     padding: '32px 24px',
                     textAlign: 'center',
                   }}
                 >
-                  <h1
+                  <a
+                    href={`${baseUrl}/dashboard`}
                     style={{
                       color: '#ffffff',
-                      fontSize: '28px',
+                      fontSize: '24px',
                       fontWeight: '800',
-                      margin: '0',
-                      lineHeight: '1.3',
+                      textDecoration: 'none',
+                      display: 'inline-block',
                     }}
                   >
-                    Last Chance: 25% Off
-                  </h1>
+                    Product Careerlyst
+                  </a>
                 </td>
               </tr>
 

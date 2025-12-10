@@ -54,7 +54,7 @@ export const TrialDay1LessonsEmail = ({
                 overflow: 'hidden',
               }}
             >
-              {/* Header */}
+              {/* Product Careerlyst Header - Clickable */}
               <tr>
                 <td
                   style={{
@@ -64,17 +64,18 @@ export const TrialDay1LessonsEmail = ({
                     textAlign: 'center',
                   }}
                 >
-                  <h1
+                  <a
+                    href={`${baseUrl}/dashboard`}
                     style={{
                       color: '#ffffff',
-                      fontSize: '28px',
+                      fontSize: '24px',
                       fontWeight: '800',
-                      margin: '0',
-                      lineHeight: '1.3',
+                      textDecoration: 'none',
+                      display: 'inline-block',
                     }}
                   >
-                    Your First Win is 3 Minutes Away
-                  </h1>
+                    Product Careerlyst
+                  </a>
                 </td>
               </tr>
 
@@ -100,8 +101,7 @@ export const TrialDay1LessonsEmail = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    Here's what we've learned from thousands of product managers: those who complete even one lesson 
-                    are <strong>3.3x more likely</strong> to see the career progress they're looking for.
+                    You've taken the first step toward your next product role. Over the next 7 days, you'll have full access to everything you need to make real progress in your career journey.
                   </p>
 
                   <div
@@ -120,7 +120,7 @@ export const TrialDay1LessonsEmail = ({
                         margin: '0 0 12px 0',
                       }}
                     >
-                      What You'll Get
+                      Your First Step (Takes 3 Minutes)
                     </h2>
                     <p
                       style={{
@@ -130,40 +130,29 @@ export const TrialDay1LessonsEmail = ({
                         margin: '0 0 16px 0',
                       }}
                     >
-                      Not just information—<strong>clarity on your next step</strong>. Every lesson gives you:
+                      The fastest way to see value? Complete your first video lesson. Users who finish even one lesson are <strong>3.3x more likely</strong> to see the transformation they're looking for.
                     </p>
-                    <ul
+                    <p
                       style={{
                         color: '#374151',
                         fontSize: '16px',
-                        lineHeight: '1.8',
-                        margin: '0',
-                        paddingLeft: '20px',
+                        lineHeight: '1.6',
+                        margin: '0 0 16px 0',
                       }}
                     >
-                      <li style={{ marginBottom: '12px' }}>
-                        A framework you can use immediately (not just theory)
-                      </li>
-                      <li style={{ marginBottom: '12px' }}>
-                        Confidence in your next move
-                      </li>
-                      <li style={{ marginBottom: '12px' }}>
-                        Momentum that builds with each lesson
-                      </li>
-                    </ul>
+                      You'll get practical frameworks you can use immediately -- no fluff, just actionable steps that help you start getting more referrals, interviews, and ultimately offers.
+                    </p>
+                    <p
+                      style={{
+                        color: '#374151',
+                        fontSize: '16px',
+                        lineHeight: '1.6',
+                        margin: '0',
+                      }}
+                    >
+                      Once you complete those first couple of lessons, you'll start to get clarity on your next move. Whether you're actively job searching or building out the foundations, we'll guide you step-by-step.
+                    </p>
                   </div>
-
-                  <p
-                    style={{
-                      color: '#374151',
-                      fontSize: '16px',
-                      lineHeight: '1.6',
-                      margin: '0 0 24px 0',
-                    }}
-                  >
-                    You're closer than you think. Complete your first lesson today—it takes just 3 minutes, 
-                    and you'll immediately see what's possible.
-                  </p>
 
                   {/* CTA Button */}
                   <table width="100%" cellPadding="0" cellSpacing="0" style={{ marginBottom: '24px' }}>
@@ -182,7 +171,7 @@ export const TrialDay1LessonsEmail = ({
                             fontSize: '16px',
                           }}
                         >
-                          Browse Courses →
+                          Start Your First Lesson →
                         </a>
                       </td>
                     </tr>

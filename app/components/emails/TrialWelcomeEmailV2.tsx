@@ -55,37 +55,28 @@ export const TrialWelcomeEmailV2 = ({
                 boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
               }}
             >
-              {/* Header with gradient background - Updated design */}
+              {/* Product Careerlyst Header - Clickable */}
               <tr>
                 <td
                   style={{
                     background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
                     backgroundColor: '#a855f7',
-                    padding: '40px 24px',
+                    padding: '32px 24px',
                     textAlign: 'center',
                   }}
                 >
-                  <h1
+                  <a
+                    href={`${baseUrl}/dashboard`}
                     style={{
                       color: '#ffffff',
-                      fontSize: '32px',
+                      fontSize: '24px',
                       fontWeight: '800',
-                      margin: '0 0 8px 0',
-                      lineHeight: '1.3',
+                      textDecoration: 'none',
+                      display: 'inline-block',
                     }}
                   >
-                    Welcome to Your 7-Day Trial! 🚀
-                  </h1>
-                  <p
-                    style={{
-                      color: '#ffffff',
-                      fontSize: '16px',
-                      margin: '0',
-                      opacity: 0.95,
-                    }}
-                  >
-                    Let's build your product career together
-                  </p>
+                    Product Careerlyst
+                  </a>
                 </td>
               </tr>
 

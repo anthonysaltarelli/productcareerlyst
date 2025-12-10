@@ -54,27 +54,28 @@ export const TrialDay21DiscountEmail = ({
                 overflow: 'hidden',
               }}
             >
-              {/* Header */}
+              {/* Product Careerlyst Header - Clickable */}
               <tr>
                 <td
                   style={{
-                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    backgroundColor: '#10b981',
+                    background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
+                    backgroundColor: '#a855f7',
                     padding: '32px 24px',
                     textAlign: 'center',
                   }}
                 >
-                  <h1
+                  <a
+                    href={`${baseUrl}/dashboard`}
                     style={{
                       color: '#ffffff',
-                      fontSize: '28px',
+                      fontSize: '24px',
                       fontWeight: '800',
-                      margin: '0',
-                      lineHeight: '1.3',
+                      textDecoration: 'none',
+                      display: 'inline-block',
                     }}
                   >
-                    Special Offer: 25% Off Your First Month
-                  </h1>
+                    Product Careerlyst
+                  </a>
                 </td>
               </tr>
 
