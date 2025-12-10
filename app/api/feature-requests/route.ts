@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { render } from '@react-email/render';
 import { FeatureRequestNotification } from '@/app/components/emails/FeatureRequestNotification';
+import { verifyBotIDRequest } from '@/lib/botid/verify';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -114,6 +115,15 @@ export const GET = async () => {
 // POST /api/feature-requests - Create a new feature request
 export const POST = async (request: NextRequest) => {
   try {
+    // Verify BotID first
+    const { verified, error } = await verifyBotIDRequest();
+    if (!verified) {
+      return NextResponse.json(
+        { error: error || 'Request verification failed. Please try again.' },
+        { status: 403 }
+      );
+    }
+
     const supabase = await createClient();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();

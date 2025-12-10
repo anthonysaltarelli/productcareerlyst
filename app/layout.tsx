@@ -18,6 +18,7 @@ import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next";
 import { initializeAmplitude } from "@/lib/amplitude/server";
 import { AmplitudeProvider } from "./components/AmplitudeProvider";
+import { BotIdClient } from "botid/client";
 
 // Initialize Amplitude on server startup
 initializeAmplitude();
@@ -84,6 +85,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${plusJakartaSans.variable} ${inter.variable} ${lato.variable} ${roboto.variable} ${openSans.variable} ${sourceSans.variable} ${ptSerif.variable} ${crimsonText.variable} antialiased`}>
+        <BotIdClient 
+          protect={[
+            { path: '/api/*', method: 'POST' },
+            { path: '/api/*', method: 'PUT' },
+            { path: '/api/*', method: 'DELETE' },
+            { path: '/api/*', method: 'PATCH' },
+          ]}
+        />
         <Toaster position="bottom-right" richColors />
         <LaunchDarklyProvider>
           <AmplitudeProvider>
