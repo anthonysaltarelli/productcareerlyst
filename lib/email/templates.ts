@@ -3,6 +3,18 @@ import { render } from '@react-email/render';
 import * as React from 'react';
 import { TrialWelcomeEmail } from '@/app/components/emails/TrialWelcomeEmail';
 import { TrialWelcomeEmailV2 } from '@/app/components/emails/TrialWelcomeEmailV2';
+import { TrialWelcomeEmailV3 } from '@/app/components/emails/TrialWelcomeEmailV3';
+import { TrialDay1LessonsEmail } from '@/app/components/emails/TrialDay1LessonsEmail';
+import { TrialDay2ContactsEmail } from '@/app/components/emails/TrialDay2ContactsEmail';
+import { TrialDay3ResumeEmail } from '@/app/components/emails/TrialDay3ResumeEmail';
+import { TrialDay4PortfolioEmail } from '@/app/components/emails/TrialDay4PortfolioEmail';
+import { TrialDay5JobsEmail } from '@/app/components/emails/TrialDay5JobsEmail';
+import { TrialDay6EndsSoonEmail } from '@/app/components/emails/TrialDay6EndsSoonEmail';
+import { TrialDay7EndedEmail } from '@/app/components/emails/TrialDay7EndedEmail';
+import { TrialDay10StillInterestedEmail } from '@/app/components/emails/TrialDay10StillInterestedEmail';
+import { TrialDay14NeedHelpEmail } from '@/app/components/emails/TrialDay14NeedHelpEmail';
+import { TrialDay21DiscountEmail } from '@/app/components/emails/TrialDay21DiscountEmail';
+import { TrialDay28DiscountReminderEmail } from '@/app/components/emails/TrialDay28DiscountReminderEmail';
 import { OTPEmail } from '@/app/components/emails/OTPEmail';
 import { TestSequenceEmail } from '@/app/components/emails/TestSequenceEmail';
 
@@ -20,6 +32,18 @@ import { TestSequenceEmail } from '@/app/components/emails/TestSequenceEmail';
 const COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {
   '@/app/components/emails/TrialWelcomeEmail': TrialWelcomeEmail,
   '@/app/components/emails/TrialWelcomeEmailV2': TrialWelcomeEmailV2,
+  '@/app/components/emails/TrialWelcomeEmailV3': TrialWelcomeEmailV3,
+  '@/app/components/emails/TrialDay1LessonsEmail': TrialDay1LessonsEmail,
+  '@/app/components/emails/TrialDay2ContactsEmail': TrialDay2ContactsEmail,
+  '@/app/components/emails/TrialDay3ResumeEmail': TrialDay3ResumeEmail,
+  '@/app/components/emails/TrialDay4PortfolioEmail': TrialDay4PortfolioEmail,
+  '@/app/components/emails/TrialDay5JobsEmail': TrialDay5JobsEmail,
+  '@/app/components/emails/TrialDay6EndsSoonEmail': TrialDay6EndsSoonEmail,
+  '@/app/components/emails/TrialDay7EndedEmail': TrialDay7EndedEmail,
+  '@/app/components/emails/TrialDay10StillInterestedEmail': TrialDay10StillInterestedEmail,
+  '@/app/components/emails/TrialDay14NeedHelpEmail': TrialDay14NeedHelpEmail,
+  '@/app/components/emails/TrialDay21DiscountEmail': TrialDay21DiscountEmail,
+  '@/app/components/emails/TrialDay28DiscountReminderEmail': TrialDay28DiscountReminderEmail,
   '@/app/components/emails/OTPEmail': OTPEmail,
   '@/app/components/emails/TestSequenceEmail': TestSequenceEmail,
 };

@@ -73,6 +73,8 @@ interface EmailFlowStep {
   metadata: Record<string, any>;
   created_at: string;
   updated_at: string;
+  template_name?: string;
+  template_subject?: string;
 }
 
 interface User {
@@ -159,6 +161,8 @@ export default function AdminEmailsPage() {
       }
     } else if (activeTab === 'flows') {
       fetchFlows();
+      // Also fetch templates for preview functionality
+      fetchTemplates();
     }
   }, [activeTab, statusFilter, isTestFilter]);
 
@@ -252,6 +256,20 @@ export default function AdminEmailsPage() {
     } finally {
       setPreviewLoading(false);
     }
+  };
+
+  const handlePreviewFlowStep = async (step: EmailFlowStep) => {
+    // Find the template in the templates list
+    const template = templates.find(
+      (t) => t.id === step.template_id && t.version === step.template_version
+    );
+
+    if (!template) {
+      setError(`Template not found: ${step.template_name || step.template_id} v${step.template_version}`);
+      return;
+    }
+
+    await handlePreview(template);
   };
 
   const handleScheduleEmail = async () => {
@@ -1341,97 +1359,85 @@ export default function AdminEmailsPage() {
                       </div>
                     ) : (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3">
                           Email Sequence ({steps.length} emails)
                         </h3>
-                        <div className="space-y-4">
-                          {steps.map((step, index) => {
-                            // Calculate production timing (1440 minutes = 1 day)
-                            const productionDays = step.time_offset_minutes / 1440;
-                            const productionHours = step.time_offset_minutes / 60;
-                            const isImmediate = step.time_offset_minutes === 0;
-                            
-                            return (
-                              <div key={step.id}>
-                                <div className="flex items-start gap-4">
-                                  {/* Step Number */}
-                                  <div className="flex-shrink-0 w-12 h-12 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
-                                    {step.step_order}
-                                  </div>
-                                  
-                                  {/* Step Content */}
-                                  <div className="flex-1 bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                    <div className="flex items-start justify-between mb-2">
-                                      <div className="flex-1">
-                                        <h4 className="font-semibold text-gray-900 mb-1">
-                                          {step.subject_override || 'Email Step'}
-                                        </h4>
-                                        <div className="flex flex-wrap gap-3 text-sm text-gray-600">
-                                          <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                                            step.email_type === 'marketing'
-                                              ? 'bg-pink-100 text-pink-800'
-                                              : 'bg-blue-100 text-blue-800'
-                                          }`}>
-                                            {step.email_type}
-                                          </span>
-                                          <span className="text-gray-500">
-                                            Template Version: {step.template_version}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* Timing Information */}
-                                    <div className="mt-3 pt-3 border-t border-gray-200">
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                        <div>
-                                          <span className="text-gray-600 font-medium">Test Mode:</span>
-                                          <div className="mt-1">
-                                            {isImmediate ? (
-                                              <span className="text-purple-600 font-semibold">Immediate (0 min)</span>
-                                            ) : (
-                                              <span className="text-purple-600 font-semibold">
-                                                +{step.time_offset_minutes} minute{step.time_offset_minutes !== 1 ? 's' : ''}
-                                              </span>
-                                            )}
-                                          </div>
-                                        </div>
-                                        <div>
-                                          <span className="text-gray-600 font-medium">Production:</span>
-                                          <div className="mt-1">
-                                            {isImmediate ? (
-                                              <span className="text-gray-900 font-semibold">Immediate</span>
-                                            ) : productionDays >= 1 ? (
-                                              <span className="text-gray-900 font-semibold">
-                                                +{productionDays.toFixed(1)} day{productionDays !== 1 ? 's' : ''}
-                                                <span className="text-gray-500 ml-1">
-                                                  ({step.time_offset_minutes} min)
-                                                </span>
-                                              </span>
-                                            ) : (
-                                              <span className="text-gray-900 font-semibold">
-                                                +{productionHours.toFixed(1)} hour{productionHours !== 1 ? 's' : ''}
-                                                <span className="text-gray-500 ml-1">
-                                                  ({step.time_offset_minutes} min)
-                                                </span>
-                                              </span>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
+                        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                          <table className="w-full">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase w-12">#</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Template</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase w-24">Type</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase w-20">Version</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase w-32">Timing</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase w-24">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              {steps.map((step, index) => {
+                                // Calculate production timing (1440 minutes = 1 day)
+                                const productionDays = step.time_offset_minutes / 1440;
+                                const isImmediate = step.time_offset_minutes === 0;
+                                const finalSubject = step.subject_override || step.template_subject || 'No subject';
                                 
-                                {/* Arrow between steps */}
-                                {index < steps.length - 1 && (
-                                  <div className="flex justify-center my-2">
-                                    <div className="text-purple-600 text-2xl">↓</div>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                                return (
+                                  <tr key={step.id} className="hover:bg-gray-50">
+                                    <td className="px-3 py-2">
+                                      <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
+                                        {step.step_order}
+                                      </div>
+                                    </td>
+                                    <td className="px-3 py-2">
+                                      <div className="text-sm font-medium text-gray-900 truncate max-w-xs" title={step.template_name || 'Unknown Template'}>
+                                        {step.template_name || 'Unknown Template'}
+                                      </div>
+                                    </td>
+                                    <td className="px-3 py-2">
+                                      <div className="text-sm text-gray-700 truncate max-w-md" title={finalSubject}>
+                                        {finalSubject}
+                                      </div>
+                                    </td>
+                                    <td className="px-3 py-2">
+                                      <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                                        step.email_type === 'marketing'
+                                          ? 'bg-pink-100 text-pink-800'
+                                          : 'bg-blue-100 text-blue-800'
+                                      }`}>
+                                        {step.email_type}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 py-2">
+                                      <span className="text-xs text-gray-600">v{step.template_version}</span>
+                                    </td>
+                                    <td className="px-3 py-2">
+                                      <span className="text-xs text-gray-600">
+                                        {isImmediate ? (
+                                          <span className="text-purple-600 font-medium">Immediate</span>
+                                        ) : (
+                                          productionDays >= 1 
+                                            ? `+${productionDays.toFixed(1)} day${productionDays !== 1 ? 's' : ''}`
+                                            : `+${(step.time_offset_minutes / 60).toFixed(1)} hour${(step.time_offset_minutes / 60) !== 1 ? 's' : ''}`
+                                        )}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 py-2">
+                                      <button
+                                        onClick={() => handlePreviewFlowStep(step)}
+                                        className="px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors flex items-center gap-1.5 text-xs"
+                                        disabled={previewLoading}
+                                        title={`Preview ${step.template_name || 'template'} v${step.template_version}`}
+                                      >
+                                        <Eye className="w-3.5 h-3.5" />
+                                        Preview
+                                      </button>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
                         </div>
                       </div>
                     )}

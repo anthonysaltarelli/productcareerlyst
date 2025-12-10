@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { checkAdminStatus } from '@/lib/utils/admin';
 import { getFlowById, getFlowSteps } from '@/lib/email/flows';
+import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 
 /**
  * GET /api/email/flows/:id
- * Get flow details with steps
+ * Get flow details with steps (including template information)
  */
 export async function GET(
   request: Request,
@@ -43,9 +44,38 @@ export async function GET(
 
     const steps = await getFlowSteps(flowId);
 
+    // Fetch template information for each step
+    const supabaseAdmin = createSupabaseAdmin(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
+    const stepsWithTemplates = await Promise.all(
+      steps.map(async (step) => {
+        const { data: template } = await supabaseAdmin
+          .from('email_templates')
+          .select('name, subject')
+          .eq('id', step.template_id)
+          .eq('version', step.template_version)
+          .maybeSingle();
+
+        return {
+          ...step,
+          template_name: template?.name || 'Unknown',
+          template_subject: template?.subject || 'No subject',
+        };
+      })
+    );
+
     return NextResponse.json({
       flow,
-      steps,
+      steps: stepsWithTemplates,
     });
   } catch (error) {
     console.error('Error fetching flow:', error);
