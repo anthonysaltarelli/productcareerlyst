@@ -4,7 +4,42 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useOnboardingProgress } from '@/lib/hooks/useOnboardingProgress';
 import { trackEvent } from '@/lib/amplitude/client';
-import { Loader2, CheckCircle, Sparkles, Rocket, Zap, Calendar } from 'lucide-react';
+import { 
+  Loader2, 
+  CheckCircle, 
+  Sparkles, 
+  Rocket, 
+  Zap, 
+  Calendar,
+  Brain,
+  Target,
+  Lightbulb,
+  Wand2,
+  FileText,
+  TrendingUp,
+  Award,
+  Briefcase,
+  Layout,
+  Image,
+  Users,
+  Mail,
+  Handshake,
+  MessageSquare,
+  Mic,
+  BarChart3,
+  BookOpen,
+  GraduationCap,
+  PlayCircle,
+  Building2,
+  Search,
+  MapPin,
+  Flag,
+  CheckCircle2,
+  Star,
+  Heart,
+  Gift,
+  type LucideIcon
+} from 'lucide-react';
 import type { PersonalizedPlan, OnboardingData } from '@/lib/utils/planGenerator';
 
 interface PortfolioStepProps {
@@ -20,6 +55,41 @@ const PORTFOLIO_STATUS_OPTIONS = [
 
 const TRIAL_DAYS = 7;
 
+// Loading messages for plan generation
+const LOADING_MESSAGES: Array<{ icon: LucideIcon; text: string }> = [
+  { icon: Brain, text: 'Analyzing your career goals...' },
+  { icon: Sparkles, text: 'Crafting your personalized roadmap...' },
+  { icon: Target, text: 'Identifying your target role priorities...' },
+  { icon: Lightbulb, text: 'Generating strategic action items...' },
+  { icon: Wand2, text: 'Personalizing your plan with AI...' },
+  { icon: FileText, text: 'Optimizing your resume strategy...' },
+  { icon: TrendingUp, text: 'Boosting your application success rate...' },
+  { icon: Award, text: 'Scoring your resume potential...' },
+  { icon: Briefcase, text: 'Designing your portfolio roadmap...' },
+  { icon: Layout, text: 'Planning your case study structure...' },
+  { icon: Image, text: 'Curating your work showcase...' },
+  { icon: Users, text: 'Mapping your networking strategy...' },
+  { icon: Mail, text: 'Crafting your outreach approach...' },
+  { icon: Handshake, text: 'Building your referral pipeline...' },
+  { icon: MessageSquare, text: 'Preparing your interview framework...' },
+  { icon: Mic, text: 'Designing your practice sessions...' },
+  { icon: BarChart3, text: 'Analyzing your interview readiness...' },
+  { icon: BookOpen, text: 'Selecting relevant courses for you...' },
+  { icon: GraduationCap, text: 'Building your learning path...' },
+  { icon: PlayCircle, text: 'Curating video lessons...' },
+  { icon: Building2, text: 'Researching target companies...' },
+  { icon: Search, text: 'Finding PM contacts at your dream companies...' },
+  { icon: MapPin, text: 'Mapping your company landscape...' },
+  { icon: Flag, text: 'Setting your weekly milestones...' },
+  { icon: Calendar, text: 'Timing your action plan...' },
+  { icon: CheckCircle2, text: 'Finalizing your success metrics...' },
+  { icon: Rocket, text: 'Launching your personalized plan...' },
+  { icon: Zap, text: 'Adding the finishing touches...' },
+  { icon: Star, text: 'Polishing every detail...' },
+  { icon: Heart, text: 'Creating something special for you...' },
+  { icon: Gift, text: 'Wrapping up your custom plan...' },
+];
+
 export const PortfolioStep = ({ onNext, onBack }: PortfolioStepProps) => {
   const router = useRouter();
   const { progress, updateStep, markComplete } = useOnboardingProgress();
@@ -34,6 +104,14 @@ export const PortfolioStep = ({ onNext, onBack }: PortfolioStepProps) => {
   const [trialStartDate, setTrialStartDate] = useState<Date | null>(null);
   const [trialEndDate, setTrialEndDate] = useState<Date | null>(null);
   const [generatedPlan, setGeneratedPlan] = useState<PersonalizedPlan | null>(null);
+  
+  // Rotating loading message state
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  const [isFading, setIsFading] = useState(false);
+  
+  // Animated progress bar state
+  const [generatingProgress, setGeneratingProgress] = useState(0);
+  const [generationStartTime, setGenerationStartTime] = useState<number | null>(null);
 
   // Load saved data on mount
   useEffect(() => {
@@ -60,6 +138,62 @@ export const PortfolioStep = ({ onNext, onBack }: PortfolioStepProps) => {
     setTrialStartDate(start);
     setTrialEndDate(end);
   }, []);
+
+  // Rotate loading messages and animate progress during plan generation
+  useEffect(() => {
+    if (finishStep !== 'generating') {
+      setCurrentMessageIndex(0);
+      setIsFading(false);
+      setGeneratingProgress(0);
+      setGenerationStartTime(null);
+      return;
+    }
+
+    // Record start time when generation begins
+    const startTime = Date.now();
+    setGenerationStartTime(startTime);
+    setGeneratingProgress(0);
+
+    // Calculate progress based on elapsed time
+    // 0-40 seconds: linear from 0% to 90% (2.25% per second)
+    // 40-80 seconds: exponential slowdown from 90% to ~97%
+    const calculateProgress = (elapsedSeconds: number): number => {
+      if (elapsedSeconds <= 40) {
+        // Linear progression: 0% to 90% in 40 seconds
+        return (elapsedSeconds / 40) * 90;
+      } else if (elapsedSeconds <= 80) {
+        // Exponential slowdown: 90% to ~97% in next 40 seconds
+        const remainingSeconds = elapsedSeconds - 40;
+        const progressFrom90 = 7 * (1 - Math.exp(-remainingSeconds / 20)); // Exponential curve
+        return Math.min(90 + progressFrom90, 97);
+      } else {
+        // Cap at 97% for anything longer than 80 seconds
+        return 97;
+      }
+    };
+
+    // Update progress every 500ms for smooth animation
+    const progressInterval = setInterval(() => {
+      const elapsed = (Date.now() - startTime) / 1000; // elapsed time in seconds
+      const newProgress = calculateProgress(elapsed);
+      setGeneratingProgress(newProgress);
+    }, 500); // Update every 500ms for smooth animation
+
+    // Rotate messages
+    const messageInterval = setInterval(() => {
+      setIsFading(true);
+      
+      setTimeout(() => {
+        setCurrentMessageIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
+        setIsFading(false);
+      }, 300); // Match transition duration for smooth fade
+    }, 2500); // Change message every 2.5 seconds
+
+    return () => {
+      clearInterval(progressInterval);
+      clearInterval(messageInterval);
+    };
+  }, [finishStep]);
 
   const canProceed = hasPortfolio !== '';
 
@@ -250,19 +384,41 @@ export const PortfolioStep = ({ onNext, onBack }: PortfolioStepProps) => {
           <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-3 md:mb-4">
             {finishStep === 'done' ? 'All Set!' : 'Setting Up Your Account...'}
           </h2>
-          <p className="text-base md:text-lg text-gray-700 font-semibold">
-            {finishStep === 'done' 
-              ? 'Redirecting you to your dashboard...'
-              : finishStep === 'saving'
-              ? 'Saving your information...'
-              : finishStep === 'generating'
-              ? 'Generating your personalized plan...'
-              : finishStep === 'creating_trial'
-              ? 'Creating your free trial...'
-              : finishStep === 'completing'
-              ? 'Finalizing setup...'
-              : 'Please wait...'}
-          </p>
+          
+          {/* Rotating loading message for plan generation */}
+          {finishStep === 'generating' ? (
+            <div className="min-h-[60px] flex items-center justify-center">
+              <div
+                className={`flex items-center gap-3 transition-opacity duration-300 ${
+                  isFading ? 'opacity-0' : 'opacity-100'
+                }`}
+              >
+                {(() => {
+                  const CurrentIcon = LOADING_MESSAGES[currentMessageIndex].icon;
+                  return (
+                    <>
+                      <CurrentIcon className="w-6 h-6 text-purple-600 flex-shrink-0" />
+                      <p className="text-base md:text-lg text-gray-700 font-semibold">
+                        {LOADING_MESSAGES[currentMessageIndex].text}
+                      </p>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          ) : (
+            <p className="text-base md:text-lg text-gray-700 font-semibold">
+              {finishStep === 'done' 
+                ? 'Redirecting you to your dashboard...'
+                : finishStep === 'saving'
+                ? 'Saving your information...'
+                : finishStep === 'creating_trial'
+                ? 'Creating your free trial...'
+                : finishStep === 'completing'
+                ? 'Finalizing setup...'
+                : 'Please wait...'}
+            </p>
+          )}
         </div>
 
         {/* Trial Info Display */}
@@ -325,7 +481,7 @@ export const PortfolioStep = ({ onNext, onBack }: PortfolioStepProps) => {
                 width: finishStep === 'saving' 
                   ? '20%' 
                   : finishStep === 'generating'
-                  ? '40%'
+                  ? `${generatingProgress}%`
                   : finishStep === 'creating_trial'
                   ? '70%'
                   : finishStep === 'completing'
