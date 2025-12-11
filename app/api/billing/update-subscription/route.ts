@@ -4,6 +4,8 @@ import { getStripeClient, STRIPE_PRICE_IDS } from '@/lib/stripe/client';
 import { createClient as createSupabaseAdmin, SupabaseClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import { tagSubscriber } from '@/lib/utils/convertkit';
+import { getAllFlows } from '@/lib/email/flows';
+import { cancelSequence } from '@/lib/email/service';
 
 // Use service role client for admin operations
 const supabaseAdmin = createSupabaseAdmin(
@@ -125,6 +127,9 @@ export const POST = async (request: NextRequest) => {
         { status: 404 }
       );
     }
+
+    // Store previous status to check if user is upgrading from trial
+    const previousStatus = subscription.status;
 
     // Check if already on the requested plan and billing cadence
     if (subscription.plan === plan && subscription.billing_cadence === billingCadence) {
@@ -308,6 +313,15 @@ export const POST = async (request: NextRequest) => {
     // This ensures users who downgrade can't keep their public portfolio accessible
     await unpublishUserPortfolioIfNotAccelerate(supabaseAdmin, user.id, plan, status);
 
+    // Cancel trial sequence emails if user upgraded from trial to active
+    const isUpgradeFromTrial = previousStatus === 'trialing' && status === 'active';
+    if (isUpgradeFromTrial) {
+      // Fire-and-forget: don't await, handle errors gracefully
+      cancelTrialSequence(user.id).catch((error) => {
+        console.error('[Trial Email] Failed to cancel trial sequence:', error);
+      });
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Subscription updated successfully',
@@ -325,4 +339,30 @@ export const POST = async (request: NextRequest) => {
     );
   }
 };
+
+/**
+ * Cancel trial sequence email flow for a user
+ * Fire-and-forget implementation - errors are logged but don't block subscription update
+ */
+async function cancelTrialSequence(userId: string): Promise<void> {
+  try {
+    // Get all flows and find the trial_sequence flow
+    const flows = await getAllFlows();
+    const trialSequenceFlow = flows.find((flow) => flow.name === 'trial_sequence');
+
+    if (!trialSequenceFlow) {
+      console.warn('[Trial Email] trial_sequence flow not found - skipping cancellation');
+      return;
+    }
+
+    // Cancel the sequence (fire-and-forget - already handles background processing)
+    const cancelledCount = await cancelSequence(undefined, userId, trialSequenceFlow.id);
+
+    console.log(`[Trial Email] Successfully cancelled ${cancelledCount} emails in trial sequence for user ${userId}`);
+  } catch (error) {
+    // Log error but don't throw - this is fire-and-forget
+    console.error('[Trial Email] Error cancelling trial sequence:', error);
+    throw error; // Re-throw so caller can handle with .catch()
+  }
+}
 

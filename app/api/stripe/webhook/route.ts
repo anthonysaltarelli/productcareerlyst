@@ -4,6 +4,8 @@ import Stripe from 'stripe';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { tagSubscriber } from '@/lib/utils/convertkit';
 import { resolvePlanAndCadenceFromSubscription } from '@/lib/stripe/plan-utils';
+import { getAllFlows } from '@/lib/email/flows';
+import { cancelSequence } from '@/lib/email/service';
 
 // Disable body parsing for webhook to get raw body
 export const runtime = 'nodejs';
@@ -365,6 +367,19 @@ async function syncSubscriptionToDatabase(
 
   const status = statusMap[subscription.status] || 'incomplete';
 
+  // Check if subscription status changed from trialing to active (user upgraded)
+  // Query existing subscription to get previous status
+  const { data: existingSubscription } = await supabaseAdmin
+    .from('subscriptions')
+    .select('status')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const previousStatus = existingSubscription?.status;
+  const isUpgradeFromTrial = previousStatus === 'trialing' && status === 'active';
+
   // Helper function to safely convert timestamp to ISO string
   // Optional fields (canceled_at, trial_start, trial_end) can be null - don't warn for those
   const timestampToISO = (timestamp: number | null | undefined, fieldName: string, isOptional: boolean = false): string | null => {
@@ -537,5 +552,39 @@ async function syncSubscriptionToDatabase(
   // Unpublish portfolio if user is no longer on Accelerate plan with active/trialing status
   // This ensures users who downgrade or cancel can't keep their public portfolio accessible
   await unpublishUserPortfolioIfNotAccelerate(supabaseAdmin, userId, plan, status);
+
+  // Cancel trial sequence emails if user upgraded from trial to active
+  if (isUpgradeFromTrial) {
+    // Fire-and-forget: don't await, handle errors gracefully
+    cancelTrialSequence(userId).catch((error) => {
+      console.error('[Trial Email] Failed to cancel trial sequence:', error);
+    });
+  }
+}
+
+/**
+ * Cancel trial sequence email flow for a user
+ * Fire-and-forget implementation - errors are logged but don't block webhook processing
+ */
+async function cancelTrialSequence(userId: string): Promise<void> {
+  try {
+    // Get all flows and find the trial_sequence flow
+    const flows = await getAllFlows();
+    const trialSequenceFlow = flows.find((flow) => flow.name === 'trial_sequence');
+
+    if (!trialSequenceFlow) {
+      console.warn('[Trial Email] trial_sequence flow not found - skipping cancellation');
+      return;
+    }
+
+    // Cancel the sequence (fire-and-forget - already handles background processing)
+    const cancelledCount = await cancelSequence(undefined, userId, trialSequenceFlow.id);
+
+    console.log(`[Trial Email] Successfully cancelled ${cancelledCount} emails in trial sequence for user ${userId}`);
+  } catch (error) {
+    // Log error but don't throw - this is fire-and-forget
+    console.error('[Trial Email] Error cancelling trial sequence:', error);
+    throw error; // Re-throw so caller can handle with .catch()
+  }
 }
 

@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { getStripeClient, STRIPE_PRICE_IDS } from '@/lib/stripe/client';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import Stripe from 'stripe';
+import { getAllFlows } from '@/lib/email/flows';
+import { scheduleSequence } from '@/lib/email/service';
 
 // Use service role client for admin operations
 const supabaseAdmin = createSupabaseAdmin(
@@ -212,6 +214,14 @@ export const POST = async (request: NextRequest) => {
     } catch (syncError) {
       // Log error but don't fail the request - webhook will sync it eventually
       console.error('Error syncing subscription immediately after creation:', syncError);
+    }
+
+    // Trigger trial sequence email flow if this is a trial subscription
+    if (trialPeriodDays && typeof trialPeriodDays === 'number' && trialPeriodDays > 0 && subscription.status === 'trialing') {
+      // Fire-and-forget: don't await, handle errors gracefully
+      triggerTrialSequence(user.id, user.email || '', subscription.id).catch((error) => {
+        console.error('[Trial Email] Failed to schedule trial sequence:', error);
+      });
     }
 
     return NextResponse.json({ 
@@ -429,6 +439,50 @@ async function syncSubscriptionToDatabase(
   if (error) {
     console.error('Error syncing subscription to database:', error);
     throw error;
+  }
+}
+
+/**
+ * Trigger trial sequence email flow for a user
+ * Fire-and-forget implementation - errors are logged but don't block subscription creation
+ */
+async function triggerTrialSequence(userId: string, emailAddress: string, subscriptionId: string): Promise<void> {
+  try {
+    // Get all flows and find the trial_sequence flow
+    const flows = await getAllFlows();
+    const trialSequenceFlow = flows.find((flow) => flow.name === 'trial_sequence');
+
+    if (!trialSequenceFlow) {
+      console.warn('[Trial Email] trial_sequence flow not found - skipping email scheduling');
+      return;
+    }
+
+    if (!emailAddress) {
+      console.warn('[Trial Email] No email address provided - skipping email scheduling');
+      return;
+    }
+
+    // Generate idempotency key prefix and trigger event ID
+    const triggerEventId = subscriptionId;
+    const idempotencyKeyPrefix = `trial_sequence_${userId}_${subscriptionId}_${Date.now()}`;
+
+    // Schedule the sequence (fire-and-forget - already handles background processing)
+    await scheduleSequence({
+      userId,
+      emailAddress,
+      flowId: trialSequenceFlow.id,
+      idempotencyKeyPrefix,
+      triggerEventId,
+      variables: {},
+      isTest: false,
+      testModeMultiplier: 1, // Production uses actual days
+    });
+
+    console.log(`[Trial Email] Successfully triggered trial sequence for user ${userId} (subscription ${subscriptionId})`);
+  } catch (error) {
+    // Log error but don't throw - this is fire-and-forget
+    console.error('[Trial Email] Error triggering trial sequence:', error);
+    throw error; // Re-throw so caller can handle with .catch()
   }
 }
 
