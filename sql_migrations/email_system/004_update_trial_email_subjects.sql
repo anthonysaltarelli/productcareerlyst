@@ -68,13 +68,13 @@ WHERE name = 'trial_day14_need_help' AND version = 1;
 
 -- Template 11: Day 21 - Discount
 UPDATE email_templates
-SET subject = 'Special Offer: 25% Off Your First Month',
+SET subject = 'Special Offer: 25% Off Forever',
     updated_at = NOW()
 WHERE name = 'trial_day21_discount' AND version = 1;
 
 -- Template 12: Day 28 - Discount Reminder
 UPDATE email_templates
-SET subject = 'Last Chance: 25% Off',
+SET subject = 'Last Chance: 25% Off Forever',
     updated_at = NOW()
 WHERE name = 'trial_day28_discount_reminder' AND version = 1;
 

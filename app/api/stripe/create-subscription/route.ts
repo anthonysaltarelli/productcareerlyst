@@ -4,7 +4,7 @@ import { getStripeClient, STRIPE_PRICE_IDS } from '@/lib/stripe/client';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import { getAllFlows } from '@/lib/email/flows';
-import { scheduleSequence } from '@/lib/email/service';
+import { scheduleSequence, cancelSequence } from '@/lib/email/service';
 
 // Use service role client for admin operations
 const supabaseAdmin = createSupabaseAdmin(
@@ -217,11 +217,13 @@ export const POST = async (request: NextRequest) => {
     }
 
     // Trigger trial sequence email flow if this is a trial subscription
+    // Use setTimeout to defer to next event loop tick - truly non-blocking
     if (trialPeriodDays && typeof trialPeriodDays === 'number' && trialPeriodDays > 0 && subscription.status === 'trialing') {
-      // Fire-and-forget: don't await, handle errors gracefully
-      triggerTrialSequence(user.id, user.email || '', subscription.id).catch((error) => {
-        console.error('[Trial Email] Failed to schedule trial sequence:', error);
-      });
+      setTimeout(() => {
+        triggerTrialSequence(user.id, user.email || '', subscription.id).catch((error) => {
+          console.error('[Trial Email] Failed to schedule trial sequence:', error);
+        });
+      }, 0);
     }
 
     return NextResponse.json({ 
@@ -392,10 +394,14 @@ async function syncSubscriptionToDatabase(
   // but different stripe_subscription_id (e.g., when upgrading from trial to paid)
   const { data: existingRecord } = await supabaseAdmin
     .from('subscriptions')
-    .select('stripe_subscription_id')
+    .select('stripe_subscription_id, status')
     .eq('user_id', userId)
     .eq('stripe_customer_id', customerId)
     .maybeSingle();
+
+  // Check if user is upgrading from trial to active (before deleting old subscription)
+  const previousStatus = existingRecord?.status;
+  const isUpgradeFromTrial = previousStatus === 'trialing' && status === 'active';
 
   // If there's an existing record with a different subscription ID, delete it first
   if (existingRecord && existingRecord.stripe_subscription_id !== subscription.id) {
@@ -409,6 +415,16 @@ async function syncSubscriptionToDatabase(
     if (deleteError) {
       console.error('Error deleting old subscription:', deleteError);
     }
+  }
+
+  // Cancel trial sequence emails if user upgraded from trial to active
+  if (isUpgradeFromTrial) {
+    // Fire-and-forget: don't await, handle errors gracefully
+    setTimeout(() => {
+      cancelTrialSequence(userId).catch((error) => {
+        console.error('[Trial Email] Failed to cancel trial sequence:', error);
+      });
+    }, 0);
   }
 
   // Upsert subscription - try both conflict resolution strategies
@@ -482,6 +498,32 @@ async function triggerTrialSequence(userId: string, emailAddress: string, subscr
   } catch (error) {
     // Log error but don't throw - this is fire-and-forget
     console.error('[Trial Email] Error triggering trial sequence:', error);
+    throw error; // Re-throw so caller can handle with .catch()
+  }
+}
+
+/**
+ * Cancel trial sequence email flow for a user
+ * Fire-and-forget implementation - errors are logged but don't block subscription creation
+ */
+async function cancelTrialSequence(userId: string): Promise<void> {
+  try {
+    // Get all flows and find the trial_sequence flow
+    const flows = await getAllFlows();
+    const trialSequenceFlow = flows.find((flow) => flow.name === 'trial_sequence');
+
+    if (!trialSequenceFlow) {
+      console.warn('[Trial Email] trial_sequence flow not found - skipping cancellation');
+      return;
+    }
+
+    // Cancel the sequence (fire-and-forget - already handles background processing)
+    const cancelledCount = await cancelSequence(undefined, userId, trialSequenceFlow.id);
+
+    console.log(`[Trial Email] Successfully cancelled ${cancelledCount} emails in trial sequence for user ${userId}`);
+  } catch (error) {
+    // Log error but don't throw - this is fire-and-forget
+    console.error('[Trial Email] Error cancelling trial sequence:', error);
     throw error; // Re-throw so caller can handle with .catch()
   }
 }
