@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       triggerEventId,
       variables: variables || {},
       isTest,
-      testModeMultiplier: 1, // In test mode, 1 minute = 1 day (use as-is)
+      testModeMultiplier: 1/1440, // In test mode, 1 minute = 1 day (divide production minutes by 1440)
     });
 
     console.log(`[Flow Trigger] Scheduled ${scheduledEmails.length} emails for flow ${flowId}`);

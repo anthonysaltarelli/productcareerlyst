@@ -491,9 +491,9 @@ export const scheduleSequence = async (
     return (existingEmails || []) as ScheduledEmail[];
   }
 
-  // Calculate test mode multiplier (default: 1, meaning no multiplier)
-  // In test mode: 1 minute = 1 day, so multiplier is 1 (use minutes as-is)
-  // In production: 1440 minutes = 1 day, so we use actual minutes
+  // Calculate test mode multiplier (default: 1, meaning no multiplier for production)
+  // In test mode: 1 minute = 1 day, so multiplier should be 1/1440 to convert production minutes
+  // In production: 1440 minutes = 1 day, so we use actual minutes (multiplier = 1)
   const testMultiplier = params.testModeMultiplier || 1;
   const isTest = params.isTest || false;
 
@@ -520,8 +520,8 @@ export const scheduleSequence = async (
 
   for (const step of steps) {
     // Calculate time offset (apply test multiplier if in test mode)
-    // In test mode: use minutes as-is (1 minute = 1 day for testing)
-    // In production: use actual minutes (1440 = 1 day)
+    // In test mode: multiply by 1/1440 to convert production minutes (1440 = 1 day) to test minutes (1 = 1 day)
+    // In production: use actual minutes as-is (1440 = 1 day)
     let timeOffsetMinutes = isTest 
       ? step.time_offset_minutes * testMultiplier
       : step.time_offset_minutes;
