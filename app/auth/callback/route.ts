@@ -166,14 +166,13 @@ export async function GET(request: NextRequest) {
       // Add new OAuth users to ConvertKit (non-blocking, fire and forget)
       if (isNewUser && user.email) {
         // Import dynamically to avoid blocking
-        import('@/lib/utils/convertkit').then(({ addSubscriberToFormAndSequence }) => {
-          addSubscriberToFormAndSequence(
+        import('@/lib/utils/convertkit').then(({ createAndAddSubscriberToForm }) => {
+          createAndAddSubscriberToForm(
             7348426, // Form ID
-            2100454, // Sequence ID
             user.email!,
             firstName || undefined
           ).then(() => {
-            console.log(`[ConvertKit] Successfully added OAuth user ${user.email} to form and sequence`)
+            console.log(`[ConvertKit] Successfully added OAuth user ${user.email} to form`)
           }).catch((convertkitError) => {
             console.error('[ConvertKit] Error adding OAuth subscriber:', convertkitError)
           })

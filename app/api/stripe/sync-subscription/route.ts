@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server';
 import { getStripeClient } from '@/lib/stripe/client';
 import { createClient as createSupabaseAdmin, SupabaseClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
-import { tagSubscriber } from '@/lib/utils/convertkit';
 import { resolvePlanAndCadenceFromSubscription } from '@/lib/stripe/plan-utils';
 
 // Type alias to avoid conflict with our Subscription interface
@@ -326,23 +325,6 @@ export const POST = async (request: NextRequest) => {
         { error: 'Failed to sync subscription to database' },
         { status: 500 }
       );
-    }
-
-    // Tag subscriber in ConvertKit if they have an active/trialing paid plan subscription
-    // Only tag for 'learn' or 'accelerate' plans when status is 'active' or 'trialing'
-    if ((status === 'active' || status === 'trialing') && (plan === 'learn' || plan === 'accelerate')) {
-      try {
-        if (user.email) {
-          const PRODUCT_CAREERLYST_SUBSCRIBER_TAG_ID = 5458897;
-          await tagSubscriber(PRODUCT_CAREERLYST_SUBSCRIBER_TAG_ID, user.email);
-          console.log(`[ConvertKit] Tagged ${user.email} as ProductCareerlystSubscriber`);
-        } else {
-          console.warn(`[ConvertKit] Could not get user email for userId ${user.id} to tag subscriber`);
-        }
-      } catch (tagError) {
-        // Don't fail the sync if tagging fails - log and continue
-        console.error('[ConvertKit] Error tagging subscriber:', tagError);
-      }
     }
 
     // Unpublish portfolio if user is no longer on Accelerate plan with active/trialing status

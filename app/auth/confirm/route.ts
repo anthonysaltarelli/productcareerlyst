@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { type EmailOtpType } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { type NextRequest } from 'next/server'
-import { addSubscriberToFormAndSequence } from '@/lib/utils/convertkit'
+import { createAndAddSubscriberToForm } from '@/lib/utils/convertkit'
 import { isOnboardingComplete } from '@/lib/utils/onboarding'
 import { transferBubbleSubscription } from '@/lib/utils/bubble-transfer'
 
@@ -96,17 +96,16 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Add user to ConvertKit form and sequence (only on signup confirmation, not password recovery)
+      // Add user to ConvertKit form (only on signup confirmation, not password recovery)
       if (type === 'email') {
         try {
           const firstName = user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || undefined;
-          await addSubscriberToFormAndSequence(
+          await createAndAddSubscriberToForm(
             7348426, // Form ID
-            2100454, // Sequence ID
             user.email,
             firstName
           );
-          console.log(`[ConvertKit] Successfully added ${user.email} to form 7348426 and sequence 2100454`);
+          console.log(`[ConvertKit] Successfully added ${user.email} to form 7348426`);
         } catch (convertkitError) {
           // Don't block user if ConvertKit fails - log error but continue
           console.error('[ConvertKit] Error adding subscriber to ConvertKit:', convertkitError);
