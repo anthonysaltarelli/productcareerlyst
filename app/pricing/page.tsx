@@ -75,7 +75,7 @@ const featureList: FeatureInfo[] = [
   { 
     key: 'resources', 
     label: 'PM Resources & Templates',
-    description: '50+ battle-tested PM templates including PRDs, roadmaps, OKR frameworks, and prioritization matrices. These are the same templates used by PMs at top tech companies.',
+    description: '20+ battle-tested PM templates including PRDs, roadmaps, OKR frameworks, and prioritization matrices. These are the same templates used by PMs at top tech companies.',
     icon: '⚡',
   },
   { 

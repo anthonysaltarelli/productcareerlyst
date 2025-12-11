@@ -43,7 +43,7 @@ export const SubscriptionPromotion = ({ subscription, stats }: SubscriptionPromo
     {
       icon: '⚡',
       title: 'Premium Templates & Tools',
-      description: 'Get access to PRDs, roadmaps, OKRs, and 50+ PM resources',
+      description: 'Get access to PRDs, roadmaps, OKRs, and 20+ PM resources',
     },
   ]
 

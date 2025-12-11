@@ -101,7 +101,7 @@ export const TrialDay1LessonsEmail = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    You've taken the first step toward your next product role. Over the next 7 days, you'll have full access to everything you need to make real progress in your career journey.
+                    You've taken the first step toward your next product role. Over the next 6 days, you'll have full access to everything you need to make real progress in your career journey.
                   </p>
 
                   <div

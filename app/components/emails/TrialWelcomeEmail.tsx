@@ -103,17 +103,71 @@ export const TrialWelcomeEmail = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    We're thrilled you've started your 7-day free trial of Product Careerlyst! 
-                    You now have full access to all our features to help you grow in your product career.
+                    You've just started your <strong>Free 7-Day Trial of the Accelerate plan</strong>! 
+                    Over the next 7 days, you have full access to everything in Accelerate—our unlimited plan designed for serious career growth.
                   </p>
 
-                  {/* What's next section */}
+                  {/* What's included section */}
                   <div
                     style={{
                       backgroundColor: '#f3f4f6',
                       padding: '20px',
                       borderRadius: '12px',
                       margin: '0 0 24px 0',
+                    }}
+                  >
+                    <h2
+                      style={{
+                        color: '#1f2937',
+                        fontSize: '20px',
+                        fontWeight: '700',
+                        margin: '0 0 16px 0',
+                      }}
+                    >
+                      What You Have Access To
+                    </h2>
+                    <p
+                      style={{
+                        color: '#374151',
+                        fontSize: '16px',
+                        lineHeight: '1.6',
+                        margin: '0 0 16px 0',
+                      }}
+                    >
+                      With your Accelerate trial, you get:
+                    </p>
+                    <ul
+                      style={{
+                        color: '#374151',
+                        fontSize: '16px',
+                        lineHeight: '1.8',
+                        margin: '0',
+                        paddingLeft: '20px',
+                      }}
+                    >
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>120+ Course Lessons</strong> - Comprehensive video lessons across 7 courses
+                      </li>
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>20+ PM Resources & Templates</strong> - PRDs, roadmaps, OKR frameworks, and more
+                      </li>
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>Hosted Product Portfolio</strong> - Create your portfolio website at productcareerlyst.com/p/yourname
+                      </li>
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>Unlimited AI Features</strong> - Resume optimizations, job tracking, company research, networking tools, and more—all unlimited
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* What's next section */}
+                  <div
+                    style={{
+                      backgroundColor: '#fef3e7',
+                      padding: '20px',
+                      borderRadius: '12px',
+                      margin: '0 0 24px 0',
+                      borderLeft: '4px solid #a855f7',
                     }}
                   >
                     <h2
@@ -136,7 +190,7 @@ export const TrialWelcomeEmail = ({
                       }}
                     >
                       <li style={{ marginBottom: '12px' }}>
-                        Complete your profile to get personalized recommendations
+                        Complete your first lesson to see immediate value
                       </li>
                       <li style={{ marginBottom: '12px' }}>
                         Explore our courses and resources tailored for product managers

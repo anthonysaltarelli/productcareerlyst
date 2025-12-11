@@ -197,7 +197,7 @@ export const FeatureDiscovery = ({ stats, fullStats, subscription }: FeatureDisc
             'Feature Description': 'PRDs, roadmaps, OKRs—essential templates and resources',
             'Feature Icon': '⚡',
             'Feature Href': '/dashboard/templates',
-            'Feature Status': '50+ resources',
+            'Feature Status': '20+ resources',
             'Feature Position': 'Row 2, Column 2',
             'Feature Type': 'Template Feature',
             ...userStateContext,
@@ -219,7 +219,7 @@ export const FeatureDiscovery = ({ stats, fullStats, subscription }: FeatureDisc
             <div className="flex items-center justify-between">
               <span className="text-pink-600 font-black">Explore templates →</span>
               <span className="text-sm font-bold text-gray-600 bg-white/60 px-3 py-1 rounded-full">
-                50+ resources
+                20+ resources
               </span>
             </div>
           </div>

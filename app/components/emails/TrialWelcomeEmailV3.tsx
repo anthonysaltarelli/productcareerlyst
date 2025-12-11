@@ -103,11 +103,11 @@ export const TrialWelcomeEmailV3 = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    You've taken the first step toward your next product role. Over the next 7 days, 
-                    you'll have full access to everything you need to make real progress in your career journey.
+                    You've just started your <strong>Free 7-Day Trial of the Accelerate plan</strong>! 
+                    Over the next 7 days, you have full access to everything in Accelerate—our unlimited plan designed for serious career growth.
                   </p>
 
-                  {/* Value-focused section */}
+                  {/* What's included section */}
                   <div
                     style={{
                       backgroundColor: '#f3f4f6',
@@ -124,7 +124,7 @@ export const TrialWelcomeEmailV3 = ({
                         margin: '0 0 16px 0',
                       }}
                     >
-                      Your First Step (Takes 3 Minutes)
+                      What You Have Access To
                     </h2>
                     <p
                       style={{
@@ -134,41 +134,38 @@ export const TrialWelcomeEmailV3 = ({
                         margin: '0 0 16px 0',
                       }}
                     >
-                      The fastest way to see value? Complete your first lesson. Users who finish even one lesson 
-                      are <strong>3.3x more likely</strong> to see the transformation they're looking for.
+                      With your Accelerate trial, you get:
                     </p>
-                    <p
+                    <ul
                       style={{
                         color: '#374151',
                         fontSize: '16px',
-                        lineHeight: '1.6',
+                        lineHeight: '1.8',
                         margin: '0',
+                        paddingLeft: '20px',
                       }}
                     >
-                      You'll get practical frameworks you can use immediately—no theory, just actionable steps 
-                      that help you move forward.
-                    </p>
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>120+ Course Lessons</strong> - Comprehensive video lessons across 7 courses
+                      </li>
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>20+ PM Resources & Templates</strong> - PRDs, roadmaps, OKR frameworks, and more
+                      </li>
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>Hosted Product Portfolio</strong> - Create your portfolio website at productcareerlyst.com/p/yourname
+                      </li>
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>Unlimited AI Features</strong> - Resume optimizations, job tracking, company research, networking tools, and more—all unlimited
+                      </li>
+                    </ul>
                   </div>
-
-                  {/* What happens next */}
-                  <p
-                    style={{
-                      color: '#374151',
-                      fontSize: '16px',
-                      lineHeight: '1.6',
-                      margin: '0 0 24px 0',
-                    }}
-                  >
-                    Once you complete that first lesson, you'll unlock clarity on your next move. 
-                    Whether you're actively job searching or building skills, we'll guide you step-by-step.
-                  </p>
 
                   {/* CTA Button */}
                   <table width="100%" cellPadding="0" cellSpacing="0" style={{ marginBottom: '24px' }}>
                     <tr>
                       <td align="center">
                         <a
-                          href={`${baseUrl}/dashboard/courses`}
+                          href={`${baseUrl}/dashboard`}
                           style={{
                             display: 'inline-block',
                             padding: '14px 28px',
@@ -180,7 +177,7 @@ export const TrialWelcomeEmailV3 = ({
                             fontSize: '16px',
                           }}
                         >
-                          Start Your First Lesson →
+                          Go to Dashboard →
                         </a>
                       </td>
                     </tr>
