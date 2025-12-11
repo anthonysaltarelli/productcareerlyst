@@ -101,8 +101,7 @@ export const TrialDay3ResumeEmail = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    Your resume is your first chance to make an impression. Get instant, AI-powered feedback 
-                    on how to make it stand out—specifically tailored for product managers.
+                    Your resume is your first chance to make an impression. With Accelerate, you have access to powerful AI tools that help you build resumes that actually get interviews—specifically tailored for product managers.
                   </p>
 
                   <div
@@ -118,21 +117,11 @@ export const TrialDay3ResumeEmail = ({
                         color: '#1f2937',
                         fontSize: '20px',
                         fontWeight: '700',
-                        margin: '0 0 12px 0',
-                      }}
-                    >
-                      What You'll Discover
-                    </h2>
-                    <p
-                      style={{
-                        color: '#374151',
-                        fontSize: '16px',
-                        lineHeight: '1.6',
                         margin: '0 0 16px 0',
                       }}
                     >
-                      In just a few minutes, you'll get:
-                    </p>
+                      Everything You Get with Our Resume Tools
+                    </h2>
                     <ul
                       style={{
                         color: '#374151',
@@ -143,15 +132,40 @@ export const TrialDay3ResumeEmail = ({
                       }}
                     >
                       <li style={{ marginBottom: '12px' }}>
-                        <strong>Clarity</strong> on what's working and what needs improvement
+                        <strong>Instant Resume Import</strong> - Upload your PDF or DOCX and our AI extracts everything automatically in 60 seconds
                       </li>
                       <li style={{ marginBottom: '12px' }}>
-                        <strong>Specific suggestions</strong> you can act on immediately
+                        <strong>AI Bullet Optimization</strong> - Get 3 optimized versions of any bullet point (impact-focused, metric-focused, or action-focused) in under 30 seconds
                       </li>
                       <li style={{ marginBottom: '12px' }}>
-                        <strong>PM-focused advice</strong> that helps you stand out
+                        <strong>Comprehensive Analysis</strong> - Get scores on action verbs, accomplishments, quantification, impact, and conciseness. Plus keyword analysis and ATS compatibility check
+                      </li>
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>Job-Specific Customization</strong> - Paste any job description and watch AI reorder your bullets, inject missing keywords naturally, and show you exactly what changed
+                      </li>
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>Export Options</strong> - Download as ATS-friendly PDF or DOCX format, ready to submit instantly
                       </li>
                     </ul>
+                    <p
+                      style={{
+                        color: '#374151',
+                        fontSize: '14px',
+                        lineHeight: '1.6',
+                        margin: '16px 0 0 0',
+                        fontStyle: 'italic',
+                      }}
+                    >
+                      <a
+                        href={`${baseUrl}/resume`}
+                        style={{
+                          color: '#a855f7',
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        Learn more about all our resume features →
+                      </a>
+                    </p>
                   </div>
 
                   <p
@@ -162,8 +176,7 @@ export const TrialDay3ResumeEmail = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    Upload your resume now and see exactly how to make it stronger. You'll get actionable feedback 
-                    in minutes, not days.
+                    Upload your resume now and see exactly how to make it stronger. You'll get actionable feedback and AI-powered optimizations in minutes, not days.
                   </p>
 
                   {/* CTA Button */}

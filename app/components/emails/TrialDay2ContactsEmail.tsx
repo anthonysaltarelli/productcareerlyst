@@ -101,7 +101,7 @@ export const TrialDay2ContactsEmail = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    Here's what successful job seekers do differently: they build relationships. Users who add contacts 
+                    Here's what successful job seekers do differently: they build relationships with folks in the product org at their target companies. Users who add contacts 
                     are <strong>7.6x more likely</strong> to see the career outcomes they want.
                   </p>
 
@@ -121,7 +121,7 @@ export const TrialDay2ContactsEmail = ({
                         margin: '0 0 12px 0',
                       }}
                     >
-                      Why This Matters
+                      Discover Verified Contacts at Your Target Companies
                     </h2>
                     <p
                       style={{
@@ -131,7 +131,27 @@ export const TrialDay2ContactsEmail = ({
                         margin: '0 0 16px 0',
                       }}
                     >
-                      When you track who you've talked to at each company, you:
+                      With Accelerate, you can discover product managers' email addresses and LinkedIn profiles at the companies you're targeting. Our AI only displays <strong>verified work email addresses</strong>—no guessing, no wasted time.
+                    </p>
+                    <p
+                      style={{
+                        color: '#374151',
+                        fontSize: '16px',
+                        lineHeight: '1.6',
+                        margin: '0 0 16px 0',
+                      }}
+                    >
+                      Here's the game-changer: when you email them directly with a link to your product portfolio case studies, you'll <strong>stand out from 99% of other candidates</strong> on the market. Most people just apply through job boards—you're networking with product folks directly and showing proof of your impact.
+                    </p>
+                    <p
+                      style={{
+                        color: '#374151',
+                        fontSize: '16px',
+                        lineHeight: '1.6',
+                        margin: '0',
+                      }}
+                    >
+                      This direct approach leads to:
                     </p>
                     <ul
                       style={{
@@ -143,13 +163,13 @@ export const TrialDay2ContactsEmail = ({
                       }}
                     >
                       <li style={{ marginBottom: '12px' }}>
-                        Never lose track of important conversations
+                        More informational calls and referrals
                       </li>
                       <li style={{ marginBottom: '12px' }}>
-                        Build relationships that lead to referrals
+                        Faster responses than traditional applications
                       </li>
                       <li style={{ marginBottom: '12px' }}>
-                        Stay organized during your job search
+                        Relationships that lead to opportunities
                       </li>
                     </ul>
                   </div>
@@ -162,8 +182,7 @@ export const TrialDay2ContactsEmail = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    Start simple: add one contact from a company you're interested in. It takes 2 minutes, 
-                    and you'll immediately see how this helps you stay organized and build momentum.
+                    Start by discovering contacts at one company you're interested in. Then reach out with your portfolio link—you'll immediately see how this direct approach sets you apart.
                   </p>
 
                   {/* CTA Button */}
