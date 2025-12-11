@@ -101,7 +101,7 @@ export const TrialDay28DiscountReminderEmail = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    This is your final reminder about our <strong>25% off</strong> offer. Your next product role 
+                    This is your final reminder about our <strong>25% off forever</strong> offer. Your next product role 
                     is waiting—don't let this opportunity to accelerate your career journey pass by.
                   </p>
 
@@ -123,16 +123,35 @@ export const TrialDay28DiscountReminderEmail = ({
                         margin: '0 0 8px 0',
                       }}
                     >
-                      25% OFF
+                      25% OFF FOREVER
                     </p>
                     <p
                       style={{
                         color: '#78350f',
                         fontSize: '16px',
-                        margin: '0',
+                        margin: '0 0 12px 0',
                       }}
                     >
-                      Your first month of Premium
+                      Use code <strong style={{ fontSize: '18px', fontFamily: 'monospace' }}>25FOREVER</strong>
+                    </p>
+                    <p
+                      style={{
+                        color: '#78350f',
+                        fontSize: '14px',
+                        margin: '0',
+                        fontStyle: 'italic',
+                      }}
+                    >
+                      Enter this code during the upgrade flow
+                    </p>
+                    <p
+                      style={{
+                        color: '#78350f',
+                        fontSize: '14px',
+                        margin: '12px 0 0 0',
+                      }}
+                    >
+                      Applies to monthly, quarterly, and yearly plans
                     </p>
                   </div>
 
@@ -196,7 +215,7 @@ export const TrialDay28DiscountReminderEmail = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    This is your last chance. Upgrade now and start making real progress toward your next product role.
+                    This is your last chance. When you upgrade, make sure to enter code <strong style={{ fontFamily: 'monospace' }}>25FOREVER</strong> during checkout to lock in your 25% discount forever.
                   </p>
 
                   {/* CTA Button */}

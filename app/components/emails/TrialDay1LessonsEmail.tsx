@@ -142,16 +142,16 @@ export const TrialDay1LessonsEmail = ({
                     >
                       You'll get practical frameworks you can use immediately -- no fluff, just actionable steps that help you start getting more referrals, interviews, and ultimately offers.
                     </p>
-                    <p
-                      style={{
-                        color: '#374151',
-                        fontSize: '16px',
-                        lineHeight: '1.6',
+                  <p
+                    style={{
+                      color: '#374151',
+                      fontSize: '16px',
+                      lineHeight: '1.6',
                         margin: '0',
-                      }}
-                    >
+                    }}
+                  >
                       Once you complete those first couple of lessons, you'll start to get clarity on your next move. Whether you're actively job searching or building out the foundations, we'll guide you step-by-step.
-                    </p>
+                  </p>
                   </div>
 
                   {/* CTA Button */}

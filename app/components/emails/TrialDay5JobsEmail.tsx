@@ -101,8 +101,7 @@ export const TrialDay5JobsEmail = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    The most successful job seekers have one thing in common: they stay organized. Users who track 
-                    their applications are <strong>3.8x more likely</strong> to see the outcomes they want.
+                    Stop drowning in spreadsheets. With your Accelerate trial, you have access to a complete job search command center that handles the busywork so you can focus on landing offers.
                   </p>
 
                   <div
@@ -118,21 +117,11 @@ export const TrialDay5JobsEmail = ({
                         color: '#1f2937',
                         fontSize: '20px',
                         fontWeight: '700',
-                        margin: '0 0 12px 0',
-                      }}
-                    >
-                      What This Unlocks
-                    </h2>
-                    <p
-                      style={{
-                        color: '#374151',
-                        fontSize: '16px',
-                        lineHeight: '1.6',
                         margin: '0 0 16px 0',
                       }}
                     >
-                      When you track your applications, you:
-                    </p>
+                      Everything You Get with Job Center
+                    </h2>
                     <ul
                       style={{
                         color: '#374151',
@@ -143,15 +132,43 @@ export const TrialDay5JobsEmail = ({
                       }}
                     >
                       <li style={{ marginBottom: '12px' }}>
-                        Never lose track of where you've applied or what's next
+                        <strong>Instant Job Import</strong> - Paste any job posting URL and our AI extracts the title, company, description, and requirements automatically
                       </li>
                       <li style={{ marginBottom: '12px' }}>
-                        See your progress at a glance (no more spreadsheets)
+                        <strong>Verified Contact Discovery</strong> - Find verified email addresses and LinkedIn profiles for PMs at your target companies
                       </li>
                       <li style={{ marginBottom: '12px' }}>
-                        Get AI-powered insights on each company
+                        <strong>AI Company Research</strong> - One-click research across 13 dimensions: mission, values, competition, funding, recent launches, strategy, and more
+                      </li>
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>AI Interview Prep</strong> - Generate tailored questions for each interview based on company, role, and interview type
+                      </li>
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>Personalized Thank You Notes</strong> - AI generates follow-up emails that reference specific conversation points from your interviews
+                      </li>
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>Kanban Organization</strong> - Visual tracking with drag-and-drop between stages—finally get out of spreadsheet hell
                       </li>
                     </ul>
+                    <p
+                      style={{
+                        color: '#374151',
+                        fontSize: '14px',
+                        lineHeight: '1.6',
+                        margin: '16px 0 0 0',
+                        fontStyle: 'italic',
+                      }}
+                    >
+                      <a
+                        href={`${baseUrl}/job-center`}
+                        style={{
+                          color: '#a855f7',
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        Learn more about all our job center features →
+                      </a>
+                    </p>
                   </div>
 
                   <p
@@ -162,8 +179,7 @@ export const TrialDay5JobsEmail = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    Add your first job application today. It takes 2 minutes, and you'll immediately see how 
-                    this helps you stay organized and make progress.
+                    Add your first job application today. It takes 60 seconds to import from a URL, and you'll immediately see how this transforms your job search from chaos to command center.
                   </p>
 
                   {/* CTA Button */}

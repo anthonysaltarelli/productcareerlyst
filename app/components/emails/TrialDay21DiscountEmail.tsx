@@ -102,7 +102,7 @@ export const TrialDay21DiscountEmail = ({
                     }}
                   >
                     We'd love to help you continue your career journey. As a special offer, we're giving you 
-                    <strong> 25% off</strong> your first month of Accelerate—everything you need to make real progress.
+                    <strong> 25% off forever</strong> on Accelerate—everything you need to make real progress.
                   </p>
 
                   <div
@@ -123,16 +123,35 @@ export const TrialDay21DiscountEmail = ({
                         margin: '0 0 8px 0',
                       }}
                     >
-                      25% OFF
+                      25% OFF FOREVER
                     </p>
                     <p
                       style={{
                         color: '#047857',
                         fontSize: '16px',
-                        margin: '0',
+                        margin: '0 0 12px 0',
                       }}
                     >
-                      Your first month of Premium
+                      Use code <strong style={{ fontSize: '18px', fontFamily: 'monospace' }}>25FOREVER</strong>
+                    </p>
+                    <p
+                      style={{
+                        color: '#047857',
+                        fontSize: '14px',
+                        margin: '0',
+                        fontStyle: 'italic',
+                      }}
+                    >
+                      Enter this code during the upgrade flow
+                    </p>
+                    <p
+                      style={{
+                        color: '#047857',
+                        fontSize: '14px',
+                        margin: '12px 0 0 0',
+                      }}
+                    >
+                      Applies to monthly, quarterly, and yearly plans
                     </p>
                   </div>
 
@@ -196,7 +215,7 @@ export const TrialDay21DiscountEmail = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    This offer is available for a limited time. Don't let your career progress wait—upgrade now and keep moving forward.
+                    When you upgrade, make sure to enter code <strong style={{ fontFamily: 'monospace' }}>25FOREVER</strong> during checkout to lock in your 25% discount forever.
                   </p>
 
                   {/* CTA Button */}

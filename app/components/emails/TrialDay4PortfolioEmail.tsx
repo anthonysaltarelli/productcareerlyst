@@ -101,8 +101,7 @@ export const TrialDay4PortfolioEmail = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    Your resume tells what you did. A portfolio shows <strong>the impact you made</strong>. 
-                    Users who create portfolios are 1.9x more likely to see the career outcomes they want.
+                    Your resume tells what you did. A portfolio <strong>differentiates you</strong> by showcasing your thought process, design skills, strategic thinking, and the impact you've made through real case studies.
                   </p>
 
                   <div
@@ -118,21 +117,11 @@ export const TrialDay4PortfolioEmail = ({
                         color: '#1f2937',
                         fontSize: '20px',
                         fontWeight: '700',
-                        margin: '0 0 12px 0',
-                      }}
-                    >
-                      Why This Works
-                    </h2>
-                    <p
-                      style={{
-                        color: '#374151',
-                        fontSize: '16px',
-                        lineHeight: '1.6',
                         margin: '0 0 16px 0',
                       }}
                     >
-                      A portfolio lets you:
-                    </p>
+                      Everything You Get with Our Portfolio Tools
+                    </h2>
                     <ul
                       style={{
                         color: '#374151',
@@ -143,15 +132,52 @@ export const TrialDay4PortfolioEmail = ({
                       }}
                     >
                       <li style={{ marginBottom: '12px' }}>
-                        Show real metrics and outcomes (not just responsibilities)
+                        <strong>Unsplash Integration</strong> - Search millions of professional photos directly from your editor and add them with one click
                       </li>
                       <li style={{ marginBottom: '12px' }}>
-                        Demonstrate your product thinking
+                        <strong>AI Writing Assistant</strong> - Type "/" to access AI commands: continue writing, improve your text, create summaries, or transform into bullet points
                       </li>
                       <li style={{ marginBottom: '12px' }}>
-                        Stand out when other candidates can't
+                        <strong>Categories & Organization</strong> - Create unlimited custom categories, drag-and-drop to reorder, and feature your top case studies
+                      </li>
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>Notion-Like Editor</strong> - Rich formatting options, drag-and-drop images, callout boxes, and highlights—write like you're in Notion
+                      </li>
+                      <li style={{ marginBottom: '12px' }}>
+                        <strong>Custom URLs & Publishing</strong> - Get a personalized URL (productcareerlyst.com/p/yourname), custom slugs for each case study, and one-click publish/unpublish
                       </li>
                     </ul>
+                    <p
+                      style={{
+                        color: '#374151',
+                        fontSize: '14px',
+                        lineHeight: '1.6',
+                        margin: '16px 0 0 0',
+                        fontStyle: 'italic',
+                      }}
+                    >
+                      <a
+                        href={`${baseUrl}/portfolio`}
+                        style={{
+                          color: '#a855f7',
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        Learn more about all our portfolio features →
+                      </a>
+                      {' • '}
+                      <a
+                        href="https://productcareerlyst.com/p/anthonysaltarelli"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          color: '#a855f7',
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        View example portfolio →
+                      </a>
+                    </p>
                   </div>
 
                   <p
@@ -162,7 +188,7 @@ export const TrialDay4PortfolioEmail = ({
                       margin: '0 0 24px 0',
                     }}
                   >
-                    With your Accelerate trial, you have access to our portfolio template. Start with one case study— 
+                    With your Accelerate trial, you have full access to our portfolio editor. Start with one case study— 
                     you'll see how it transforms how hiring managers see you.
                   </p>
 
