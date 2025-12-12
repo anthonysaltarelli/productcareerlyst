@@ -284,3 +284,4 @@ Once all tests pass:
 - All timestamps use `TIMESTAMP WITH TIME ZONE`
 - JSONB fields default to empty objects/arrays where appropriate
 
+

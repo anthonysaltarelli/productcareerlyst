@@ -735,3 +735,4 @@ BEGIN
   RAISE NOTICE 'Trial flow created successfully with % steps and % templates', v_step_count, v_template_count;
 END $$;
 
+

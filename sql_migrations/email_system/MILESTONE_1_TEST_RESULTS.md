@@ -113,3 +113,4 @@ Proceed to **Milestone 2: Resend Client Integration**
 - JSONB fields default to empty objects/arrays where appropriate
 - Partial unique index for `flow_trigger_id` prevents duplicate flow triggers correctly
 
+

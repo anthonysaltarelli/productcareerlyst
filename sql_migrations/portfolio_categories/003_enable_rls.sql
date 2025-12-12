@@ -6,3 +6,4 @@ ALTER TABLE portfolio_categories ENABLE ROW LEVEL SECURITY;
 
 
 
+
