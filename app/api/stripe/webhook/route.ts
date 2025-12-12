@@ -540,47 +540,72 @@ async function syncSubscriptionToDatabase(
     });
   }
 
-  // Trigger trial sequence emails if this is a NEW trialing subscription
-  // Check if this is a new subscription (no existing record) or status changed to trialing
-  const isNewTrialingSubscription = status === 'trialing' && 
-    (!existingSubscription || existingSubscription.status !== 'trialing');
-  
-  if (isNewTrialingSubscription && subscription.trial_start) {
+  // Trigger trial sequence emails if this is a trialing subscription
+  // Check for scheduled emails FIRST to prevent duplicates, regardless of whether subscription is "new"
+  // This ensures webhook acts as a safety net even if create-subscription already synced the subscription
+  if (status === 'trialing' && subscription.trial_start) {
+    console.log('[Trial Email] Webhook: Checking for trial sequence emails', {
+      userId,
+      subscriptionId: subscription.id,
+      status,
+      hasTrialStart: !!subscription.trial_start,
+    });
+
     // Get trial_sequence flow to generate correct flow_trigger_id
     const flows = await getAllFlows();
     const trialSequenceFlow = flows.find((flow) => flow.name === 'trial_sequence');
     
-    if (trialSequenceFlow) {
-      // Generate the same flow_trigger_id that scheduleSequence would use
-      const flowTriggerId = generateFlowTriggerId(userId, trialSequenceFlow.id, subscription.id);
-      
-      // Check if trial sequence emails are already scheduled for this subscription
-      // This prevents duplicate triggers if webhook is called multiple times
-      const { data: existingEmails } = await supabaseAdmin
-        .from('scheduled_emails')
-        .select('id')
-        .eq('flow_trigger_id', flowTriggerId)
-        .limit(1);
+    if (!trialSequenceFlow) {
+      console.warn('[Trial Email] Webhook: trial_sequence flow not found - skipping email scheduling');
+      return;
+    }
+
+    // Generate the same flow_trigger_id that scheduleSequence would use
+    const flowTriggerId = generateFlowTriggerId(userId, trialSequenceFlow.id, subscription.id);
+    console.log('[Trial Email] Webhook: Generated flow_trigger_id', { flowTriggerId });
     
+    // Check if trial sequence emails are already scheduled for this subscription
+    // This prevents duplicate triggers if webhook is called multiple times or if create-subscription already triggered
+    const { data: existingEmails, error: checkError } = await supabaseAdmin
+      .from('scheduled_emails')
+      .select('id')
+      .eq('flow_trigger_id', flowTriggerId)
+      .limit(1);
+    
+    if (checkError) {
+      console.error('[Trial Email] Webhook: Error checking for existing emails:', checkError);
+      return;
+    }
+
     // Only trigger if no emails are already scheduled
     if (!existingEmails || existingEmails.length === 0) {
+      console.log('[Trial Email] Webhook: No existing emails found - triggering trial sequence');
+      
       // Get user email from auth.users table
       const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
       
       if (userError || !userData?.user?.email) {
-        console.warn(`[Trial Email] Could not get user email for user ${userId}:`, userError);
+        console.warn(`[Trial Email] Webhook: Could not get user email for user ${userId}:`, userError);
       } else {
+        console.log('[Trial Email] Webhook: Triggering trial sequence', {
+          userId,
+          email: userData.user.email,
+          subscriptionId: subscription.id,
+        });
         // Fire-and-forget: trigger trial sequence
         triggerTrialSequence(userId, userData.user.email, subscription.id).catch((error) => {
-          console.error('[Trial Email] Failed to schedule trial sequence:', error);
+          console.error('[Trial Email] Webhook: Failed to schedule trial sequence:', error);
         });
       }
     } else {
-      console.log(`[Trial Email] Trial sequence already scheduled for user ${userId} (subscription ${subscription.id})`);
+      console.log(`[Trial Email] Webhook: Trial sequence already scheduled for user ${userId} (subscription ${subscription.id}) - skipping`);
     }
-    } else {
-      console.warn('[Trial Email] trial_sequence flow not found - skipping email scheduling');
-    }
+  } else {
+    console.log('[Trial Email] Webhook: Skipping trial sequence check', {
+      status,
+      hasTrialStart: !!subscription.trial_start,
+      reason: status !== 'trialing' ? 'not trialing' : 'no trial_start',
+    });
   }
 }
 

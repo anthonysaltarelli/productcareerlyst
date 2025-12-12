@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getStripeClient, STRIPE_PRICE_IDS } from '@/lib/stripe/client';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import Stripe from 'stripe';
-import { getAllFlows } from '@/lib/email/flows';
+import { getAllFlows, generateFlowTriggerId } from '@/lib/email/flows';
 import { scheduleSequence, cancelSequence } from '@/lib/email/service';
 
 // Use service role client for admin operations
@@ -518,9 +518,25 @@ async function triggerTrialSequence(userId: string, emailAddress: string, subscr
     // Generate idempotency key prefix and trigger event ID
     const triggerEventId = subscriptionId;
     const idempotencyKeyPrefix = `trial_sequence_${userId}_${subscriptionId}_${Date.now()}`;
+    
+    // Generate flow_trigger_id to log it before calling scheduleSequence
+    const flowTriggerId = generateFlowTriggerId(userId, trialSequenceFlow.id, triggerEventId);
+    console.log('[Trial Email] Create-subscription: Generated flow_trigger_id', {
+      flowTriggerId,
+      userId,
+      flowId: trialSequenceFlow.id,
+      triggerEventId,
+    });
 
     // Schedule the sequence (fire-and-forget - already handles background processing)
-    await scheduleSequence({
+    console.log('[Trial Email] Create-subscription: Calling scheduleSequence', {
+      userId,
+      emailAddress,
+      flowId: trialSequenceFlow.id,
+      flowTriggerId,
+    });
+    
+    const scheduledEmails = await scheduleSequence({
       userId,
       emailAddress,
       flowId: trialSequenceFlow.id,
@@ -534,10 +550,20 @@ async function triggerTrialSequence(userId: string, emailAddress: string, subscr
       testModeMultiplier: 1, // Production uses actual days
     });
 
-    console.log(`[Trial Email] Successfully triggered trial sequence for user ${userId} (subscription ${subscriptionId})`);
+    console.log(`[Trial Email] Create-subscription: Successfully triggered trial sequence for user ${userId} (subscription ${subscriptionId})`, {
+      flowTriggerId,
+      emailsScheduled: scheduledEmails.length,
+      emailIds: scheduledEmails.map(e => e.id),
+    });
   } catch (error) {
-    // Log error but don't throw - this is fire-and-forget
-    console.error('[Trial Email] Error triggering trial sequence:', error);
+    // Log error with full details
+    console.error('[Trial Email] Create-subscription: Error triggering trial sequence:', {
+      error,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorStack: error instanceof Error ? error.stack : undefined,
+      userId,
+      subscriptionId,
+    });
     throw error; // Re-throw so caller can handle with .catch()
   }
 }

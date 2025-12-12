@@ -464,6 +464,13 @@ export const scheduleSequence = async (
     params.triggerEventId
   );
 
+  console.log('[scheduleSequence] Checking for existing flow trigger', {
+    flowTriggerId,
+    userId: params.userId,
+    flowId: params.flowId,
+    triggerEventId: params.triggerEventId,
+  });
+
   // Check if this flow has already been triggered for this user/flow/event combination
   const { data: existingTrigger, error: checkError } = await supabase
     .from('scheduled_emails')
@@ -473,11 +480,20 @@ export const scheduleSequence = async (
     .maybeSingle();
 
   if (checkError && checkError.code !== 'PGRST116') {
+    console.error('[scheduleSequence] Error checking for existing trigger', {
+      flowTriggerId,
+      error: checkError,
+    });
     throw new Error(`Failed to check for existing flow trigger: ${checkError.message}`);
   }
 
   if (existingTrigger) {
     // Flow already triggered - return existing scheduled emails for this trigger
+    console.log('[scheduleSequence] Existing flow trigger found, fetching existing emails', {
+      flowTriggerId,
+      existingTriggerId: existingTrigger.id,
+    });
+    
     const { data: existingEmails, error: fetchError } = await supabase
       .from('scheduled_emails')
       .select('*')
@@ -485,11 +501,27 @@ export const scheduleSequence = async (
       .order('scheduled_at', { ascending: true });
 
     if (fetchError) {
+      console.error('[scheduleSequence] Error fetching existing emails', {
+        flowTriggerId,
+        error: fetchError,
+      });
       throw new Error(`Failed to fetch existing scheduled emails: ${fetchError.message}`);
     }
 
+    console.log('[scheduleSequence] Returning existing scheduled emails', {
+      flowTriggerId,
+      emailCount: existingEmails?.length || 0,
+      emailIds: existingEmails?.map(e => e.id) || [],
+    });
+
     return (existingEmails || []) as ScheduledEmail[];
   }
+
+  console.log('[scheduleSequence] No existing trigger found, scheduling new emails', {
+    flowTriggerId,
+    userId: params.userId,
+    flowId: params.flowId,
+  });
 
   // Calculate test mode multiplier (default: 1, meaning no multiplier for production)
   // In test mode: 1 minute = 1 day, so multiplier should be 1/1440 to convert production minutes
@@ -715,7 +747,13 @@ export const scheduleSequence = async (
     return (fetchedEmails || []) as ScheduledEmail[];
   }
 
-  console.log(`[scheduleSequence] Successfully inserted ${insertedEmails.length} emails`);
+  console.log('[scheduleSequence] Successfully inserted emails', {
+    flowTriggerId,
+    emailCount: insertedEmails.length,
+    emailIds: insertedEmails.map(e => e.id),
+    userId: params.userId,
+    flowId: params.flowId,
+  });
   
   // Process Resend scheduling in background (fire-and-forget)
   // This allows the API to return immediately while Resend calls happen asynchronously
