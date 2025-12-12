@@ -959,3 +959,57 @@ async function processResendCancellationAsync(
   console.log(`[processResendCancellationAsync] Completed background cancellation processing for ${scheduledEmails.length} emails`);
 }
 
+/**
+ * Cancel all scheduled emails for a user
+ * 
+ * Cancels all pending/scheduled emails for a specific user (regardless of flow, template, or email type).
+ * Updates database immediately and processes Resend cancellations in background with rate limiting.
+ * 
+ * @param userId User UUID
+ * @returns Number of emails cancelled
+ */
+export const cancelAllScheduledEmailsForUser = async (
+  userId: string
+): Promise<number> => {
+  const supabase = getSupabaseAdmin();
+
+  // Find all scheduled emails for this user (pending or scheduled status)
+  const { data: scheduledEmails, error: fetchError } = await supabase
+    .from('scheduled_emails')
+    .select('*')
+    .eq('user_id', userId)
+    .in('status', ['pending', 'scheduled']);
+
+  if (fetchError) {
+    throw new Error(`Failed to fetch scheduled emails: ${fetchError.message}`);
+  }
+
+  if (!scheduledEmails || scheduledEmails.length === 0) {
+    return 0;
+  }
+
+  // Update status in database first (fast, immediate)
+  const emailIds = scheduledEmails.map((e) => e.id);
+  const { error: updateError } = await supabase
+    .from('scheduled_emails')
+    .update({
+      status: 'cancelled',
+      cancelled_at: new Date().toISOString(),
+    })
+    .in('id', emailIds);
+
+  if (updateError) {
+    throw new Error(`Failed to cancel scheduled emails: ${updateError.message}`);
+  }
+
+  console.log(`[cancelAllScheduledEmailsForUser] Marked ${scheduledEmails.length} emails as cancelled in database for user ${userId}`);
+
+  // Process Resend cancellations in background (fire-and-forget)
+  // This allows the API to return immediately while Resend calls happen asynchronously
+  processResendCancellationAsync(scheduledEmails).catch((error) => {
+    console.error('[cancelAllScheduledEmailsForUser] Error in background Resend cancellation processing:', error);
+  });
+
+  return scheduledEmails.length;
+};
+

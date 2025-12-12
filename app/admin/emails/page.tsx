@@ -104,6 +104,9 @@ export default function AdminEmailsPage() {
   const [scheduledEmailsLoading, setScheduledEmailsLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isTestFilter, setIsTestFilter] = useState<boolean | null>(null);
+  const [selectedCancelUserId, setSelectedCancelUserId] = useState<string>('');
+  const [cancelAllLoading, setCancelAllLoading] = useState(false);
+  const [cancelAllMessage, setCancelAllMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
   // Preview state
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
@@ -154,6 +157,7 @@ export default function AdminEmailsPage() {
       fetchTemplates();
     } else if (activeTab === 'scheduled') {
       fetchScheduledEmails();
+      fetchUsers(); // Fetch users for cancel all functionality
     } else if (activeTab === 'schedule' || activeTab === 'flow-testing') {
       fetchUsers();
       if (activeTab === 'flow-testing') {
@@ -676,6 +680,60 @@ export default function AdminEmailsPage() {
     }
   };
 
+  const handleCancelAllForUser = async () => {
+    if (!selectedCancelUserId) {
+      setCancelAllMessage({ type: 'error', text: 'Please select a user' });
+      return;
+    }
+
+    const user = users.find(u => u.id === selectedCancelUserId);
+    const userEmail = user?.email || selectedCancelUserId;
+    
+    if (!confirm(`Are you sure you want to cancel ALL scheduled emails for ${userEmail}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setCancelAllLoading(true);
+      setCancelAllMessage(null);
+
+      const response = await fetch('/api/email/cancel-all-for-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: selectedCancelUserId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.details || errorData.error || 'Failed to cancel scheduled emails');
+      }
+
+      const data = await response.json();
+      setCancelAllMessage({
+        type: 'success',
+        text: data.message || `Successfully cancelled ${data.cancelledCount || 0} scheduled email${data.cancelledCount !== 1 ? 's' : ''} for ${userEmail}`,
+      });
+
+      // Reset selection
+      setSelectedCancelUserId('');
+
+      // Refresh scheduled emails after a short delay
+      setTimeout(() => {
+        fetchScheduledEmails();
+      }, 1000);
+    } catch (err) {
+      console.error('Error cancelling all scheduled emails for user:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to cancel scheduled emails';
+      setCancelAllMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setCancelAllLoading(false);
+    }
+  };
+
   // Group templates by name
   const groupedTemplates = templates.reduce((acc, template) => {
     if (!acc[template.name]) {
@@ -1114,6 +1172,64 @@ export default function AdminEmailsPage() {
                 Refresh
               </button>
             </div>
+          </div>
+
+          {/* Cancel All for User Section */}
+          <div className="bg-white border-2 border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Cancel All Scheduled Emails for User</h3>
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex-1 min-w-[200px]">
+                <label className="block text-sm text-gray-600 mb-1">Select User:</label>
+                <select
+                  value={selectedCancelUserId}
+                  onChange={(e) => {
+                    setSelectedCancelUserId(e.target.value);
+                    setCancelAllMessage(null);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                >
+                  <option value="">Select a user...</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.email} {user.firstName ? `(${user.firstName}${user.lastName ? ` ${user.lastName}` : ''})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-end">
+                <button
+                  onClick={handleCancelAllForUser}
+                  disabled={cancelAllLoading || !selectedCancelUserId}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {cancelAllLoading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Cancelling...
+                    </>
+                  ) : (
+                    <>
+                      <X className="w-4 h-4" />
+                      Cancel All for User
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+            {cancelAllMessage && (
+              <div
+                className={`mt-3 p-3 rounded-lg ${
+                  cancelAllMessage.type === 'success'
+                    ? 'bg-green-50 border-2 border-green-200 text-green-800'
+                    : 'bg-red-50 border-2 border-red-200 text-red-800'
+                }`}
+              >
+                {cancelAllMessage.text}
+              </div>
+            )}
+            <p className="mt-2 text-xs text-gray-500">
+              This will cancel all pending and scheduled emails for the selected user. Resend API cancellations are processed in the background with rate limiting to avoid API throttling.
+            </p>
           </div>
 
           {/* Scheduled Emails Table */}
