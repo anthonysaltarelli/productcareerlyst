@@ -267,3 +267,4 @@ ORDER BY name;
 All marketing templates should show `✅ Marketing` status.
 
 
+

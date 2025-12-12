@@ -9,3 +9,4 @@ ALTER TYPE email_event_type ADD VALUE IF NOT EXISTS 'scheduled';
 COMMENT ON TYPE email_event_type IS 'Email event types from Resend webhooks: sent, delivered, opened, clicked, bounced, complained, scheduled';
 
 
+

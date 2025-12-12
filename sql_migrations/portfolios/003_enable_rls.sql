@@ -7,3 +7,4 @@ ALTER TABLE portfolios ENABLE ROW LEVEL SECURITY;
 
 
 
+
