@@ -217,13 +217,14 @@ export const POST = async (request: NextRequest) => {
     }
 
     // Trigger trial sequence email flow if this is a trial subscription
-    // Use setTimeout to defer to next event loop tick - truly non-blocking
+    // Fire-and-forget: call directly without await (non-blocking)
+    // Note: In serverless environments, setTimeout can be terminated before execution
+    // Calling directly ensures it runs before the function context is frozen
     if (trialPeriodDays && typeof trialPeriodDays === 'number' && trialPeriodDays > 0 && subscription.status === 'trialing') {
-      setTimeout(() => {
-        triggerTrialSequence(user.id, user.email || '', subscription.id).catch((error) => {
-          console.error('[Trial Email] Failed to schedule trial sequence:', error);
-        });
-      }, 0);
+      // Don't await - fire and forget with error handling
+      triggerTrialSequence(user.id, user.email || '', subscription.id).catch((error) => {
+        console.error('[Trial Email] Failed to schedule trial sequence:', error);
+      });
     }
 
     return NextResponse.json({ 
