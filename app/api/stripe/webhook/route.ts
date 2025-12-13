@@ -3,8 +3,7 @@ import { getStripeClient } from '@/lib/stripe/client';
 import Stripe from 'stripe';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { resolvePlanAndCadenceFromSubscription } from '@/lib/stripe/plan-utils';
-import { getAllFlows, generateFlowTriggerId } from '@/lib/email/flows';
-import { cancelSequence, scheduleSequence } from '@/lib/email/service';
+import { inngest } from '@/lib/inngest/client';
 
 // Disable body parsing for webhook to get raw body
 export const runtime = 'nodejs';
@@ -532,170 +531,24 @@ async function syncSubscriptionToDatabase(
   // This ensures users who downgrade or cancel can't keep their public portfolio accessible
   await unpublishUserPortfolioIfNotAccelerate(supabaseAdmin, userId, plan, status);
 
-  // Cancel trial sequence emails if user upgraded from trial to active
+  // Cancel trial sequence emails via Inngest if user upgraded from trial to active
   if (isUpgradeFromTrial) {
-    // Fire-and-forget: don't await, handle errors gracefully
-    cancelTrialSequence(userId).catch((error) => {
-      console.error('[Trial Email] Failed to cancel trial sequence:', error);
-    });
-  }
-
-  // Trigger trial sequence emails if this is a trialing subscription
-  // Check for scheduled emails FIRST to prevent duplicates, regardless of whether subscription is "new"
-  // This ensures webhook acts as a safety net even if create-subscription already synced the subscription
-  if (status === 'trialing' && subscription.trial_start) {
-    console.log('[Trial Email] Webhook: Checking for trial sequence emails', {
-      userId,
-      subscriptionId: subscription.id,
-      status,
-      hasTrialStart: !!subscription.trial_start,
-    });
-
-    // Get trial_sequence flow to generate correct flow_trigger_id
-    const flows = await getAllFlows();
-    const trialSequenceFlow = flows.find((flow) => flow.name === 'trial_sequence');
-    
-    if (!trialSequenceFlow) {
-      console.warn('[Trial Email] Webhook: trial_sequence flow not found - skipping email scheduling');
-      return;
-    }
-
-    // Generate the same flow_trigger_id that scheduleSequence would use
-    const flowTriggerId = generateFlowTriggerId(userId, trialSequenceFlow.id, subscription.id);
-    console.log('[Trial Email] Webhook: Generated flow_trigger_id', { flowTriggerId });
-    
-    // Check if trial sequence emails are already scheduled for this subscription
-    // This prevents duplicate triggers if webhook is called multiple times or if create-subscription already triggered
-    const { data: existingEmails, error: checkError } = await supabaseAdmin
-      .from('scheduled_emails')
-      .select('id')
-      .eq('flow_trigger_id', flowTriggerId)
-      .limit(1);
-    
-    if (checkError) {
-      console.error('[Trial Email] Webhook: Error checking for existing emails:', checkError);
-      return;
-    }
-
-    // Only trigger if no emails are already scheduled
-    if (!existingEmails || existingEmails.length === 0) {
-      console.log('[Trial Email] Webhook: No existing emails found - triggering trial sequence');
-      
-      // Get user email from auth.users table
-      const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
-      
-      if (userError || !userData?.user?.email) {
-        console.warn(`[Trial Email] Webhook: Could not get user email for user ${userId}:`, userError);
-      } else {
-        console.log('[Trial Email] Webhook: Triggering trial sequence', {
-          userId,
-          email: userData.user.email,
-          subscriptionId: subscription.id,
-        });
-        // Fire-and-forget: trigger trial sequence
-        triggerTrialSequence(userId, userData.user.email, subscription.id).catch((error) => {
-          console.error('[Trial Email] Webhook: Failed to schedule trial sequence:', error);
-        });
-      }
-    } else {
-      console.log(`[Trial Email] Webhook: Trial sequence already scheduled for user ${userId} (subscription ${subscription.id}) - skipping`);
-    }
-  } else {
-    console.log('[Trial Email] Webhook: Skipping trial sequence check', {
-      status,
-      hasTrialStart: !!subscription.trial_start,
-      reason: status !== 'trialing' ? 'not trialing' : 'no trial_start',
-    });
-  }
-}
-
-/**
- * Trigger trial sequence email flow for a user
- * Fire-and-forget implementation - errors are logged but don't block webhook processing
- */
-async function triggerTrialSequence(userId: string, emailAddress: string, subscriptionId: string): Promise<void> {
-  try {
-    // Get all flows and find the trial_sequence flow
-    const flows = await getAllFlows();
-    const trialSequenceFlow = flows.find((flow) => flow.name === 'trial_sequence');
-
-    if (!trialSequenceFlow) {
-      console.warn('[Trial Email] trial_sequence flow not found - skipping email scheduling');
-      return;
-    }
-
-    if (!emailAddress) {
-      console.warn('[Trial Email] No email address provided - skipping email scheduling');
-      return;
-    }
-
-    // Get user's first name from profile
-    let firstName = 'there'; // Default fallback
     try {
-      const { data: profile } = await supabaseAdmin
-        .from('profiles')
-        .select('first_name')
-        .eq('user_id', userId)
-        .maybeSingle();
-      
-      if (profile?.first_name) {
-        firstName = profile.first_name;
-      }
-    } catch (profileError) {
-      console.warn('[Trial Email] Could not fetch user profile for firstName:', profileError);
-      // Continue with default 'there'
+      await inngest.send({
+        id: `trial-cancelled-webhook-${userId}-${Date.now()}`,
+        name: 'trial/subscription.cancelled',
+        data: { userId },
+      });
+      console.log('[webhook] Queued trial sequence cancellation for user:', userId);
+    } catch (error) {
+      // Fire and forget - log but don't fail the sync
+      console.error('[webhook] Failed to queue trial sequence cancellation:', error);
     }
-
-    // Generate idempotency key prefix and trigger event ID
-    const triggerEventId = subscriptionId;
-    const idempotencyKeyPrefix = `trial_sequence_${userId}_${subscriptionId}_${Date.now()}`;
-
-    // Schedule the sequence (fire-and-forget - already handles background processing)
-    await scheduleSequence({
-      userId,
-      emailAddress,
-      flowId: trialSequenceFlow.id,
-      idempotencyKeyPrefix,
-      triggerEventId,
-      variables: {
-        firstName,
-        userId, // Required by email components
-      },
-      isTest: false,
-      testModeMultiplier: 1, // Production uses actual days
-    });
-
-    console.log(`[Trial Email] Successfully triggered trial sequence for user ${userId} (subscription ${subscriptionId})`);
-  } catch (error) {
-    // Log error but don't throw - this is fire-and-forget
-    console.error('[Trial Email] Error triggering trial sequence:', error);
-    throw error; // Re-throw so caller can handle with .catch()
   }
+
+  // Note: Trial sequence triggering is handled by create-subscription route only.
+  // Inngest ensures execution even if the serverless function terminates.
+  // No backup trigger needed in webhook anymore.
 }
 
-/**
- * Cancel trial sequence email flow for a user
- * Fire-and-forget implementation - errors are logged but don't block webhook processing
- */
-async function cancelTrialSequence(userId: string): Promise<void> {
-  try {
-    // Get all flows and find the trial_sequence flow
-    const flows = await getAllFlows();
-    const trialSequenceFlow = flows.find((flow) => flow.name === 'trial_sequence');
-
-    if (!trialSequenceFlow) {
-      console.warn('[Trial Email] trial_sequence flow not found - skipping cancellation');
-      return;
-    }
-
-    // Cancel the sequence (fire-and-forget - already handles background processing)
-    const cancelledCount = await cancelSequence(undefined, userId, trialSequenceFlow.id);
-
-    console.log(`[Trial Email] Successfully cancelled ${cancelledCount} emails in trial sequence for user ${userId}`);
-  } catch (error) {
-    // Log error but don't throw - this is fire-and-forget
-    console.error('[Trial Email] Error cancelling trial sequence:', error);
-    throw error; // Re-throw so caller can handle with .catch()
-  }
-}
 

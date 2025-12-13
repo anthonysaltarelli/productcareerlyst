@@ -382,6 +382,7 @@ export const getAllScheduledEmails = async (filters?: {
   userId?: string;
   status?: string;
   isTest?: boolean;
+  emailAddress?: string;
   limit?: number;
 }): Promise<ScheduledEmail[]> => {
   const supabase = getSupabaseAdmin();
@@ -401,6 +402,10 @@ export const getAllScheduledEmails = async (filters?: {
 
   if (filters?.isTest !== undefined) {
     query = query.eq('is_test', filters.isTest);
+  }
+
+  if (filters?.emailAddress) {
+    query = query.ilike('email_address', `%${filters.emailAddress}%`);
   }
 
   if (filters?.limit) {
@@ -444,18 +449,27 @@ export interface ScheduleSequenceParams {
 export const scheduleSequence = async (
   params: ScheduleSequenceParams
 ): Promise<ScheduledEmail[]> => {
-  const supabase = getSupabaseAdmin();
+  const startTime = Date.now();
+  console.log('[scheduleSequence] Starting', {
+    userId: params.userId,
+    flowId: params.flowId,
+    emailAddress: params.emailAddress,
+    triggerEventId: params.triggerEventId,
+  });
+  
+  try {
+    const supabase = getSupabaseAdmin();
 
-  // Get flow and steps
-  const flow = await getFlowById(params.flowId);
-  if (!flow) {
-    throw new Error(`Flow ${params.flowId} not found`);
-  }
+    // Get flow and steps
+    const flow = await getFlowById(params.flowId);
+    if (!flow) {
+      throw new Error(`Flow ${params.flowId} not found`);
+    }
 
-  const steps = await getFlowSteps(params.flowId);
-  if (steps.length === 0) {
-    throw new Error(`Flow ${params.flowId} has no steps`);
-  }
+    const steps = await getFlowSteps(params.flowId);
+    if (steps.length === 0) {
+      throw new Error(`Flow ${params.flowId} has no steps`);
+    }
 
   // Generate flow trigger ID to prevent duplicates
   const flowTriggerId = generateFlowTriggerId(
@@ -521,6 +535,7 @@ export const scheduleSequence = async (
     flowTriggerId,
     userId: params.userId,
     flowId: params.flowId,
+    stepCount: steps.length,
   });
 
   // Calculate test mode multiplier (default: 1, meaning no multiplier for production)
@@ -550,7 +565,16 @@ export const scheduleSequence = async (
     subject: string;
   }> = [];
 
+  console.log('[scheduleSequence] Processing steps', { stepCount: steps.length });
+  
   for (const step of steps) {
+    try {
+      console.log('[scheduleSequence] Processing step', {
+        stepOrder: step.step_order,
+        stepId: step.id,
+        templateId: step.template_id,
+        timeOffsetMinutes: step.time_offset_minutes,
+      });
     // Calculate time offset (apply test multiplier if in test mode)
     // In test mode: multiply by 1/1440 to convert production minutes (1440 = 1 day) to test minutes (1 = 1 day)
     // In production: use actual minutes as-is (1440 = 1 day)
@@ -659,17 +683,40 @@ export const scheduleSequence = async (
       },
     };
 
-    emailsToInsert.push(emailRecord);
-    
-    // Store data needed for background Resend processing
-    emailProcessingData.push({
-      step,
-      template,
-      scheduledAt,
-      html,
-      subject: step.subject_override || template.subject,
-    });
+      emailsToInsert.push(emailRecord);
+      
+      // Store data needed for background Resend processing
+      emailProcessingData.push({
+        step,
+        template,
+        scheduledAt,
+        html,
+        subject: step.subject_override || template.subject,
+      });
+      
+      console.log('[scheduleSequence] Successfully processed step', {
+        stepOrder: step.step_order,
+        scheduledAt,
+      });
+    } catch (stepError) {
+      console.error('[scheduleSequence] Error processing step', {
+        stepOrder: step.step_order,
+        stepId: step.id,
+        templateId: step.template_id,
+        error: stepError,
+        errorMessage: stepError instanceof Error ? stepError.message : String(stepError),
+        errorStack: stepError instanceof Error ? stepError.stack : undefined,
+      });
+      // Continue with other steps - don't fail entire sequence if one step fails
+      // But log the error so we know what happened
+    }
   }
+  
+  console.log('[scheduleSequence] Finished processing all steps', {
+    emailsToInsertCount: emailsToInsert.length,
+    emailProcessingDataCount: emailProcessingData.length,
+    stepCount: steps.length,
+  });
 
   // Insert all emails in a single batch (atomic operation)
   // Only insert if we have emails to insert
@@ -755,13 +802,35 @@ export const scheduleSequence = async (
     flowId: params.flowId,
   });
   
-  // Process Resend scheduling in background (fire-and-forget)
-  // This allows the API to return immediately while Resend calls happen asynchronously
-  processResendSchedulingAsync(insertedEmails, emailProcessingData, params.emailAddress).catch((error) => {
-    console.error('[scheduleSequence] Error in background Resend processing:', error);
-  });
-  
-  return insertedEmails as ScheduledEmail[];
+    // Process Resend scheduling in background (fire-and-forget)
+    // This allows the API to return immediately while Resend calls happen asynchronously
+    processResendSchedulingAsync(insertedEmails, emailProcessingData, params.emailAddress).catch((error) => {
+      console.error('[scheduleSequence] Error in background Resend processing:', error);
+    });
+    
+    const duration = Date.now() - startTime;
+    console.log('[scheduleSequence] Completed successfully', {
+      userId: params.userId,
+      flowId: params.flowId,
+      emailCount: insertedEmails.length,
+      durationMs: duration,
+    });
+    
+    return insertedEmails as ScheduledEmail[];
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error('[scheduleSequence] FATAL ERROR - Failed to schedule sequence', {
+      userId: params.userId,
+      flowId: params.flowId,
+      emailAddress: params.emailAddress,
+      triggerEventId: params.triggerEventId,
+      durationMs: duration,
+      error,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorStack: error instanceof Error ? error.stack : undefined,
+    });
+    throw error;
+  }
 };
 
 /**

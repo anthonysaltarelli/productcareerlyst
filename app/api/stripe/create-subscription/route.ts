@@ -3,8 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getStripeClient, STRIPE_PRICE_IDS } from '@/lib/stripe/client';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import Stripe from 'stripe';
-import { getAllFlows, generateFlowTriggerId } from '@/lib/email/flows';
-import { scheduleSequence, cancelSequence } from '@/lib/email/service';
+import { inngest } from '@/lib/inngest/client';
 
 // Use service role client for admin operations
 const supabaseAdmin = createSupabaseAdmin(
@@ -216,31 +215,24 @@ export const POST = async (request: NextRequest) => {
       console.error('Error syncing subscription immediately after creation:', syncError);
     }
 
-    // Trigger trial sequence email flow if this is a trial subscription
-    // Fire-and-forget: call directly without await (non-blocking)
-    // Note: In serverless environments, setTimeout can be terminated before execution
-    // Calling directly ensures it runs before the function context is frozen
-    console.log('[Trial Email] Checking conditions:', {
-      trialPeriodDays,
-      subscriptionStatus: subscription.status,
-      hasEmail: !!user.email,
-      userId: user.id,
-      subscriptionId: subscription.id,
-    });
-    
+    // Trigger trial sequence email flow via Inngest if this is a trial subscription
+    // Fire-and-forget: wrapped in try-catch so failures don't break subscription flow
     if (trialPeriodDays && typeof trialPeriodDays === 'number' && trialPeriodDays > 0 && subscription.status === 'trialing') {
-      console.log('[Trial Email] Conditions met - triggering trial sequence');
-      // Don't await - fire and forget with error handling
-      triggerTrialSequence(user.id, user.email || '', subscription.id).catch((error) => {
-        console.error('[Trial Email] Failed to schedule trial sequence:', error);
-      });
-    } else {
-      console.warn('[Trial Email] Conditions NOT met - skipping trial sequence trigger', {
-        trialPeriodDays,
-        isNumber: typeof trialPeriodDays === 'number',
-        status: subscription.status,
-        condition: trialPeriodDays && typeof trialPeriodDays === 'number' && trialPeriodDays > 0 && subscription.status === 'trialing',
-      });
+      try {
+        await inngest.send({
+          id: `trial-created-${subscription.id}`, // Idempotency key - prevents duplicate events on retry
+          name: 'trial/subscription.created',
+          data: {
+            userId: user.id,
+            email: user.email || '',
+            subscriptionId: subscription.id,
+          },
+        });
+        console.log('[create-subscription] Queued trial sequence trigger for user:', user.id);
+      } catch (error) {
+        // Fire and forget - log but don't fail the subscription
+        console.error('[create-subscription] Failed to queue trial sequence trigger:', error);
+      }
     }
 
     return NextResponse.json({ 
@@ -434,14 +426,19 @@ async function syncSubscriptionToDatabase(
     }
   }
 
-  // Cancel trial sequence emails if user upgraded from trial to active
+  // Cancel trial sequence emails via Inngest if user upgraded from trial to active
   if (isUpgradeFromTrial) {
-    // Fire-and-forget: don't await, handle errors gracefully
-    setTimeout(() => {
-      cancelTrialSequence(userId).catch((error) => {
-        console.error('[Trial Email] Failed to cancel trial sequence:', error);
+    try {
+      await inngest.send({
+        id: `trial-cancelled-${userId}-${Date.now()}`, // Idempotency key
+        name: 'trial/subscription.cancelled',
+        data: { userId },
       });
-    }, 0);
+      console.log('[create-subscription] Queued trial sequence cancellation for user:', userId);
+    } catch (error) {
+      // Fire and forget - log but don't fail the sync
+      console.error('[create-subscription] Failed to queue trial sequence cancellation:', error);
+    }
   }
 
   // Upsert subscription - try both conflict resolution strategies
@@ -475,122 +472,4 @@ async function syncSubscriptionToDatabase(
   }
 }
 
-/**
- * Trigger trial sequence email flow for a user
- * Fire-and-forget implementation - errors are logged but don't block subscription creation
- */
-async function triggerTrialSequence(userId: string, emailAddress: string, subscriptionId: string): Promise<void> {
-  console.log('[Trial Email] triggerTrialSequence called', { userId, emailAddress, subscriptionId });
-  try {
-    // Get all flows and find the trial_sequence flow
-    console.log('[Trial Email] Fetching flows...');
-    const flows = await getAllFlows();
-    console.log('[Trial Email] Found flows:', flows.length, flows.map(f => f.name));
-    const trialSequenceFlow = flows.find((flow) => flow.name === 'trial_sequence');
-
-    if (!trialSequenceFlow) {
-      console.warn('[Trial Email] trial_sequence flow not found - skipping email scheduling');
-      return;
-    }
-
-    if (!emailAddress) {
-      console.warn('[Trial Email] No email address provided - skipping email scheduling');
-      return;
-    }
-
-    // Get user's first name from profile
-    let firstName = 'there'; // Default fallback
-    try {
-      const { data: profile } = await supabaseAdmin
-        .from('profiles')
-        .select('first_name')
-        .eq('user_id', userId)
-        .maybeSingle();
-      
-      if (profile?.first_name) {
-        firstName = profile.first_name;
-      }
-    } catch (profileError) {
-      console.warn('[Trial Email] Could not fetch user profile for firstName:', profileError);
-      // Continue with default 'there'
-    }
-
-    // Generate idempotency key prefix and trigger event ID
-    const triggerEventId = subscriptionId;
-    const idempotencyKeyPrefix = `trial_sequence_${userId}_${subscriptionId}_${Date.now()}`;
-    
-    // Generate flow_trigger_id to log it before calling scheduleSequence
-    const flowTriggerId = generateFlowTriggerId(userId, trialSequenceFlow.id, triggerEventId);
-    console.log('[Trial Email] Create-subscription: Generated flow_trigger_id', {
-      flowTriggerId,
-      userId,
-      flowId: trialSequenceFlow.id,
-      triggerEventId,
-    });
-
-    // Schedule the sequence (fire-and-forget - already handles background processing)
-    console.log('[Trial Email] Create-subscription: Calling scheduleSequence', {
-      userId,
-      emailAddress,
-      flowId: trialSequenceFlow.id,
-      flowTriggerId,
-    });
-    
-    const scheduledEmails = await scheduleSequence({
-      userId,
-      emailAddress,
-      flowId: trialSequenceFlow.id,
-      idempotencyKeyPrefix,
-      triggerEventId,
-      variables: {
-        firstName,
-        userId, // Required by email components
-      },
-      isTest: false,
-      testModeMultiplier: 1, // Production uses actual days
-    });
-
-    console.log(`[Trial Email] Create-subscription: Successfully triggered trial sequence for user ${userId} (subscription ${subscriptionId})`, {
-      flowTriggerId,
-      emailsScheduled: scheduledEmails.length,
-      emailIds: scheduledEmails.map(e => e.id),
-    });
-  } catch (error) {
-    // Log error with full details
-    console.error('[Trial Email] Create-subscription: Error triggering trial sequence:', {
-      error,
-      errorMessage: error instanceof Error ? error.message : String(error),
-      errorStack: error instanceof Error ? error.stack : undefined,
-      userId,
-      subscriptionId,
-    });
-    throw error; // Re-throw so caller can handle with .catch()
-  }
-}
-
-/**
- * Cancel trial sequence email flow for a user
- * Fire-and-forget implementation - errors are logged but don't block subscription creation
- */
-async function cancelTrialSequence(userId: string): Promise<void> {
-  try {
-    // Get all flows and find the trial_sequence flow
-    const flows = await getAllFlows();
-    const trialSequenceFlow = flows.find((flow) => flow.name === 'trial_sequence');
-
-    if (!trialSequenceFlow) {
-      console.warn('[Trial Email] trial_sequence flow not found - skipping cancellation');
-      return;
-    }
-
-    // Cancel the sequence (fire-and-forget - already handles background processing)
-    const cancelledCount = await cancelSequence(undefined, userId, trialSequenceFlow.id);
-
-    console.log(`[Trial Email] Successfully cancelled ${cancelledCount} emails in trial sequence for user ${userId}`);
-  } catch (error) {
-    // Log error but don't throw - this is fire-and-forget
-    console.error('[Trial Email] Error cancelling trial sequence:', error);
-    throw error; // Re-throw so caller can handle with .catch()
-  }
-}
 

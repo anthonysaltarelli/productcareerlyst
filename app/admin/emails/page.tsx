@@ -104,6 +104,7 @@ export default function AdminEmailsPage() {
   const [scheduledEmailsLoading, setScheduledEmailsLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isTestFilter, setIsTestFilter] = useState<boolean | null>(null);
+  const [emailAddressFilter, setEmailAddressFilter] = useState<string>('');
   const [selectedCancelUserId, setSelectedCancelUserId] = useState<string>('');
   const [cancelAllLoading, setCancelAllLoading] = useState(false);
   const [cancelAllMessage, setCancelAllMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -168,7 +169,7 @@ export default function AdminEmailsPage() {
       // Also fetch templates for preview functionality
       fetchTemplates();
     }
-  }, [activeTab, statusFilter, isTestFilter]);
+  }, [activeTab, statusFilter, isTestFilter, emailAddressFilter]);
 
   useEffect(() => {
     if (selectedFlowId && activeTab === 'flow-testing') {
@@ -196,8 +197,14 @@ export default function AdminEmailsPage() {
     }
   };
 
-  const fetchScheduledEmails = async () => {
+  const fetchScheduledEmails = async (preserveScroll = false) => {
     try {
+      // Save scroll position if we want to preserve it
+      let scrollPosition = 0;
+      if (preserveScroll && typeof window !== 'undefined') {
+        scrollPosition = window.scrollY || window.pageYOffset || 0;
+      }
+
       setScheduledEmailsLoading(true);
       const params = new URLSearchParams();
       if (statusFilter !== 'all') {
@@ -205,6 +212,9 @@ export default function AdminEmailsPage() {
       }
       if (isTestFilter !== null) {
         params.append('isTest', isTestFilter.toString());
+      }
+      if (emailAddressFilter.trim()) {
+        params.append('emailAddress', emailAddressFilter.trim());
       }
       params.append('limit', '100');
 
@@ -217,6 +227,17 @@ export default function AdminEmailsPage() {
       const data = await response.json();
       setScheduledEmails(data.scheduledEmails || []);
       setError(null);
+
+      // Restore scroll position after a brief delay to allow DOM to update
+      if (preserveScroll && typeof window !== 'undefined') {
+        // Use requestAnimationFrame to ensure DOM has updated
+        requestAnimationFrame(() => {
+          window.scrollTo({
+            top: scrollPosition,
+            behavior: 'instant' as ScrollBehavior,
+          });
+        });
+      }
     } catch (err) {
       console.error('Error fetching scheduled emails:', err);
       setError('Failed to load scheduled emails');
@@ -576,7 +597,7 @@ export default function AdminEmailsPage() {
 
         // Refresh scheduled emails
         if (activeTab === 'scheduled') {
-          setTimeout(() => fetchScheduledEmails(), 1000);
+          setTimeout(() => fetchScheduledEmails(true), 1000);
         }
 
         // Refresh flow stats
@@ -639,7 +660,7 @@ export default function AdminEmailsPage() {
 
       // Refresh scheduled emails
       if (activeTab === 'scheduled') {
-        setTimeout(() => fetchScheduledEmails(), 1000);
+        setTimeout(() => fetchScheduledEmails(true), 1000);
       }
     } catch (err) {
       console.error('Error cancelling flow:', err);
@@ -668,11 +689,20 @@ export default function AdminEmailsPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.details || errorData.error || 'Failed to cancel email');
+        const errorMessage = errorData.details || errorData.error || 'Failed to cancel email';
+        
+        // If email is already cancelled, just refresh the list silently
+        if (errorMessage.toLowerCase().includes('cannot cancel') && errorMessage.toLowerCase().includes('cancelled')) {
+          // Email is already cancelled, just refresh to update the UI
+          fetchScheduledEmails(true);
+          return;
+        }
+        
+        throw new Error(errorMessage);
       }
 
-      // Refresh scheduled emails
-      fetchScheduledEmails();
+      // Refresh scheduled emails while preserving scroll position
+      fetchScheduledEmails(true);
     } catch (err) {
       console.error('Error cancelling email:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to cancel email';
@@ -721,9 +751,9 @@ export default function AdminEmailsPage() {
       // Reset selection
       setSelectedCancelUserId('');
 
-      // Refresh scheduled emails after a short delay
+      // Refresh scheduled emails after a short delay, preserving scroll position
       setTimeout(() => {
-        fetchScheduledEmails();
+        fetchScheduledEmails(true);
       }, 1000);
     } catch (err) {
       console.error('Error cancelling all scheduled emails for user:', err);
@@ -1163,6 +1193,16 @@ export default function AdminEmailsPage() {
                   <option value="test">Test Only</option>
                   <option value="production">Production Only</option>
                 </select>
+              </div>
+              <div>
+                <label className="text-sm text-gray-600 mr-2">Email Address:</label>
+                <input
+                  type="text"
+                  value={emailAddressFilter}
+                  onChange={(e) => setEmailAddressFilter(e.target.value)}
+                  placeholder="Filter by email..."
+                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm min-w-[200px]"
+                />
               </div>
               <button
                 onClick={fetchScheduledEmails}

@@ -6,7 +6,7 @@ import { getAllScheduledEmails, getScheduledEmailsForUser } from '@/lib/email/se
 /**
  * GET /api/email/scheduled
  * Get scheduled emails (admin only)
- * Query params: userId (optional), status (optional), isTest (optional), limit (optional)
+ * Query params: userId (optional), status (optional), isTest (optional), emailAddress (optional), limit (optional)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId');
     const status = searchParams.get('status');
     const isTest = searchParams.get('isTest');
+    const emailAddress = searchParams.get('emailAddress');
     const limit = searchParams.get('limit');
 
     // If userId provided, get emails for that user
@@ -49,6 +50,7 @@ export async function GET(request: NextRequest) {
       userId: userId || undefined,
       status: status || undefined,
       isTest: isTest === 'true' ? true : isTest === 'false' ? false : undefined,
+      emailAddress: emailAddress || undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
     });
 

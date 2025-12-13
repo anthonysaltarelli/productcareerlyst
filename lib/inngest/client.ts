@@ -1,0 +1,27 @@
+import { Inngest } from 'inngest';
+
+// Create Inngest client instance
+// App ID is used to identify this application in the Inngest dashboard
+export const inngest = new Inngest({
+  id: 'productcareerlyst',
+});
+
+// Define event types for type safety
+export type TrialSubscriptionCreatedEvent = {
+  name: 'trial/subscription.created';
+  data: {
+    userId: string;
+    email: string;
+    subscriptionId: string;
+  };
+};
+
+export type TrialSubscriptionCancelledEvent = {
+  name: 'trial/subscription.cancelled';
+  data: {
+    userId: string;
+  };
+};
+
+// Union type of all events
+export type InngestEvents = TrialSubscriptionCreatedEvent | TrialSubscriptionCancelledEvent;
