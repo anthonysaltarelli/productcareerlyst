@@ -456,9 +456,30 @@ export const scheduleSequence = async (
     emailAddress: params.emailAddress,
     triggerEventId: params.triggerEventId,
   });
-  
+
   try {
     const supabase = getSupabaseAdmin();
+
+    // Early check: If user is unsubscribed from marketing emails, skip the entire sequence
+    // This avoids unnecessary work (fetching flow, steps, templates) when we know emails won't be sent
+    if (params.userId) {
+      const canSendMarketing = await checkCanSendEmail(
+        params.userId,
+        params.emailAddress,
+        'marketing'
+      );
+
+      if (!canSendMarketing) {
+        const duration = Date.now() - startTime;
+        console.log('[scheduleSequence] Skipping sequence - user unsubscribed or email suppressed', {
+          userId: params.userId,
+          flowId: params.flowId,
+          emailAddress: params.emailAddress,
+          durationMs: duration,
+        });
+        return []; // Return empty array - this is expected behavior, not an error
+      }
+    }
 
     // Get flow and steps
     const flow = await getFlowById(params.flowId);
@@ -721,7 +742,7 @@ export const scheduleSequence = async (
   // Insert all emails in a single batch (atomic operation)
   // Only insert if we have emails to insert
   if (emailsToInsert.length === 0) {
-    throw new Error('No emails to schedule - all steps failed');
+    throw new Error('No emails to schedule - all steps failed to process (check logs for template or rendering errors)');
   }
 
   console.log(`[scheduleSequence] Inserting ${emailsToInsert.length} emails into database`);
