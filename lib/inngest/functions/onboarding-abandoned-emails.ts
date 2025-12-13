@@ -18,37 +18,38 @@ const getSupabaseAdmin = () => {
 };
 
 /**
- * Trigger trial sequence email flow for a user
+ * Trigger onboarding abandoned email flow for a user
  *
- * This function is called by Inngest when a trial/subscription.created event is sent.
- * It schedules the trial email sequence for the user.
+ * This function is called by Inngest when an onboarding/started event is sent.
+ * It schedules the onboarding abandoned email sequence for the user.
+ * The sequence will be cancelled if the user completes onboarding.
  */
-export const triggerTrialSequence = inngest.createFunction(
+export const triggerOnboardingAbandonedSequence = inngest.createFunction(
   {
-    id: 'trigger-trial-sequence',
+    id: 'trigger-onboarding-abandoned-sequence',
     retries: 3,
   },
-  { event: 'trial/subscription.created' },
+  { event: 'onboarding/started' },
   async ({ event, step }) => {
-    const { userId, email: emailAddress, subscriptionId } = event.data;
+    const { userId, email: emailAddress } = event.data;
 
-    console.log('[Inngest] triggerTrialSequence called', { userId, emailAddress, subscriptionId });
+    console.log('[Inngest] triggerOnboardingAbandonedSequence called', { userId, emailAddress });
 
-    // Step 1: Get the trial_sequence flow
-    const trialSequenceFlow = await step.run('get-trial-flow', async () => {
+    // Step 1: Get the onboarding_abandoned flow
+    const onboardingAbandonedFlow = await step.run('get-onboarding-abandoned-flow', async () => {
       const flows = await getAllFlows();
-      const flow = flows.find((f) => f.name === 'trial_sequence');
+      const flow = flows.find((f) => f.name === 'onboarding_abandoned');
 
       if (!flow) {
-        console.warn('[Inngest] trial_sequence flow not found - skipping email scheduling');
+        console.warn('[Inngest] onboarding_abandoned flow not found - skipping email scheduling');
         return null;
       }
 
       return flow;
     });
 
-    if (!trialSequenceFlow) {
-      return { success: false, reason: 'trial_sequence flow not found' };
+    if (!onboardingAbandonedFlow) {
+      return { success: false, reason: 'onboarding_abandoned flow not found' };
     }
 
     if (!emailAddress) {
@@ -59,7 +60,7 @@ export const triggerTrialSequence = inngest.createFunction(
     // Step 2: Check for existing emails (idempotency check)
     const existingEmails = await step.run('check-existing-emails', async () => {
       const supabase = getSupabaseAdmin();
-      const flowTriggerId = generateFlowTriggerId(userId, trialSequenceFlow.id, subscriptionId);
+      const flowTriggerId = generateFlowTriggerId(userId, onboardingAbandonedFlow.id, `onboarding-${userId}`);
 
       console.log('[Inngest] Checking for existing flow trigger', { flowTriggerId });
 
@@ -79,11 +80,11 @@ export const triggerTrialSequence = inngest.createFunction(
 
     // If emails already exist, skip scheduling
     if (existingEmails.length > 0) {
-      console.log(`[Inngest] Trial sequence already scheduled for user ${userId} - skipping`);
+      console.log(`[Inngest] Onboarding abandoned sequence already scheduled for user ${userId} - skipping`);
       return { success: true, reason: 'already scheduled', emailCount: existingEmails.length };
     }
 
-    // Step 3: Get user's first name from profile
+    // Step 3: Get user's first name from profile (may not exist yet)
     const firstName = await step.run('get-user-profile', async () => {
       const supabase = getSupabaseAdmin();
 
@@ -94,28 +95,29 @@ export const triggerTrialSequence = inngest.createFunction(
           .eq('user_id', userId)
           .maybeSingle();
 
-        return profile?.first_name || 'there';
+        // Return null if no firstName, component will use fallback
+        return profile?.first_name || null;
       } catch (error) {
         console.warn('[Inngest] Could not fetch user profile for firstName:', error);
-        return 'there';
+        return null;
       }
     });
 
     // Step 4: Schedule the email sequence (insert into DB)
     const scheduledEmails = await step.run('schedule-sequence', async () => {
-      const triggerEventId = subscriptionId;
-      const idempotencyKeyPrefix = `trial_sequence_${userId}_${subscriptionId}_${Date.now()}`;
-      const flowTriggerId = generateFlowTriggerId(userId, trialSequenceFlow.id, triggerEventId);
+      const triggerEventId = `onboarding-${userId}`;
+      const idempotencyKeyPrefix = `onboarding_abandoned_${userId}_${Date.now()}`;
+      const flowTriggerId = generateFlowTriggerId(userId, onboardingAbandonedFlow.id, triggerEventId);
 
       // Auto-detect test mode based on environment
       // In development: use 1/1440 multiplier (1 minute = 1 day worth of production time)
       const isTestMode = process.env.NODE_ENV === 'development';
       const testModeMultiplier = isTestMode ? 1 / 1440 : 1;
 
-      console.log('[Inngest] Scheduling trial sequence', {
+      console.log('[Inngest] Scheduling onboarding abandoned sequence', {
         userId,
         emailAddress,
-        flowId: trialSequenceFlow.id,
+        flowId: onboardingAbandonedFlow.id,
         flowTriggerId,
         firstName,
         isTestMode,
@@ -125,7 +127,7 @@ export const triggerTrialSequence = inngest.createFunction(
       const emails = await scheduleSequence({
         userId,
         emailAddress,
-        flowId: trialSequenceFlow.id,
+        flowId: onboardingAbandonedFlow.id,
         idempotencyKeyPrefix,
         triggerEventId,
         variables: {
@@ -178,7 +180,7 @@ export const triggerTrialSequence = inngest.createFunction(
       return { processed: pendingEmails.length };
     });
 
-    console.log(`[Inngest] Successfully triggered trial sequence for user ${userId}`, {
+    console.log(`[Inngest] Successfully triggered onboarding abandoned sequence for user ${userId}`, {
       emailsScheduled: scheduledEmails.length,
       emailIds: scheduledEmails.map((e) => e.id),
     });
@@ -192,51 +194,54 @@ export const triggerTrialSequence = inngest.createFunction(
 );
 
 /**
- * Cancel trial sequence email flow for a user
+ * Cancel onboarding abandoned email flow for a user
  *
- * This function is called by Inngest when a trial/subscription.cancelled event is sent.
- * It cancels all pending trial emails for the user.
+ * This function is called by Inngest when an onboarding/completed event is sent.
+ * It cancels all pending onboarding abandoned emails for the user.
  */
-export const cancelTrialSequence = inngest.createFunction(
+export const cancelOnboardingAbandonedSequence = inngest.createFunction(
   {
-    id: 'cancel-trial-sequence',
+    id: 'cancel-onboarding-abandoned-sequence',
     retries: 3,
   },
-  { event: 'trial/subscription.cancelled' },
+  { event: 'onboarding/completed' },
   async ({ event, step }) => {
     const { userId } = event.data;
 
-    console.log('[Inngest] cancelTrialSequence called', { userId });
+    console.log('[Inngest] cancelOnboardingAbandonedSequence called', { userId });
 
-    // Step 1: Get the trial_sequence flow
-    const trialSequenceFlow = await step.run('get-trial-flow', async () => {
+    // Step 1: Get the onboarding_abandoned flow
+    const onboardingAbandonedFlow = await step.run('get-onboarding-abandoned-flow', async () => {
       const flows = await getAllFlows();
-      const flow = flows.find((f) => f.name === 'trial_sequence');
+      const flow = flows.find((f) => f.name === 'onboarding_abandoned');
 
       if (!flow) {
-        console.warn('[Inngest] trial_sequence flow not found - skipping cancellation');
+        console.warn('[Inngest] onboarding_abandoned flow not found - skipping cancellation');
         return null;
       }
 
       return flow;
     });
 
-    if (!trialSequenceFlow) {
-      return { success: false, reason: 'trial_sequence flow not found' };
+    if (!onboardingAbandonedFlow) {
+      return { success: false, reason: 'onboarding_abandoned flow not found' };
     }
 
     // Step 2: Cancel the sequence (updates DB immediately, returns cancelled emails)
     const cancelledEmails = await step.run('cancel-sequence', async () => {
       const supabase = getSupabaseAdmin();
 
-      console.log('[Inngest] Cancelling trial sequence for user', { userId, flowId: trialSequenceFlow.id });
+      console.log('[Inngest] Cancelling onboarding abandoned sequence for user', {
+        userId,
+        flowId: onboardingAbandonedFlow.id,
+      });
 
       // Find all pending/scheduled emails for this user and flow
       const { data: emails, error: fetchError } = await supabase
         .from('scheduled_emails')
         .select('*')
         .eq('user_id', userId)
-        .eq('flow_id', trialSequenceFlow.id)
+        .eq('flow_id', onboardingAbandonedFlow.id)
         .in('status', ['pending', 'scheduled']);
 
       if (fetchError) {
@@ -294,9 +299,10 @@ export const cancelTrialSequence = inngest.createFunction(
       return await processResendCancellationForEmails(emailsWithResendIds);
     });
 
-    console.log(`[Inngest] Successfully cancelled ${cancelledEmails.length} emails in trial sequence for user ${userId}`, {
-      resendResult,
-    });
+    console.log(
+      `[Inngest] Successfully cancelled ${cancelledEmails.length} emails in onboarding abandoned sequence for user ${userId}`,
+      { resendResult }
+    );
 
     return {
       success: true,

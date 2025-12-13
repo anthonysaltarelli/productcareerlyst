@@ -17,6 +17,9 @@ import { TrialDay21DiscountEmail } from '@/app/components/emails/TrialDay21Disco
 import { TrialDay28DiscountReminderEmail } from '@/app/components/emails/TrialDay28DiscountReminderEmail';
 import { OTPEmail } from '@/app/components/emails/OTPEmail';
 import { TestSequenceEmail } from '@/app/components/emails/TestSequenceEmail';
+import { OnboardingAbandoned15MinEmail } from '@/app/components/emails/OnboardingAbandoned15MinEmail';
+import { OnboardingAbandoned1DayEmail } from '@/app/components/emails/OnboardingAbandoned1DayEmail';
+import { OnboardingAbandoned7DayEmail } from '@/app/components/emails/OnboardingAbandoned7DayEmail';
 
 /**
  * Template Service for Email System
@@ -46,6 +49,9 @@ const COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {
   '@/app/components/emails/TrialDay28DiscountReminderEmail': TrialDay28DiscountReminderEmail,
   '@/app/components/emails/OTPEmail': OTPEmail,
   '@/app/components/emails/TestSequenceEmail': TestSequenceEmail,
+  '@/app/components/emails/OnboardingAbandoned15MinEmail': OnboardingAbandoned15MinEmail,
+  '@/app/components/emails/OnboardingAbandoned1DayEmail': OnboardingAbandoned1DayEmail,
+  '@/app/components/emails/OnboardingAbandoned7DayEmail': OnboardingAbandoned7DayEmail,
 };
 
 // Get service role Supabase client for admin operations

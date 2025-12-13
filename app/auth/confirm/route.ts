@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { type NextRequest } from 'next/server'
 import { isOnboardingComplete } from '@/lib/utils/onboarding'
 import { transferBubbleSubscription } from '@/lib/utils/bubble-transfer'
+import { inngest } from '@/lib/inngest/client'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -55,6 +56,24 @@ export async function GET(request: NextRequest) {
       } catch (transferError) {
         // Don't block user if transfer fails - they can do it manually
         console.error('Error transferring Bubble subscription:', transferError);
+      }
+
+      // Trigger onboarding abandoned email sequence for new signups (not password recovery)
+      if (type === 'email') {
+        try {
+          await inngest.send({
+            id: `onboarding-started-${user.id}`, // Idempotency key
+            name: 'onboarding/started',
+            data: {
+              userId: user.id,
+              email: user.email,
+            },
+          });
+          console.log('[Email Confirm] Triggered onboarding/started for user:', user.id);
+        } catch (inngestError) {
+          // Fire and forget - log but don't fail the request
+          console.error('[Email Confirm] Failed to trigger onboarding/started:', inngestError);
+        }
       }
 
       // Create profile for new email users (only on signup confirmation, not password recovery)

@@ -638,7 +638,7 @@ export const scheduleSequence = async (
         ...(params.variables || {}),
         stepOrder: step.step_order,
         flowName: flow.name,
-        firstName: params.variables?.firstName || 'Test User',
+        firstName: params.variables?.firstName || null,
         unsubscribeUrl,
       },
       unsubscribeUrl
@@ -1011,7 +1011,7 @@ export async function processResendSchedulingForEmails(
           template,
           {
             stepOrder: email.metadata?.step_order,
-            firstName: 'there', // Default if not available
+            firstName: null, // Email components handle fallback with "Hey there,"
             unsubscribeUrl,
           },
           unsubscribeUrl
@@ -1197,11 +1197,76 @@ async function processResendCancellationAsync(
 }
 
 /**
+ * Process Resend cancellation for emails that are already marked as cancelled in the database
+ * This is used by Inngest to ensure Resend cancellation calls complete in a durable context
+ *
+ * @param cancelledEmails Array of scheduled email records that need Resend cancellation
+ */
+export async function processResendCancellationForEmails(
+  cancelledEmails: ScheduledEmail[]
+): Promise<{ cancelled: number; failed: number }> {
+  const supabase = getSupabaseAdmin();
+  const RATE_LIMIT_DELAY_MS = 600; // 600ms = ~1.67 requests/second (safe margin)
+
+  console.log(`[processResendCancellationForEmails] Starting processing for ${cancelledEmails.length} emails`);
+
+  let cancelledCount = 0;
+  let failedCount = 0;
+
+  for (let i = 0; i < cancelledEmails.length; i++) {
+    const email = cancelledEmails[i];
+
+    // Add delay between requests (except for the first one)
+    if (i > 0) {
+      await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_DELAY_MS));
+    }
+
+    // Prefer resend_scheduled_id for scheduled emails, fall back to resend_email_id
+    const resendIdToCancel = email.resend_scheduled_id || email.resend_email_id;
+
+    if (!resendIdToCancel) {
+      console.log(`[processResendCancellationForEmails] Email ${email.id} has no Resend ID, skipping`);
+      continue;
+    }
+
+    try {
+      await resendCancelEmail(resendIdToCancel);
+      console.log(`[processResendCancellationForEmails] Successfully cancelled email ${email.id} via Resend (${resendIdToCancel})`);
+      cancelledCount++;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`[processResendCancellationForEmails] Failed to cancel email ${email.id} via Resend:`, errorMessage);
+      failedCount++;
+
+      // Update metadata with cancellation error
+      const { error: updateError } = await supabase
+        .from('scheduled_emails')
+        .update({
+          metadata: {
+            ...(email.metadata || {}),
+            resend_cancel_error: errorMessage,
+            resend_cancel_attempted_at: new Date().toISOString(),
+          },
+        })
+        .eq('id', email.id);
+
+      if (updateError) {
+        console.error(`[processResendCancellationForEmails] Failed to update error metadata for email ${email.id}:`, updateError);
+      }
+    }
+  }
+
+  console.log(`[processResendCancellationForEmails] Completed: ${cancelledCount} cancelled, ${failedCount} failed`);
+
+  return { cancelled: cancelledCount, failed: failedCount };
+}
+
+/**
  * Cancel all scheduled emails for a user
- * 
+ *
  * Cancels all pending/scheduled emails for a specific user (regardless of flow, template, or email type).
  * Updates database immediately and processes Resend cancellations in background with rate limiting.
- * 
+ *
  * @param userId User UUID
  * @returns Number of emails cancelled
  */

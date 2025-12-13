@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import type { OnboardingProgress } from '@/lib/utils/onboarding';
+import { inngest } from '@/lib/inngest/client';
 
 export const GET = async (request: NextRequest) => {
   try {
@@ -59,6 +60,15 @@ export const POST = async (request: NextRequest) => {
       is_complete,
     } = body;
 
+    // Check if onboarding was already complete (to avoid re-triggering completion event)
+    const { data: existingRecord } = await supabase
+      .from('onboarding_progress')
+      .select('is_complete')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    const wasAlreadyComplete = existingRecord?.is_complete === true;
+
     // Build update object
     const updateData: any = {
       updated_at: new Date().toISOString(),
@@ -74,7 +84,7 @@ export const POST = async (request: NextRequest) => {
         .select('progress_data')
         .eq('user_id', user.id)
         .maybeSingle();
-      
+
       updateData.progress_data = {
         ...(existing?.progress_data || {}),
         ...progress_data,
@@ -105,6 +115,24 @@ export const POST = async (request: NextRequest) => {
         { error: 'Failed to update onboarding progress' },
         { status: 500 }
       );
+    }
+
+    // Trigger Inngest event when onboarding is completed (fire-and-forget, wrapped in try-catch)
+    // Note: onboarding/started is triggered at account verification (auth/confirm and auth/callback routes)
+    if (is_complete === true && !wasAlreadyComplete) {
+      try {
+        await inngest.send({
+          id: `onboarding-completed-${user.id}-${Date.now()}`, // Idempotency key
+          name: 'onboarding/completed',
+          data: {
+            userId: user.id,
+          },
+        });
+        console.log('[onboarding/progress] Triggered onboarding/completed for user:', user.id);
+      } catch (inngestError) {
+        // Fire and forget - log but don't fail the request
+        console.error('[onboarding/progress] Failed to trigger onboarding/completed:', inngestError);
+      }
     }
 
     return NextResponse.json({ progress: data });

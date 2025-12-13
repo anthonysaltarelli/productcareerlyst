@@ -23,5 +23,24 @@ export type TrialSubscriptionCancelledEvent = {
   };
 };
 
+export type OnboardingStartedEvent = {
+  name: 'onboarding/started';
+  data: {
+    userId: string;
+    email: string;
+  };
+};
+
+export type OnboardingCompletedEvent = {
+  name: 'onboarding/completed';
+  data: {
+    userId: string;
+  };
+};
+
 // Union type of all events
-export type InngestEvents = TrialSubscriptionCreatedEvent | TrialSubscriptionCancelledEvent;
+export type InngestEvents =
+  | TrialSubscriptionCreatedEvent
+  | TrialSubscriptionCancelledEvent
+  | OnboardingStartedEvent
+  | OnboardingCompletedEvent;

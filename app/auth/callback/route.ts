@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
 import { transferBubbleSubscription } from '@/lib/utils/bubble-transfer'
+import { inngest } from '@/lib/inngest/client'
 
 // Helper function to extract first and last name from user metadata
 function extractNameFromMetadata(userMetadata: any): { firstName: string | null; lastName: string | null } {
@@ -160,6 +161,22 @@ export async function GET(request: NextRequest) {
         } catch (transferError) {
           // Don't block user if transfer fails - they can do it manually
           console.error('[OAuth Callback] Error transferring Bubble subscription:', transferError);
+        }
+
+        // Trigger onboarding abandoned email sequence for new OAuth users
+        try {
+          await inngest.send({
+            id: `onboarding-started-${user.id}`, // Idempotency key
+            name: 'onboarding/started',
+            data: {
+              userId: user.id,
+              email: user.email,
+            },
+          });
+          console.log('[OAuth Callback] Triggered onboarding/started for user:', user.id);
+        } catch (inngestError) {
+          // Fire and forget - log but don't fail the request
+          console.error('[OAuth Callback] Failed to trigger onboarding/started:', inngestError);
         }
       }
 
