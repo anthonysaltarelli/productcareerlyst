@@ -1205,7 +1205,7 @@ export default function AdminEmailsPage() {
                 />
               </div>
               <button
-                onClick={fetchScheduledEmails}
+                onClick={() => fetchScheduledEmails()}
                 className="ml-auto px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2 text-sm"
               >
                 <RefreshCw className="w-4 h-4" />
