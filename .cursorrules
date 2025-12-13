@@ -288,3 +288,100 @@ import { trackEvent } from '@/lib/amplitude/client';
 - `app/components/TrackedLink.tsx` - Link component implementation
 - `lib/amplitude/client.ts` - Client-side tracking utilities
 
+---
+
+## Email Flow Implementation (Inngest + Resend + Supabase)
+
+When creating email sequences/flows, follow these critical rules:
+
+### Critical Learnings (MUST FOLLOW)
+
+#### 1. Fire-and-Forget DOES NOT Work in Serverless
+Async fire-and-forget patterns fail silently in serverless environments (Vercel, Next.js API routes). When the HTTP response returns, the serverless function can terminate before background async work completes.
+
+**Solution:** Use Inngest steps to ensure critical async work runs to completion in a durable context.
+
+#### 2. Inngest Steps Are Your Durability Boundary
+Each `step.run()` is:
+- Checkpointed (can resume if interrupted)
+- Retried on failure
+- Guaranteed to complete before the function reports success
+
+**Required Pattern for ALL Inngest functions:**
+```typescript
+// Step N: Database operation (fast, returns immediately)
+const records = await step.run('db-operation', async () => { ... });
+
+// Step N+1: External API calls (slow, needs durability)
+await step.run('process-external-api', async () => {
+  // CRITICAL: Wait for any fire-and-forget to settle
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  // Re-fetch from DB to get actual current state
+  // Process only what still needs processing
+});
+```
+
+#### 3. Race Conditions Between Steps
+The scheduling step returns stale data (status: 'pending') but fire-and-forget may have already updated some records to 'scheduled'. The Resend processing step MUST:
+- Add 2-second delay to let fire-and-forget settle
+- Re-fetch from DB to get actual current status
+- Only process records that still need processing
+
+#### 4. Resend Rate Limiting (2 req/sec)
+Resend has a 2 requests/second limit. Use 600ms delay between calls (~1.67 req/sec) as a safe margin. This applies to BOTH scheduling AND cancellation.
+
+#### 5. Idempotency is Critical
+- Use `flow_trigger_id` to prevent duplicate sequences
+- Use Inngest event `id` for idempotency keys
+- Check DB for existing records before scheduling
+
+#### 6. Environment-Based Test Mode
+Auto-detect `NODE_ENV === 'development'` to use test timing (1 minute = 1 day) in the Inngest function itself:
+```typescript
+const isTestMode = process.env.NODE_ENV === 'development';
+const testModeMultiplier = isTestMode ? 1 / 1440 : 1;
+```
+
+#### 7. Never Hardcode Fallback Names
+Email components should handle null firstName with `"Hey there,"` - NEVER use fallbacks like `'Test User'` or `'there'` in service code. Always pass `null`.
+
+### Implementation Checklist
+
+1. **Create Email Template Components** - `app/components/emails/YourFlowEmail.tsx`
+   - Handle `firstName?: string | null` with proper fallback: `firstName ? \`Hey ${firstName},\` : 'Hey there,'`
+   - Include unsubscribe link for marketing emails
+
+2. **Register Components** - `lib/email/templates.ts`
+   - Add import and register in `COMPONENT_REGISTRY`
+
+3. **Add Inngest Event Types** - `lib/inngest/client.ts`
+   - Add `'your-flow/started'` and `'your-flow/completed'` events
+
+4. **Create Inngest Functions** - `lib/inngest/functions/your-flow-emails.ts`
+   - `triggerYourFlowSequence` with steps:
+     1. Get flow from DB
+     2. Check for existing emails (idempotency)
+     3. Get user profile for firstName
+     4. Schedule sequence (DB insert)
+     5. Process Resend scheduling (CRITICAL - with 2s delay and re-fetch)
+   - `cancelYourFlowSequence` with steps:
+     1. Get flow from DB
+     2. Cancel in DB (returns emails)
+     3. Process Resend cancellation (CRITICAL - with 2s delay)
+
+5. **Register Functions** - `app/api/inngest/route.ts`
+
+6. **Database Migration** - Create templates, flow, and flow_steps in Supabase
+
+7. **Trigger Events** - Add `inngest.send()` calls where appropriate
+
+### Email Flow Reference Files
+
+- `lib/inngest/functions/onboarding-abandoned-emails.ts` - Working trigger/cancel example
+- `lib/inngest/functions/trial-emails.ts` - Working trigger/cancel example
+- `lib/email/service.ts` - Core email scheduling functions (scheduleSequence, processResendSchedulingForEmails, processResendCancellationForEmails)
+- `lib/email/templates.ts` - Template registry and COMPONENT_REGISTRY
+- `lib/email/flows.ts` - Flow utilities (getAllFlows, generateFlowTriggerId)
+- `app/components/emails/OnboardingAbandoned15MinEmail.tsx` - Email component example
+- `.claude/commands/create-email-flow.md` - Full implementation guide with code templates
+
