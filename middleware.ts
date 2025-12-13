@@ -14,6 +14,11 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname === '/api/stripe/webhook') {
     return NextResponse.next()
   }
+
+  // Skip middleware for Inngest webhooks - Inngest handles its own authentication
+  if (request.nextUrl.pathname === '/api/inngest') {
+    return NextResponse.next()
+  }
   
   return await updateSession(request)
 }
