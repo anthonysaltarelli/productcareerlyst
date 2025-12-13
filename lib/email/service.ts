@@ -940,8 +940,138 @@ async function processResendSchedulingAsync(
 }
 
 /**
+ * Process Resend scheduling for emails that are already in the database
+ * This is used by Inngest to ensure Resend scheduling completes in a durable context
+ *
+ * @param pendingEmails Array of scheduled email records that need Resend scheduling
+ * @param emailAddress Email address to send to
+ */
+export async function processResendSchedulingForEmails(
+  pendingEmails: ScheduledEmail[],
+  emailAddress: string
+): Promise<void> {
+  const supabase = getSupabaseAdmin();
+  const RATE_LIMIT_DELAY_MS = 600; // 600ms = ~1.67 requests/second (safe margin)
+
+  console.log(`[processResendSchedulingForEmails] Starting processing for ${pendingEmails.length} emails`);
+
+  // Sort by step_order to process in order
+  const sortedEmails = [...pendingEmails].sort((a, b) => {
+    const aOrder = a.metadata?.step_order || 0;
+    const bOrder = b.metadata?.step_order || 0;
+    return aOrder - bOrder;
+  });
+
+  for (let i = 0; i < sortedEmails.length; i++) {
+    const email = sortedEmails[i];
+
+    // Add delay between requests (except for the first one)
+    if (i > 0) {
+      await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_DELAY_MS));
+    }
+
+    try {
+      // Re-render the template using the snapshot
+      const templateSnapshot = email.template_snapshot as any;
+      if (!templateSnapshot) {
+        console.error(`[processResendSchedulingForEmails] Email ${email.id} has no template_snapshot`);
+        continue;
+      }
+
+      // Get fresh template to re-render (or use snapshot HTML if available)
+      let html: string;
+      const subject = templateSnapshot.subject || 'No subject';
+
+      if (templateSnapshot.html_content) {
+        // Use pre-rendered HTML from snapshot
+        html = templateSnapshot.html_content;
+      } else {
+        // Re-render the template
+        const template = await getTemplate(email.template_id);
+        if (!template) {
+          console.error(`[processResendSchedulingForEmails] Template ${email.template_id} not found for email ${email.id}`);
+          continue;
+        }
+
+        // Generate unsubscribe URL if needed
+        let unsubscribeUrl: string | undefined;
+        const emailType = email.metadata?.email_type || templateSnapshot.metadata?.email_type || 'marketing';
+        if (emailType === 'marketing' && email.user_id) {
+          try {
+            const token = await generateUnsubscribeToken(email.user_id, emailAddress);
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://productcareerlyst.com';
+            unsubscribeUrl = `${baseUrl}/unsubscribe/${token}`;
+          } catch (error) {
+            console.error(`[processResendSchedulingForEmails] Failed to generate unsubscribe token:`, error);
+          }
+        }
+
+        // Render template
+        html = await renderTemplate(
+          template,
+          {
+            stepOrder: email.metadata?.step_order,
+            firstName: 'there', // Default if not available
+            unsubscribeUrl,
+          },
+          unsubscribeUrl
+        );
+      }
+
+      // Schedule email via Resend
+      const resendResponse = await resendScheduleEmail({
+        to: emailAddress,
+        subject,
+        html,
+        scheduledAt: email.scheduled_at,
+      });
+
+      const resendEmailId = resendResponse.id;
+      const resendScheduledId = resendResponse.scheduledId || resendResponse.id;
+
+      // Update database record with Resend IDs and status
+      const { error: updateError } = await supabase
+        .from('scheduled_emails')
+        .update({
+          resend_email_id: resendEmailId,
+          resend_scheduled_id: resendScheduledId,
+          status: 'scheduled',
+        })
+        .eq('id', email.id);
+
+      if (updateError) {
+        console.error(`[processResendSchedulingForEmails] Failed to update email ${email.id}:`, updateError);
+      } else {
+        console.log(`[processResendSchedulingForEmails] Successfully scheduled email ${email.id} via Resend (${resendEmailId})`);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`[processResendSchedulingForEmails] Failed to schedule email ${email.id}:`, errorMessage);
+
+      // Update metadata with error
+      const { error: updateError } = await supabase
+        .from('scheduled_emails')
+        .update({
+          metadata: {
+            ...(email.metadata || {}),
+            resend_schedule_error: errorMessage,
+            resend_schedule_attempted_at: new Date().toISOString(),
+          },
+        })
+        .eq('id', email.id);
+
+      if (updateError) {
+        console.error(`[processResendSchedulingForEmails] Failed to update error metadata for email ${email.id}:`, updateError);
+      }
+    }
+  }
+
+  console.log(`[processResendSchedulingForEmails] Completed processing for ${pendingEmails.length} emails`);
+}
+
+/**
  * Cancel all remaining emails in a sequence
- * 
+ *
  * Can cancel by:
  * - flowTriggerId (recommended for testing - works without userId)
  * - userId + flowId (for user-specific flows)

@@ -101,7 +101,7 @@ export const triggerTrialSequence = inngest.createFunction(
       }
     });
 
-    // Step 4: Schedule the email sequence
+    // Step 4: Schedule the email sequence (insert into DB)
     const scheduledEmails = await step.run('schedule-sequence', async () => {
       const triggerEventId = subscriptionId;
       const idempotencyKeyPrefix = `trial_sequence_${userId}_${subscriptionId}_${Date.now()}`;
@@ -129,6 +129,27 @@ export const triggerTrialSequence = inngest.createFunction(
       });
 
       return emails;
+    });
+
+    // Step 5: Process Resend scheduling (this ensures it runs to completion in Inngest)
+    // The scheduleSequence function uses fire-and-forget for Resend calls which won't complete
+    // in serverless environments. We need to explicitly wait for Resend scheduling here.
+    await step.run('process-resend-scheduling', async () => {
+      const { processResendSchedulingForEmails } = await import('@/lib/email/service');
+
+      // Only process emails that are still pending (not yet scheduled with Resend)
+      const pendingEmails = scheduledEmails.filter((e: any) => e.status === 'pending');
+
+      if (pendingEmails.length === 0) {
+        console.log('[Inngest] All emails already scheduled with Resend');
+        return { processed: 0 };
+      }
+
+      console.log('[Inngest] Processing Resend scheduling for', pendingEmails.length, 'emails');
+
+      await processResendSchedulingForEmails(pendingEmails, emailAddress);
+
+      return { processed: pendingEmails.length };
     });
 
     console.log(`[Inngest] Successfully triggered trial sequence for user ${userId}`, {
