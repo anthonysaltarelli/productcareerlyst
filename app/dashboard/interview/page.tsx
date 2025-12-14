@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useFlags } from 'launchdarkly-react-client-sdk';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
+import { Video } from 'lucide-react';
 
 // Interview types matching the job application center
 const INTERVIEW_TYPES = [
@@ -52,6 +55,9 @@ function formatDate(dateString: string): string {
 
 
 export default function InterviewPrepPage() {
+  const router = useRouter();
+  const { aiVideoCoach } = useFlags();
+
   const [interviews, setInterviews] = useState<PracticeInterview[]>([]);
   const [stats, setStats] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -60,6 +66,7 @@ export default function InterviewPrepPage() {
   const [selectedType, setSelectedType] = useState<InterviewType>('product_sense');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [submitting, setSubmitting] = useState(false);
+  const [startingMockInterview, setStartingMockInterview] = useState(false);
 
   const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -196,6 +203,34 @@ export default function InterviewPrepPage() {
     setExpandedQuestionId(id);
   };
 
+  const handleStartMockInterview = async () => {
+    setStartingMockInterview(true);
+    try {
+      const response = await fetch('/api/mock-interviews/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || 'Failed to start mock interview');
+      }
+
+      const data = await response.json();
+
+      // Pass LiveKit credentials via query params (base64 encoded for safety)
+      const params = new URLSearchParams({
+        url: btoa(data.livekitUrl),
+        token: btoa(data.livekitToken),
+      });
+
+      router.push(`/dashboard/interview/mock/${data.interviewId}?${params.toString()}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to start mock interview');
+      setStartingMockInterview(false);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -252,6 +287,60 @@ export default function InterviewPrepPage() {
             </div>
           </div>
         </div>
+
+        {/* AI Video Mock Interview Section - Feature Flagged */}
+        {aiVideoCoach && (
+          <div className="mb-6 md:mb-8">
+            <div className="p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-purple-100 to-pink-100 shadow-[0_12px_0_0_rgba(147,51,234,0.25)] md:shadow-[0_16px_0_0_rgba(147,51,234,0.25)] border-2 border-purple-300">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500">
+                      <Video className="w-6 h-6 text-white" />
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">
+                      AI Video Mock Interview
+                    </h2>
+                  </div>
+                  <p className="text-gray-700 font-medium mb-4 md:mb-0 max-w-xl">
+                    Practice behavioral interviews with our AI interviewer. Get real-time feedback
+                    and improve your communication skills in a realistic video interview setting.
+                  </p>
+                  <div className="hidden md:flex flex-wrap gap-2 mt-4">
+                    <span className="px-3 py-1 rounded-full bg-purple-200/60 text-purple-700 text-sm font-semibold">
+                      30 min session
+                    </span>
+                    <span className="px-3 py-1 rounded-full bg-pink-200/60 text-pink-700 text-sm font-semibold">
+                      Behavioral questions
+                    </span>
+                    <span className="px-3 py-1 rounded-full bg-purple-200/60 text-purple-700 text-sm font-semibold">
+                      STAR method practice
+                    </span>
+                  </div>
+                </div>
+                <div className="flex-shrink-0">
+                  <button
+                    onClick={handleStartMockInterview}
+                    disabled={startingMockInterview}
+                    className="w-full md:w-auto px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.4)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.4)] font-black text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[0_6px_0_0_rgba(147,51,234,0.4)]"
+                  >
+                    {startingMockInterview ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Starting...
+                      </span>
+                    ) : (
+                      'Start Mock Interview'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Practice & Questions layout - 60/40 split */}
         <div className="md:grid md:grid-cols-10 md:gap-8">
