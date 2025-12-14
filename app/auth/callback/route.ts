@@ -4,6 +4,9 @@ import { type NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
 import { transferBubbleSubscription } from '@/lib/utils/bubble-transfer'
 import { inngest } from '@/lib/inngest/client'
+import { createAndAddSubscriberToForm } from '@/lib/utils/convertkit'
+
+const NEWSLETTER_FORM_ID = 7348426
 
 // Helper function to extract first and last name from user metadata
 function extractNameFromMetadata(userMetadata: any): { firstName: string | null; lastName: string | null } {
@@ -177,6 +180,15 @@ export async function GET(request: NextRequest) {
         } catch (inngestError) {
           // Fire and forget - log but don't fail the request
           console.error('[OAuth Callback] Failed to trigger onboarding/started:', inngestError);
+        }
+
+        // Add user to ConvertKit newsletter form
+        try {
+          await createAndAddSubscriberToForm(NEWSLETTER_FORM_ID, user.email, firstName || undefined);
+          console.log('[OAuth Callback] Added user to ConvertKit form:', user.id);
+        } catch (convertKitError) {
+          // Fire and forget - log but don't fail the request
+          console.error('[OAuth Callback] Failed to add user to ConvertKit:', convertKitError);
         }
       }
 

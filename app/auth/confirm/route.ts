@@ -5,6 +5,9 @@ import { type NextRequest } from 'next/server'
 import { isOnboardingComplete } from '@/lib/utils/onboarding'
 import { transferBubbleSubscription } from '@/lib/utils/bubble-transfer'
 import { inngest } from '@/lib/inngest/client'
+import { createAndAddSubscriberToForm } from '@/lib/utils/convertkit'
+
+const NEWSLETTER_FORM_ID = 7348426
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -73,6 +76,16 @@ export async function GET(request: NextRequest) {
         } catch (inngestError) {
           // Fire and forget - log but don't fail the request
           console.error('[Email Confirm] Failed to trigger onboarding/started:', inngestError);
+        }
+
+        // Add user to ConvertKit newsletter form
+        try {
+          const firstName = user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || undefined;
+          await createAndAddSubscriberToForm(NEWSLETTER_FORM_ID, user.email, firstName);
+          console.log('[Email Confirm] Added user to ConvertKit form:', user.id);
+        } catch (convertKitError) {
+          // Fire and forget - log but don't fail the request
+          console.error('[Email Confirm] Failed to add user to ConvertKit:', convertKitError);
         }
       }
 
