@@ -474,10 +474,10 @@ export default function InterviewPrepPage() {
             <div className="rounded-[2rem] bg-white border-2 border-gray-200 shadow-sm p-5 md:p-6 flex flex-col">
               <div>
                 <h2 className="text-xl md:text-2xl font-black text-gray-800 mb-1">
-                  PM Questions &amp; Answers
+                  PM Question Guidance
                 </h2>
                 <p className="text-gray-600 font-medium text-sm md:text-base">
-                  Search and filter questions to practice for your interviews.
+                  View PM questions by interview type and get recommendations for crafting standout answers.
                 </p>
               </div>
 
