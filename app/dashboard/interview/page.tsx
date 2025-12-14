@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFlags } from 'launchdarkly-react-client-sdk';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
-import { Video, Clock, Star, ChevronRight, MessageSquare } from 'lucide-react';
+import { Video, Clock, Star, ChevronRight, MessageSquare, Award } from 'lucide-react';
+import type { AIBehavioralEvaluation } from '@/lib/types/interview-evaluation';
 
 // Interview types matching the job application center
 const INTERVIEW_TYPES = [
@@ -44,8 +45,17 @@ interface MockInterview {
   duration_seconds: number | null;
   call_quality_rating: number | null;
   self_performance_rating: number | null;
+  ai_evaluation: AIBehavioralEvaluation | null;
   created_at: string;
 }
+
+// Verdict badge styling
+const verdictBadgeColors: Record<string, { bg: string; text: string }> = {
+  'Strong Hire': { bg: 'bg-green-100', text: 'text-green-700' },
+  'Hire': { bg: 'bg-blue-100', text: 'text-blue-700' },
+  'No Hire': { bg: 'bg-orange-100', text: 'text-orange-700' },
+  'Strong No Hire': { bg: 'bg-red-100', text: 'text-red-700' },
+};
 
 function getInterviewLabel(type: string): string {
   return INTERVIEW_TYPES.find((t) => t.value === type)?.label || type;
@@ -97,7 +107,6 @@ export default function InterviewPrepPage() {
   const [selectedType, setSelectedType] = useState<InterviewType>('product_sense');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [submitting, setSubmitting] = useState(false);
-  const [startingMockInterview, setStartingMockInterview] = useState(false);
 
   const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -109,6 +118,7 @@ export default function InterviewPrepPage() {
   // Mock interview history state
   const [mockInterviews, setMockInterviews] = useState<MockInterview[]>([]);
   const [mockInterviewsLoading, setMockInterviewsLoading] = useState(false);
+  const [showAllMockInterviews, setShowAllMockInterviews] = useState(false);
 
   const fetchInterviews = async () => {
     try {
@@ -262,32 +272,9 @@ export default function InterviewPrepPage() {
     setExpandedQuestionId(id);
   };
 
-  const handleStartMockInterview = async () => {
-    setStartingMockInterview(true);
-    try {
-      const response = await fetch('/api/mock-interviews/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(errorData.error || 'Failed to start mock interview');
-      }
-
-      const data = await response.json();
-
-      // Pass LiveKit credentials via query params (base64 encoded for safety)
-      const params = new URLSearchParams({
-        url: btoa(data.livekitUrl),
-        token: btoa(data.livekitToken),
-      });
-
-      router.push(`/dashboard/interview/mock/${data.interviewId}?${params.toString()}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start mock interview');
-      setStartingMockInterview(false);
-    }
+  const handleStartMockInterview = () => {
+    // Just navigate to the full-screen page - API call happens there when user clicks "Start Interview"
+    router.push('/dashboard/interview/mock/new');
   };
 
 
@@ -358,12 +345,11 @@ export default function InterviewPrepPage() {
                       <Video className="w-6 h-6 text-white" />
                     </div>
                     <h2 className="text-2xl md:text-3xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent">
-                      AI Video Mock Interview
+                      AI Video Mock Behavioral Interview
                     </h2>
                   </div>
                   <p className="text-gray-700 font-medium mb-4 md:mb-0 max-w-xl">
-                    Practice behavioral interviews with our AI interviewer. Get real-time feedback
-                    and improve your communication skills in a realistic video interview setting.
+                    Practice behavioral interviews with our AI interviewer for 30 minutes. Afterwards, get a detailed interviewer scorecard and actionable feedback on how to improve your interviewing skills.
                   </p>
                   <div className="hidden md:flex flex-wrap gap-2 mt-4">
                     <span className="px-3 py-1 rounded-full bg-purple-200/60 text-purple-700 text-sm font-semibold">
@@ -373,27 +359,16 @@ export default function InterviewPrepPage() {
                       Behavioral questions
                     </span>
                     <span className="px-3 py-1 rounded-full bg-purple-200/60 text-purple-700 text-sm font-semibold">
-                      STAR method practice
+                      N+STAR+TL method practice
                     </span>
                   </div>
                 </div>
                 <div className="flex-shrink-0">
                   <button
                     onClick={handleStartMockInterview}
-                    disabled={startingMockInterview}
-                    className="w-full md:w-auto px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.4)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.4)] font-black text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[0_6px_0_0_rgba(147,51,234,0.4)]"
+                    className="w-full md:w-auto px-8 py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.4)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.4)] font-black text-white transition-all duration-200"
                   >
-                    {startingMockInterview ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        Starting...
-                      </span>
-                    ) : (
-                      'Start Mock Interview'
-                    )}
+                    Start Mock Interview
                   </button>
                 </div>
               </div>
@@ -417,7 +392,7 @@ export default function InterviewPrepPage() {
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
                       </div>
                     ) : (
-                      mockInterviews.slice(0, 5).map((interview) => (
+                      (showAllMockInterviews ? mockInterviews : mockInterviews.slice(0, 5)).map((interview) => (
                         <button
                           key={interview.id}
                           onClick={() => router.push(`/dashboard/interview/mock/${interview.id}/feedback`)}
@@ -456,7 +431,12 @@ export default function InterviewPrepPage() {
                           </div>
 
                           <div className="flex items-center gap-3 flex-shrink-0">
-                            {interview.self_performance_rating && (
+                            {interview.ai_evaluation?.overallVerdict && (
+                              <div className={`px-2.5 py-1 rounded-lg text-xs font-bold ${verdictBadgeColors[interview.ai_evaluation.overallVerdict]?.bg || 'bg-gray-100'} ${verdictBadgeColors[interview.ai_evaluation.overallVerdict]?.text || 'text-gray-700'}`}>
+                                {interview.ai_evaluation.overallVerdict}
+                              </div>
+                            )}
+                            {!interview.ai_evaluation && interview.self_performance_rating && (
                               <div className="flex items-center gap-1 text-sm">
                                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                                 <span className="font-medium text-gray-700">
@@ -473,10 +453,12 @@ export default function InterviewPrepPage() {
 
                   {mockInterviews.length > 5 && (
                     <button
-                      onClick={() => router.push('/dashboard/interview/mock/history')}
+                      onClick={() => setShowAllMockInterviews(!showAllMockInterviews)}
                       className="w-full mt-3 py-2 text-purple-600 font-medium text-sm hover:text-purple-700 transition-colors"
                     >
-                      View all {mockInterviews.length} interviews →
+                      {showAllMockInterviews
+                        ? 'Show less ↑'
+                        : `View all ${mockInterviews.length} interviews →`}
                     </button>
                   )}
                 </div>

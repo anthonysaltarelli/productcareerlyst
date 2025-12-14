@@ -395,7 +395,7 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
               <div
                 className={`p-6 rounded-2xl bg-gradient-to-br ${verdictColors[interview.ai_evaluation!.overallVerdict]?.bg || 'from-gray-500 to-gray-600'} ${verdictColors[interview.ai_evaluation!.overallVerdict]?.border || 'border-gray-600'} border-2`}
               >
-                <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+                <div className="flex flex-col lg:flex-row lg:items-stretch gap-6">
                   {/* Verdict Content */}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-3">

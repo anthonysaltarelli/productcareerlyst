@@ -224,8 +224,7 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
-  const [hasStarted, setHasStarted] = useState(false);
-  const [isReady, setIsReady] = useState(false);
+  const [hasStarted, setHasStarted] = useState(true); // Interview starts immediately when credentials are present
 
   // Resolve params and extract LiveKit credentials from URL
   useEffect(() => {
@@ -253,16 +252,16 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
     }
   }, [aiVideoCoach, router]);
 
-  // Timer for elapsed time
+  // Timer for elapsed time - starts when connected
   useEffect(() => {
-    if (!hasStarted) return;
+    if (!isConnected) return;
 
     const interval = setInterval(() => {
       setElapsedTime((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [hasStarted]);
+  }, [isConnected]);
 
   // Format time as MM:SS
   const formatTime = (seconds: number): string => {
@@ -273,11 +272,7 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
 
   // Handle exit with confirmation
   const handleExitClick = () => {
-    if (hasStarted) {
-      setShowExitConfirm(true);
-    } else {
-      router.push('/dashboard/interview');
-    }
+    setShowExitConfirm(true);
   };
 
   const handleConfirmExit = useCallback(async () => {
@@ -300,11 +295,6 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
 
   const handleCancelExit = () => {
     setShowExitConfirm(false);
-  };
-
-  const handleStartInterview = () => {
-    setIsReady(true);
-    setHasStarted(true);
   };
 
   const handleRoomConnected = () => {
@@ -353,92 +343,6 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
           >
             Go Back
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Pre-interview instructions screen
-  if (!isReady) {
-    return (
-      <div className="fixed inset-0 z-[100] bg-slate-900 flex flex-col">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 pointer-events-none" />
-        <div className="relative z-10 flex items-center justify-between p-4 md:p-6">
-          <button
-            onClick={handleExitClick}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-gray-300 hover:bg-slate-700 hover:text-white transition-colors"
-          >
-            <X className="w-5 h-5" />
-            <span className="hidden md:inline font-medium">Exit</span>
-          </button>
-        </div>
-
-        <div className="relative z-10 flex-1 flex items-center justify-center p-6">
-          <div className="max-w-2xl w-full">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-6">
-                <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h1 className="text-3xl md:text-4xl font-black text-white mb-4">
-                Ready for Your Mock Interview?
-              </h1>
-              <p className="text-lg text-gray-400 max-w-lg mx-auto">
-                You&apos;ll practice behavioral interview questions with our AI interviewer for up to 30 minutes.
-              </p>
-            </div>
-
-            <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 mb-8">
-              <h2 className="text-lg font-bold text-white mb-4">Before you begin:</h2>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-purple-400 text-sm font-bold">1</span>
-                  </div>
-                  <span className="text-gray-300">
-                    <strong className="text-white">Allow camera &amp; microphone access</strong> when prompted
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-purple-400 text-sm font-bold">2</span>
-                  </div>
-                  <span className="text-gray-300">
-                    <strong className="text-white">Find a quiet space</strong> with good lighting
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-purple-400 text-sm font-bold">3</span>
-                  </div>
-                  <span className="text-gray-300">
-                    <strong className="text-white">Use the STAR method</strong> for behavioral questions (Situation, Task, Action, Result)
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-purple-400 text-sm font-bold">4</span>
-                  </div>
-                  <span className="text-gray-300">
-                    <strong className="text-white">Speak naturally</strong> - the AI interviewer will respond conversationally
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="text-center">
-              <button
-                onClick={handleStartInterview}
-                className="px-10 py-5 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.4)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.4)] font-black text-white text-xl transition-all duration-200"
-              >
-                Start Interview
-              </button>
-              <p className="mt-4 text-gray-500 text-sm">
-                You can exit at any time by clicking the X button
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     );

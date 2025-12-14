@@ -20,7 +20,7 @@ export async function GET() {
     const { data: interviews, error: fetchError } = await supabase
       .from('mock_interviews')
       .select(
-        'id, status, started_at, ended_at, duration_seconds, call_quality_rating, self_performance_rating, created_at'
+        'id, status, started_at, ended_at, duration_seconds, call_quality_rating, self_performance_rating, ai_evaluation, created_at'
       )
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
