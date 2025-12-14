@@ -210,17 +210,52 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
             </div>
 
             {feedbackSubmitted ? (
-              <div className="text-center py-8">
-                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Thank you for your feedback!
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Your responses help us improve the interview experience.
-                </p>
+              <div className="py-4">
+                <div className="flex items-center gap-2 mb-6">
+                  <CheckCircle className="w-6 h-6 text-green-500" />
+                  <span className="text-green-700 font-semibold">Feedback submitted</span>
+                </div>
+
+                {/* Display submitted ratings */}
+                <div className="space-y-6 mb-8">
+                  <div>
+                    <p className="text-sm font-bold text-gray-700 mb-2">Call Quality</p>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-6 h-6 ${
+                            star <= callQualityRating
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'fill-transparent text-gray-300'
+                          }`}
+                        />
+                      ))}
+                      <span className="ml-2 text-gray-600 font-medium">{callQualityRating}/5</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-bold text-gray-700 mb-2">Self Performance</p>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-6 h-6 ${
+                            star <= selfPerformanceRating
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'fill-transparent text-gray-300'
+                          }`}
+                        />
+                      ))}
+                      <span className="ml-2 text-gray-600 font-medium">{selfPerformanceRating}/5</span>
+                    </div>
+                  </div>
+                </div>
+
                 <button
                   onClick={() => router.push('/dashboard/interview')}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold hover:opacity-90 transition-opacity"
+                  className="w-full px-6 py-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold hover:opacity-90 transition-opacity"
                 >
                   Back to Interview Prep
                 </button>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFlags } from 'launchdarkly-react-client-sdk';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
-import { Video } from 'lucide-react';
+import { Video, Clock, Star, ChevronRight, MessageSquare } from 'lucide-react';
 
 // Interview types matching the job application center
 const INTERVIEW_TYPES = [
@@ -36,6 +36,17 @@ interface InterviewQuestion {
   guidance: string;
 }
 
+interface MockInterview {
+  id: string;
+  status: string;
+  started_at: string | null;
+  ended_at: string | null;
+  duration_seconds: number | null;
+  call_quality_rating: number | null;
+  self_performance_rating: number | null;
+  created_at: string;
+}
+
 function getInterviewLabel(type: string): string {
   return INTERVIEW_TYPES.find((t) => t.value === type)?.label || type;
 }
@@ -51,6 +62,26 @@ function formatDate(dateString: string): string {
     day: 'numeric',
     year: 'numeric',
   });
+}
+
+function formatDuration(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  if (mins === 0) return `${secs}s`;
+  return `${mins}m ${secs}s`;
+}
+
+function formatRelativeDate(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? 's' : ''} ago`;
+  return formatDate(dateString);
 }
 
 
@@ -74,6 +105,10 @@ export default function InterviewPrepPage() {
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
   const [questionsLoading, setQuestionsLoading] = useState<boolean>(true);
   const [questionsError, setQuestionsError] = useState<string | null>(null);
+
+  // Mock interview history state
+  const [mockInterviews, setMockInterviews] = useState<MockInterview[]>([]);
+  const [mockInterviewsLoading, setMockInterviewsLoading] = useState(false);
 
   const fetchInterviews = async () => {
     try {
@@ -114,6 +149,30 @@ export default function InterviewPrepPage() {
   useEffect(() => {
     fetchQuestions();
   }, []);
+
+  // Fetch mock interview history
+  const fetchMockInterviews = async () => {
+    if (!aiVideoCoach) return;
+
+    setMockInterviewsLoading(true);
+    try {
+      const response = await fetch('/api/mock-interviews');
+      if (response.ok) {
+        const data = await response.json();
+        setMockInterviews(data.interviews || []);
+      }
+    } catch (err) {
+      console.error('Error fetching mock interviews:', err);
+    } finally {
+      setMockInterviewsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (aiVideoCoach) {
+      fetchMockInterviews();
+    }
+  }, [aiVideoCoach]);
 
   const handleOpenModal = () => {
     setSelectedType('product_sense');
@@ -338,6 +397,90 @@ export default function InterviewPrepPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Past Mock Interviews */}
+              {mockInterviews.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-purple-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                      <MessageSquare className="w-5 h-5 text-purple-600" />
+                      Past Mock Interviews
+                    </h3>
+                    <span className="text-sm text-gray-500 font-medium">
+                      {mockInterviews.length} session{mockInterviews.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {mockInterviewsLoading ? (
+                      <div className="flex items-center justify-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                      </div>
+                    ) : (
+                      mockInterviews.slice(0, 5).map((interview) => (
+                        <button
+                          key={interview.id}
+                          onClick={() => router.push(`/dashboard/interview/mock/${interview.id}/feedback`)}
+                          className="w-full p-4 rounded-xl bg-white border border-purple-200 hover:border-purple-400 hover:shadow-md transition-all flex items-center justify-between gap-4 text-left"
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className={`p-2 rounded-lg ${
+                              interview.status === 'completed'
+                                ? 'bg-green-100'
+                                : interview.status === 'in_progress'
+                                  ? 'bg-yellow-100'
+                                  : 'bg-gray-100'
+                            }`}>
+                              <Video className={`w-4 h-4 ${
+                                interview.status === 'completed'
+                                  ? 'text-green-600'
+                                  : interview.status === 'in_progress'
+                                    ? 'text-yellow-600'
+                                    : 'text-gray-500'
+                              }`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-gray-800 truncate">
+                                Behavioral Interview
+                              </p>
+                              <div className="flex items-center gap-3 text-sm text-gray-500">
+                                <span>{formatRelativeDate(interview.created_at)}</span>
+                                {interview.duration_seconds && (
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    {formatDuration(interview.duration_seconds)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            {interview.self_performance_rating && (
+                              <div className="flex items-center gap-1 text-sm">
+                                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                <span className="font-medium text-gray-700">
+                                  {interview.self_performance_rating}/5
+                                </span>
+                              </div>
+                            )}
+                            <ChevronRight className="w-5 h-5 text-gray-400" />
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+
+                  {mockInterviews.length > 5 && (
+                    <button
+                      onClick={() => router.push('/dashboard/interview/mock/history')}
+                      className="w-full mt-3 py-2 text-purple-600 font-medium text-sm hover:text-purple-700 transition-colors"
+                    >
+                      View all {mockInterviews.length} interviews →
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
