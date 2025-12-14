@@ -207,7 +207,7 @@ function LocalVideoPreview() {
   return (
     <VideoTrack
       trackRef={localVideoTrack}
-      className="w-full h-full object-cover"
+      className="w-full h-full object-cover scale-x-[-1]"
     />
   );
 }
@@ -280,15 +280,22 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
     }
   };
 
-  const handleConfirmExit = useCallback(() => {
+  const handleConfirmExit = useCallback(async () => {
     if (interviewId) {
-      fetch(`/api/mock-interviews/${interviewId}/end`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ early_exit: true }),
-      }).catch(console.error);
+      try {
+        await fetch(`/api/mock-interviews/${interviewId}/end`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ early_exit: true }),
+        });
+      } catch (err) {
+        console.error('Error ending interview:', err);
+      }
+      // Redirect to feedback page instead of interview prep
+      router.push(`/dashboard/interview/mock/${interviewId}/feedback`);
+    } else {
+      router.push('/dashboard/interview');
     }
-    router.push('/dashboard/interview');
   }, [interviewId, router]);
 
   const handleCancelExit = () => {
@@ -304,13 +311,19 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
     setIsConnected(true);
   };
 
-  const handleRoomDisconnected = () => {
+  const handleRoomDisconnected = useCallback(() => {
     setIsConnected(false);
-    // If disconnected unexpectedly after starting, redirect back
-    if (hasStarted && !showExitConfirm) {
-      router.push('/dashboard/interview');
+    // If disconnected unexpectedly after starting, redirect to feedback page
+    if (hasStarted && !showExitConfirm && interviewId) {
+      // Call end API then redirect
+      fetch(`/api/mock-interviews/${interviewId}/end`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ early_exit: false }),
+      }).catch(console.error);
+      router.push(`/dashboard/interview/mock/${interviewId}/feedback`);
     }
-  };
+  }, [hasStarted, showExitConfirm, interviewId, router]);
 
   // Feature flag loading state
   if (aiVideoCoach === undefined) {

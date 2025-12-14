@@ -30,9 +30,8 @@ interface BeyondPresenceCallData {
 interface BeyondPresenceWebhookEvent {
   event_type: 'test' | 'message' | 'call_ended';
   call_id?: string;
-  sender?: 'user' | 'agent';
-  message?: string;
-  timestamp?: string;
+  // For message events, the message is an object (not a string)
+  message?: BeyondPresenceMessage;
   messages?: BeyondPresenceMessage[];
   evaluation?: BeyondPresenceEvaluation;
   call_data?: BeyondPresenceCallData;
@@ -72,8 +71,8 @@ export async function POST(request: NextRequest) {
     if (body.event_type === 'message') {
       console.log('[Beyond Presence Webhook] Message event:', {
         call_id: body.call_id,
-        sender: body.sender,
-        message: body.message?.substring(0, 100), // Truncate for logging
+        sender: body.message?.sender,
+        message: body.message?.message?.substring(0, 100), // Truncate for logging
       });
 
       // For now, just acknowledge - we'll get full transcript in call_ended
