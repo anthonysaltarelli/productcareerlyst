@@ -163,7 +163,8 @@ export default function QuickQuestionSetupPage({
 
   return (
     <div className="fixed inset-0 z-[100] bg-slate-900 flex flex-col overflow-y-auto">
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 pointer-events-none" />
+      {/* Background gradient overlay */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 pointer-events-none" />
 
       {/* Header with Exit button */}
       <div className="relative z-10 flex items-center justify-between p-4 md:p-6 flex-shrink-0">
