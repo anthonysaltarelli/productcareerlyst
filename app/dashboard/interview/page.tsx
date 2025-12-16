@@ -251,13 +251,14 @@ export default function InterviewPrepPage() {
   });
 
   // Calculate performance stats
-  const completedMocks = mockInterviews.filter(m => m.status === 'completed');
+  const completedMocks = mockInterviews.filter(m => m.status === 'completed' || m.ai_evaluation);
   const totalMockSessions = completedMocks.length;
-  const hireCount = completedMocks.filter(m =>
-    m.ai_evaluation?.overallVerdict === 'Strong Hire' ||
-    m.ai_evaluation?.overallVerdict === 'Hire'
-  ).length;
-  const hireRate = totalMockSessions > 0 ? Math.round((hireCount / totalMockSessions) * 100) : 0;
+  const allSkillScores = completedMocks.flatMap(m =>
+    m.ai_evaluation?.skills?.map((s: { score: number }) => s.score) || []
+  );
+  const avgScore = allSkillScores.length > 0
+    ? (allSkillScores.reduce((sum, score) => sum + score, 0) / allSkillScores.length).toFixed(1)
+    : '–';
   const latestMock = completedMocks[0];
 
   // Combined history: mock interviews + logged interviews
@@ -373,8 +374,8 @@ export default function InterviewPrepPage() {
                   <p className="text-xs font-semibold text-gray-600">Mock Sessions</p>
                 </div>
                 <div className="p-3 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 text-center">
-                  <p className="text-2xl font-black text-green-600">{hireRate}%</p>
-                  <p className="text-xs font-semibold text-gray-600">Hire Rate</p>
+                  <p className="text-2xl font-black text-green-600">{avgScore}<span className="text-sm font-bold text-gray-400">/4</span></p>
+                  <p className="text-xs font-semibold text-gray-600">Avg Score</p>
                 </div>
               </div>
 
@@ -467,7 +468,6 @@ export default function InterviewPrepPage() {
               ) : (
                 filteredQuestions.map((question) => {
                   const colors = getCategoryColors(question.category);
-                  const isBehavioral = question.category === 'Behavioral';
                   const isExpanded = expandedQuestionId === question.id;
                   return (
                     <div
@@ -485,7 +485,7 @@ export default function InterviewPrepPage() {
                           </p>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          {isBehavioral && aiVideoCoach && (
+                          {aiVideoCoach && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -516,7 +516,7 @@ export default function InterviewPrepPage() {
 
           {/* CARD 4: Mock Interview History (Consolidated with Log feature) */}
           {aiVideoCoach && (
-            <div className="p-6 rounded-[2rem] bg-white border-2 border-gray-200 shadow-sm">
+            <div className="p-6 rounded-[2rem] bg-white border-2 border-gray-200 shadow-sm self-start">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-black text-gray-800">Mock History</h3>
                 <div className="flex items-center gap-2">
@@ -538,7 +538,7 @@ export default function InterviewPrepPage() {
                 </div>
               </div>
 
-              <div className="space-y-3 max-h-[320px] overflow-y-auto">
+              <div className="space-y-3 max-h-[280px] overflow-y-auto">
                 {mockInterviewsLoading ? (
                   <div className="flex items-center justify-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
@@ -548,7 +548,7 @@ export default function InterviewPrepPage() {
                     <p className="text-gray-500 font-medium text-sm">No interview history yet</p>
                   </div>
                 ) : (
-                  combinedHistory.slice(0, 5).map((item) => (
+                  combinedHistory.map((item) => (
                     <button
                       key={`${item.type}-${item.id}`}
                       onClick={() => {
@@ -609,11 +609,6 @@ export default function InterviewPrepPage() {
                 )}
               </div>
 
-              {combinedHistory.length > 5 && (
-                <button className="w-full mt-4 py-2 text-purple-600 font-semibold text-sm hover:text-purple-700 transition-colors">
-                  View all sessions →
-                </button>
-              )}
             </div>
           )}
         </div>
