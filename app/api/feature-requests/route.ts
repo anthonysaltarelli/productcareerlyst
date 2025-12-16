@@ -33,6 +33,8 @@ export const GET = async () => {
         title,
         description,
         status,
+        category,
+        related_feature,
         is_archived,
         created_at,
         updated_at
@@ -48,21 +50,38 @@ export const GET = async () => {
       );
     }
 
-    // Get vote counts for each feature request
+    // Get vote counts for each feature request (with vote_type)
     const featureRequestIds = featureRequests?.map(fr => fr.id) || [];
-    
+
     const { data: votes, error: votesError } = await supabase
       .from('feature_request_votes')
-      .select('feature_request_id, user_id')
+      .select('feature_request_id, user_id, vote_type')
       .in('feature_request_id', featureRequestIds);
 
     if (votesError) {
       console.error('Error fetching votes:', votesError);
     }
 
+    // Get comment counts for each feature request
+    const { data: commentCounts, error: commentsError } = await supabase
+      .from('feature_request_comments')
+      .select('feature_request_id')
+      .in('feature_request_id', featureRequestIds);
+
+    if (commentsError) {
+      console.error('Error fetching comment counts:', commentsError);
+    }
+
+    // Build comment count map
+    const commentCountMap = new Map<string, number>();
+    commentCounts?.forEach(comment => {
+      const currentCount = commentCountMap.get(comment.feature_request_id) || 0;
+      commentCountMap.set(comment.feature_request_id, currentCount + 1);
+    });
+
     // Get profiles for feature request authors
     const userIds = [...new Set(featureRequests?.map(fr => fr.user_id) || [])];
-    
+
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
       .select('user_id, first_name, last_name')
@@ -77,27 +96,39 @@ export const GET = async () => {
       profiles?.map(p => [p.user_id, { first_name: p.first_name, last_name: p.last_name }]) || []
     );
 
-    // Count votes and check if current user voted
-    const voteCountMap = new Map<string, number>();
-    const userVoteMap = new Map<string, boolean>();
+    // Count votes by type and check current user's vote
+    const voteDataMap = new Map<string, { upvotes: number; downvotes: number }>();
+    const userVoteTypeMap = new Map<string, 'upvote' | 'downvote' | null>();
 
     votes?.forEach(vote => {
-      const currentCount = voteCountMap.get(vote.feature_request_id) || 0;
-      voteCountMap.set(vote.feature_request_id, currentCount + 1);
-      
+      const currentData = voteDataMap.get(vote.feature_request_id) || { upvotes: 0, downvotes: 0 };
+      if (vote.vote_type === 'upvote') {
+        currentData.upvotes += 1;
+      } else if (vote.vote_type === 'downvote') {
+        currentData.downvotes += 1;
+      }
+      voteDataMap.set(vote.feature_request_id, currentData);
+
       if (vote.user_id === user.id) {
-        userVoteMap.set(vote.feature_request_id, true);
+        userVoteTypeMap.set(vote.feature_request_id, vote.vote_type as 'upvote' | 'downvote');
       }
     });
 
     // Combine data
-    const enrichedRequests = featureRequests?.map(fr => ({
-      ...fr,
-      vote_count: voteCountMap.get(fr.id) || 0,
-      user_has_voted: userVoteMap.get(fr.id) || false,
-      author: profileMap.get(fr.user_id) || { first_name: null, last_name: null },
-      is_own_request: fr.user_id === user.id,
-    })) || [];
+    const enrichedRequests = featureRequests?.map(fr => {
+      const voteData = voteDataMap.get(fr.id) || { upvotes: 0, downvotes: 0 };
+      return {
+        ...fr,
+        vote_count: voteData.upvotes - voteData.downvotes,
+        upvote_count: voteData.upvotes,
+        downvote_count: voteData.downvotes,
+        user_vote_type: userVoteTypeMap.get(fr.id) || null,
+        user_has_voted: userVoteTypeMap.has(fr.id),
+        comment_count: commentCountMap.get(fr.id) || 0,
+        author: profileMap.get(fr.user_id) || { first_name: null, last_name: null },
+        is_own_request: fr.user_id === user.id,
+      };
+    }) || [];
 
     return NextResponse.json({
       success: true,
@@ -164,7 +195,7 @@ export const POST = async (request: NextRequest) => {
 
     // Parse request body
     const body = await request.json();
-    const { title, description } = body;
+    const { title, description, category, related_feature } = body;
 
     // Validate required fields
     if (!title || typeof title !== 'string' || title.trim() === '') {
@@ -181,6 +212,27 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
+    // Validate category
+    const validCategories = ['bug', 'enhancement', 'new_idea'];
+    if (!category || !validCategories.includes(category)) {
+      return NextResponse.json(
+        { error: 'Invalid category. Must be bug, enhancement, or new_idea' },
+        { status: 400 }
+      );
+    }
+
+    // Validate related_feature
+    const validFeatures = [
+      'pm_courses', 'resume_editor', 'job_center', 'product_portfolio',
+      'pm_resources', 'ai_interview_prep', 'other'
+    ];
+    if (!related_feature || !validFeatures.includes(related_feature)) {
+      return NextResponse.json(
+        { error: 'Invalid related feature' },
+        { status: 400 }
+      );
+    }
+
     // Create the feature request
     const { data: newRequest, error: insertError } = await supabase
       .from('feature_requests')
@@ -188,6 +240,8 @@ export const POST = async (request: NextRequest) => {
         user_id: user.id,
         title: title.trim(),
         description: description.trim(),
+        category,
+        related_feature,
       })
       .select()
       .single();
@@ -220,7 +274,11 @@ export const POST = async (request: NextRequest) => {
         feature_request: {
           ...newRequest,
           vote_count: 0,
+          upvote_count: 0,
+          downvote_count: 0,
+          user_vote_type: null,
           user_has_voted: false,
+          comment_count: 0,
           author: { first_name: profile.first_name, last_name: profile.last_name },
           is_own_request: true,
         },

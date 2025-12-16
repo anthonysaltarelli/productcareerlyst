@@ -46,9 +46,11 @@ export const PATCH = async (
 
     // Parse request body
     const body = await request.json();
-    const { status, is_archived } = body;
+    const { status, is_archived, title, description } = body;
 
-    // Validate permissions - only admins can update status or archive
+    const isOwner = featureRequest.user_id === user.id;
+
+    // Validate permissions for status/archive - only admins can update these
     if ((status !== undefined || is_archived !== undefined) && !isAdmin) {
       return NextResponse.json(
         { error: 'Only administrators can update status or archive feature requests' },
@@ -56,12 +58,44 @@ export const PATCH = async (
       );
     }
 
+    // Validate permissions for title/description - only owner can update these
+    if ((title !== undefined || description !== undefined) && !isOwner) {
+      return NextResponse.json(
+        { error: 'You can only edit your own feedback' },
+        { status: 403 }
+      );
+    }
+
     // Build update object
     const updateData: Record<string, unknown> = {};
 
-    if (status !== undefined) {
-      // Validate status value
-      const validStatuses = [null, 'under_review', 'in_progress', 'complete'];
+    // Owner can update title and description
+    if (isOwner) {
+      if (title !== undefined) {
+        if (typeof title !== 'string' || title.trim() === '') {
+          return NextResponse.json(
+            { error: 'Title cannot be empty' },
+            { status: 400 }
+          );
+        }
+        updateData.title = title.trim();
+      }
+
+      if (description !== undefined) {
+        if (typeof description !== 'string' || description.trim() === '') {
+          return NextResponse.json(
+            { error: 'Description cannot be empty' },
+            { status: 400 }
+          );
+        }
+        updateData.description = description.trim();
+      }
+    }
+
+    // Admin can update status
+    if (isAdmin && status !== undefined) {
+      // Validate status value (support both old and new status values during transition)
+      const validStatuses = [null, 'under_review', 'in_progress', 'complete', 'evaluating', 'shipped', 'archived'];
       if (!validStatuses.includes(status)) {
         return NextResponse.json(
           { error: 'Invalid status value' },
@@ -71,7 +105,8 @@ export const PATCH = async (
       updateData.status = status;
     }
 
-    if (is_archived !== undefined) {
+    // Admin can update archive status
+    if (isAdmin && is_archived !== undefined) {
       if (typeof is_archived !== 'boolean') {
         return NextResponse.json(
           { error: 'is_archived must be a boolean' },

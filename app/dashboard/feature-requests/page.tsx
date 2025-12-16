@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader'
-import { FeatureRequestsPageClient } from '@/app/components/feature-requests/FeatureRequestsPageClient'
+import { ProductFeedbackPageClient } from '@/app/components/feedback/ProductFeedbackPageClient'
 import { PageTracking } from '@/app/components/PageTracking'
 
 // Helper function to get admin user IDs from environment variable
@@ -34,10 +34,10 @@ export default async function FeatureRequestsPage() {
 
   return (
     <>
-      <PageTracking pageName="Feature Requests" />
-      <MobileDashboardHeader title="Feature Requests" />
+      <PageTracking pageName="Product Feedback" />
+      <MobileDashboardHeader title="Product Feedback" />
       <div className="pt-16 md:pt-0">
-        <FeatureRequestsPageClient
+        <ProductFeedbackPageClient
           userId={user.id}
           userEmail={user.email || ''}
           hasCompletedProfile={hasCompletedProfile}

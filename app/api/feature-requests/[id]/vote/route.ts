@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-// POST /api/feature-requests/[id]/vote - Add vote to feature request
+// POST /api/feature-requests/[id]/vote - Add or update vote on feature request
 export const POST = async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -16,6 +16,18 @@ export const POST = async (
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // Parse request body for vote_type
+    const body = await request.json();
+    const { vote_type } = body;
+
+    // Validate vote_type
+    if (!vote_type || !['upvote', 'downvote'].includes(vote_type)) {
+      return NextResponse.json(
+        { error: 'Invalid vote_type. Must be upvote or downvote' },
+        { status: 400 }
       );
     }
 
@@ -43,7 +55,7 @@ export const POST = async (
     // Check if user already voted
     const { data: existingVote, error: voteCheckError } = await supabase
       .from('feature_request_votes')
-      .select('id')
+      .select('id, vote_type')
       .eq('feature_request_id', featureRequestId)
       .eq('user_id', user.id)
       .maybeSingle();
@@ -57,39 +69,58 @@ export const POST = async (
     }
 
     if (existingVote) {
-      return NextResponse.json(
-        { error: 'You have already voted for this feature request' },
-        { status: 400 }
-      );
+      // If same vote type, do nothing (or you could return current state)
+      if (existingVote.vote_type === vote_type) {
+        // Get current vote counts
+        const voteCounts = await getVoteCounts(supabase, featureRequestId);
+        return NextResponse.json({
+          success: true,
+          ...voteCounts,
+          user_vote_type: vote_type,
+          message: 'Vote unchanged',
+        });
+      }
+
+      // Update existing vote to new type
+      const { error: updateError } = await supabase
+        .from('feature_request_votes')
+        .update({ vote_type })
+        .eq('id', existingVote.id);
+
+      if (updateError) {
+        console.error('Error updating vote:', updateError);
+        return NextResponse.json(
+          { error: 'Failed to update vote' },
+          { status: 500 }
+        );
+      }
+    } else {
+      // Insert new vote
+      const { error: insertError } = await supabase
+        .from('feature_request_votes')
+        .insert({
+          feature_request_id: featureRequestId,
+          user_id: user.id,
+          vote_type,
+        });
+
+      if (insertError) {
+        console.error('Error adding vote:', insertError);
+        return NextResponse.json(
+          { error: 'Failed to add vote' },
+          { status: 500 }
+        );
+      }
     }
 
-    // Add vote
-    const { error: insertError } = await supabase
-      .from('feature_request_votes')
-      .insert({
-        feature_request_id: featureRequestId,
-        user_id: user.id,
-      });
-
-    if (insertError) {
-      console.error('Error adding vote:', insertError);
-      return NextResponse.json(
-        { error: 'Failed to add vote' },
-        { status: 500 }
-      );
-    }
-
-    // Get updated vote count
-    const { count } = await supabase
-      .from('feature_request_votes')
-      .select('*', { count: 'exact', head: true })
-      .eq('feature_request_id', featureRequestId);
+    // Get updated vote counts
+    const voteCounts = await getVoteCounts(supabase, featureRequestId);
 
     return NextResponse.json({
       success: true,
-      vote_count: count || 0,
-      user_has_voted: true,
-      message: 'Vote added successfully',
+      ...voteCounts,
+      user_vote_type: vote_type,
+      message: existingVote ? 'Vote updated successfully' : 'Vote added successfully',
     });
   } catch (error) {
     console.error('Unexpected error adding vote:', error);
@@ -133,16 +164,13 @@ export const DELETE = async (
       );
     }
 
-    // Get updated vote count
-    const { count } = await supabase
-      .from('feature_request_votes')
-      .select('*', { count: 'exact', head: true })
-      .eq('feature_request_id', featureRequestId);
+    // Get updated vote counts
+    const voteCounts = await getVoteCounts(supabase, featureRequestId);
 
     return NextResponse.json({
       success: true,
-      vote_count: count || 0,
-      user_has_voted: false,
+      ...voteCounts,
+      user_vote_type: null,
       message: 'Vote removed successfully',
     });
   } catch (error) {
@@ -154,3 +182,27 @@ export const DELETE = async (
   }
 };
 
+// Helper function to get vote counts
+async function getVoteCounts(supabase: Awaited<ReturnType<typeof createClient>>, featureRequestId: string) {
+  const { data: votes } = await supabase
+    .from('feature_request_votes')
+    .select('vote_type')
+    .eq('feature_request_id', featureRequestId);
+
+  let upvotes = 0;
+  let downvotes = 0;
+
+  votes?.forEach(vote => {
+    if (vote.vote_type === 'upvote') {
+      upvotes += 1;
+    } else if (vote.vote_type === 'downvote') {
+      downvotes += 1;
+    }
+  });
+
+  return {
+    vote_count: upvotes - downvotes,
+    upvote_count: upvotes,
+    downvote_count: downvotes,
+  };
+}
