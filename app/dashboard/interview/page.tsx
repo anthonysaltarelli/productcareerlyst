@@ -118,6 +118,9 @@ export default function InterviewPrepPage() {
   const [mockInterviews, setMockInterviews] = useState<MockInterview[]>([]);
   const [mockInterviewsLoading, setMockInterviewsLoading] = useState(false);
 
+  // Expanded question state
+  const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
+
   const fetchInterviews = async () => {
     try {
       const response = await fetch('/api/practice-interviews');
@@ -320,7 +323,7 @@ export default function InterviewPrepPage() {
   return (
     <>
       <MobileDashboardHeader title="Interview Prep" />
-      <div className="min-h-screen bg-gray-50 p-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
+      <div className="min-h-screen bg-gray-50 p-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12 overflow-x-hidden">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-2">
@@ -337,34 +340,23 @@ export default function InterviewPrepPage() {
           {/* CARD 1: Start Interview (Primary CTA) - Spans 2 columns on large screens */}
           {aiVideoCoach && (
             <div className="lg:col-span-2 p-6 md:p-8 rounded-[2rem] bg-gradient-to-br from-purple-600 to-pink-500 shadow-[0_12px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-700">
-              <div className="flex flex-col md:flex-row md:items-center gap-6">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="p-3 rounded-xl bg-white/20">
-                      <Video className="w-8 h-8 text-white" />
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-black text-white">
-                      Ready to Practice?
-                    </h2>
-                  </div>
-                  <p className="text-purple-100 font-medium mb-4">
-                    Start a 30-minute AI mock interview and receive detailed feedback on your behavioral interview skills.
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold">Video & Audio</span>
-                    <span className="px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold">AI Scoring</span>
-                    <span className="px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold">Detailed Feedback</span>
-                  </div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-3 rounded-xl bg-white/20">
+                  <Video className="w-8 h-8 text-white" />
                 </div>
-                <div className="flex-shrink-0">
-                  <button
-                    onClick={handleStartMockInterview}
-                    className="w-full md:w-auto px-8 py-4 rounded-[1.5rem] bg-white text-purple-600 font-black text-lg shadow-[0_6px_0_0_rgba(255,255,255,0.3)] hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(255,255,255,0.3)] transition-all whitespace-nowrap"
-                  >
-                    Start Mock Interview
-                  </button>
-                </div>
+                <h2 className="text-2xl md:text-3xl font-black text-white">
+                  Ready to Practice?
+                </h2>
               </div>
+              <p className="text-purple-100 font-medium mb-6">
+                Start a 30-minute AI mock interview and receive detailed feedback on your behavioral interview skills.
+              </p>
+              <button
+                onClick={handleStartMockInterview}
+                className="px-8 py-4 rounded-[1.5rem] bg-white text-purple-600 font-black text-lg shadow-[0_6px_0_0_rgba(255,255,255,0.3)] hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(255,255,255,0.3)] transition-all"
+              >
+                Start AI Mock Interview
+              </button>
             </div>
           )}
 
@@ -451,7 +443,7 @@ export default function InterviewPrepPage() {
             </div>
 
             {/* Questions Preview */}
-            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            <div className="space-y-2 max-h-[450px] overflow-y-auto">
               {questionsLoading ? (
                 <div className="p-4 text-center">
                   <p className="text-gray-500 font-medium">Loading questions...</p>
@@ -476,32 +468,45 @@ export default function InterviewPrepPage() {
                 filteredQuestions.map((question) => {
                   const colors = getCategoryColors(question.category);
                   const isBehavioral = question.category === 'Behavioral';
+                  const isExpanded = expandedQuestionId === question.id;
                   return (
                     <div
                       key={question.id}
-                      className={`p-3 rounded-xl border border-gray-200 flex items-center justify-between gap-3 ${colors.hoverBorder} ${colors.hoverBg} transition-colors cursor-pointer`}
-                      onClick={() => router.push(`/dashboard/interview/mock/question/${question.id}`)}
+                      className={`p-3 rounded-xl border border-gray-200 ${colors.hoverBorder} ${colors.hoverBg} transition-colors cursor-pointer`}
+                      onClick={() => setExpandedQuestionId(isExpanded ? null : question.id)}
                     >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <span className={`px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} text-xs font-bold flex-shrink-0`}>
-                          {question.category}
-                        </span>
-                        <p className="font-medium text-gray-800 text-sm truncate">{question.question}</p>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-800 text-sm leading-relaxed">
+                            <span className={`inline-flex px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} text-xs font-bold mr-2 align-middle`}>
+                              {question.category}
+                            </span>
+                            {question.question}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {isBehavioral && aiVideoCoach && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/dashboard/interview/mock/question/${question.id}`);
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xs font-semibold hover:opacity-90 transition-opacity"
+                            >
+                              Practice
+                            </button>
+                          )}
+                          <ChevronRight className={`w-4 h-4 text-gray-400 mt-0.5 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {isBehavioral && aiVideoCoach && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(`/dashboard/interview/mock/question/${question.id}`);
-                            }}
-                            className="px-3 py-1.5 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xs font-semibold hover:opacity-90 transition-opacity"
-                          >
-                            Practice
-                          </button>
-                        )}
-                        <ChevronRight className="w-4 h-4 text-gray-400" />
-                      </div>
+
+                      {/* Expanded guidance section */}
+                      {isExpanded && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Tips for Answering</p>
+                          <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{question.guidance}</p>
+                        </div>
+                      )}
                     </div>
                   );
                 })
@@ -621,7 +626,7 @@ export default function InterviewPrepPage() {
                 onClick={handleStartMockInterview}
                 className="w-full py-4 rounded-[1.5rem] bg-gradient-to-br from-purple-600 to-pink-500 text-white font-black text-lg shadow-lg shadow-purple-500/30"
               >
-                Start Mock Interview
+                Start AI Mock Interview
               </button>
             </div>
             {/* Spacer for mobile sticky CTA */}
