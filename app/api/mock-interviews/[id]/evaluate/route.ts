@@ -1,9 +1,16 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { BEHAVIORAL_SKILLS } from '@/lib/types/interview-evaluation';
 
-// JSON Schema for structured output
-const INTERVIEW_EVALUATION_SCHEMA = {
+// The 4 skills to evaluate for quick question practice (Behavioral category)
+const QUICK_QUESTION_SKILLS = [
+  'Story Structure & Clarity',
+  'Ownership & Accountability',
+  'Impact & Results Orientation',
+  'Communication & Executive Presence',
+] as const;
+
+// JSON Schema for full interview structured output (12 skills)
+const FULL_INTERVIEW_EVALUATION_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
@@ -44,8 +51,50 @@ const INTERVIEW_EVALUATION_SCHEMA = {
   required: ['skills', 'overallVerdict', 'overallExplanation', 'recommendedImprovements'],
 };
 
-// Build the comprehensive evaluation prompt
-const createEvaluationPrompt = (transcript: { sender: string; message: string }[]) => {
+// JSON Schema for quick question structured output (4 skills)
+const QUICK_QUESTION_EVALUATION_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    skills: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          skillName: { type: 'string' },
+          score: {
+            type: 'number',
+            enum: [1, 1.5, 2, 2.5, 3, 3.5, 4],
+          },
+          explanation: { type: 'string' },
+          supportingQuotes: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+        },
+        required: ['skillName', 'score', 'explanation', 'supportingQuotes'],
+      },
+      minItems: 4,
+      maxItems: 4,
+    },
+    overallVerdict: {
+      type: 'string',
+      enum: ['Strong', 'Good', 'Needs Work', 'Weak'],
+    },
+    overallExplanation: { type: 'string' },
+    recommendedImprovements: {
+      type: 'array',
+      items: { type: 'string' },
+      minItems: 2,
+      maxItems: 4,
+    },
+  },
+  required: ['skills', 'overallVerdict', 'overallExplanation', 'recommendedImprovements'],
+};
+
+// Build the comprehensive evaluation prompt for full interviews
+const createFullEvaluationPrompt = (transcript: { sender: string; message: string }[]) => {
   const transcriptText = transcript
     .map((msg) => `[${msg.sender.toUpperCase()}]: ${msg.message}`)
     .join('\n\n');
@@ -187,6 +236,95 @@ ${transcriptText}
 Be rigorous but fair. Ground all feedback in specific evidence from the transcript.`;
 };
 
+// Build the evaluation prompt for quick question practice
+const createQuickQuestionEvaluationPrompt = (
+  transcript: { sender: string; message: string }[],
+  question: { question: string; category: string }
+) => {
+  const transcriptText = transcript
+    .map((msg) => `[${msg.sender.toUpperCase()}]: ${msg.message}`)
+    .join('\n\n');
+
+  return `You are a product management career coach evaluating a candidate's response to a single behavioral interview question.
+
+## The Question Asked
+Category: ${question.category}
+Question: "${question.question}"
+
+## Your Role
+Evaluate this answer as if you were a senior PM interviewer. Be honest, constructive, and helpful. This is practice - your feedback should help them improve.
+
+## N+STAR+TL Framework
+
+The best PM candidates structure their behavioral answers using this elevated STAR method:
+
+**N - Nugget**: Quick summary that hooks the interviewer
+**S - Situation**: Concise context setting
+**T - Task**: Their specific role/responsibility
+**A - Action**: Specific actions THEY took (not the team)
+**R - Result**: Quantified outcomes with metrics
+**T - Takeaway**: Lessons learned
+**L - Learning**: How they applied those lessons
+
+## Scoring Scale (1-4, half points allowed)
+- **4 - Very Strong**: Exceptional demonstration of this skill
+- **3 - Strong**: Good demonstration of this skill
+- **2 - Weak**: Sub-par demonstration of this skill
+- **1 - Very Weak**: Did not demonstrate this skill
+
+## Skills to Evaluate (4 Total)
+
+Evaluate these 4 skills in order:
+
+### 1. Story Structure & Clarity
+- **4**: Clear, concise, well-structured (context → problem → actions → outcome → reflection). Easy to follow.
+- **3**: Mostly structured, minor tangents or missing transitions.
+- **2**: Lacks clear structure. Important elements unclear or jumbled.
+- **1**: Incoherent. Rambling, confusing, missing critical elements.
+
+### 2. Ownership & Accountability
+- **4**: Clear personal ownership. Distinguishes their role, takes responsibility for outcomes.
+- **3**: Shows ownership but occasionally blurs individual vs team contribution.
+- **2**: Over-credits team/external factors. Personal impact unclear.
+- **1**: Avoids responsibility or claims undue credit.
+
+### 3. Impact & Results Orientation
+- **4**: Clearly articulates measurable outcomes (metrics, user impact, business results).
+- **3**: Describes outcomes, but impact may be partially qualitative.
+- **2**: Mentions results superficially, focuses on effort over impact.
+- **1**: No clear outcomes or impact described.
+
+### 4. Communication & Executive Presence
+- **4**: Communicates confidently, succinctly, and credibly.
+- **3**: Communicates clearly but may over- or under-explain.
+- **2**: Inconsistent, overly verbose, or lacking confidence.
+- **1**: Poor communication; difficult to follow.
+
+## Transcript to Evaluate
+
+${transcriptText}
+
+## Overall Verdict Scale
+- **Strong**: Excellent answer - would stand out in a real interview
+- **Good**: Solid answer - would meet expectations
+- **Needs Work**: Has potential but needs improvement
+- **Weak**: Significant gaps - needs substantial practice
+
+## Instructions
+
+1. Evaluate each of the 4 skills in the exact order listed above
+2. For each skill, provide:
+   - The skill name (exactly as written)
+   - A score from 1-4 (half points allowed)
+   - A 2-3 sentence explanation
+   - 1-2 direct quotes from the candidate
+3. Provide an overall verdict (Strong, Good, Needs Work, or Weak)
+4. Write a brief overall explanation (1 paragraph) summarizing their answer
+5. List 2-4 specific, actionable improvements
+
+Be constructive but honest. This is practice - help them improve.`;
+};
+
 // POST /api/mock-interviews/[id]/evaluate - Generate AI evaluation of interview
 export const POST = async (
   request: NextRequest,
@@ -206,10 +344,23 @@ export const POST = async (
 
     const { id } = await params;
 
-    // Fetch the interview
+    // Fetch the interview with question data if it's a quick question
     const { data: interview, error: fetchError } = await supabase
       .from('mock_interviews')
-      .select('id, user_id, transcript, ai_evaluation')
+      .select(`
+        id,
+        user_id,
+        transcript,
+        ai_evaluation,
+        interview_mode,
+        question_id,
+        pm_interview_questions (
+          id,
+          category,
+          question,
+          guidance
+        )
+      `)
       .eq('id', id)
       .eq('user_id', user.id)
       .single();
@@ -232,12 +383,37 @@ export const POST = async (
       return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 500 });
     }
 
-    // Create prompt
-    const prompt = createEvaluationPrompt(interview.transcript);
+    // Determine if this is a quick question or full interview
+    const isQuickQuestion = interview.interview_mode === 'quick_question';
+
+    // For quick questions, we need the question data
+    if (isQuickQuestion && !interview.pm_interview_questions) {
+      return NextResponse.json(
+        { error: 'Question data not found for quick question interview' },
+        { status: 400 }
+      );
+    }
+
+    // Create appropriate prompt and schema based on interview mode
+    let prompt: string;
+    let schema: typeof FULL_INTERVIEW_EVALUATION_SCHEMA | typeof QUICK_QUESTION_EVALUATION_SCHEMA;
+    let expectedSkillCount: number;
+
+    if (isQuickQuestion) {
+      // pm_interview_questions is returned as an object when using foreign key relation
+      const question = interview.pm_interview_questions as unknown as { question: string; category: string };
+      prompt = createQuickQuestionEvaluationPrompt(interview.transcript, question);
+      schema = QUICK_QUESTION_EVALUATION_SCHEMA;
+      expectedSkillCount = 4;
+    } else {
+      prompt = createFullEvaluationPrompt(interview.transcript);
+      schema = FULL_INTERVIEW_EVALUATION_SCHEMA;
+      expectedSkillCount = 12;
+    }
 
     // Step 1: Call OpenAI Responses API with structured output
     const requestPayload = {
-      model: 'gpt-5.1',
+      model: 'gpt-4.1',
       input: [
         {
           type: 'message',
@@ -253,8 +429,8 @@ export const POST = async (
       text: {
         format: {
           type: 'json_schema',
-          name: 'interview_evaluation',
-          schema: INTERVIEW_EVALUATION_SCHEMA,
+          name: isQuickQuestion ? 'quick_question_evaluation' : 'interview_evaluation',
+          schema: schema,
           strict: true,
         },
       },
@@ -390,21 +566,27 @@ export const POST = async (
       );
     }
 
-    // Validate we got 12 skills
-    if (!extractedData.skills || extractedData.skills.length !== 12) {
+    // Validate we got the expected number of skills
+    if (!extractedData.skills || extractedData.skills.length !== expectedSkillCount) {
       return NextResponse.json(
         {
-          error: 'Expected 12 skill evaluations, got ' + (extractedData.skills?.length || 0),
+          error: `Expected ${expectedSkillCount} skill evaluations, got ${extractedData.skills?.length || 0}`,
         },
         { status: 500 }
       );
     }
 
     // Build the full evaluation object
+    const questionData = interview.pm_interview_questions as unknown as { question: string; category: string } | null;
     const evaluation = {
       ...extractedData,
+      interviewMode: interview.interview_mode || 'full',
+      questionPracticed: isQuickQuestion && questionData ? {
+        question: questionData.question,
+        category: questionData.category,
+      } : null,
       evaluatedAt: new Date().toISOString(),
-      modelVersion: 'gpt-5.1',
+      modelVersion: 'gpt-4.1',
     };
 
     // Save to database
@@ -425,6 +607,7 @@ export const POST = async (
     return NextResponse.json({
       success: true,
       evaluation,
+      interviewMode: interview.interview_mode || 'full',
     });
   } catch (error) {
     console.error('Unexpected error:', error);

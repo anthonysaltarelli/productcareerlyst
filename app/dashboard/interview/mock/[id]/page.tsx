@@ -225,23 +225,46 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [hasStarted, setHasStarted] = useState(true); // Interview starts immediately when credentials are present
+  const [interviewMode, setInterviewMode] = useState<'full' | 'quick_question'>('full');
+
+  // Max duration based on mode: 30 min for full, 5 min for quick question
+  const maxDurationSeconds = interviewMode === 'quick_question' ? 5 * 60 : 30 * 60;
 
   // Resolve params and extract LiveKit credentials from URL
   useEffect(() => {
     params.then((p) => setInterviewId(p.id));
 
-    const urlParam = searchParams.get('url');
-    const tokenParam = searchParams.get('token');
+    // Check for credentials parameter (base64 encoded JSON)
+    const credentialsParam = searchParams.get('credentials');
+    const modeParam = searchParams.get('mode');
 
-    if (urlParam && tokenParam) {
+    if (modeParam === 'quick_question') {
+      setInterviewMode('quick_question');
+    }
+
+    if (credentialsParam) {
       try {
-        setLivekitUrl(atob(urlParam));
-        setLivekitToken(atob(tokenParam));
+        const decoded = JSON.parse(atob(credentialsParam));
+        setLivekitUrl(decoded.url);
+        setLivekitToken(decoded.token);
       } catch {
         setConnectionError('Invalid session credentials');
       }
     } else {
-      setConnectionError('Missing session credentials. Please start a new interview.');
+      // Fallback to legacy URL params
+      const urlParam = searchParams.get('url');
+      const tokenParam = searchParams.get('token');
+
+      if (urlParam && tokenParam) {
+        try {
+          setLivekitUrl(atob(urlParam));
+          setLivekitToken(atob(tokenParam));
+        } catch {
+          setConnectionError('Invalid session credentials');
+        }
+      } else {
+        setConnectionError('Missing session credentials. Please start a new interview.');
+      }
     }
   }, [params, searchParams]);
 
@@ -257,11 +280,26 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
     if (!isConnected) return;
 
     const interval = setInterval(() => {
-      setElapsedTime((prev) => prev + 1);
+      setElapsedTime((prev) => {
+        const newTime = prev + 1;
+        // Auto-end for quick questions after max duration
+        if (interviewMode === 'quick_question' && newTime >= maxDurationSeconds) {
+          // Trigger end interview
+          if (interviewId) {
+            fetch(`/api/mock-interviews/${interviewId}/end`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ early_exit: false }),
+            }).catch(console.error);
+            router.push(`/dashboard/interview/mock/${interviewId}/feedback`);
+          }
+        }
+        return newTime;
+      });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isConnected]);
+  }, [isConnected, interviewMode, maxDurationSeconds, interviewId, router]);
 
   // Format time as MM:SS
   const formatTime = (seconds: number): string => {
@@ -367,10 +405,18 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
 
           {/* Header Bar */}
           <div className="flex items-center justify-between p-3 md:p-4 bg-slate-800 border-b border-slate-700">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-700 border border-slate-600">
-              <Clock className="w-5 h-5 text-purple-400" />
-              <span className="font-mono font-bold text-white">{formatTime(elapsedTime)}</span>
-              <span className="hidden md:inline text-gray-400 text-sm">/ 30:00</span>
+            <div className="flex items-center gap-3">
+              {/* Mode indicator for quick questions */}
+              {interviewMode === 'quick_question' && (
+                <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-semibold uppercase tracking-wide">
+                  Quick Practice
+                </span>
+              )}
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-700 border border-slate-600">
+                <Clock className="w-5 h-5 text-purple-400" />
+                <span className="font-mono font-bold text-white">{formatTime(elapsedTime)}</span>
+                <span className="hidden md:inline text-gray-400 text-sm">/ {formatTime(maxDurationSeconds)}</span>
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -424,23 +470,27 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
                 <div className="p-2 rounded-xl bg-yellow-500/20">
                   <AlertTriangle className="w-6 h-6 text-yellow-500" />
                 </div>
-                <h2 className="text-xl font-bold text-white">End Interview Early?</h2>
+                <h2 className="text-xl font-bold text-white">
+                  {interviewMode === 'quick_question' ? 'End Practice Session?' : 'End Interview Early?'}
+                </h2>
               </div>
               <p className="text-gray-400 mb-6">
-                Are you sure you want to end this mock interview? Your progress will be saved, but the session will be marked as incomplete.
+                {interviewMode === 'quick_question'
+                  ? 'Are you sure you want to end this practice session? You can still get feedback on the portion you completed.'
+                  : 'Are you sure you want to end this mock interview? Your progress will be saved, but the session will be marked as incomplete.'}
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={handleCancelExit}
                   className="flex-1 px-4 py-3 rounded-xl border border-slate-600 font-bold text-gray-300 hover:bg-slate-700 transition-colors"
                 >
-                  Continue Interview
+                  Continue
                 </button>
                 <button
                   onClick={handleConfirmExit}
                   className="flex-1 px-4 py-3 rounded-xl bg-red-500/20 border border-red-500/50 font-bold text-red-400 hover:bg-red-500/30 transition-colors"
                 >
-                  End Interview
+                  End Session
                 </button>
               </div>
             </div>

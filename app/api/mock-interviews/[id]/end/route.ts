@@ -45,10 +45,10 @@ export async function POST(
     const { id } = await params;
     const body = (await request.json().catch(() => ({}))) as EndMockInterviewRequest;
 
-    // Verify the interview belongs to the user and get the bey_call_id
+    // Verify the interview belongs to the user and get the bey_call_id and bey_agent_id
     const { data: interview, error: fetchError } = await supabase
       .from('mock_interviews')
-      .select('id, status, started_at, bey_call_id')
+      .select('id, status, started_at, bey_call_id, bey_agent_id, interview_mode')
       .eq('id', id)
       .eq('user_id', user.id)
       .single();
@@ -137,15 +137,46 @@ export async function POST(
       );
     }
 
+    // Clean up temporary agent for quick question interviews
+    if (interview.bey_agent_id && interview.interview_mode === 'quick_question') {
+      await deleteTemporaryAgent(interview.bey_agent_id);
+    }
+
     return NextResponse.json({
       success: true,
       interviewId: id,
       earlyExit: body.early_exit || false,
       durationSeconds,
       hasTranscript: transcript && transcript.length > 0,
+      interviewMode: interview.interview_mode || 'full',
     });
   } catch (error) {
     console.error('Error in mock interviews end API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+/**
+ * Helper function to delete a temporary Bey.dev agent
+ */
+async function deleteTemporaryAgent(agentId: string): Promise<void> {
+  if (!BEYOND_PRESENCE_API_KEY) return;
+
+  try {
+    const response = await fetch(`${BEYOND_PRESENCE_API_URL}/agents/${agentId}`, {
+      method: 'DELETE',
+      headers: {
+        'x-api-key': BEYOND_PRESENCE_API_KEY,
+      },
+    });
+
+    if (response.ok) {
+      console.log(`[End Interview] Successfully deleted temporary agent: ${agentId}`);
+    } else {
+      console.log(`[End Interview] Failed to delete agent ${agentId}: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('[End Interview] Error deleting temporary agent:', error);
+    // Don't fail the request - agent cleanup is not critical
   }
 }

@@ -41,10 +41,10 @@ export async function GET(
 
     const { id } = await params;
 
-    // Fetch the interview
+    // Fetch the interview with related question data for quick questions
     const { data: interview, error: fetchError } = await supabase
       .from('mock_interviews')
-      .select('*')
+      .select('*, pm_interview_questions(id, category, question, guidance)')
       .eq('id', id)
       .eq('user_id', user.id)
       .single();

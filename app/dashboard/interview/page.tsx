@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFlags } from 'launchdarkly-react-client-sdk';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
-import { Video, Clock, Star, ChevronRight, MessageSquare, Award } from 'lucide-react';
+import { Video, Clock, Star, ChevronRight, MessageSquare, Award, Mic } from 'lucide-react';
 import type { AIBehavioralEvaluation } from '@/lib/types/interview-evaluation';
 
 // Interview types matching the job application center
@@ -540,6 +540,7 @@ export default function InterviewPrepPage() {
                 ) : (
                   filteredQuestions.map((question) => {
                     const isExpanded = expandedQuestionId === question.id;
+                    const isBehavioral = question.category === 'Behavioral';
                     return (
                       <div
                         key={question.id}
@@ -582,12 +583,26 @@ export default function InterviewPrepPage() {
                         </button>
                         <div
                           className={`border-t border-gray-100 bg-gray-50 px-3 md:px-4 overflow-hidden transition-all duration-200 ease-out ${
-                            isExpanded ? 'max-h-96 py-3 opacity-100' : 'max-h-0 py-0 opacity-0'
+                            isExpanded ? 'max-h-[500px] py-3 opacity-100' : 'max-h-0 py-0 opacity-0'
                           }`}
                         >
                           <p className="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-line">
                             {question.guidance}
                           </p>
+                          {/* Practice button for Behavioral questions - feature flagged */}
+                          {isBehavioral && aiVideoCoach && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/dashboard/interview/mock/question/${question.id}`);
+                              }}
+                              className="mt-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white font-semibold text-sm hover:from-purple-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg"
+                            >
+                              <Mic className="w-4 h-4" />
+                              Practice This Question
+                            </button>
+                          )}
                         </div>
                       </div>
                     );

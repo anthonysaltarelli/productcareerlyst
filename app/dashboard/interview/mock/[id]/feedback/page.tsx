@@ -30,6 +30,27 @@ interface TranscriptMessage {
   sent_at?: string;
 }
 
+interface QuestionPracticed {
+  question: string;
+  category: string;
+}
+
+interface QuickQuestionEvaluation {
+  skills: {
+    skillName: string;
+    score: number;
+    explanation: string;
+    supportingQuotes: string[];
+  }[];
+  overallVerdict: 'Strong' | 'Good' | 'Needs Work' | 'Weak';
+  overallExplanation: string;
+  recommendedImprovements: string[];
+  interviewMode: string;
+  questionPracticed: QuestionPracticed | null;
+  evaluatedAt: string;
+  modelVersion: string;
+}
+
 interface InterviewData {
   id: string;
   status: string;
@@ -37,10 +58,17 @@ interface InterviewData {
   duration_seconds: number | null;
   call_quality_rating: number | null;
   self_performance_rating: number | null;
-  ai_evaluation: AIBehavioralEvaluation | null;
+  ai_evaluation: AIBehavioralEvaluation | QuickQuestionEvaluation | null;
+  interview_mode?: 'full' | 'quick_question';
+  pm_interview_questions?: {
+    id: string;
+    category: string;
+    question: string;
+    guidance: string;
+  } | null;
 }
 
-// Verdict color mapping
+// Verdict color mapping for full interviews
 const verdictColors: Record<string, { bg: string; text: string; border: string }> = {
   'Strong Hire': {
     bg: 'from-green-500 to-emerald-600',
@@ -58,6 +86,27 @@ const verdictColors: Record<string, { bg: string; text: string; border: string }
     border: 'border-orange-600',
   },
   'Strong No Hire': {
+    bg: 'from-red-500 to-rose-600',
+    text: 'text-white',
+    border: 'border-red-600',
+  },
+  // Quick question verdicts
+  Strong: {
+    bg: 'from-green-500 to-emerald-600',
+    text: 'text-white',
+    border: 'border-green-600',
+  },
+  Good: {
+    bg: 'from-blue-500 to-cyan-600',
+    text: 'text-white',
+    border: 'border-blue-600',
+  },
+  'Needs Work': {
+    bg: 'from-orange-500 to-amber-600',
+    text: 'text-white',
+    border: 'border-orange-600',
+  },
+  Weak: {
     bg: 'from-red-500 to-rose-600',
     text: 'text-white',
     border: 'border-red-600',
@@ -371,13 +420,28 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
         {/* Header */}
         <div>
           <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2">
-            Interview Complete!
+            {interview?.interview_mode === 'quick_question'
+              ? 'Question Practice Complete!'
+              : 'Interview Complete!'}
           </h1>
           <p className="text-gray-600 font-medium">
             {interview?.duration_seconds
               ? `Duration: ${formatDuration(interview.duration_seconds)}`
-              : 'Great job completing your mock interview.'}
+              : interview?.interview_mode === 'quick_question'
+                ? 'Great job practicing this question.'
+                : 'Great job completing your mock interview.'}
           </p>
+          {/* Show question practiced for quick questions */}
+          {interview?.interview_mode === 'quick_question' && interview?.pm_interview_questions && (
+            <div className="mt-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+              <p className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1">
+                Question Practiced
+              </p>
+              <p className="text-gray-800 font-medium">
+                {interview.pm_interview_questions.question}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* AI Evaluation Section - Full Width at Top */}
@@ -484,11 +548,14 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
                     <Sparkles className="w-10 h-10 text-purple-500 animate-pulse" />
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">
-                    Analyzing your interview...
+                    {interview?.interview_mode === 'quick_question'
+                      ? 'Analyzing your answer...'
+                      : 'Analyzing your interview...'}
                   </h3>
                   <p className="text-gray-500 text-sm max-w-md mb-4">
-                    Our AI is evaluating your performance across 12 key PM competencies using the
-                    N+STAR+TL framework. This usually takes 30-60 seconds.
+                    {interview?.interview_mode === 'quick_question'
+                      ? 'Our AI is evaluating your answer across 4 key competencies using the N+STAR+TL framework. This usually takes 15-30 seconds.'
+                      : 'Our AI is evaluating your performance across 12 key PM competencies using the N+STAR+TL framework. This usually takes 30-60 seconds.'}
                   </p>
                   <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
                 </>
@@ -514,8 +581,9 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">Get AI-Powered Feedback</h3>
                   <p className="text-gray-500 text-sm max-w-md mb-6">
-                    Let our AI analyze your interview performance and provide detailed feedback on
-                    12 PM competencies using the N+STAR+TL framework.
+                    {interview?.interview_mode === 'quick_question'
+                      ? 'Let our AI analyze your answer and provide detailed feedback on 4 key competencies using the N+STAR+TL framework.'
+                      : 'Let our AI analyze your interview performance and provide detailed feedback on 12 PM competencies using the N+STAR+TL framework.'}
                   </p>
                   <button
                     onClick={handleRequestEvaluation}
