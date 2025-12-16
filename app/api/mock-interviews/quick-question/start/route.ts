@@ -4,8 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 // Beyond Presence configuration
 const BEYOND_PRESENCE_API_KEY = process.env.BEYOND_PRESENCE_API_KEY;
 const BEYOND_PRESENCE_API_URL = 'https://api.bey.dev/v1';
-// Avatar ID from existing agent
-const BEYOND_PRESENCE_AVATAR_ID = process.env.BEYOND_PRESENCE_AVATAR_ID || 'b9be11b8-89fb-4227-8f86-4a881393cbdb';
+// Avatar ID for quick question practice
+const BEYOND_PRESENCE_AVATAR_ID = '694c83e2-8895-4a98-bd16-56332ca3f449';
 
 interface BeyondPresenceAgentResponse {
   id: string;
@@ -246,6 +246,7 @@ export async function POST(request: NextRequest) {
       greeting: buildQuickQuestionGreeting(question),
       max_session_length_minutes: 5,
       language: 'en',
+      capabilities: [{ type: 'webcam_vision' }],
     };
 
     const agentResponse = await fetch(`${BEYOND_PRESENCE_API_URL}/agents`, {
