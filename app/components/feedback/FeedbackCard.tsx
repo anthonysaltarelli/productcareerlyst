@@ -110,13 +110,11 @@ export function FeedbackCard({
         </div>
 
         {/* Author */}
-        <div className="flex items-center gap-2">
-          <div
-            className={`w-6 h-6 rounded-full bg-gradient-to-br ${getAvatarGradient()} flex items-center justify-center text-[10px] font-bold text-white`}
-          >
-            {getInitials()}
-          </div>
-          <span className="text-xs text-gray-500 font-medium">{getAuthorName()}</span>
+        <div
+          className={`w-6 h-6 rounded-full bg-gradient-to-br ${getAvatarGradient()} flex items-center justify-center text-[10px] font-bold text-white`}
+          title={getAuthorName()}
+        >
+          {getInitials()}
         </div>
       </div>
 
