@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFlags } from 'launchdarkly-react-client-sdk';
 import { X, AlertTriangle, Video } from 'lucide-react';
+import { BetaAccessModal } from '@/app/components/BetaAccessModal';
 
 export default function NewMockInterviewPage() {
   const router = useRouter();
@@ -11,6 +12,8 @@ export default function NewMockInterviewPage() {
 
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasBetaAccess, setHasBetaAccess] = useState<boolean | null>(null);
+  const [showBetaModal, setShowBetaModal] = useState(false);
 
   // Redirect if feature flag is disabled
   useEffect(() => {
@@ -19,11 +22,36 @@ export default function NewMockInterviewPage() {
     }
   }, [aiVideoCoach, router]);
 
+  // Check beta access on mount
+  useEffect(() => {
+    const checkBetaAccess = async () => {
+      try {
+        const response = await fetch('/api/user/beta-access');
+        if (response.ok) {
+          const data = await response.json();
+          setHasBetaAccess(data.hasAiVideoCoachBeta);
+        } else {
+          setHasBetaAccess(false);
+        }
+      } catch {
+        setHasBetaAccess(false);
+      }
+    };
+
+    checkBetaAccess();
+  }, []);
+
   const handleExitClick = () => {
     router.push('/dashboard/interview');
   };
 
   const handleStartInterview = async () => {
+    // Check beta access before starting
+    if (!hasBetaAccess) {
+      setShowBetaModal(true);
+      return;
+    }
+
     setIsStarting(true);
     setError(null);
 
@@ -54,8 +82,8 @@ export default function NewMockInterviewPage() {
     }
   };
 
-  // Feature flag loading state
-  if (aiVideoCoach === undefined) {
+  // Feature flag or beta access loading state
+  if (aiVideoCoach === undefined || hasBetaAccess === null) {
     return (
       <div className="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center">
         <div className="text-center">
@@ -169,6 +197,13 @@ export default function NewMockInterviewPage() {
           </div>
         </div>
       </div>
+
+      {/* Beta Access Modal */}
+      <BetaAccessModal
+        isOpen={showBetaModal}
+        onClose={() => setShowBetaModal(false)}
+        featureName="AI Mock Interview"
+      />
     </div>
   );
 }

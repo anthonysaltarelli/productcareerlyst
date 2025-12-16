@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFlags } from 'launchdarkly-react-client-sdk';
-import { X, Video, Clock, CheckCircle, Loader2, AlertTriangle, Mic } from 'lucide-react';
+import { X, Video, Clock, Loader2, AlertTriangle, Mic } from 'lucide-react';
+import { BetaAccessModal } from '@/app/components/BetaAccessModal';
 
 interface PMInterviewQuestion {
   id: string;
@@ -25,6 +26,8 @@ export default function QuickQuestionSetupPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
+  const [hasBetaAccess, setHasBetaAccess] = useState<boolean | null>(null);
+  const [showBetaModal, setShowBetaModal] = useState(false);
 
   // Unwrap params
   useEffect(() => {
@@ -37,6 +40,25 @@ export default function QuickQuestionSetupPage({
       router.replace('/dashboard/interview');
     }
   }, [aiVideoCoach, router]);
+
+  // Check beta access on mount
+  useEffect(() => {
+    const checkBetaAccess = async () => {
+      try {
+        const response = await fetch('/api/user/beta-access');
+        if (response.ok) {
+          const data = await response.json();
+          setHasBetaAccess(data.hasAiVideoCoachBeta);
+        } else {
+          setHasBetaAccess(false);
+        }
+      } catch {
+        setHasBetaAccess(false);
+      }
+    };
+
+    checkBetaAccess();
+  }, []);
 
   // Fetch the question
   useEffect(() => {
@@ -72,6 +94,12 @@ export default function QuickQuestionSetupPage({
 
   const handleStartPractice = async () => {
     if (!questionId || starting) return;
+
+    // Check beta access before starting
+    if (!hasBetaAccess) {
+      setShowBetaModal(true);
+      return;
+    }
 
     setStarting(true);
     setError(null);
@@ -109,7 +137,7 @@ export default function QuickQuestionSetupPage({
   };
 
   // Loading state - full screen
-  if (loading || aiVideoCoach === undefined) {
+  if (loading || aiVideoCoach === undefined || hasBetaAccess === null) {
     return (
       <div className="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center">
         <div className="text-center">
@@ -287,6 +315,13 @@ export default function QuickQuestionSetupPage({
           </div>
         </div>
       </div>
+
+      {/* Beta Access Modal */}
+      <BetaAccessModal
+        isOpen={showBetaModal}
+        onClose={() => setShowBetaModal(false)}
+        featureName="AI Mock Interview"
+      />
     </div>
   );
 }
