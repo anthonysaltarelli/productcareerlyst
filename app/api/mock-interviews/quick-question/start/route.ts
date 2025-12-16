@@ -34,19 +34,133 @@ interface PMInterviewQuestion {
 }
 
 /**
+ * Get category-specific follow-up questions
+ */
+function getCategoryFollowUps(category: string): string {
+  switch (category) {
+    case 'Behavioral':
+      return `   - "Can you tell me more about [specific part they mentioned]?"
+   - "What metrics did you use to measure success?"
+   - "How did that decision impact the team or product?"
+   - "What would you do differently if you could do it again?"`;
+    case 'Product Sense':
+      return `   - "How did you identify those user segments?"
+   - "What other solutions did you consider?"
+   - "How would you prioritize those features?"
+   - "How would you measure success for this product?"`;
+    case 'Technical':
+      return `   - "What trade-offs did you consider with that approach?"
+   - "How would this scale as usage grows?"
+   - "What metrics would you track to monitor this?"
+   - "How would you work with engineering to implement this?"`;
+    case 'Strategy':
+      return `   - "What's the competitive landscape look like?"
+   - "How does this align with the company's overall strategy?"
+   - "What are the key risks with this approach?"
+   - "What would make you change this strategy?"`;
+    case 'Product Execution':
+      return `   - "How would you break this down into phases?"
+   - "Who are the key stakeholders you'd align with?"
+   - "What are the biggest risks and how would you mitigate them?"
+   - "How would you know if this is successful?"`;
+    case 'Analytical':
+      return `   - "Walk me through how you got to that estimate."
+   - "What assumptions are you making?"
+   - "How would you validate this hypothesis?"
+   - "What data would you need to make this decision?"`;
+    case 'Leadership':
+      return `   - "How did you get buy-in from the team?"
+   - "How did you handle disagreements?"
+   - "What would you do differently next time?"
+   - "How did you measure the team's success?"`;
+    case 'Culture Fit':
+      return `   - "Can you give me a specific example?"
+   - "What did you learn from that experience?"
+   - "How do you typically handle [related scenario]?"
+   - "What's most important to you in a work environment?"`;
+    case 'Industry Knowledge':
+      return `   - "What trends do you see shaping this industry?"
+   - "Who are the key players and what differentiates them?"
+   - "What regulatory considerations are important here?"
+   - "How do customers typically evaluate solutions in this space?"`;
+    default:
+      return `   - "Can you tell me more about that?"
+   - "What was the outcome?"
+   - "What would you do differently?"
+   - "How did you measure success?"`;
+  }
+}
+
+/**
+ * Get category-specific description for system prompt
+ */
+function getCategoryDescription(category: string): string {
+  switch (category) {
+    case 'Behavioral':
+      return 'a behavioral interview question about their past experiences';
+    case 'Product Sense':
+      return 'a product sense question to evaluate their product thinking';
+    case 'Technical':
+      return 'a technical question to evaluate their technical acumen';
+    case 'Strategy':
+      return 'a strategy question to evaluate their strategic thinking';
+    case 'Product Execution':
+      return 'an execution question to evaluate their ability to ship products';
+    case 'Analytical':
+      return 'an analytical question to evaluate their problem-solving skills';
+    case 'Leadership':
+      return 'a leadership question to evaluate their leadership abilities';
+    case 'Culture Fit':
+      return 'a culture fit question to understand how they work';
+    case 'Industry Knowledge':
+      return 'an industry knowledge question to evaluate their domain expertise';
+    default:
+      return 'a PM interview question';
+  }
+}
+
+/**
+ * Get simple category description for greeting (user-facing)
+ */
+function getGreetingDescription(category: string): string {
+  switch (category) {
+    case 'Behavioral':
+      return 'a behavioral question';
+    case 'Product Sense':
+      return 'a product sense question';
+    case 'Technical':
+      return 'a technical question';
+    case 'Strategy':
+      return 'a strategy question';
+    case 'Product Execution':
+      return 'a product execution question';
+    case 'Analytical':
+      return 'an analytical question';
+    case 'Leadership':
+      return 'a leadership question';
+    case 'Culture Fit':
+      return 'a culture fit question';
+    case 'Industry Knowledge':
+      return 'an industry knowledge question';
+    default:
+      return 'a PM interview question';
+  }
+}
+
+/**
  * Build the system prompt for a quick question interview
  */
 function buildQuickQuestionSystemPrompt(question: PMInterviewQuestion): string {
-  return `You are a product management career coach conducting a focused mock interview practice session. Your role is to help the candidate practice answering a single behavioral interview question.
+  const followUps = getCategoryFollowUps(question.category);
+  const categoryDesc = getCategoryDescription(question.category);
+
+  return `You are a product management career coach conducting a focused mock interview practice session. Your role is to help the candidate practice answering ${categoryDesc}.
 
 ## Your Behavior
 1. **Opening**: Greet them briefly, then ask the question clearly
 2. **Active Listening**: Let them answer fully without interruption (1-3 minutes)
 3. **Follow-up**: Ask 1-2 clarifying follow-up questions based on their answer, such as:
-   - "Can you tell me more about [specific part they mentioned]?"
-   - "What metrics did you use to measure success?"
-   - "How did that decision impact the team or product?"
-   - "What would you do differently if you could do it again?"
+${followUps}
 4. **Closing**: Thank them for their answer and let them know the session is complete
 
 ## The Question
@@ -70,7 +184,8 @@ Question: "${question.question}"
  * Build the greeting for a quick question interview
  */
 function buildQuickQuestionGreeting(question: PMInterviewQuestion): string {
-  return `Hi! Thanks for practicing with me today. I'm going to ask you a behavioral question, and I'd like you to answer it as if you were in a real interview. Here's your question: "${question.question}"`;
+  const greetingDesc = getGreetingDescription(question.category);
+  return `Hi! Thanks for practicing with me today. I'm going to ask you ${greetingDesc}, and I'd like you to answer it as if you were in a real interview. Here's your question: "${question.question}"`;
 }
 
 /**
@@ -120,14 +235,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Question not found' },
         { status: 404 }
-      );
-    }
-
-    // Verify the question is Behavioral category
-    if (question.category !== 'Behavioral') {
-      return NextResponse.json(
-        { error: 'Quick question practice is only available for Behavioral questions' },
-        { status: 400 }
       );
     }
 

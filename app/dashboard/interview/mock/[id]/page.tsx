@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useFlags } from 'launchdarkly-react-client-sdk';
 import { X, Clock, AlertTriangle, Mic, MicOff, Video, VideoOff } from 'lucide-react';
@@ -226,6 +226,7 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [hasStarted, setHasStarted] = useState(true); // Interview starts immediately when credentials are present
   const [interviewMode, setInterviewMode] = useState<'full' | 'quick_question'>('full');
+  const [sessionEnded, setSessionEnded] = useState(false); // Track when session times out
 
   // Max duration based on mode: 30 min for full, 5 min for quick question
   const maxDurationSeconds = interviewMode === 'quick_question' ? 5 * 60 : 30 * 60;
@@ -275,31 +276,41 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
     }
   }, [aiVideoCoach, router]);
 
+  // Ref to track elapsed time for timeout check (avoids nested setState)
+  const elapsedTimeRef = useRef(0);
+
   // Timer for elapsed time - starts when connected
   useEffect(() => {
-    if (!isConnected) return;
+    if (!isConnected || sessionEnded) return;
 
     const interval = setInterval(() => {
-      setElapsedTime((prev) => {
-        const newTime = prev + 1;
-        // Auto-end for quick questions after max duration
-        if (interviewMode === 'quick_question' && newTime >= maxDurationSeconds) {
-          // Trigger end interview
-          if (interviewId) {
-            fetch(`/api/mock-interviews/${interviewId}/end`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ early_exit: false }),
-            }).catch(console.error);
-            router.push(`/dashboard/interview/mock/${interviewId}/feedback`);
-          }
-        }
-        return newTime;
-      });
+      elapsedTimeRef.current += 1;
+      setElapsedTime(elapsedTimeRef.current);
+
+      // Auto-end for quick questions after max duration
+      if (interviewMode === 'quick_question' && elapsedTimeRef.current >= maxDurationSeconds) {
+        setSessionEnded(true);
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isConnected, interviewMode, maxDurationSeconds, interviewId, router]);
+  }, [isConnected, interviewMode, maxDurationSeconds, sessionEnded]);
+
+  // Handle session timeout - separate effect to avoid setState during render
+  useEffect(() => {
+    if (sessionEnded && interviewId) {
+      // End the interview and redirect
+      fetch(`/api/mock-interviews/${interviewId}/end`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ early_exit: false }),
+      })
+        .catch(console.error)
+        .finally(() => {
+          router.push(`/dashboard/interview/mock/${interviewId}/feedback`);
+        });
+    }
+  }, [sessionEnded, interviewId, router]);
 
   // Format time as MM:SS
   const formatTime = (seconds: number): string => {

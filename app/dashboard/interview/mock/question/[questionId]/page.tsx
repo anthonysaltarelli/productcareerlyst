@@ -55,11 +55,6 @@ export default function QuickQuestionSetupPage({
           return;
         }
 
-        if (found.category !== 'Behavioral') {
-          setError('Quick question practice is only available for Behavioral questions');
-          return;
-        }
-
         setQuestion(found);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load question');

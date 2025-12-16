@@ -1,13 +1,318 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-// The 4 skills to evaluate for quick question practice (Behavioral category)
-const QUICK_QUESTION_SKILLS = [
-  'Story Structure & Clarity',
-  'Ownership & Accountability',
-  'Impact & Results Orientation',
-  'Communication & Executive Presence',
-] as const;
+// Category-specific skills for quick question practice
+const CATEGORY_SKILLS: Record<string, { skills: string[]; descriptions: Record<string, Record<number, string>> }> = {
+  'Behavioral': {
+    skills: [
+      'Story Structure & Clarity',
+      'Ownership & Accountability',
+      'Impact & Results Orientation',
+      'Communication & Executive Presence',
+    ],
+    descriptions: {
+      'Story Structure & Clarity': {
+        4: 'Clear, concise, well-structured (context → problem → actions → outcome → reflection). Easy to follow.',
+        3: 'Mostly structured, minor tangents or missing transitions.',
+        2: 'Lacks clear structure. Important elements unclear or jumbled.',
+        1: 'Incoherent. Rambling, confusing, missing critical elements.',
+      },
+      'Ownership & Accountability': {
+        4: 'Clear personal ownership. Distinguishes their role, takes responsibility for outcomes.',
+        3: 'Shows ownership but occasionally blurs individual vs team contribution.',
+        2: 'Over-credits team/external factors. Personal impact unclear.',
+        1: 'Avoids responsibility or claims undue credit.',
+      },
+      'Impact & Results Orientation': {
+        4: 'Clearly articulates measurable outcomes (metrics, user impact, business results).',
+        3: 'Describes outcomes, but impact may be partially qualitative.',
+        2: 'Mentions results superficially, focuses on effort over impact.',
+        1: 'No clear outcomes or impact described.',
+      },
+      'Communication & Executive Presence': {
+        4: 'Communicates confidently, succinctly, and credibly.',
+        3: 'Communicates clearly but may over- or under-explain.',
+        2: 'Inconsistent, overly verbose, or lacking confidence.',
+        1: 'Poor communication; difficult to follow.',
+      },
+    },
+  },
+  'Product Sense': {
+    skills: [
+      'Problem Understanding & Framing',
+      'User-Centric Thinking',
+      'Solution Creativity & Feasibility',
+      'Prioritization & Trade-offs',
+    ],
+    descriptions: {
+      'Problem Understanding & Framing': {
+        4: 'Deeply understands the problem space. Asks clarifying questions, identifies constraints and opportunities.',
+        3: 'Good problem understanding with minor gaps in exploring edge cases.',
+        2: 'Surface-level understanding. Misses key constraints or assumptions.',
+        1: 'Fails to understand the problem or makes incorrect assumptions.',
+      },
+      'User-Centric Thinking': {
+        4: 'Clearly identifies user segments, needs, and pain points. Builds solutions around user value.',
+        3: 'Shows user awareness but may miss some user segments or needs.',
+        2: 'Limited user focus. Solutions feel feature-driven not user-driven.',
+        1: 'No clear user consideration in the approach.',
+      },
+      'Solution Creativity & Feasibility': {
+        4: 'Proposes creative yet feasible solutions. Considers technical constraints and business viability.',
+        3: 'Solid solutions with some creativity. May overlook feasibility concerns.',
+        2: 'Generic solutions or impractical ideas.',
+        1: 'Poor solution quality or completely unfeasible proposals.',
+      },
+      'Prioritization & Trade-offs': {
+        4: 'Uses clear frameworks to prioritize. Articulates trade-offs between options.',
+        3: 'Shows prioritization thinking but framework usage is inconsistent.',
+        2: 'Weak prioritization. Struggles to compare options systematically.',
+        1: 'No prioritization logic. Unable to make decisions between options.',
+      },
+    },
+  },
+  'Technical': {
+    skills: [
+      'Technical Communication',
+      'System Design Thinking',
+      'Data & Metrics Fluency',
+      'Engineering Collaboration',
+    ],
+    descriptions: {
+      'Technical Communication': {
+        4: 'Explains technical concepts clearly. Adjusts depth appropriately for audience.',
+        3: 'Good technical communication with occasional jargon or unclear explanations.',
+        2: 'Struggles to explain technical concepts clearly.',
+        1: 'Poor technical communication. Confusing or inaccurate explanations.',
+      },
+      'System Design Thinking': {
+        4: 'Demonstrates understanding of system architecture, scalability, and technical trade-offs.',
+        3: 'Shows basic system thinking but may miss scalability or edge cases.',
+        2: 'Limited system design awareness.',
+        1: 'No evidence of system design thinking.',
+      },
+      'Data & Metrics Fluency': {
+        4: 'Defines clear success metrics. Understands data pipelines and instrumentation needs.',
+        3: 'Good metrics thinking but may miss some measurement considerations.',
+        2: 'Basic metrics awareness without depth.',
+        1: 'No clear approach to measurement or data.',
+      },
+      'Engineering Collaboration': {
+        4: 'Demonstrates effective partnership with engineering. Understands constraints and processes.',
+        3: 'Shows collaboration ability but may miss some technical partnership nuances.',
+        2: 'Limited engineering collaboration experience evident.',
+        1: 'No evidence of effective engineering partnership.',
+      },
+    },
+  },
+  'Strategy': {
+    skills: [
+      'Market & Competitive Analysis',
+      'Strategic Thinking',
+      'Business Model Understanding',
+      'Long-term Vision',
+    ],
+    descriptions: {
+      'Market & Competitive Analysis': {
+        4: 'Deep understanding of market dynamics, competitors, and positioning opportunities.',
+        3: 'Good market awareness with some gaps in competitive analysis.',
+        2: 'Surface-level market understanding.',
+        1: 'No evident market or competitive awareness.',
+      },
+      'Strategic Thinking': {
+        4: 'Connects tactical decisions to strategic goals. Considers multiple strategic options.',
+        3: 'Shows strategic thinking but may focus too narrowly.',
+        2: 'Limited strategic perspective. Focuses on tactics over strategy.',
+        1: 'No strategic thinking demonstrated.',
+      },
+      'Business Model Understanding': {
+        4: 'Clear understanding of revenue models, unit economics, and business sustainability.',
+        3: 'Good business sense with some gaps in financial/economic thinking.',
+        2: 'Basic business awareness without depth.',
+        1: 'No business model understanding evident.',
+      },
+      'Long-term Vision': {
+        4: 'Articulates compelling long-term vision. Balances short-term wins with long-term goals.',
+        3: 'Shows vision but may struggle to connect short and long-term.',
+        2: 'Limited long-term thinking.',
+        1: 'No vision beyond immediate features.',
+      },
+    },
+  },
+  'Product Execution': {
+    skills: [
+      'Execution Planning',
+      'Stakeholder Management',
+      'Risk Identification & Mitigation',
+      'Delivery & Iteration',
+    ],
+    descriptions: {
+      'Execution Planning': {
+        4: 'Creates clear, actionable plans. Breaks down complex work into manageable phases.',
+        3: 'Good planning with some gaps in detail or sequencing.',
+        2: 'Basic planning without sufficient detail or structure.',
+        1: 'No clear execution planning demonstrated.',
+      },
+      'Stakeholder Management': {
+        4: 'Identifies all stakeholders. Manages expectations and alignment effectively.',
+        3: 'Good stakeholder awareness with some management gaps.',
+        2: 'Limited stakeholder consideration.',
+        1: 'No stakeholder management thinking.',
+      },
+      'Risk Identification & Mitigation': {
+        4: 'Proactively identifies risks. Proposes mitigation strategies.',
+        3: 'Identifies obvious risks but may miss edge cases.',
+        2: 'Limited risk awareness.',
+        1: 'No risk thinking demonstrated.',
+      },
+      'Delivery & Iteration': {
+        4: 'Shows strong delivery mindset. Plans for learning and iteration.',
+        3: 'Good delivery focus with some gaps in iteration planning.',
+        2: 'Basic delivery thinking without iteration mindset.',
+        1: 'No clear delivery or iteration approach.',
+      },
+    },
+  },
+  'Analytical': {
+    skills: [
+      'Problem Decomposition',
+      'Quantitative Reasoning',
+      'Data Interpretation',
+      'Hypothesis Formation',
+    ],
+    descriptions: {
+      'Problem Decomposition': {
+        4: 'Breaks complex problems into clear, logical components. Systematic approach.',
+        3: 'Good decomposition with minor gaps in structure.',
+        2: 'Struggles to break down problems systematically.',
+        1: 'Unable to decompose problems effectively.',
+      },
+      'Quantitative Reasoning': {
+        4: 'Strong numerical reasoning. Makes reasonable estimates and calculations.',
+        3: 'Good quantitative thinking with minor errors.',
+        2: 'Basic math skills but struggles with complex reasoning.',
+        1: 'Poor quantitative reasoning.',
+      },
+      'Data Interpretation': {
+        4: 'Interprets data accurately. Identifies trends, anomalies, and insights.',
+        3: 'Good data interpretation with some missed insights.',
+        2: 'Surface-level data interpretation.',
+        1: 'Cannot interpret data meaningfully.',
+      },
+      'Hypothesis Formation': {
+        4: 'Forms clear, testable hypotheses. Designs experiments to validate.',
+        3: 'Good hypothesis thinking but may miss validation approaches.',
+        2: 'Basic hypothesis formation without rigor.',
+        1: 'No hypothesis-driven thinking.',
+      },
+    },
+  },
+  'Leadership': {
+    skills: [
+      'Vision & Direction Setting',
+      'Team Influence & Motivation',
+      'Conflict Resolution',
+      'Decision Making Under Uncertainty',
+    ],
+    descriptions: {
+      'Vision & Direction Setting': {
+        4: 'Sets clear direction. Inspires others with compelling vision.',
+        3: 'Good direction setting with some clarity gaps.',
+        2: 'Limited vision articulation.',
+        1: 'Cannot set clear direction.',
+      },
+      'Team Influence & Motivation': {
+        4: 'Influences without authority. Motivates teams effectively.',
+        3: 'Good influence skills with some gaps.',
+        2: 'Limited influence beyond direct authority.',
+        1: 'Cannot influence or motivate others.',
+      },
+      'Conflict Resolution': {
+        4: 'Handles conflict constructively. Finds win-win solutions.',
+        3: 'Resolves conflict but may avoid difficult conversations.',
+        2: 'Struggles with conflict resolution.',
+        1: 'Avoids or escalates conflict inappropriately.',
+      },
+      'Decision Making Under Uncertainty': {
+        4: 'Makes sound decisions with incomplete information. Comfortable with ambiguity.',
+        3: 'Good decision making but may seek excessive certainty.',
+        2: 'Struggles to decide without complete information.',
+        1: 'Paralyzed by uncertainty.',
+      },
+    },
+  },
+  'Culture Fit': {
+    skills: [
+      'Values Alignment',
+      'Collaboration Style',
+      'Growth Mindset',
+      'Professional Maturity',
+    ],
+    descriptions: {
+      'Values Alignment': {
+        4: 'Demonstrates strong alignment with company values. Articulates personal values clearly.',
+        3: 'Good values alignment with some areas to explore.',
+        2: 'Unclear values or potential misalignment.',
+        1: 'Clear values misalignment.',
+      },
+      'Collaboration Style': {
+        4: 'Collaborative approach. Works well across functions and levels.',
+        3: 'Good collaboration with some style preferences.',
+        2: 'Limited collaboration evidence.',
+        1: 'Poor collaboration style.',
+      },
+      'Growth Mindset': {
+        4: 'Demonstrates continuous learning. Embraces feedback and challenges.',
+        3: 'Shows growth orientation with some fixed mindset tendencies.',
+        2: 'Limited growth mindset evidence.',
+        1: 'Fixed mindset; resistant to feedback.',
+      },
+      'Professional Maturity': {
+        4: 'High EQ. Handles pressure and ambiguity with grace.',
+        3: 'Good professional maturity with some development areas.',
+        2: 'Some maturity concerns.',
+        1: 'Significant maturity concerns.',
+      },
+    },
+  },
+  'Industry Knowledge': {
+    skills: [
+      'Domain Expertise',
+      'Trend Awareness',
+      'Regulatory & Compliance Understanding',
+      'Customer Ecosystem Knowledge',
+    ],
+    descriptions: {
+      'Domain Expertise': {
+        4: 'Deep domain knowledge. Understands industry-specific challenges and opportunities.',
+        3: 'Good domain knowledge with some gaps.',
+        2: 'Basic industry understanding.',
+        1: 'No domain expertise evident.',
+      },
+      'Trend Awareness': {
+        4: 'Aware of industry trends. Connects trends to product opportunities.',
+        3: 'Good trend awareness with some blind spots.',
+        2: 'Limited trend knowledge.',
+        1: 'Unaware of industry trends.',
+      },
+      'Regulatory & Compliance Understanding': {
+        4: 'Understands regulatory landscape. Builds compliance into product thinking.',
+        3: 'Good regulatory awareness with some gaps.',
+        2: 'Basic compliance awareness.',
+        1: 'No regulatory consideration.',
+      },
+      'Customer Ecosystem Knowledge': {
+        4: 'Deep understanding of customer ecosystem, workflows, and pain points.',
+        3: 'Good customer knowledge with some gaps.',
+        2: 'Limited customer ecosystem understanding.',
+        1: 'No customer ecosystem knowledge.',
+      },
+    },
+  },
+};
+
+// Default skills for unknown categories (falls back to behavioral)
+const DEFAULT_CATEGORY = 'Behavioral';
 
 // JSON Schema for full interview structured output (12 skills)
 const FULL_INTERVIEW_EVALUATION_SCHEMA = {
@@ -236,7 +541,7 @@ ${transcriptText}
 Be rigorous but fair. Ground all feedback in specific evidence from the transcript.`;
 };
 
-// Build the evaluation prompt for quick question practice
+// Build the evaluation prompt for quick question practice (category-aware)
 const createQuickQuestionEvaluationPrompt = (
   transcript: { sender: string; message: string }[],
   question: { question: string; category: string }
@@ -245,26 +550,34 @@ const createQuickQuestionEvaluationPrompt = (
     .map((msg) => `[${msg.sender.toUpperCase()}]: ${msg.message}`)
     .join('\n\n');
 
-  return `You are a product management career coach evaluating a candidate's response to a single behavioral interview question.
+  // Get category-specific skills or fall back to default
+  const categoryConfig = CATEGORY_SKILLS[question.category] || CATEGORY_SKILLS[DEFAULT_CATEGORY];
+  const skills = categoryConfig.skills;
+  const descriptions = categoryConfig.descriptions;
+
+  // Build skills section dynamically
+  const skillsSection = skills.map((skill, index) => {
+    const desc = descriptions[skill];
+    return `### ${index + 1}. ${skill}
+- **4**: ${desc[4]}
+- **3**: ${desc[3]}
+- **2**: ${desc[2]}
+- **1**: ${desc[1]}`;
+  }).join('\n\n');
+
+  // Different context guidance based on category
+  const categoryGuidance = getCategoryGuidance(question.category);
+
+  return `You are a product management career coach evaluating a candidate's response to a PM interview question.
 
 ## The Question Asked
 Category: ${question.category}
 Question: "${question.question}"
 
 ## Your Role
-Evaluate this answer as if you were a senior PM interviewer. Be honest, constructive, and helpful. This is practice - your feedback should help them improve.
+Evaluate this answer as if you were a senior PM interviewer at a top tech company. Be honest, constructive, and helpful. This is practice - your feedback should help them improve.
 
-## N+STAR+TL Framework
-
-The best PM candidates structure their behavioral answers using this elevated STAR method:
-
-**N - Nugget**: Quick summary that hooks the interviewer
-**S - Situation**: Concise context setting
-**T - Task**: Their specific role/responsibility
-**A - Action**: Specific actions THEY took (not the team)
-**R - Result**: Quantified outcomes with metrics
-**T - Takeaway**: Lessons learned
-**L - Learning**: How they applied those lessons
+${categoryGuidance}
 
 ## Scoring Scale (1-4, half points allowed)
 - **4 - Very Strong**: Exceptional demonstration of this skill
@@ -272,33 +585,11 @@ The best PM candidates structure their behavioral answers using this elevated ST
 - **2 - Weak**: Sub-par demonstration of this skill
 - **1 - Very Weak**: Did not demonstrate this skill
 
-## Skills to Evaluate (4 Total)
+## Skills to Evaluate (${skills.length} Total)
 
-Evaluate these 4 skills in order:
+Evaluate these ${skills.length} skills in order:
 
-### 1. Story Structure & Clarity
-- **4**: Clear, concise, well-structured (context → problem → actions → outcome → reflection). Easy to follow.
-- **3**: Mostly structured, minor tangents or missing transitions.
-- **2**: Lacks clear structure. Important elements unclear or jumbled.
-- **1**: Incoherent. Rambling, confusing, missing critical elements.
-
-### 2. Ownership & Accountability
-- **4**: Clear personal ownership. Distinguishes their role, takes responsibility for outcomes.
-- **3**: Shows ownership but occasionally blurs individual vs team contribution.
-- **2**: Over-credits team/external factors. Personal impact unclear.
-- **1**: Avoids responsibility or claims undue credit.
-
-### 3. Impact & Results Orientation
-- **4**: Clearly articulates measurable outcomes (metrics, user impact, business results).
-- **3**: Describes outcomes, but impact may be partially qualitative.
-- **2**: Mentions results superficially, focuses on effort over impact.
-- **1**: No clear outcomes or impact described.
-
-### 4. Communication & Executive Presence
-- **4**: Communicates confidently, succinctly, and credibly.
-- **3**: Communicates clearly but may over- or under-explain.
-- **2**: Inconsistent, overly verbose, or lacking confidence.
-- **1**: Poor communication; difficult to follow.
+${skillsSection}
 
 ## Transcript to Evaluate
 
@@ -312,7 +603,7 @@ ${transcriptText}
 
 ## Instructions
 
-1. Evaluate each of the 4 skills in the exact order listed above
+1. Evaluate each of the ${skills.length} skills in the exact order listed above
 2. For each skill, provide:
    - The skill name (exactly as written)
    - A score from 1-4 (half points allowed)
@@ -324,6 +615,123 @@ ${transcriptText}
 
 Be constructive but honest. This is practice - help them improve.`;
 };
+
+// Get category-specific guidance for the evaluation prompt
+function getCategoryGuidance(category: string): string {
+  switch (category) {
+    case 'Behavioral':
+      return `## N+STAR+TL Framework
+
+The best PM candidates structure their behavioral answers using this elevated STAR method:
+
+**N - Nugget**: Quick summary that hooks the interviewer
+**S - Situation**: Concise context setting
+**T - Task**: Their specific role/responsibility
+**A - Action**: Specific actions THEY took (not the team)
+**R - Result**: Quantified outcomes with metrics
+**T - Takeaway**: Lessons learned
+**L - Learning**: How they applied those lessons`;
+
+    case 'Product Sense':
+      return `## Product Sense Framework
+
+Strong product sense answers typically include:
+
+**Problem Clarification**: Asking clarifying questions to understand scope, constraints, and goals
+**User Segmentation**: Identifying and prioritizing target users
+**Pain Points**: Understanding user needs and pain points
+**Solution Generation**: Creative yet feasible solutions
+**Prioritization**: Using frameworks to prioritize features/solutions
+**Success Metrics**: Defining how to measure success`;
+
+    case 'Technical':
+      return `## Technical Interview Framework
+
+Strong technical answers demonstrate:
+
+**System Understanding**: Clear grasp of how systems work
+**Technical Depth**: Ability to go deep when needed
+**Trade-off Analysis**: Understanding pros/cons of technical decisions
+**Collaboration Mindset**: How they work with engineering
+**Data Fluency**: Comfort with metrics, analytics, and data pipelines`;
+
+    case 'Strategy':
+      return `## Strategy Framework
+
+Strong strategy answers include:
+
+**Market Analysis**: Understanding of market dynamics and competition
+**Business Model**: Clear thinking about revenue and sustainability
+**Strategic Options**: Considering multiple paths forward
+**Long-term Thinking**: Balancing short-term wins with long-term vision
+**Trade-offs**: Articulating what you're choosing NOT to do`;
+
+    case 'Product Execution':
+      return `## Execution Framework
+
+Strong execution answers demonstrate:
+
+**Planning**: Breaking down complex work into phases
+**Stakeholder Management**: Identifying and aligning stakeholders
+**Risk Management**: Anticipating and mitigating risks
+**Delivery Focus**: Shipping mindset with quality
+**Iteration**: Learning and improving based on feedback`;
+
+    case 'Analytical':
+      return `## Analytical Framework
+
+Strong analytical answers include:
+
+**Problem Decomposition**: Breaking complex problems into components
+**Quantitative Reasoning**: Making reasonable estimates and calculations
+**Data Interpretation**: Drawing insights from information
+**Hypothesis Thinking**: Forming and testing hypotheses
+**Structured Approach**: Systematic problem-solving`;
+
+    case 'Leadership':
+      return `## Leadership Framework
+
+Strong leadership answers demonstrate:
+
+**Vision Setting**: Articulating direction and inspiring others
+**Influence**: Leading without formal authority
+**Conflict Resolution**: Handling disagreements constructively
+**Decision Making**: Making calls with incomplete information
+**Team Development**: Growing and empowering others`;
+
+    case 'Culture Fit':
+      return `## Culture Fit Framework
+
+Strong culture fit answers show:
+
+**Values Alignment**: Authentic connection to company values
+**Self-Awareness**: Understanding of own strengths and growth areas
+**Collaboration**: How they work with others
+**Growth Mindset**: Openness to feedback and learning
+**Professional Maturity**: Handling pressure and ambiguity`;
+
+    case 'Industry Knowledge':
+      return `## Industry Knowledge Framework
+
+Strong industry answers demonstrate:
+
+**Domain Expertise**: Deep understanding of the industry
+**Trend Awareness**: Knowledge of current and emerging trends
+**Regulatory Understanding**: Awareness of compliance considerations
+**Customer Knowledge**: Understanding of customer ecosystem`;
+
+    default:
+      return `## General PM Interview Framework
+
+Strong answers typically demonstrate:
+
+**Clear Communication**: Structured, concise responses
+**Evidence-Based**: Specific examples and metrics
+**User Focus**: Customer-centric thinking
+**Business Awareness**: Understanding of business impact
+**Self-Reflection**: Lessons learned and growth`;
+  }
+}
 
 // POST /api/mock-interviews/[id]/evaluate - Generate AI evaluation of interview
 export const POST = async (
@@ -403,8 +811,11 @@ export const POST = async (
       // pm_interview_questions is returned as an object when using foreign key relation
       const question = interview.pm_interview_questions as unknown as { question: string; category: string };
       prompt = createQuickQuestionEvaluationPrompt(interview.transcript, question);
+
+      // Get expected skill count from category config
+      const categoryConfig = CATEGORY_SKILLS[question.category] || CATEGORY_SKILLS[DEFAULT_CATEGORY];
+      expectedSkillCount = categoryConfig.skills.length;
       schema = QUICK_QUESTION_EVALUATION_SCHEMA;
-      expectedSkillCount = 4;
     } else {
       prompt = createFullEvaluationPrompt(interview.transcript);
       schema = FULL_INTERVIEW_EVALUATION_SCHEMA;
