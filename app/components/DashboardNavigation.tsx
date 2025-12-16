@@ -215,7 +215,7 @@ export const DashboardNavigation = ({ fullScreen = false, onNavClick }: Dashboar
           eventName="User Clicked Dashboard Navigation Link"
           linkId={fullScreen ? 'mobile-nav-feature-requests-link' : 'dashboard-nav-feature-requests-link'}
           eventProperties={{
-            'Link Text': 'Feature Requests',
+            'Link Text': 'Product Feedback',
             'Link Destination': '/dashboard/feature-requests',
             'Link Section': fullScreen ? 'Mobile Navigation' : 'Sidebar Navigation',
             'Link Position': 'Billing Section',
@@ -226,7 +226,7 @@ export const DashboardNavigation = ({ fullScreen = false, onNavClick }: Dashboar
           onClick={onNavClick}
         >
           <Lightbulb className={iconClass} />
-          <span>Feature Requests</span>
+          <span>Product Feedback</span>
         </NavLink>
         <NavLink
           href="/dashboard/billing"

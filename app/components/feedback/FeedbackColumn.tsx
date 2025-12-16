@@ -59,7 +59,7 @@ export function FeedbackColumn({
 
       {/* Cards */}
       {(!isCollapsible || !isCollapsed) && (
-        <div className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-thin pr-2">
+        <div className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-thin pr-2 pb-2">
           {sortedItems.length === 0 ? (
             <div className="text-center py-8 text-gray-400 text-sm font-medium">
               No items
