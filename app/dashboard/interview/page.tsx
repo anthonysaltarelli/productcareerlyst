@@ -61,13 +61,13 @@ const verdictBadgeColors: Record<string, { bg: string; text: string }> = {
 const categoryColors: Record<string, { bg: string; text: string; hoverBorder: string; hoverBg: string }> = {
   'Behavioral': { bg: 'bg-purple-100', text: 'text-purple-700', hoverBorder: 'hover:border-purple-300', hoverBg: 'hover:bg-purple-50/30' },
   'Product Sense': { bg: 'bg-blue-100', text: 'text-blue-700', hoverBorder: 'hover:border-blue-300', hoverBg: 'hover:bg-blue-50/30' },
-  'Technical Questions': { bg: 'bg-orange-100', text: 'text-orange-700', hoverBorder: 'hover:border-orange-300', hoverBg: 'hover:bg-orange-50/30' },
-  'Strategy Questions': { bg: 'bg-green-100', text: 'text-green-700', hoverBorder: 'hover:border-green-300', hoverBg: 'hover:bg-green-50/30' },
+  'Technical': { bg: 'bg-orange-100', text: 'text-orange-700', hoverBorder: 'hover:border-orange-300', hoverBg: 'hover:bg-orange-50/30' },
+  'Strategy': { bg: 'bg-green-100', text: 'text-green-700', hoverBorder: 'hover:border-green-300', hoverBg: 'hover:bg-green-50/30' },
   'Product Execution': { bg: 'bg-yellow-100', text: 'text-yellow-700', hoverBorder: 'hover:border-yellow-300', hoverBg: 'hover:bg-yellow-50/30' },
-  'Analytical Questions': { bg: 'bg-cyan-100', text: 'text-cyan-700', hoverBorder: 'hover:border-cyan-300', hoverBg: 'hover:bg-cyan-50/30' },
-  'Leadership Questions': { bg: 'bg-indigo-100', text: 'text-indigo-700', hoverBorder: 'hover:border-indigo-300', hoverBg: 'hover:bg-indigo-50/30' },
-  'Culture Fit Questions': { bg: 'bg-pink-100', text: 'text-pink-700', hoverBorder: 'hover:border-pink-300', hoverBg: 'hover:bg-pink-50/30' },
-  'Industry Knowledge Questions': { bg: 'bg-teal-100', text: 'text-teal-700', hoverBorder: 'hover:border-teal-300', hoverBg: 'hover:bg-teal-50/30' },
+  'Analytical': { bg: 'bg-cyan-100', text: 'text-cyan-700', hoverBorder: 'hover:border-cyan-300', hoverBg: 'hover:bg-cyan-50/30' },
+  'Leadership': { bg: 'bg-indigo-100', text: 'text-indigo-700', hoverBorder: 'hover:border-indigo-300', hoverBg: 'hover:bg-indigo-50/30' },
+  'Culture Fit': { bg: 'bg-pink-100', text: 'text-pink-700', hoverBorder: 'hover:border-pink-300', hoverBg: 'hover:bg-pink-50/30' },
+  'Industry Knowledge': { bg: 'bg-teal-100', text: 'text-teal-700', hoverBorder: 'hover:border-teal-300', hoverBg: 'hover:bg-teal-50/30' },
 };
 
 function getInterviewLabel(type: string): string {
@@ -228,12 +228,12 @@ export default function InterviewPrepPage() {
     'Behavioral',
     'Product Sense',
     'Product Execution',
-    'Technical Questions',
-    'Analytical Questions',
-    'Strategy Questions',
-    'Leadership Questions',
-    'Culture Fit Questions',
-    'Industry Knowledge Questions',
+    'Technical',
+    'Analytical',
+    'Strategy',
+    'Leadership',
+    'Culture Fit',
+    'Industry Knowledge',
   ];
 
   const filteredQuestions = questions.filter((question) => {
@@ -473,7 +473,7 @@ export default function InterviewPrepPage() {
                   </p>
                 </div>
               ) : (
-                filteredQuestions.slice(0, 6).map((question) => {
+                filteredQuestions.map((question) => {
                   const colors = getCategoryColors(question.category);
                   const isBehavioral = question.category === 'Behavioral';
                   return (
@@ -507,14 +507,6 @@ export default function InterviewPrepPage() {
                 })
               )}
             </div>
-
-            {filteredQuestions.length > 6 && (
-              <div className="mt-4 text-center">
-                <button className="text-purple-600 font-semibold text-sm hover:text-purple-700 transition-colors">
-                  View all {filteredQuestions.length}+ questions →
-                </button>
-              </div>
-            )}
           </div>
 
           {/* CARD 4: Mock Interview History (Consolidated with Log feature) */}
