@@ -238,39 +238,64 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {/* Portfolio Editor - Featured at top, full width */}
-            <div className="p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_10px_0_0_rgba(22,163,74,0.3)] md:shadow-[0_12px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300 md:col-span-2">
-              <div className="flex flex-col md:flex-row md:items-center gap-5 md:gap-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-[1.25rem] sm:rounded-[1.5rem] bg-gradient-to-br from-green-400 to-emerald-400 shadow-[0_6px_0_0_rgba(22,163,74,0.4)] border-2 border-green-500 flex items-center justify-center flex-shrink-0">
-                    <span className="text-3xl sm:text-4xl">🎨</span>
-                  </div>
-                  <div>
-                    <h3 className="text-xl sm:text-2xl font-bold text-gray-800">Portfolio Editor</h3>
-                    <p className="text-xs sm:text-sm text-green-700 font-bold">Stand out from 99% of PM candidates</p>
-                  </div>
+            {/* Portfolio Editor */}
+            <div className="p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_8px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300 flex flex-col">
+              <div className="flex items-center gap-3 sm:gap-4 mb-3">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-[1rem] sm:rounded-[1.25rem] bg-gradient-to-br from-green-400 to-emerald-400 shadow-[0_4px_0_0_rgba(22,163,74,0.4)] border-2 border-green-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl sm:text-3xl">🎨</span>
                 </div>
-                <p className="text-sm sm:text-base text-gray-700 font-medium flex-1">
-                  Build a stunning portfolio website with AI writing assistant, Unsplash image integration, and your custom URL. Showcase your strategic thinking with professional case studies.
-                </p>
-                <TrackedLink
-                  href="/portfolio"
-                  className="inline-block px-6 py-3 rounded-[1.25rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_4px_0_0_rgba(22,163,74,0.5)] border-2 border-green-600 hover:translate-y-0.5 hover:shadow-[0_2px_0_0_rgba(22,163,74,0.5)] font-black text-sm sm:text-base text-white transition-all duration-200 text-center flex-shrink-0"
-                  eventName="User Clicked Portfolio Link"
-                  linkId="homepage-features-portfolio-link"
-                  eventProperties={{
-                    'Link Section': 'Features Section',
-                    'Link Position': 'Portfolio Editor Feature Card',
-                    'Link Type': 'Feature Card CTA',
-                    'Link Text': 'Build Your Portfolio →',
-                    'Feature Card': 'Portfolio Editor',
-                    'Card Color': 'Green to Emerald Gradient',
-                    'Card Position': 'First Feature Card (Featured)',
-                  }}
-                >
-                  Build Your Portfolio →
-                </TrackedLink>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800">Portfolio Editor</h3>
               </div>
+              <p className="text-sm sm:text-base text-gray-700 font-medium mb-4 flex-1">
+                Build a stunning portfolio website with AI writing assistant, Unsplash images, and your custom URL. Showcase your PM work.
+              </p>
+              <TrackedLink
+                href="/portfolio"
+                className="inline-block px-5 py-2.5 rounded-[1rem] bg-white/80 hover:bg-white border-2 border-green-300 font-black text-sm text-green-700 transition-all duration-200 text-center"
+                eventName="User Clicked Portfolio Link"
+                linkId="homepage-features-portfolio-link"
+                eventProperties={{
+                  'Link Section': 'Features Section',
+                  'Link Position': 'Portfolio Editor Feature Card',
+                  'Link Type': 'Feature Card CTA',
+                  'Link Text': 'Build Your Portfolio →',
+                  'Feature Card': 'Portfolio Editor',
+                  'Card Color': 'Green to Emerald Gradient',
+                  'Card Position': 'First Feature Card',
+                }}
+              >
+                Build Your Portfolio →
+              </TrackedLink>
+            </div>
+
+            {/* Interview Prep */}
+            <div className="p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_8px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 flex flex-col">
+              <div className="flex items-center gap-3 sm:gap-4 mb-3">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-[1rem] sm:rounded-[1.25rem] bg-gradient-to-br from-purple-400 to-pink-400 shadow-[0_4px_0_0_rgba(147,51,234,0.4)] border-2 border-purple-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl sm:text-3xl">🎥</span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800">Interview Prep</h3>
+              </div>
+              <p className="text-sm sm:text-base text-gray-700 font-medium mb-4 flex-1">
+                AI mock interviews with real-time feedback on 12 PM competencies. Practice with 100+ questions and get actionable improvement recommendations.
+              </p>
+              <TrackedLink
+                href="/interview-prep"
+                className="inline-block px-5 py-2.5 rounded-[1rem] bg-white/80 hover:bg-white border-2 border-purple-300 font-black text-sm text-purple-700 transition-all duration-200 text-center"
+                eventName="User Clicked Interview Prep Link"
+                linkId="homepage-features-interview-prep-link"
+                eventProperties={{
+                  'Link Section': 'Features Section',
+                  'Link Position': 'Interview Prep Feature Card',
+                  'Link Type': 'Feature Card CTA',
+                  'Link Text': 'Learn More →',
+                  'Feature Card': 'Interview Prep',
+                  'Card Color': 'Purple to Pink Gradient',
+                  'Card Position': 'Second Feature Card',
+                }}
+              >
+                Learn More →
+              </TrackedLink>
             </div>
 
             {/* PM Courses */}
