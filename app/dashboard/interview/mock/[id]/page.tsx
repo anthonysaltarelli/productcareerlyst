@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useFlags } from 'launchdarkly-react-client-sdk';
-import { X, Clock, AlertTriangle, Mic, MicOff, Video, VideoOff } from 'lucide-react';
+import { X, Clock, AlertTriangle, Mic, MicOff, Video, VideoOff, Sparkles } from 'lucide-react';
 import {
   LiveKitRoom,
   VideoTrack,
@@ -178,10 +178,10 @@ function LocalControls({ onDisconnect }: { onDisconnect: () => void }) {
       </button>
       <button
         onClick={onDisconnect}
-        className="px-4 py-3 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors font-medium flex items-center gap-2"
+        className="px-4 py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-colors font-medium flex items-center gap-2"
       >
-        <X className="w-5 h-5" />
-        <span className="hidden md:inline">End Interview</span>
+        <Sparkles className="w-5 h-5" />
+        <span className="hidden md:inline">Finish & Get Feedback</span>
       </button>
     </div>
   );
@@ -478,30 +478,28 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
           <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-md shadow-2xl">
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-xl bg-yellow-500/20">
-                  <AlertTriangle className="w-6 h-6 text-yellow-500" />
+                <div className="p-2 rounded-xl bg-purple-500/20">
+                  <Sparkles className="w-6 h-6 text-purple-400" />
                 </div>
                 <h2 className="text-xl font-bold text-white">
-                  {interviewMode === 'quick_question' ? 'End Practice Session?' : 'End Interview Early?'}
+                  Ready for your feedback?
                 </h2>
               </div>
               <p className="text-gray-400 mb-6">
-                {interviewMode === 'quick_question'
-                  ? 'Are you sure you want to end this practice session? You can still get feedback on the portion you completed.'
-                  : 'Are you sure you want to end this mock interview? Your progress will be saved, but the session will be marked as incomplete.'}
+                You&apos;ll receive AI-powered evaluation on your performance. You can continue practicing or get your results now.
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={handleCancelExit}
                   className="flex-1 px-4 py-3 rounded-xl border border-slate-600 font-bold text-gray-300 hover:bg-slate-700 transition-colors"
                 >
-                  Continue
+                  Keep Practicing
                 </button>
                 <button
                   onClick={handleConfirmExit}
-                  className="flex-1 px-4 py-3 rounded-xl bg-red-500/20 border border-red-500/50 font-bold text-red-400 hover:bg-red-500/30 transition-colors"
+                  className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-bold text-white hover:from-purple-600 hover:to-pink-600 transition-colors"
                 >
-                  End Session
+                  Get My Feedback
                 </button>
               </div>
             </div>

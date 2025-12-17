@@ -95,8 +95,8 @@ export default function NewMockInterviewPage() {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-900 flex flex-col">
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 pointer-events-none" />
+    <div className="fixed inset-0 z-[100] bg-slate-900 overflow-y-auto">
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 pointer-events-none" />
 
       {/* Header with Exit button */}
       <div className="relative z-10 flex items-center justify-between p-4 md:p-6">
@@ -110,13 +110,13 @@ export default function NewMockInterviewPage() {
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 flex-1 flex items-center justify-center p-6">
+      <div className="relative z-10 flex justify-center px-6 pb-12">
         <div className="max-w-2xl w-full">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-6">
-              <Video className="w-10 h-10 text-white" />
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-4">
+              <Video className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl md:text-4xl font-black text-white mb-4">
+            <h1 className="text-2xl md:text-3xl font-black text-white mb-3">
               Ready for Your Mock Interview?
             </h1>
             <p className="text-lg text-gray-400 max-w-lg mx-auto">
@@ -124,7 +124,7 @@ export default function NewMockInterviewPage() {
             </p>
           </div>
 
-          <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 mb-8">
+          <div className="bg-slate-800 rounded-2xl border border-slate-700 p-5 mb-6">
             <h2 className="text-lg font-bold text-white mb-4">Before you begin:</h2>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
@@ -157,6 +157,14 @@ export default function NewMockInterviewPage() {
                 </div>
                 <span className="text-gray-300">
                   <strong className="text-white">Speak naturally</strong> - the AI interviewer will respond conversationally
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-purple-400 text-sm font-bold">5</span>
+                </div>
+                <span className="text-gray-300">
+                  <strong className="text-white">Click &quot;Finish&quot; when done</strong> to receive your AI-powered feedback and evaluation
                 </span>
               </li>
             </ul>
@@ -192,7 +200,7 @@ export default function NewMockInterviewPage() {
               )}
             </button>
             <p className="mt-4 text-gray-500 text-sm">
-              You can exit at any time by clicking the X button, but the session will count towards your monthly limit.
+              Click &quot;Finish &amp; Get Feedback&quot; at any time to end the session and receive your AI evaluation.
             </p>
           </div>
         </div>

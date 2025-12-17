@@ -273,7 +273,7 @@ export default function QuickQuestionSetupPage({
                   <span className="text-purple-400 text-sm font-bold">4</span>
                 </div>
                 <span className="text-gray-300">
-                  <strong className="text-white">Get instant feedback</strong> after your 5-minute session
+                  <strong className="text-white">Click &quot;Finish&quot; when done</strong> to receive your AI-powered feedback
                 </span>
               </li>
             </ul>
