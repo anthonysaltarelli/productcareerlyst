@@ -59,6 +59,8 @@ interface InterviewData {
   call_quality_rating: number | null;
   self_performance_rating: number | null;
   ai_evaluation: AIBehavioralEvaluation | QuickQuestionEvaluation | null;
+  ai_evaluation_status?: 'pending' | 'processing' | 'completed' | 'failed' | null;
+  ai_evaluation_error?: string | null;
   interview_mode?: 'full' | 'quick_question';
   pm_interview_questions?: {
     id: string;
@@ -134,8 +136,10 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
 
   const [interviewId, setInterviewId] = useState<string | null>(null);
   const [interview, setInterview] = useState<InterviewData | null>(null);
-  const [isPolling, setIsPolling] = useState(true);
-  const [pollCount, setPollCount] = useState(0);
+  const [isPollingTranscript, setIsPollingTranscript] = useState(true);
+  const [isPollingEvaluation, setIsPollingEvaluation] = useState(false);
+  const [transcriptPollCount, setTranscriptPollCount] = useState(0);
+  const [evaluationPollCount, setEvaluationPollCount] = useState(0);
 
   // Feedback form state
   const [callQualityRating, setCallQualityRating] = useState<number>(0);
@@ -165,9 +169,26 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
         const data = await response.json();
         setInterview(data);
 
-        // Stop polling if we have a transcript
+        // Stop transcript polling if we have a transcript
         if (data.transcript && data.transcript.length > 0) {
-          setIsPolling(false);
+          setIsPollingTranscript(false);
+        }
+
+        // Handle evaluation status changes
+        if (data.ai_evaluation_status === 'processing') {
+          // Start polling for evaluation completion
+          setIsPollingEvaluation(true);
+          setIsEvaluating(true);
+        } else if (data.ai_evaluation_status === 'completed' && data.ai_evaluation) {
+          // Evaluation completed
+          setIsPollingEvaluation(false);
+          setIsEvaluating(false);
+          setEvaluationError(null);
+        } else if (data.ai_evaluation_status === 'failed') {
+          // Evaluation failed
+          setIsPollingEvaluation(false);
+          setIsEvaluating(false);
+          setEvaluationError(data.ai_evaluation_error || 'Evaluation failed');
         }
 
         // Pre-fill ratings if already submitted
@@ -186,24 +207,44 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
 
   // Poll for transcript
   useEffect(() => {
-    if (!interviewId || !isPolling) return;
+    if (!interviewId || !isPollingTranscript) return;
 
     // Initial fetch
     fetchInterview();
 
     // Poll every 3 seconds
     const interval = setInterval(() => {
-      setPollCount((prev) => prev + 1);
+      setTranscriptPollCount((prev) => prev + 1);
       fetchInterview();
     }, 3000);
 
     // Stop polling after 60 seconds (20 attempts)
-    if (pollCount >= 20) {
-      setIsPolling(false);
+    if (transcriptPollCount >= 20) {
+      setIsPollingTranscript(false);
     }
 
     return () => clearInterval(interval);
-  }, [interviewId, isPolling, pollCount, fetchInterview]);
+  }, [interviewId, isPollingTranscript, transcriptPollCount, fetchInterview]);
+
+  // Poll for evaluation completion
+  useEffect(() => {
+    if (!interviewId || !isPollingEvaluation) return;
+
+    // Poll every 3 seconds
+    const interval = setInterval(() => {
+      setEvaluationPollCount((prev) => prev + 1);
+      fetchInterview();
+    }, 3000);
+
+    // Stop polling after 3 minutes (60 attempts) - evaluation can take a while
+    if (evaluationPollCount >= 60) {
+      setIsPollingEvaluation(false);
+      setIsEvaluating(false);
+      setEvaluationError('Evaluation is taking longer than expected. Please refresh the page to check status.');
+    }
+
+    return () => clearInterval(interval);
+  }, [interviewId, isPollingEvaluation, evaluationPollCount, fetchInterview]);
 
   // Redirect if feature flag is disabled
   useEffect(() => {
@@ -239,12 +280,13 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
     }
   };
 
-  // Request AI evaluation
+  // Request AI evaluation (now triggers background job)
   const handleRequestEvaluation = async () => {
     if (!interviewId || !interview?.transcript?.length) return;
 
     setIsEvaluating(true);
     setEvaluationError(null);
+    setEvaluationPollCount(0); // Reset poll count for new evaluation
 
     try {
       const response = await fetch(`/api/mock-interviews/${interviewId}/evaluate`, {
@@ -255,14 +297,22 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setInterview((prev) => (prev ? { ...prev, ai_evaluation: data.evaluation } : prev));
+        if (data.status === 'completed' && data.evaluation) {
+          // Evaluation was already cached/completed
+          setInterview((prev) => (prev ? { ...prev, ai_evaluation: data.evaluation, ai_evaluation_status: 'completed' } : prev));
+          setIsEvaluating(false);
+        } else if (data.status === 'processing') {
+          // Evaluation started in background - start polling
+          setIsPollingEvaluation(true);
+          setInterview((prev) => (prev ? { ...prev, ai_evaluation_status: 'processing' } : prev));
+        }
       } else {
-        setEvaluationError(data.error || 'Failed to generate evaluation');
+        setEvaluationError(data.error || 'Failed to start evaluation');
+        setIsEvaluating(false);
       }
     } catch (error) {
       console.error('Error requesting evaluation:', error);
       setEvaluationError('An unexpected error occurred');
-    } finally {
       setIsEvaluating(false);
     }
   };
@@ -554,10 +604,13 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
                   </h3>
                   <p className="text-gray-500 text-sm max-w-md mb-4">
                     {interview?.interview_mode === 'quick_question'
-                      ? 'Our AI is evaluating your answer across 4 key competencies using the N+STAR+TL framework. This usually takes 15-30 seconds.'
-                      : 'Our AI is evaluating your performance across 12 key PM competencies using the N+STAR+TL framework. This usually takes 30-60 seconds.'}
+                      ? 'Our AI is evaluating your answer across 4 key competencies using the N+STAR+TL framework. This usually takes 30-60 seconds.'
+                      : 'Our AI is evaluating your performance across 12 key PM competencies using the N+STAR+TL framework. This usually takes 40-90 seconds.'}
                   </p>
-                  <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
+                  <Loader2 className="w-6 h-6 text-purple-500 animate-spin mb-4" />
+                  <p className="text-gray-400 text-xs max-w-sm">
+                    You can navigate away and come back - we&apos;ll keep processing in the background.
+                  </p>
                 </>
               ) : evaluationError ? (
                 <>
@@ -597,7 +650,7 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              {isPolling ? (
+              {isPollingTranscript ? (
                 <>
                   <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mb-4">
                     <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
@@ -762,7 +815,7 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
                 </div>
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900">Transcript</h2>
               </div>
-              {isPolling && (
+              {isPollingTranscript && (
                 <div className="flex items-center gap-2 text-purple-600">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span className="text-sm font-medium">Loading...</span>
@@ -794,7 +847,7 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                {isPolling ? (
+                {isPollingTranscript ? (
                   <>
                     <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mb-4">
                       <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
@@ -817,8 +870,8 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
                     </p>
                     <button
                       onClick={() => {
-                        setIsPolling(true);
-                        setPollCount(0);
+                        setIsPollingTranscript(true);
+                        setTranscriptPollCount(0);
                       }}
                       className="mt-4 px-4 py-2 rounded-lg bg-purple-100 text-purple-700 font-medium hover:bg-purple-200 transition-colors"
                     >

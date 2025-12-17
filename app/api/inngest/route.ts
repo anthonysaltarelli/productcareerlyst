@@ -5,6 +5,10 @@ import {
   triggerOnboardingAbandonedSequence,
   cancelOnboardingAbandonedSequence,
 } from '@/lib/inngest/functions/onboarding-abandoned-emails';
+import {
+  evaluateInterview,
+  handleEvaluationFailure,
+} from '@/lib/inngest/functions/interview-evaluation';
 
 // Serve the Inngest functions
 // This creates the webhook endpoint that Inngest uses to discover and execute functions
@@ -15,5 +19,7 @@ export const { GET, POST, PUT } = serve({
     cancelTrialSequence,
     triggerOnboardingAbandonedSequence,
     cancelOnboardingAbandonedSequence,
+    evaluateInterview,
+    handleEvaluationFailure,
   ],
 });

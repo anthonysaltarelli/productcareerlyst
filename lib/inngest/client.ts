@@ -38,9 +38,19 @@ export type OnboardingCompletedEvent = {
   };
 };
 
+export type InterviewEvaluationRequestedEvent = {
+  name: 'interview/evaluation.requested';
+  data: {
+    interviewId: string;
+    userId: string;
+    interviewMode: 'full' | 'quick_question';
+  };
+};
+
 // Union type of all events
 export type InngestEvents =
   | TrialSubscriptionCreatedEvent
   | TrialSubscriptionCancelledEvent
   | OnboardingStartedEvent
-  | OnboardingCompletedEvent;
+  | OnboardingCompletedEvent
+  | InterviewEvaluationRequestedEvent;

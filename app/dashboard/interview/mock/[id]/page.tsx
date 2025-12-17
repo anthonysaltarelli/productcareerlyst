@@ -227,6 +227,7 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
   const [hasStarted, setHasStarted] = useState(true); // Interview starts immediately when credentials are present
   const [interviewMode, setInterviewMode] = useState<'full' | 'quick_question'>('full');
   const [sessionEnded, setSessionEnded] = useState(false); // Track when session times out
+  const [isEndingSession, setIsEndingSession] = useState(false); // Track loading state for ending session
 
   // Max duration based on mode: 30 min for full, 5 min for quick question
   const maxDurationSeconds = interviewMode === 'quick_question' ? 5 * 60 : 30 * 60;
@@ -325,6 +326,7 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
   };
 
   const handleConfirmExit = useCallback(async () => {
+    setIsEndingSession(true);
     if (interviewId) {
       try {
         await fetch(`/api/mock-interviews/${interviewId}/end`, {
@@ -491,15 +493,27 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
               <div className="flex gap-3">
                 <button
                   onClick={handleCancelExit}
-                  className="flex-1 px-4 py-3 rounded-xl border border-slate-600 font-bold text-gray-300 hover:bg-slate-700 transition-colors"
+                  disabled={isEndingSession}
+                  className="flex-1 px-4 py-3 rounded-xl border border-slate-600 font-bold text-gray-300 hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Keep Practicing
                 </button>
                 <button
                   onClick={handleConfirmExit}
-                  className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-bold text-white hover:from-purple-600 hover:to-pink-600 transition-colors"
+                  disabled={isEndingSession}
+                  className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-bold text-white hover:from-purple-600 hover:to-pink-600 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  Get My Feedback
+                  {isEndingSession ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Getting Feedback...
+                    </>
+                  ) : (
+                    'Get My Feedback'
+                  )}
                 </button>
               </div>
             </div>
