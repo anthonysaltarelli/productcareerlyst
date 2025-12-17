@@ -40,6 +40,7 @@ const plans = {
       jobsTracked: false,
       customQuestionsForInterviewers: false,
       automatedCompanyResearchSearches: false,
+      aiMockInterviews: false,
     },
   },
   accelerate: {
@@ -61,6 +62,7 @@ const plans = {
       jobsTracked: Infinity,
       customQuestionsForInterviewers: Infinity,
       automatedCompanyResearchSearches: Infinity,
+      aiMockInterviews: 'beta' as const,
     },
   },
 };
@@ -126,11 +128,17 @@ const featureList: FeatureInfo[] = [
     description: 'Generate thoughtful, company-specific questions to ask your interviewers. Show genuine interest and strategic thinking that leaves a lasting impression.',
     icon: '🤔',
   },
-  { 
-    key: 'automatedCompanyResearchSearches', 
+  {
+    key: 'automatedCompanyResearchSearches',
     label: 'Automated Company Research',
     description: 'Get instant, AI-powered research on any company. Understand their product strategy, competitive landscape, recent news, and culture before your interview.',
     icon: '🔍',
+  },
+  {
+    key: 'aiMockInterviews',
+    label: 'AI Mock Interviews',
+    description: 'Practice with our AI interviewer in realistic video mock interviews. Get instant feedback on 12+ PM competencies, review your transcript, and receive personalized improvement recommendations. Available in 30-minute full interviews or 5-minute quick practice sessions.',
+    icon: '🎥',
   },
 ];
 
@@ -365,6 +373,7 @@ export default function PricingPage() {
     if (feature === true) return 'included';
     if (feature === false) return 'not-included';
     if (feature === Infinity) return 'unlimited';
+    if (feature === 'beta') return 'beta';
     return 'not-included';
   };
 
@@ -760,6 +769,11 @@ export default function PricingPage() {
                           {accelerateValue === 'unlimited' && (
                             <span className="text-xs sm:text-sm font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
                               Unlimited
+                            </span>
+                          )}
+                          {accelerateValue === 'beta' && (
+                            <span className="text-xs sm:text-sm font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-full">
+                              In Beta
                             </span>
                           )}
                           {accelerateValue === 'not-included' && (

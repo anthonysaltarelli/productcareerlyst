@@ -168,7 +168,9 @@ export default function Home() {
               </div>
             </div>
             
+            {/* Hidden for now - uncomment to restore
             <SalaryProgressionChart />
+            */}
           </div>
         </div>
 
@@ -258,13 +260,13 @@ export default function Home() {
                   'Link Section': 'Features Section',
                   'Link Position': 'Portfolio Editor Feature Card',
                   'Link Type': 'Feature Card CTA',
-                  'Link Text': 'Build Your Portfolio →',
+                  'Link Text': 'Learn More →',
                   'Feature Card': 'Portfolio Editor',
                   'Card Color': 'Green to Emerald Gradient',
                   'Card Position': 'First Feature Card',
                 }}
               >
-                Build Your Portfolio →
+                Learn More →
               </TrackedLink>
             </div>
 
