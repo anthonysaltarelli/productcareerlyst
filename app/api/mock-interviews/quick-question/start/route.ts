@@ -185,7 +185,7 @@ Question: "${question.question}"
  */
 function buildQuickQuestionGreeting(question: PMInterviewQuestion): string {
   const greetingDesc = getGreetingDescription(question.category);
-  return `Hi! Thanks for practicing with me today. I'm going to ask you ${greetingDesc}, and I'd like you to answer it as if you were in a real interview. Here's your question: "${question.question}"`;
+  return `Hi! My name is Nelly. Thanks for practicing with me today. I'm going to ask you ${greetingDesc}, and I'd like you to answer it as if you were in a real interview. Here's your question: "${question.question}"`;
 }
 
 /**
@@ -240,7 +240,7 @@ export async function POST(request: NextRequest) {
 
     // Step 1: Create temporary Bey.dev agent
     const agentPayload = {
-      name: 'PM Interview Coach',
+      name: 'Nelly',
       avatar_id: BEYOND_PRESENCE_AVATAR_ID,
       system_prompt: buildQuickQuestionSystemPrompt(question),
       greeting: buildQuickQuestionGreeting(question),
