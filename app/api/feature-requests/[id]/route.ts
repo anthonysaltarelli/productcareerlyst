@@ -94,11 +94,12 @@ export const PATCH = async (
 
     // Admin can update status
     if (isAdmin && status !== undefined) {
-      // Validate status value (support both old and new status values during transition)
-      const validStatuses = [null, 'under_review', 'in_progress', 'complete', 'evaluating', 'shipped', 'archived'];
+      // Valid statuses: evaluating (default), in_progress, shipped
+      // null is treated as 'evaluating' in the UI
+      const validStatuses = [null, 'evaluating', 'in_progress', 'shipped'];
       if (!validStatuses.includes(status)) {
         return NextResponse.json(
-          { error: 'Invalid status value' },
+          { error: 'Invalid status value. Must be: evaluating, in_progress, or shipped' },
           { status: 400 }
         );
       }
