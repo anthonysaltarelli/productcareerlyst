@@ -17,6 +17,8 @@ import {
   Target,
   Lightbulb,
   AlertCircle,
+  Building2,
+  Briefcase,
 } from 'lucide-react';
 import type { AIBehavioralEvaluation, SkillEvaluation } from '@/lib/types/interview-evaluation';
 
@@ -31,6 +33,17 @@ interface TranscriptMessage {
 }
 
 interface QuestionPracticed {
+  question: string;
+  category: string;
+}
+
+interface JobContext {
+  companyName: string;
+  jobTitle: string;
+  descriptionSnippet?: string;
+}
+
+interface QuestionAsked {
   question: string;
   category: string;
 }
@@ -51,6 +64,24 @@ interface QuickQuestionEvaluation {
   modelVersion: string;
 }
 
+interface JobSpecificEvaluation {
+  skills: {
+    skillName: string;
+    score: number;
+    explanation: string;
+    supportingQuotes: string[];
+  }[];
+  overallVerdict: 'Strong Hire' | 'Hire' | 'No Hire' | 'Strong No Hire';
+  overallExplanation: string;
+  recommendedImprovements: string[];
+  companyFitAssessment: string;
+  interviewMode: 'job_specific';
+  jobContext: JobContext | null;
+  questionsAsked: QuestionAsked[] | null;
+  evaluatedAt: string;
+  modelVersion: string;
+}
+
 interface InterviewData {
   id: string;
   status: string;
@@ -58,16 +89,19 @@ interface InterviewData {
   duration_seconds: number | null;
   call_quality_rating: number | null;
   self_performance_rating: number | null;
-  ai_evaluation: AIBehavioralEvaluation | QuickQuestionEvaluation | null;
+  ai_evaluation: AIBehavioralEvaluation | QuickQuestionEvaluation | JobSpecificEvaluation | null;
   ai_evaluation_status?: 'pending' | 'processing' | 'completed' | 'failed' | null;
   ai_evaluation_error?: string | null;
-  interview_mode?: 'full' | 'quick_question';
+  interview_mode?: 'full' | 'quick_question' | 'job_specific';
   pm_interview_questions?: {
     id: string;
     category: string;
     question: string;
     guidance: string;
   } | null;
+  // Job-specific interview fields
+  job_context?: JobContext | null;
+  generated_questions?: QuestionAsked[] | null;
 }
 
 // Verdict color mapping for full interviews
@@ -469,17 +503,34 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
 
         {/* Header */}
         <div>
+          {/* Job-specific interview header with company/role badge */}
+          {interview?.interview_mode === 'job_specific' && interview?.job_context && (
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-100 text-purple-700 font-semibold text-sm">
+                <Building2 className="w-4 h-4" />
+                {interview.job_context.companyName}
+              </div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 font-semibold text-sm">
+                <Briefcase className="w-4 h-4" />
+                {interview.job_context.jobTitle}
+              </div>
+            </div>
+          )}
           <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2">
             {interview?.interview_mode === 'quick_question'
               ? 'Question Practice Complete!'
-              : 'Interview Complete!'}
+              : interview?.interview_mode === 'job_specific'
+                ? 'Job Interview Practice Complete!'
+                : 'Interview Complete!'}
           </h1>
           <p className="text-gray-600 font-medium">
             {interview?.duration_seconds
               ? `Duration: ${formatDuration(interview.duration_seconds)}`
               : interview?.interview_mode === 'quick_question'
                 ? 'Great job practicing this question.'
-                : 'Great job completing your mock interview.'}
+                : interview?.interview_mode === 'job_specific'
+                  ? `Great job practicing for the ${interview?.job_context?.jobTitle || 'role'} at ${interview?.job_context?.companyName || 'the company'}.`
+                  : 'Great job completing your mock interview.'}
           </p>
           {/* Show question practiced for quick questions */}
           {interview?.interview_mode === 'quick_question' && interview?.pm_interview_questions && (
@@ -490,6 +541,24 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
               <p className="text-gray-800 font-medium">
                 {interview.pm_interview_questions.question}
               </p>
+            </div>
+          )}
+          {/* Show questions asked for job-specific interviews */}
+          {interview?.interview_mode === 'job_specific' && interview?.generated_questions && interview.generated_questions.length > 0 && (
+            <div className="mt-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+              <p className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-2">
+                Questions Asked ({interview.generated_questions.length})
+              </p>
+              <ul className="space-y-2">
+                {interview.generated_questions.map((q, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-purple-200 text-purple-700 text-xs font-bold flex items-center justify-center mt-0.5">
+                      {idx + 1}
+                    </span>
+                    <span className="text-sm text-gray-700">{q.question}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
@@ -589,6 +658,22 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
                   ))}
                 </ul>
               </div>
+
+              {/* Company Fit Assessment - Only for job-specific interviews */}
+              {interview?.interview_mode === 'job_specific' &&
+               (interview.ai_evaluation as JobSpecificEvaluation)?.companyFitAssessment && (
+                <div className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl border-2 border-blue-200">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Building2 className="w-5 h-5 text-blue-600" />
+                    <h4 className="text-sm font-bold text-blue-800 uppercase tracking-wider">
+                      Company Fit Assessment
+                    </h4>
+                  </div>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {(interview.ai_evaluation as JobSpecificEvaluation).companyFitAssessment}
+                  </p>
+                </div>
+              )}
             </div>
           ) : hasTranscript ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -600,12 +685,16 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
                   <h3 className="text-lg font-bold text-gray-900 mb-2">
                     {interview?.interview_mode === 'quick_question'
                       ? 'Analyzing your answer...'
-                      : 'Analyzing your interview...'}
+                      : interview?.interview_mode === 'job_specific'
+                        ? `Analyzing your interview for ${interview?.job_context?.companyName || 'the company'}...`
+                        : 'Analyzing your interview...'}
                   </h3>
                   <p className="text-gray-500 text-sm max-w-md mb-4">
                     {interview?.interview_mode === 'quick_question'
                       ? 'Our AI is evaluating your answer across 4 key competencies using the N+STAR+TL framework. This usually takes 30-60 seconds.'
-                      : 'Our AI is evaluating your performance across 12 key PM competencies using the N+STAR+TL framework. This usually takes 40-90 seconds.'}
+                      : interview?.interview_mode === 'job_specific'
+                        ? `Our AI is evaluating your performance across 6 key competencies tailored to the ${interview?.job_context?.jobTitle || 'role'} at ${interview?.job_context?.companyName || 'the company'}. This usually takes 40-90 seconds.`
+                        : 'Our AI is evaluating your performance across 12 key PM competencies using the N+STAR+TL framework. This usually takes 40-90 seconds.'}
                   </p>
                   <Loader2 className="w-6 h-6 text-purple-500 animate-spin mb-4" />
                   <p className="text-gray-400 text-xs max-w-sm">
@@ -636,7 +725,9 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
                   <p className="text-gray-500 text-sm max-w-md mb-6">
                     {interview?.interview_mode === 'quick_question'
                       ? 'Let our AI analyze your answer and provide detailed feedback on 4 key competencies using the N+STAR+TL framework.'
-                      : 'Let our AI analyze your interview performance and provide detailed feedback on 12 PM competencies using the N+STAR+TL framework.'}
+                      : interview?.interview_mode === 'job_specific'
+                        ? `Let our AI analyze your interview and provide detailed feedback on 6 key competencies tailored to the ${interview?.job_context?.jobTitle || 'role'} at ${interview?.job_context?.companyName || 'the company'}, including a company fit assessment.`
+                        : 'Let our AI analyze your interview performance and provide detailed feedback on 12 PM competencies using the N+STAR+TL framework.'}
                   </p>
                   <button
                     onClick={handleRequestEvaluation}

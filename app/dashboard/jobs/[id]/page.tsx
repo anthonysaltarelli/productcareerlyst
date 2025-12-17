@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useFlags } from 'launchdarkly-react-client-sdk';
+import { Video } from 'lucide-react';
 import { useJobApplication, updateJobApplication } from '@/lib/hooks/useJobApplications';
 import { useInterviews, createInterview, updateInterview, deleteInterview } from '@/lib/hooks/useInterviews';
 import { useContacts, createContact, updateContact, deleteContact } from '@/lib/hooks/useContacts';
@@ -15,6 +17,7 @@ import PremiumFeatureGateModal from '@/app/components/resume/PremiumFeatureGateM
 import DeleteConfirmationModal from '@/app/components/resume/DeleteConfirmationModal';
 import DocumentsTab from '@/app/components/jobs/DocumentsTab';
 import { getUserPlanClient } from '@/lib/utils/resume-tracking';
+import { NoDescriptionModal } from '@/app/components/interview/NoDescriptionModal';
 
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; bgColor: string }> = {
   wishlist: { label: 'Wishlist', color: 'text-gray-700', bgColor: 'bg-gray-50' },
@@ -49,10 +52,14 @@ export default function JobDetailPage() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const jobId = params.id as string;
+  const { aiVideoCoach } = useFlags();
 
   const { application, loading, error, refetch } = useJobApplication(jobId);
   const { interviews, refetch: refetchInterviews } = useInterviews(jobId);
   const { contacts, refetch: refetchContacts } = useContacts(undefined, jobId);
+
+  // Job-specific mock interview modal state
+  const [showNoDescriptionModal, setShowNoDescriptionModal] = useState(false);
 
   // Status history state
   const [statusHistory, setStatusHistory] = useState<Array<{
@@ -240,6 +247,24 @@ export default function JobDetailPage() {
       minimumFractionDigits: 0,
     });
     return `${formatter.format(application.salary_min)} - ${formatter.format(application.salary_max)}`;
+  };
+
+  const handleStartJobMockInterview = () => {
+    if (!application.description) {
+      setShowNoDescriptionModal(true);
+      return;
+    }
+    router.push(`/dashboard/jobs/${jobId}/mock-interview`);
+  };
+
+  const handleSaveDescriptionAndProceed = async (description: string) => {
+    // Save the job description
+    await updateJobApplication(jobId, { description });
+    // Refetch to update local state
+    await refetch();
+    // Close modal and navigate to mock interview
+    setShowNoDescriptionModal(false);
+    router.push(`/dashboard/jobs/${jobId}/mock-interview`);
   };
 
   const handleFormatDateTime = (dateString: string): string => {
@@ -790,7 +815,16 @@ export default function JobDetailPage() {
               <div className="p-6 rounded-[2rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_8px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300">
                 <h3 className="text-xl font-black text-gray-900 mb-4">Quick Actions ⚡</h3>
                 <div className="space-y-3">
-                  <button 
+                  {aiVideoCoach && (
+                    <button
+                      onClick={handleStartJobMockInterview}
+                      className="w-full px-5 py-3.5 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_4px_0_0_rgba(147,51,234,0.4)] border-2 border-purple-600 text-white font-black hover:translate-y-1 hover:shadow-[0_2px_0_0_rgba(147,51,234,0.4)] transition-all text-left flex items-center gap-2"
+                    >
+                      <Video className="w-4 h-4" />
+                      Start AI Mock Interview For This Role
+                    </button>
+                  )}
+                  <button
                     onClick={() => handleTabChange('interviews')}
                     className="w-full px-5 py-3.5 rounded-[1.5rem] bg-white shadow-[0_4px_0_0_rgba(0,0,0,0.1)] border-2 border-blue-300 text-gray-700 font-black hover:translate-y-1 hover:shadow-[0_2px_0_0_rgba(0,0,0,0.1)] transition-all text-left flex items-center gap-2"
                   >
@@ -799,7 +833,7 @@ export default function JobDetailPage() {
                     </svg>
                     Add Interview
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleTabChange('contacts')}
                     className="w-full px-5 py-3.5 rounded-[1.5rem] bg-white shadow-[0_4px_0_0_rgba(0,0,0,0.1)] border-2 border-blue-300 text-gray-700 font-black hover:translate-y-1 hover:shadow-[0_2px_0_0_rgba(0,0,0,0.1)] transition-all text-left flex items-center gap-2"
                   >
@@ -1629,12 +1663,21 @@ export default function JobDetailPage() {
         onClose={() => setShowPremiumGate(false)}
         featureName={activeTab === 'research' ? 'Company Research' : 'Find Contacts Automatically'}
         featureDescription={
-          activeTab === 'research' 
+          activeTab === 'research'
             ? 'Company research is available exclusively for Accelerate plan subscribers.'
             : 'Find Contacts Automatically is available exclusively for Accelerate plan subscribers.'
         }
         currentPlan={userPlan}
         requiresAccelerate={true}
+      />
+
+      {/* No Description Modal for Job-Specific Mock Interview */}
+      <NoDescriptionModal
+        isOpen={showNoDescriptionModal}
+        onClose={() => setShowNoDescriptionModal(false)}
+        onSaveAndProceed={handleSaveDescriptionAndProceed}
+        companyName={application?.company?.name}
+        jobTitle={application?.title}
       />
     </div>
   );

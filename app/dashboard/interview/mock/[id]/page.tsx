@@ -225,12 +225,12 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [hasStarted, setHasStarted] = useState(true); // Interview starts immediately when credentials are present
-  const [interviewMode, setInterviewMode] = useState<'full' | 'quick_question'>('full');
+  const [interviewMode, setInterviewMode] = useState<'full' | 'quick_question' | 'job_specific'>('full');
   const [sessionEnded, setSessionEnded] = useState(false); // Track when session times out
   const [isEndingSession, setIsEndingSession] = useState(false); // Track loading state for ending session
 
-  // Max duration based on mode: 30 min for full, 5 min for quick question
-  const maxDurationSeconds = interviewMode === 'quick_question' ? 5 * 60 : 30 * 60;
+  // Max duration based on mode: 30 min for full, 20 min for job-specific, 5 min for quick question
+  const maxDurationSeconds = interviewMode === 'quick_question' ? 5 * 60 : interviewMode === 'job_specific' ? 20 * 60 : 30 * 60;
 
   // Resolve params and extract LiveKit credentials from URL
   useEffect(() => {
@@ -242,6 +242,8 @@ export default function MockInterviewPage({ params }: MockInterviewPageProps) {
 
     if (modeParam === 'quick_question') {
       setInterviewMode('quick_question');
+    } else if (modeParam === 'job_specific') {
+      setInterviewMode('job_specific');
     }
 
     if (credentialsParam) {

@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useFlags } from 'launchdarkly-react-client-sdk';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
-import { Video, ChevronRight, HelpCircle } from 'lucide-react';
+import { Video, ChevronRight, HelpCircle, Briefcase, X, Building2, AlertCircle } from 'lucide-react';
 import type { AIBehavioralEvaluation } from '@/lib/types/interview-evaluation';
 
 // Interview types matching the job application center
@@ -47,6 +48,16 @@ interface MockInterview {
   self_performance_rating: number | null;
   ai_evaluation: AIBehavioralEvaluation | null;
   created_at: string;
+}
+
+interface JobWithCompany {
+  id: string;
+  title: string;
+  description: string | null;
+  company: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 // Verdict badge styling
@@ -121,6 +132,12 @@ export default function InterviewPrepPage() {
   // Expanded question state
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
 
+  // Job selector modal state
+  const [showJobSelectorModal, setShowJobSelectorModal] = useState(false);
+  const [jobs, setJobs] = useState<JobWithCompany[]>([]);
+  const [jobsLoading, setJobsLoading] = useState(false);
+  const [jobsError, setJobsError] = useState<string | null>(null);
+
   const fetchInterviews = async () => {
     try {
       const response = await fetch('/api/practice-interviews');
@@ -183,6 +200,42 @@ export default function InterviewPrepPage() {
       fetchMockInterviews();
     }
   }, [aiVideoCoach]);
+
+  // Fetch jobs with descriptions for job-specific practice
+  const fetchJobs = async () => {
+    setJobsLoading(true);
+    setJobsError(null);
+    try {
+      const response = await fetch('/api/jobs/applications');
+      if (!response.ok) {
+        throw new Error('Failed to fetch jobs');
+      }
+      const data = await response.json();
+      // Filter to only jobs with descriptions and sort alphabetically by company name
+      const jobsWithDescriptions = (data.applications || [])
+        .filter((job: JobWithCompany) => job.description && job.description.trim().length > 0)
+        .sort((a: JobWithCompany, b: JobWithCompany) => {
+          const companyA = a.company?.name || 'zzz';
+          const companyB = b.company?.name || 'zzz';
+          return companyA.localeCompare(companyB);
+        });
+      setJobs(jobsWithDescriptions);
+    } catch (err) {
+      setJobsError(err instanceof Error ? err.message : 'Failed to load jobs');
+    } finally {
+      setJobsLoading(false);
+    }
+  };
+
+  const handleOpenJobSelectorModal = () => {
+    setShowJobSelectorModal(true);
+    fetchJobs();
+  };
+
+  const handleSelectJob = (jobId: string) => {
+    setShowJobSelectorModal(false);
+    router.push(`/dashboard/jobs/${jobId}/mock-interview`);
+  };
 
   const handleOpenModal = () => {
     setSelectedType('product_sense');
@@ -350,14 +403,24 @@ export default function InterviewPrepPage() {
                 </h2>
               </div>
               <p className="text-purple-100 font-medium mb-6">
-                Start a 30-minute AI mock interview and receive detailed feedback on your behavioral interview skills.
+                Start an AI mock interview and receive detailed feedback on your interview skills.
               </p>
-              <button
-                onClick={handleStartMockInterview}
-                className="px-8 py-4 rounded-[1.5rem] bg-white text-purple-600 font-black text-lg shadow-[0_6px_0_0_rgba(255,255,255,0.3)] hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(255,255,255,0.3)] transition-all"
-              >
-                Start AI Mock Interview
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={handleStartMockInterview}
+                  className="px-6 py-4 rounded-[1.5rem] bg-white text-purple-600 font-black text-base shadow-[0_6px_0_0_rgba(255,255,255,0.3)] hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(255,255,255,0.3)] transition-all flex items-center justify-center gap-2"
+                >
+                  <Video className="w-5 h-5" />
+                  Start General Mock Interview
+                </button>
+                <button
+                  onClick={handleOpenJobSelectorModal}
+                  className="px-6 py-4 rounded-[1.5rem] bg-white/20 text-white font-black text-base border-2 border-white/40 hover:bg-white/30 transition-all flex items-center justify-center gap-2"
+                >
+                  <Briefcase className="w-5 h-5" />
+                  Start Job-Specific Mock Interview
+                </button>
+              </div>
             </div>
           )}
 
@@ -404,8 +467,8 @@ export default function InterviewPrepPage() {
             </div>
           )}
 
-          {/* CARD 3: Question Bank - Spans 2 columns on large screens */}
-          <div className={`${aiVideoCoach ? 'lg:col-span-2' : 'lg:col-span-3'} p-6 rounded-[2rem] bg-white border-2 border-gray-200 shadow-sm`}>
+          {/* CARD 3: Question Bank */}
+          <div className={`${aiVideoCoach ? 'md:col-span-1 lg:col-span-2' : 'lg:col-span-3'} p-6 rounded-[2rem] bg-white border-2 border-gray-200 shadow-sm`}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
               <div>
                 <h3 className="text-lg font-black text-gray-800">Question Bank</h3>
@@ -629,7 +692,7 @@ export default function InterviewPrepPage() {
           </>
         )}
 
-        {/* Modal */}
+        {/* Log Interview Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl max-h-[90vh] flex flex-col">
@@ -691,6 +754,86 @@ export default function InterviewPrepPage() {
                     {submitting ? 'Saving...' : 'Log Interview'}
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Job Selector Modal */}
+        {showJobSelectorModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl max-h-[90vh] flex flex-col">
+              {/* Header */}
+              <div className="p-6 md:p-8 pb-4 flex-shrink-0 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-black text-gray-800">Select a Job</h2>
+                  <p className="text-gray-500 text-sm font-medium mt-1">
+                    Choose a job to practice company-specific questions
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowJobSelectorModal(false)}
+                  className="p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto px-6 md:px-8 pb-6">
+                {jobsLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                  </div>
+                ) : jobsError ? (
+                  <div className="text-center py-12">
+                    <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-3" />
+                    <p className="text-red-600 font-medium">{jobsError}</p>
+                    <button
+                      onClick={fetchJobs}
+                      className="mt-3 text-purple-600 font-semibold text-sm hover:text-purple-700"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                ) : jobs.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Briefcase className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-600 font-medium mb-2">No jobs with descriptions yet</p>
+                    <p className="text-gray-500 text-sm mb-4">
+                      Add a job description to practice company-specific questions.
+                    </p>
+                    <Link
+                      href="/dashboard/jobs"
+                      onClick={() => setShowJobSelectorModal(false)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-100 text-purple-700 font-semibold text-sm hover:bg-purple-200 transition-colors"
+                    >
+                      Go to Jobs
+                      <ChevronRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {jobs.map((job) => (
+                      <button
+                        key={job.id}
+                        onClick={() => handleSelectJob(job.id)}
+                        className="w-full p-4 rounded-xl border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50/50 transition-all text-left flex items-center gap-3"
+                      >
+                        <div className="p-2 rounded-lg bg-purple-100 flex-shrink-0">
+                          <Building2 className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-gray-800 truncate">{job.title}</p>
+                          <p className="text-sm text-gray-500 truncate">
+                            {job.company?.name || 'Unknown Company'}
+                          </p>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

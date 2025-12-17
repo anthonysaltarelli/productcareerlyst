@@ -412,6 +412,49 @@ const QUICK_QUESTION_EVALUATION_SCHEMA = {
   required: ['skills', 'overallVerdict', 'overallExplanation', 'recommendedImprovements'],
 };
 
+// JSON Schema for job-specific interview structured output (6 skills)
+const JOB_SPECIFIC_EVALUATION_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    skills: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          skillName: { type: 'string' },
+          score: {
+            type: 'number',
+            enum: [1, 1.5, 2, 2.5, 3, 3.5, 4],
+          },
+          explanation: { type: 'string' },
+          supportingQuotes: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+        },
+        required: ['skillName', 'score', 'explanation', 'supportingQuotes'],
+      },
+      minItems: 6,
+      maxItems: 6,
+    },
+    overallVerdict: {
+      type: 'string',
+      enum: ['Strong No Hire', 'No Hire', 'Hire', 'Strong Hire'],
+    },
+    overallExplanation: { type: 'string' },
+    recommendedImprovements: {
+      type: 'array',
+      items: { type: 'string' },
+      minItems: 2,
+      maxItems: 5,
+    },
+    companyFitAssessment: { type: 'string' },
+  },
+  required: ['skills', 'overallVerdict', 'overallExplanation', 'recommendedImprovements', 'companyFitAssessment'],
+};
+
 // Build the comprehensive evaluation prompt for full interviews
 const createFullEvaluationPrompt = (transcript: { sender: string; message: string }[]) => {
   const transcriptText = transcript
@@ -747,6 +790,107 @@ ${transcriptText}
 Be constructive but honest. This is practice - help them improve.`;
 };
 
+// Build the evaluation prompt for job-specific interviews
+const createJobSpecificEvaluationPrompt = (
+  transcript: { sender: string; message: string }[],
+  jobContext: {
+    companyName: string;
+    jobTitle: string;
+    descriptionSnippet?: string;
+  },
+  questions: Array<{ question: string; category: string }>
+) => {
+  const transcriptText = transcript
+    .map((msg) => `[${msg.sender.toUpperCase()}]: ${msg.message}`)
+    .join('\n\n');
+
+  const questionsAsked = questions
+    .map((q, i) => `${i + 1}. "${q.question}" (${q.category})`)
+    .join('\n');
+
+  return `You are a senior product management interviewer evaluating a candidate's performance in a mock interview for the ${jobContext.jobTitle} role at ${jobContext.companyName}.
+
+## Interview Context
+- **Company**: ${jobContext.companyName}
+- **Role**: ${jobContext.jobTitle}
+${jobContext.descriptionSnippet ? `- **Job Description Snippet**: ${jobContext.descriptionSnippet}` : ''}
+
+## Questions Asked in This Interview
+${questionsAsked}
+
+## Your Role
+Evaluate this candidate as if you were a hiring manager at ${jobContext.companyName}. Consider both their general PM skills AND their specific fit for this company and role. Be honest, constructive, and calibrated.
+
+## Scoring Scale (1-4, half points allowed)
+- **4 - Very Strong**: Exceptional demonstration - would stand out at ${jobContext.companyName}
+- **3 - Strong**: Solid demonstration - meets expectations for this role
+- **2 - Weak**: Below expectations - has gaps to address
+- **1 - Very Weak**: Significant concerns - not ready for this role
+
+## Skills to Evaluate (6 Total)
+
+### 1. Company Knowledge & Enthusiasm
+- **4**: Demonstrates deep knowledge of ${jobContext.companyName}'s mission, products, challenges, and culture. Shows genuine enthusiasm and specific reasons for interest.
+- **3**: Good company knowledge with some gaps. Shows clear interest but could be more specific.
+- **2**: Surface-level company knowledge. Generic enthusiasm that could apply to any company.
+- **1**: Little to no knowledge of ${jobContext.companyName}. No compelling reason for interest.
+
+### 2. Role Fit & Relevant Experience
+- **4**: Experience aligns strongly with role requirements. Clear examples of similar challenges and successes.
+- **3**: Good alignment with most requirements. Some gaps but shows transferable skills.
+- **2**: Limited alignment with role requirements. Struggles to connect experience to this position.
+- **1**: Poor fit for role requirements. No relevant experience demonstrated.
+
+### 3. Industry/Market Awareness
+- **4**: Deep understanding of ${jobContext.companyName}'s competitive landscape, market challenges, and industry trends.
+- **3**: Good market awareness with some blind spots.
+- **2**: Basic industry understanding without depth.
+- **1**: No market or competitive awareness demonstrated.
+
+### 4. Story Structure & Clarity
+- **4**: Clear, well-structured answers. Uses specific examples with quantified results.
+- **3**: Mostly structured answers with minor gaps in clarity.
+- **2**: Disorganized or vague answers. Lacks specific examples.
+- **1**: Rambling or incoherent answers. Unable to provide clear examples.
+
+### 5. Impact & Results Orientation
+- **4**: Consistently demonstrates measurable impact with specific metrics and outcomes.
+- **3**: Shows impact but metrics are sometimes qualitative or vague.
+- **2**: Focuses on activities rather than outcomes.
+- **1**: No clear impact or results demonstrated.
+
+### 6. Communication & Executive Presence
+- **4**: Confident, articulate, and engaging. Adjusts communication style appropriately.
+- **3**: Clear communication with minor issues.
+- **2**: Inconsistent communication. Overly verbose or lacking confidence.
+- **1**: Poor communication that detracts from content.
+
+## Interview Transcript to Evaluate
+
+${transcriptText}
+
+## Overall Verdict Scale
+- **Strong Hire**: Exceptional candidate for ${jobContext.companyName} - would make an immediate impact
+- **Hire**: Good candidate - would succeed in this role at ${jobContext.companyName}
+- **No Hire**: Not confident this candidate would succeed at ${jobContext.companyName}
+- **Strong No Hire**: Clear gaps that would prevent success in this role
+
+## Instructions
+
+1. Evaluate ALL 6 skills in the exact order listed above
+2. For each skill, provide:
+   - The skill name (exactly as written)
+   - A score from 1-4 (half points allowed)
+   - A detailed explanation referencing specific parts of the interview
+   - 1-3 direct quotes from the candidate (USER messages) that support your assessment
+3. Provide an overall verdict for this candidate at ${jobContext.companyName}
+4. Write an overall explanation (2 paragraphs) summarizing their performance and fit
+5. List 2-5 specific improvements they should work on for ${jobContext.companyName} interviews
+6. Provide a company fit assessment (1 paragraph) specifically addressing how well they would fit at ${jobContext.companyName}
+
+Be rigorous but fair. Ground all feedback in specific evidence from the transcript.`;
+};
+
 /**
  * Evaluate interview using OpenAI - Inngest background function
  *
@@ -776,6 +920,8 @@ export const evaluateInterview = inngest.createFunction(
           transcript,
           interview_mode,
           question_id,
+          job_context,
+          generated_questions,
           pm_interview_questions (
             id,
             category,
@@ -799,10 +945,10 @@ export const evaluateInterview = inngest.createFunction(
     });
 
     // Step 2: Build prompt and schema based on interview mode
-    const { prompt, schema, expectedSkillCount } = await step.run('build-prompt', async () => {
-      const isQuickQuestion = interviewData.interview_mode === 'quick_question';
+    const { prompt, schema, expectedSkillCount, schemaName } = await step.run('build-prompt', async () => {
+      const mode = interviewData.interview_mode;
 
-      if (isQuickQuestion) {
+      if (mode === 'quick_question') {
         const question = interviewData.pm_interview_questions as unknown as { question: string; category: string };
         if (!question) {
           throw new Error('Question data not found for quick question interview');
@@ -812,12 +958,33 @@ export const evaluateInterview = inngest.createFunction(
           prompt: createQuickQuestionEvaluationPrompt(interviewData.transcript, question),
           schema: QUICK_QUESTION_EVALUATION_SCHEMA,
           expectedSkillCount: categoryConfig.skills.length,
+          schemaName: 'quick_question_evaluation',
+        };
+      } else if (mode === 'job_specific') {
+        // Job-specific interview mode
+        const jobContext = interviewData.job_context as { companyName: string; jobTitle: string; descriptionSnippet?: string } | null;
+        const generatedQuestions = interviewData.generated_questions as Array<{ question: string; category: string }> | null;
+
+        if (!jobContext) {
+          throw new Error('Job context not found for job-specific interview');
+        }
+        if (!generatedQuestions || generatedQuestions.length === 0) {
+          throw new Error('Generated questions not found for job-specific interview');
+        }
+
+        return {
+          prompt: createJobSpecificEvaluationPrompt(interviewData.transcript, jobContext, generatedQuestions),
+          schema: JOB_SPECIFIC_EVALUATION_SCHEMA,
+          expectedSkillCount: 6,
+          schemaName: 'job_specific_evaluation',
         };
       } else {
+        // Full interview mode (default)
         return {
           prompt: createFullEvaluationPrompt(interviewData.transcript),
           schema: FULL_INTERVIEW_EVALUATION_SCHEMA,
           expectedSkillCount: 12,
+          schemaName: 'interview_evaluation',
         };
       }
     });
@@ -829,7 +996,6 @@ export const evaluateInterview = inngest.createFunction(
         throw new Error('OpenAI API key not configured');
       }
 
-      const isQuickQuestion = interviewData.interview_mode === 'quick_question';
       const requestPayload = {
         model: 'gpt-4.1',
         input: [
@@ -847,7 +1013,7 @@ export const evaluateInterview = inngest.createFunction(
         text: {
           format: {
             type: 'json_schema',
-            name: isQuickQuestion ? 'quick_question_evaluation' : 'interview_evaluation',
+            name: schemaName,
             schema: schema,
             strict: true,
           },
@@ -939,6 +1105,7 @@ export const evaluateInterview = inngest.createFunction(
         overallVerdict: string;
         overallExplanation: string;
         recommendedImprovements: string[];
+        companyFitAssessment?: string; // Only for job_specific mode
       } | null = null;
 
       const outputItem = finalData.output?.[0];
@@ -980,18 +1147,35 @@ export const evaluateInterview = inngest.createFunction(
     // Step 5: Save evaluation to database
     await step.run('save-evaluation', async () => {
       const questionData = interviewData.pm_interview_questions as unknown as { question: string; category: string } | null;
-      const isQuickQuestion = interviewData.interview_mode === 'quick_question';
+      const mode = interviewData.interview_mode;
+      const isQuickQuestion = mode === 'quick_question';
+      const isJobSpecific = mode === 'job_specific';
 
-      const fullEvaluation = {
+      // Build the evaluation object based on interview mode
+      const fullEvaluation: Record<string, unknown> = {
         ...evaluation,
-        interviewMode: interviewData.interview_mode || 'full',
-        questionPracticed: isQuickQuestion && questionData ? {
-          question: questionData.question,
-          category: questionData.category,
-        } : null,
+        interviewMode: mode || 'full',
         evaluatedAt: new Date().toISOString(),
         modelVersion: 'gpt-4.1',
       };
+
+      // Add question context for quick question mode
+      if (isQuickQuestion && questionData) {
+        fullEvaluation.questionPracticed = {
+          question: questionData.question,
+          category: questionData.category,
+        };
+      }
+
+      // Add job context for job-specific mode
+      if (isJobSpecific) {
+        const jobContext = interviewData.job_context as { companyName: string; jobTitle: string; descriptionSnippet?: string } | null;
+        const generatedQuestions = interviewData.generated_questions as Array<{ question: string; category: string }> | null;
+
+        fullEvaluation.jobContext = jobContext;
+        fullEvaluation.questionsAsked = generatedQuestions;
+        // companyFitAssessment is already included via ...evaluation spread
+      }
 
       const { error: updateError } = await supabase
         .from('mock_interviews')
