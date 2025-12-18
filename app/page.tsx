@@ -22,56 +22,40 @@ export default function Home() {
                 <div className="flex justify-center gap-4 mb-4 sm:mb-6 flex-wrap">
                   <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/80 backdrop-blur-sm border-2 border-purple-300 shadow-lg">
                     <span className="text-xs sm:text-sm font-bold text-purple-700">
-                      For Aspiring PMs and Growing PMs Alike
+                      For PMs Who Want to Stand Out in a Crowded Market
                     </span>
                   </div>
                 </div>
 
-                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight text-center">
-                  Stand Out and Land the Product Manager Offer You Actually Want
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight text-center">
+                  Stop Getting Overlooked for PM Roles You're Qualified For
                 </h2>
-                <p className="text-base sm:text-lg md:text-xl text-gray-700 font-semibold mb-6 sm:mb-8 text-center">
-                  A complete suite of AI tools, courses, and resources to help you break into product or accelerate your path to Senior, Staff, and beyond.
+                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-700 font-semibold mb-6 sm:mb-8 text-center">
+                  Position yourself as the obvious choice from networking call to the final round interview.
                 </p>
 
-                {/* Outcome highlights */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8">
-                  <div className="text-center p-3 sm:p-4 rounded-[1rem] sm:rounded-[1.5rem] bg-white/60 backdrop-blur-sm border-2 border-purple-200">
-                    <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🎯</div>
-                    <p className="text-xs sm:text-sm font-bold text-gray-700">Land Your Dream Job</p>
-                  </div>
-                  <div className="text-center p-3 sm:p-4 rounded-[1rem] sm:rounded-[1.5rem] bg-white/60 backdrop-blur-sm border-2 border-pink-200">
-                    <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🚀</div>
-                    <p className="text-xs sm:text-sm font-bold text-gray-700">Get Promoted Faster</p>
-                  </div>
-                  <div className="text-center p-3 sm:p-4 rounded-[1rem] sm:rounded-[1.5rem] bg-white/60 backdrop-blur-sm border-2 border-purple-200">
-                    <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">💡</div>
-                    <p className="text-xs sm:text-sm font-bold text-gray-700">Build Impactful Products</p>
-                  </div>
-                  <div className="text-center p-3 sm:p-4 rounded-[1rem] sm:rounded-[1.5rem] bg-white/60 backdrop-blur-sm border-2 border-pink-200">
-                    <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">💰</div>
-                    <p className="text-xs sm:text-sm font-bold text-gray-700">Increase Your Salary</p>
-                  </div>
-                </div>
-
+                <div className="flex justify-center">
                 <TrackedButton
                   href="/auth/sign-up"
-                  className="block w-full px-6 py-4 sm:px-10 sm:py-6 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.6)] sm:shadow-[0_10px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.6)] sm:hover:shadow-[0_6px_0_0_rgba(147,51,234,0.6)] text-lg sm:text-xl font-black text-white transition-all duration-200 text-center mb-3 sm:mb-4"
+                  className="inline-block px-8 py-4 sm:px-12 sm:py-5 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_0_0_rgba(147,51,234,0.6)] sm:shadow-[0_10px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.6)] sm:hover:shadow-[0_6px_0_0_rgba(147,51,234,0.6)] text-lg sm:text-xl font-black text-white transition-all duration-200 text-center mb-3 sm:mb-4"
                   eventName="User Clicked Sign Up Button"
                   buttonId="homepage-hero-primary-cta"
                   eventProperties={{
                     'Button Section': 'Hero Section',
                     'Button Position': 'Center of Hero Card',
                     'Button Type': 'Primary CTA',
-                    'Button Text': 'Start now for free →',
+                    'Button Text': 'Start free',
                     'Button Context': 'Below headline and outcome highlights',
                     'Page Section': 'Above the fold',
                   }}
                 >
-                  Start now for free →
+                  Start free
                 </TrackedButton>
-                <p className="text-center text-xs sm:text-sm text-gray-600 font-medium">
-                  Join thousands of PMs who've already leveled up
+                </div>
+                <p className="text-center text-xs sm:text-sm text-gray-600 font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-0">
+                  <span>No credit card required</span>
+                  <span className="hidden sm:inline mx-2">•</span>
+                  <span>Trusted by thousands of PMs</span>
                 </p>
               </div>
             </div>
