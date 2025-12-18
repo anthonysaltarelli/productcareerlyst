@@ -20,14 +20,15 @@ export default function Home() {
               <div className="relative z-10">
                 {/* Floating badges */}
                 <div className="flex justify-center gap-4 mb-4 sm:mb-6 flex-wrap">
-                  <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/80 backdrop-blur-sm border-2 border-purple-300 shadow-lg">
+                  <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/80 backdrop-blur-sm border-2 border-purple-300 shadow-lg text-center">
                     <span className="text-xs sm:text-sm font-bold text-purple-700">
-                      For PMs Who Want to Stand Out in a Crowded Market
+                      <span className="sm:hidden">For PMs Who Want to Stand Out</span>
+                      <span className="hidden sm:inline">For PMs Who Want to Stand Out in a Crowded Market</span>
                     </span>
                   </div>
                 </div>
 
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight text-center">
+                <h2 className="text-3xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight text-center">
                   Stop Getting Overlooked for PM Roles You're Qualified For
                 </h2>
                 <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-700 font-semibold mb-6 sm:mb-8 text-center">
