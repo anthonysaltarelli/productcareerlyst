@@ -216,7 +216,7 @@ export default function AdminEmailsPage() {
       if (emailAddressFilter.trim()) {
         params.append('emailAddress', emailAddressFilter.trim());
       }
-      params.append('limit', '100');
+      params.append('limit', '500');
 
       const response = await fetch(`/api/email/scheduled?${params.toString()}`);
       

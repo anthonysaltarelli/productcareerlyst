@@ -19,6 +19,7 @@ import {
   AlertCircle,
   Building2,
   Briefcase,
+  RotateCcw,
 } from 'lucide-react';
 import type { AIBehavioralEvaluation, SkillEvaluation } from '@/lib/types/interview-evaluation';
 
@@ -82,6 +83,16 @@ interface JobSpecificEvaluation {
   modelVersion: string;
 }
 
+interface AdHocQuestion {
+  question: string;
+  category: string;
+  source?: {
+    type: 'job_specific';
+    companyName: string;
+    jobTitle: string;
+  };
+}
+
 interface InterviewData {
   id: string;
   status: string;
@@ -99,6 +110,8 @@ interface InterviewData {
     question: string;
     guidance: string;
   } | null;
+  // Ad-hoc question for quick practice from job-specific interviews
+  adhoc_question?: AdHocQuestion | null;
   // Job-specific interview fields
   job_context?: JobContext | null;
   generated_questions?: QuestionAsked[] | null;
@@ -543,6 +556,24 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
               </p>
             </div>
           )}
+          {/* Show ad-hoc question practiced (from job-specific interviews) */}
+          {interview?.interview_mode === 'quick_question' && !interview?.pm_interview_questions && interview?.adhoc_question && (
+            <div className="mt-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <p className="text-xs font-bold text-purple-600 uppercase tracking-wider">
+                  Question Practiced
+                </p>
+                {interview.adhoc_question.source && (
+                  <span className="text-xs text-purple-400 font-medium">
+                    from your {interview.adhoc_question.source.jobTitle} interview at {interview.adhoc_question.source.companyName}
+                  </span>
+                )}
+              </div>
+              <p className="text-gray-800 font-medium">
+                {interview.adhoc_question.question}
+              </p>
+            </div>
+          )}
           {/* Show questions asked for job-specific interviews */}
           {interview?.interview_mode === 'job_specific' && interview?.generated_questions && interview.generated_questions.length > 0 && (
             <div className="mt-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200">
@@ -555,7 +586,26 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
                     <span className="flex-shrink-0 w-5 h-5 rounded-full bg-purple-200 text-purple-700 text-xs font-bold flex items-center justify-center mt-0.5">
                       {idx + 1}
                     </span>
-                    <span className="text-sm text-gray-700">{q.question}</span>
+                    <span className="text-sm text-gray-700 flex-1">{q.question}</span>
+                    <button
+                      onClick={() => {
+                        const data = {
+                          question: q.question,
+                          category: q.category,
+                          source: {
+                            type: 'job_specific',
+                            companyName: interview?.job_context?.companyName,
+                            jobTitle: interview?.job_context?.jobTitle,
+                          }
+                        };
+                        const encoded = btoa(JSON.stringify(data));
+                        router.push(`/dashboard/interview/mock/question/adhoc?q=${encoded}`);
+                      }}
+                      className="flex-shrink-0 px-3 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-1.5"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Practice This Question
+                    </button>
                   </li>
                 ))}
               </ul>

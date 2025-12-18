@@ -26,11 +26,14 @@ interface BeyondPresenceCallResponse {
   tags?: Record<string, string>;
 }
 
-interface PMInterviewQuestion {
-  id: string;
-  category: string;
+interface AdHocQuestion {
   question: string;
-  guidance: string;
+  category: string;
+  source?: {
+    type: 'job_specific';
+    companyName: string;
+    jobTitle: string;
+  };
 }
 
 /**
@@ -201,7 +204,7 @@ function getGreetingDescription(category: string): string {
 /**
  * Build the system prompt for a quick question interview
  */
-function buildQuickQuestionSystemPrompt(question: PMInterviewQuestion): string {
+function buildQuickQuestionSystemPrompt(question: AdHocQuestion): string {
   const followUps = getCategoryFollowUps(question.category);
   const categoryDesc = getCategoryDescription(question.category);
 
@@ -234,14 +237,14 @@ Question: "${question.question}"
 /**
  * Build the greeting for a quick question interview
  */
-function buildQuickQuestionGreeting(question: PMInterviewQuestion): string {
+function buildQuickQuestionGreeting(question: AdHocQuestion): string {
   const greetingDesc = getGreetingDescription(question.category);
   return `Hi! My name is Nelly. Thanks for practicing with me today. I'm going to ask you ${greetingDesc}, and I'd like you to answer it as if you were in a real interview. Here's your question: "${question.question}"`;
 }
 
 /**
- * POST /api/mock-interviews/quick-question/start
- * Create a quick question practice session with a temporary Bey.dev agent
+ * POST /api/mock-interviews/quick-question/start-adhoc
+ * Create a quick question practice session with an ad-hoc question (not from question bank)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -265,36 +268,27 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { questionId } = body;
+    const { question, category, source } = body as AdHocQuestion;
 
-    if (!questionId) {
+    if (!question || !category) {
       return NextResponse.json(
-        { error: 'questionId is required' },
+        { error: 'question and category are required' },
         { status: 400 }
       );
     }
 
-    // Fetch the question
-    const { data: question, error: questionError } = await supabase
-      .from('pm_interview_questions')
-      .select('id, category, question, guidance')
-      .eq('id', questionId)
-      .single();
-
-    if (questionError || !question) {
-      console.error('Error fetching question:', questionError);
-      return NextResponse.json(
-        { error: 'Question not found' },
-        { status: 404 }
-      );
-    }
+    const adhocQuestion: AdHocQuestion = {
+      question,
+      category,
+      source,
+    };
 
     // Step 1: Create temporary Bey.dev agent
     const agentPayload = {
       name: 'Nelly',
       avatar_id: BEYOND_PRESENCE_AVATAR_ID,
-      system_prompt: buildQuickQuestionSystemPrompt(question),
-      greeting: buildQuickQuestionGreeting(question),
+      system_prompt: buildQuickQuestionSystemPrompt(adhocQuestion),
+      greeting: buildQuickQuestionGreeting(adhocQuestion),
       max_session_length_minutes: 5,
       language: 'en',
       capabilities: [{ type: 'webcam_vision' }],
@@ -321,7 +315,7 @@ export async function POST(request: NextRequest) {
     const agentData: BeyondPresenceAgentResponse = await agentResponse.json();
     const temporaryAgentId = agentData.id;
 
-    // Step 2: Create the mock interview record
+    // Step 2: Create the mock interview record with ad-hoc question
     const { data: interview, error: insertError } = await supabase
       .from('mock_interviews')
       .insert({
@@ -329,7 +323,7 @@ export async function POST(request: NextRequest) {
         status: 'pending',
         started_at: new Date().toISOString(),
         interview_mode: 'quick_question',
-        question_id: questionId,
+        adhoc_question: adhocQuestion,
         bey_agent_id: temporaryAgentId,
         max_duration_minutes: 5,
       })
@@ -360,7 +354,7 @@ export async function POST(request: NextRequest) {
           interview_id: interview.id,
           user_id: user.id,
           interview_mode: 'quick_question',
-          question_id: questionId,
+          adhoc: 'true',
         },
       }),
     });
@@ -400,13 +394,12 @@ export async function POST(request: NextRequest) {
       livekitUrl: callData.livekit_url,
       livekitToken: callData.livekit_token,
       question: {
-        id: question.id,
-        category: question.category,
-        question: question.question,
+        question: adhocQuestion.question,
+        category: adhocQuestion.category,
       },
     });
   } catch (error) {
-    console.error('Error in quick question start API:', error);
+    console.error('Error in ad-hoc quick question start API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
