@@ -325,6 +325,15 @@ const CATEGORY_SKILLS: Record<string, { skills: string[]; descriptions: Record<s
   },
 };
 
+// Add lowercase aliases for job-specific interview categories
+// These map to the same skills as their uppercase counterparts
+CATEGORY_SKILLS['behavioral'] = CATEGORY_SKILLS['Behavioral'];
+CATEGORY_SKILLS['product_sense'] = CATEGORY_SKILLS['Product Sense'];
+// For company, role, and industry - use a general PM skills set (falls back to Behavioral)
+CATEGORY_SKILLS['company'] = CATEGORY_SKILLS['Culture Fit']; // Company fit questions align with culture fit skills
+CATEGORY_SKILLS['role'] = CATEGORY_SKILLS['Behavioral']; // Role fit questions align with behavioral skills
+CATEGORY_SKILLS['industry'] = CATEGORY_SKILLS['Industry Knowledge']; // Industry questions use industry skills
+
 // Default skills for unknown categories (falls back to behavioral)
 const DEFAULT_CATEGORY = 'Behavioral';
 
@@ -693,6 +702,7 @@ Strong culture fit answers show:
 **Professional Maturity**: Handling pressure and ambiguity`;
 
     case 'Industry Knowledge':
+    case 'industry':
       return `## Industry Knowledge Framework
 
 Strong industry answers demonstrate:
@@ -701,6 +711,33 @@ Strong industry answers demonstrate:
 **Trend Awareness**: Knowledge of current and emerging trends
 **Regulatory Understanding**: Awareness of compliance considerations
 **Customer Knowledge**: Understanding of customer ecosystem`;
+
+    // Job-specific interview categories (lowercase)
+    case 'behavioral':
+      return getCategoryGuidance('Behavioral');
+
+    case 'product_sense':
+      return getCategoryGuidance('Product Sense');
+
+    case 'company':
+      return `## Company Fit Framework
+
+Strong company fit answers demonstrate:
+
+**Company Knowledge**: Specific knowledge of the company's mission, products, and values
+**Genuine Enthusiasm**: Authentic interest, not generic enthusiasm
+**Career Alignment**: Clear connection between your goals and the company
+**Cultural Fit**: Understanding of how you'd contribute to the company culture`;
+
+    case 'role':
+      return `## Role Fit Framework
+
+Strong role fit answers demonstrate:
+
+**Relevant Experience**: Clear examples that map to role requirements
+**Skill Transfer**: How existing skills apply to this specific role
+**Role Understanding**: Deep knowledge of the position's responsibilities
+**Growth Trajectory**: How this role fits your career path`;
 
     default:
       return `## General PM Interview Framework
@@ -922,6 +959,7 @@ export const evaluateInterview = inngest.createFunction(
           question_id,
           job_context,
           generated_questions,
+          adhoc_question,
           pm_interview_questions (
             id,
             category,
@@ -949,7 +987,11 @@ export const evaluateInterview = inngest.createFunction(
       const mode = interviewData.interview_mode;
 
       if (mode === 'quick_question') {
-        const question = interviewData.pm_interview_questions as unknown as { question: string; category: string };
+        // Check for question from question bank OR ad-hoc question
+        const questionFromBank = interviewData.pm_interview_questions as unknown as { question: string; category: string } | null;
+        const adhocQuestion = interviewData.adhoc_question as { question: string; category: string } | null;
+        const question = questionFromBank || adhocQuestion;
+
         if (!question) {
           throw new Error('Question data not found for quick question interview');
         }
@@ -1160,11 +1202,20 @@ export const evaluateInterview = inngest.createFunction(
       };
 
       // Add question context for quick question mode
-      if (isQuickQuestion && questionData) {
-        fullEvaluation.questionPracticed = {
-          question: questionData.question,
-          category: questionData.category,
-        };
+      if (isQuickQuestion) {
+        const adhocQuestion = interviewData.adhoc_question as { question: string; category: string; source?: { type: string; companyName: string; jobTitle: string } } | null;
+        if (questionData) {
+          fullEvaluation.questionPracticed = {
+            question: questionData.question,
+            category: questionData.category,
+          };
+        } else if (adhocQuestion) {
+          fullEvaluation.questionPracticed = {
+            question: adhocQuestion.question,
+            category: adhocQuestion.category,
+            source: adhocQuestion.source,
+          };
+        }
       }
 
       // Add job context for job-specific mode

@@ -48,6 +48,10 @@ interface MockInterview {
   self_performance_rating: number | null;
   ai_evaluation: AIBehavioralEvaluation | null;
   created_at: string;
+  interview_mode: 'full' | 'quick_question' | 'job_specific';
+  question_id: string | null;
+  job_context: { companyName: string; jobTitle: string } | null;
+  adhoc_question: { question: string; category: string; source: { type: string; companyName?: string } } | null;
 }
 
 interface JobWithCompany {
@@ -105,6 +109,37 @@ function formatRelativeDate(dateString: string): string {
 
 function getCategoryColors(category: string) {
   return categoryColors[category] || { bg: 'bg-gray-100', text: 'text-gray-700', hoverBorder: 'hover:border-gray-300', hoverBg: 'hover:bg-gray-50/30' };
+}
+
+function formatCategoryName(category: string): string {
+  // Convert snake_case to Title Case (e.g., "product_sense" -> "Product Sense")
+  return category
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function getMockInterviewLabel(interview: MockInterview, questions: InterviewQuestion[]): string {
+  switch (interview.interview_mode) {
+    case 'job_specific':
+      return interview.job_context?.companyName || 'Company Interview';
+    case 'quick_question':
+      // Check for adhoc question first
+      if (interview.adhoc_question?.category) {
+        return formatCategoryName(interview.adhoc_question.category);
+      }
+      // Look up category from questions array
+      if (interview.question_id) {
+        const question = questions.find(q => q.id === interview.question_id);
+        if (question) {
+          return question.category;
+        }
+      }
+      return 'Quick Practice';
+    case 'full':
+    default:
+      return 'Full Mock';
+  }
 }
 
 export default function InterviewPrepPage() {
@@ -319,7 +354,7 @@ export default function InterviewPrepPage() {
     ...mockInterviews.map(m => ({
       id: m.id,
       type: 'mock' as const,
-      label: 'Behavioral',
+      label: getMockInterviewLabel(m, questions),
       date: m.created_at,
       duration: m.duration_seconds,
       verdict: m.ai_evaluation?.overallVerdict,

@@ -20,6 +20,7 @@ import {
   Building2,
   Briefcase,
   RotateCcw,
+  RefreshCw,
 } from 'lucide-react';
 import type { AIBehavioralEvaluation, SkillEvaluation } from '@/lib/types/interview-evaluation';
 
@@ -201,6 +202,9 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
   const [evaluationError, setEvaluationError] = useState<string | null>(null);
   const [expandedSkills, setExpandedSkills] = useState<Set<number>>(new Set());
 
+  // Transcript refresh state
+  const [isRefreshingTranscript, setIsRefreshingTranscript] = useState(false);
+
   // Resolve params
   useEffect(() => {
     params.then((p) => setInterviewId(p.id));
@@ -324,6 +328,29 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
       console.error('Error submitting feedback:', error);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Refresh transcript from Beyond Presence API
+  const handleRefreshTranscript = async () => {
+    if (!interviewId || isRefreshingTranscript) return;
+
+    setIsRefreshingTranscript(true);
+    try {
+      const response = await fetch(`/api/mock-interviews/${interviewId}/refresh-transcript`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.transcript && data.transcript.length > 0) {
+          setInterview((prev) => prev ? { ...prev, transcript: data.transcript } : prev);
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing transcript:', error);
+    } finally {
+      setIsRefreshingTranscript(false);
     }
   };
 
@@ -965,27 +992,49 @@ export default function MockInterviewFeedbackPage({ params }: MockInterviewFeedb
             </div>
 
             {hasTranscript ? (
-              <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                {interview.transcript!.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
+              <>
+                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                  {interview.transcript!.map((msg, index) => (
                     <div
-                      className={`max-w-[85%] rounded-2xl px-4 py-3 ${
-                        msg.sender === 'user'
-                          ? 'bg-purple-500 text-white'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
+                      key={index}
+                      className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      <p className="text-sm font-medium mb-1 opacity-70">
-                        {msg.sender === 'user' ? 'You' : 'AI Interviewer'}
-                      </p>
-                      <p className="text-sm leading-relaxed">{msg.message}</p>
+                      <div
+                        className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                          msg.sender === 'user'
+                            ? 'bg-purple-500 text-white'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        <p className="text-sm font-medium mb-1 opacity-70">
+                          {msg.sender === 'user' ? 'You' : 'AI Interviewer'}
+                        </p>
+                        <p className="text-sm leading-relaxed">{msg.message}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                {/* Refresh transcript button */}
+                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-center">
+                  <button
+                    onClick={handleRefreshTranscript}
+                    disabled={isRefreshingTranscript}
+                    className="flex items-center gap-2 text-sm text-gray-500 hover:text-purple-600 transition-colors disabled:opacity-50"
+                  >
+                    {isRefreshingTranscript ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Refreshing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4" />
+                        <span>Don&apos;t see the full transcript? Refresh</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 {isPollingTranscript ? (
