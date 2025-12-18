@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { isOnboardingComplete } from '@/lib/utils/onboarding';
-import { BlackFridayBanner } from '@/app/components/BlackFridayBanner';
 
 export default async function OnboardingLayout({
   children,
@@ -25,7 +24,6 @@ export default async function OnboardingLayout({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100">
-      <BlackFridayBanner />
       {children}
     </div>
   );

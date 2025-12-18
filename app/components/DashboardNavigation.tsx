@@ -1,6 +1,5 @@
 'use client'
 
-import { useFlags } from 'launchdarkly-react-client-sdk'
 import { CreditCard, Settings, Home, BookOpen, Briefcase, FileText, FolderKanban, FileSpreadsheet, Lightbulb, Target } from 'lucide-react'
 import { NavLink } from '@/app/components/NavLink'
 
@@ -10,7 +9,6 @@ interface DashboardNavigationProps {
 }
 
 export const DashboardNavigation = ({ fullScreen = false, onNavClick }: DashboardNavigationProps) => {
-  const { compensation, impactPortfolio, careerTracker } = useFlags()
 
   // Base styles for nav links
   const baseNavLinkClass = fullScreen
@@ -129,66 +127,6 @@ export const DashboardNavigation = ({ fullScreen = false, onNavClick }: Dashboar
         <Target className={iconClass} />
         <span>Interview Prep</span>
       </NavLink>
-      {careerTracker && (
-        <NavLink
-          href="/dashboard/career"
-          eventName="User Clicked Dashboard Navigation Link"
-          linkId={fullScreen ? 'mobile-nav-career-link' : 'dashboard-nav-career-link'}
-          eventProperties={{
-            'Link Text': 'Career Tracker',
-            'Link Destination': '/dashboard/career',
-            'Link Section': fullScreen ? 'Mobile Navigation' : 'Sidebar Navigation',
-            'Link Position': 'Main Navigation',
-            'Link Type': 'Navigation Link',
-            'Feature Flag Required': true,
-            'Feature Flag Name': 'careerTracker',
-          }}
-          className={baseNavLinkClass}
-          onClick={onNavClick}
-        >
-          <span>Career Tracker</span>
-        </NavLink>
-      )}
-      {impactPortfolio && (
-        <NavLink
-          href="/dashboard/portfolio"
-          eventName="User Clicked Dashboard Navigation Link"
-          linkId={fullScreen ? 'mobile-nav-impact-portfolio-link' : 'dashboard-nav-impact-portfolio-link'}
-          eventProperties={{
-            'Link Text': 'Impact Portfolio',
-            'Link Destination': '/dashboard/portfolio',
-            'Link Section': fullScreen ? 'Mobile Navigation' : 'Sidebar Navigation',
-            'Link Position': 'Main Navigation',
-            'Link Type': 'Navigation Link',
-            'Feature Flag Required': true,
-            'Feature Flag Name': 'impactPortfolio',
-          }}
-          className={baseNavLinkClass}
-          onClick={onNavClick}
-        >
-          <span>Impact Portfolio</span>
-        </NavLink>
-      )}
-      {compensation && (
-        <NavLink
-          href="/dashboard/compensation"
-          eventName="User Clicked Dashboard Navigation Link"
-          linkId={fullScreen ? 'mobile-nav-compensation-link' : 'dashboard-nav-compensation-link'}
-          eventProperties={{
-            'Link Text': 'Compensation',
-            'Link Destination': '/dashboard/compensation',
-            'Link Section': fullScreen ? 'Mobile Navigation' : 'Sidebar Navigation',
-            'Link Position': 'Main Navigation',
-            'Link Type': 'Navigation Link',
-            'Feature Flag Required': true,
-            'Feature Flag Name': 'compensation',
-          }}
-          className={baseNavLinkClass}
-          onClick={onNavClick}
-        >
-          <span>Compensation</span>
-        </NavLink>
-      )}
       <NavLink
         href="/dashboard/templates"
         eventName="User Clicked Dashboard Navigation Link"

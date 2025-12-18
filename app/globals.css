@@ -119,15 +119,6 @@ body {
    - components/tiptap-node/*.scss files
 */
 
-/* Black Friday animations */
-.animate-bounce-gentle {
-  animation: bounce-gentle 2s ease-in-out infinite;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
 /* Shimmer animation for progress bars */
 @keyframes shimmer {
   0% {
