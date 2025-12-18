@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, X, Plus } from 'lucide-react';
 import { TrackedButton } from '@/app/components/TrackedButton';
 import { PageTracking } from '@/app/components/PageTracking';
@@ -164,13 +164,39 @@ const testimonials = [
   },
 ];
 
-const FeatureModal = ({ 
-  feature, 
-  onClose 
-}: { 
-  feature: FeatureInfo; 
+const FeatureModal = ({
+  feature,
+  onClose
+}: {
+  feature: FeatureInfo;
   onClose: () => void;
 }) => {
+  useEffect(() => {
+    // Save current scroll position
+    const scrollY = window.scrollY;
+
+    // Lock body scroll
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+
+    return () => {
+      // Restore body scroll
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
+
+      // Restore scroll position
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
