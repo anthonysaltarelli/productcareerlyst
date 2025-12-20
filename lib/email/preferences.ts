@@ -244,7 +244,7 @@ export const cancelScheduledMarketingEmails = async (
 async function processResendCancellationAsync(
   scheduledEmails: any[]
 ): Promise<void> {
-  const RATE_LIMIT_DELAY_MS = 600; // 600ms = ~1.67 requests/second
+  const RATE_LIMIT_DELAY_MS = 1000; // 1 second = 1 request/second (safe margin for Resend API)
 
   for (let i = 0; i < scheduledEmails.length; i++) {
     const email = scheduledEmails[i];

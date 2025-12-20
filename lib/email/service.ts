@@ -870,7 +870,7 @@ async function processResendSchedulingAsync(
   emailAddress: string
 ): Promise<void> {
   const supabase = getSupabaseAdmin();
-  const RATE_LIMIT_DELAY_MS = 600; // 600ms = ~1.67 requests/second (safe margin)
+  const RATE_LIMIT_DELAY_MS = 1000; // 1 second = 1 request/second (safe margin for Resend API)
   
   console.log(`[processResendSchedulingAsync] Starting background processing for ${insertedEmails.length} emails`);
   
@@ -972,7 +972,7 @@ export async function processResendSchedulingForEmails(
   emailAddress: string
 ): Promise<void> {
   const supabase = getSupabaseAdmin();
-  const RATE_LIMIT_DELAY_MS = 600; // 600ms = ~1.67 requests/second (safe margin)
+  const RATE_LIMIT_DELAY_MS = 1000; // 1 second = 1 request/second (safe margin for Resend API)
 
   console.log(`[processResendSchedulingForEmails] Starting processing for ${pendingEmails.length} emails`);
 
@@ -1168,7 +1168,7 @@ async function processResendCancellationAsync(
   scheduledEmails: ScheduledEmail[]
 ): Promise<void> {
   const supabase = getSupabaseAdmin();
-  const RATE_LIMIT_DELAY_MS = 600; // 600ms = ~1.67 requests/second (safe margin)
+  const RATE_LIMIT_DELAY_MS = 1000; // 1 second = 1 request/second (safe margin for Resend API)
   
   console.log(`[processResendCancellationAsync] Starting background cancellation for ${scheduledEmails.length} emails`);
   
@@ -1227,7 +1227,7 @@ export async function processResendCancellationForEmails(
   cancelledEmails: ScheduledEmail[]
 ): Promise<{ cancelled: number; failed: number }> {
   const supabase = getSupabaseAdmin();
-  const RATE_LIMIT_DELAY_MS = 600; // 600ms = ~1.67 requests/second (safe margin)
+  const RATE_LIMIT_DELAY_MS = 1000; // 1 second = 1 request/second (safe margin for Resend API)
 
   console.log(`[processResendCancellationForEmails] Starting processing for ${cancelledEmails.length} emails`);
 
