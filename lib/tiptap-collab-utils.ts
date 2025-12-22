@@ -241,10 +241,15 @@ Follow this guide: https://tiptap.dev/docs/ui-components/templates/notion-like-e
  * Fetch AI JWT token from the API
  */
 export const fetchAiToken = async () => {
+  console.log("[TipTap Client] fetchAiToken called", {
+    useJwtEndpoint: !!USE_JWT_TOKEN_API_ENDPOINT,
+    hasAiAppId: !!TIPTAP_AI_APP_ID,
+    aiAppId: TIPTAP_AI_APP_ID || "NOT_SET",
+  })
+
   if (USE_JWT_TOKEN_API_ENDPOINT) {
     try {
-      // Example API endpoint that returns a JWT token.
-      // TODO: implement this API endpoint in your app
+      console.log("[TipTap Client] Fetching AI token from /api/tiptap/ai")
       const response = await fetch(`/api/tiptap/ai`, {
         method: "POST",
         headers: {
@@ -252,38 +257,39 @@ export const fetchAiToken = async () => {
         },
       })
 
+      console.log("[TipTap Client] AI token response status:", response.status)
+
       if (!response.ok) {
-        throw new Error(`Failed to fetch token: ${response.status}`)
+        const errorBody = await response.text()
+        console.error("[TipTap Client] AI token fetch failed:", {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorBody,
+        })
+        throw new Error(`Failed to fetch token: ${response.status} - ${errorBody}`)
       }
 
       const data = await response.json()
+      console.log("[TipTap Client] AI token received:", {
+        hasToken: !!data.token,
+        tokenLength: data.token?.length || 0,
+        tokenPreview: data.token ? `${data.token.slice(0, 20)}...` : "none",
+      })
       return data.token
     } catch (error) {
-      console.error("Failed to fetch AI token:", error)
+      console.error("[TipTap Client] Failed to fetch AI token:", error)
       return null
     }
   }
 
-  // TODO: as a developer, use the example JWT token provided in the Tiptap
-  // Cloud dashboard for local development only. In production, implement an API
-  // endpoint that generates a new JWT token in the server. Then, call that API
-  // endpoint from this function.
-  // When you've implemented the API endpoint, remove the code below.
+  // Fallback for local development
   if (!TIPTAP_AI_TOKEN) {
-    alert(`Set up your environment variables to connect to Tiptap Cloud:
-- NEXT_PUBLIC_TIPTAP_COLLAB_DOC_PREFIX - Prefix for identifying collaborative documents
-- NEXT_PUBLIC_TIPTAP_COLLAB_APP_ID - Your Document Server App ID
-- NEXT_PUBLIC_TIPTAP_COLLAB_TOKEN - JWT token for accessing Collaboration services (do not use in production)
-- NEXT_PUBLIC_TIPTAP_AI_APP_ID - Your AI App ID
-- NEXT_PUBLIC_TIPTAP_AI_TOKEN - JWT token for accessing AI services (do not use in production)
-Follow this guide: https://tiptap.dev/docs/ui-components/templates/notion-like-editor`)
+    console.warn("[TipTap Client] No AI token available - AI features will be disabled")
   } else {
     console.warn(
-      "You are using the example JWT token provided in the Tiptap Cloud dashboard. This is only for local development and should not be used in production. In production, implement an API endpoint that generates a new JWT token in the server, and call that API endpoint from the fetchAiToken function. More info in the docs: https://tiptap.dev/docs/ui-components/templates/notion-like-editor"
+      "[TipTap Client] Using hardcoded token for local development only"
     )
   }
 
-  // A hardcoded token for demonstration purposes.
-  // TODO: remove this in production and use the API endpoint instead
-  return TIPTAP_AI_TOKEN
+  return TIPTAP_AI_TOKEN || null
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useContext, useEffect, useImperativeHandle, useRef, useState, forwardRef } from "react"
+import { useCallback, useContext, useEffect, useImperativeHandle, useRef, useState } from "react"
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
 import type { JSONContent } from "@tiptap/react"
 import { createPortal } from "react-dom"
@@ -246,10 +246,32 @@ export function EditorProviderStandalone(props: EditorProviderStandaloneProps) {
   const initialContentRef = useRef<JSONContent | undefined>(initialContent)
   const isInitializedRef = useRef(false)
 
+  // Log AI configuration for debugging
+  useEffect(() => {
+    console.log("[TipTap Editor] EditorProviderStandalone mounted", {
+      hasAiToken: !!aiToken,
+      aiTokenLength: aiToken?.length || 0,
+      aiTokenPreview: aiToken ? `${aiToken.slice(0, 20)}...` : "none",
+      aiAppId: TIPTAP_AI_APP_ID || "NOT_SET",
+      aiAppIdLength: TIPTAP_AI_APP_ID?.length || 0,
+      aiEnabled: !!(aiToken && TIPTAP_AI_APP_ID),
+    })
+  }, [aiToken])
+
   // Default empty document
   const defaultContent: JSONContent = {
     type: "doc",
     content: [{ type: "paragraph" }],
+  }
+
+  // Determine if AI should be enabled
+  const shouldEnableAi = !!(aiToken && TIPTAP_AI_APP_ID)
+
+  if (aiToken && !TIPTAP_AI_APP_ID) {
+    console.error("[TipTap Editor] AI token present but TIPTAP_AI_APP_ID is missing!")
+  }
+  if (!aiToken && TIPTAP_AI_APP_ID) {
+    console.warn("[TipTap Editor] TIPTAP_AI_APP_ID present but no AI token available")
   }
 
   const editor = useEditor({
@@ -322,8 +344,8 @@ export function EditorProviderStandalone(props: EditorProviderStandaloneProps) {
       }),
       Typography,
       UiState,
-      // AI extension - works without collaboration
-      ...(aiToken
+      // AI extension - only enable if both token AND appId are available
+      ...(shouldEnableAi
         ? [
             Ai.configure({
               appId: TIPTAP_AI_APP_ID,

@@ -28,14 +28,30 @@ export const useAiToken = () => {
 
   useEffect(() => {
     const noAiParam = getUrlParam("noAi")
-    setHasAi(parseInt(noAiParam || "0") !== 1)
+    const aiEnabled = parseInt(noAiParam || "0") !== 1
+    console.log("[TipTap AiContext] Checking AI availability", {
+      noAiParam,
+      aiEnabled,
+    })
+    setHasAi(aiEnabled)
   }, [])
 
   useEffect(() => {
-    if (!hasAi) return
+    if (!hasAi) {
+      console.log("[TipTap AiContext] AI disabled via URL param, skipping token fetch")
+      return
+    }
 
     const getToken = async () => {
+      console.log("[TipTap AiContext] Starting AI token fetch...")
+      const startTime = Date.now()
       const token = await fetchAiToken()
+      const duration = Date.now() - startTime
+      console.log("[TipTap AiContext] AI token fetch complete", {
+        success: !!token,
+        tokenLength: token?.length || 0,
+        durationMs: duration,
+      })
       setAiToken(token)
     }
 
