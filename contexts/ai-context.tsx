@@ -6,11 +6,13 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react"
 export type AiContextValue = {
   aiToken: string | null
   hasAi: boolean
+  isLoadingToken: boolean
 }
 
 export const AiContext = createContext<AiContextValue>({
   hasAi: false,
   aiToken: null,
+  isLoadingToken: true,
 })
 
 export const AiConsumer = AiContext.Consumer
@@ -25,6 +27,7 @@ export const useAi = (): AiContextValue => {
 export const useAiToken = () => {
   const [aiToken, setAiToken] = useState<string | null>(null)
   const [hasAi, setHasAi] = useState<boolean>(true)
+  const [isLoadingToken, setIsLoadingToken] = useState<boolean>(true)
 
   useEffect(() => {
     const noAiParam = getUrlParam("noAi")
@@ -34,6 +37,9 @@ export const useAiToken = () => {
       aiEnabled,
     })
     setHasAi(aiEnabled)
+    if (!aiEnabled) {
+      setIsLoadingToken(false)
+    }
   }, [])
 
   useEffect(() => {
@@ -44,6 +50,7 @@ export const useAiToken = () => {
 
     const getToken = async () => {
       console.log("[TipTap AiContext] Starting AI token fetch...")
+      setIsLoadingToken(true)
       const startTime = Date.now()
       const token = await fetchAiToken()
       const duration = Date.now() - startTime
@@ -53,12 +60,13 @@ export const useAiToken = () => {
         durationMs: duration,
       })
       setAiToken(token)
+      setIsLoadingToken(false)
     }
 
     getToken()
   }, [hasAi])
 
-  return { aiToken, hasAi }
+  return { aiToken, hasAi, isLoadingToken }
 }
 
 export function AiProvider({
@@ -66,14 +74,15 @@ export function AiProvider({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const { hasAi, aiToken } = useAiToken()
+  const { hasAi, aiToken, isLoadingToken } = useAiToken()
 
   const value = useMemo<AiContextValue>(
     () => ({
       hasAi,
       aiToken,
+      isLoadingToken,
     }),
-    [hasAi, aiToken]
+    [hasAi, aiToken, isLoadingToken]
   )
 
   return <AiContext.Provider value={value}>{children}</AiContext.Provider>

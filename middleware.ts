@@ -19,7 +19,13 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname === '/api/inngest') {
     return NextResponse.next()
   }
-  
+
+  // Skip middleware for TipTap API routes - they handle their own auth
+  // This prevents hanging issues with fetch requests during hydration
+  if (request.nextUrl.pathname.startsWith('/api/tiptap/')) {
+    return NextResponse.next()
+  }
+
   return await updateSession(request)
 }
 

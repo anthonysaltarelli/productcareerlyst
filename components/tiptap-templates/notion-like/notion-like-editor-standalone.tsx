@@ -543,30 +543,36 @@ function NotionEditorStandaloneContent({
   readOnly,
   editorRef,
 }: NotionEditorStandalonePropsWithRef) {
-  const { aiToken } = useAi()
+  const { aiToken, isLoadingToken } = useAi()
 
   // Wait for AI token to load (or timeout)
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
-    // If we have a token, proceed immediately
+    // If token loading is complete (either success or failure), proceed
+    if (!isLoadingToken) {
+      setIsReady(true)
+      return
+    }
+
+    // If we have a token already, proceed immediately
     if (aiToken !== null) {
       setIsReady(true)
       return
     }
 
-    // Wait up to 2 seconds for the AI token to load
+    // Wait up to 5 seconds for the AI token to load
     // If it doesn't arrive, proceed without it (AI features will be disabled)
     const timeout = setTimeout(() => {
       console.warn('AI token did not load in time, proceeding without AI features')
       setIsReady(true)
-    }, 2000)
+    }, 5000)
 
     return () => clearTimeout(timeout)
-  }, [aiToken])
+  }, [aiToken, isLoadingToken])
 
   if (!isReady) {
-    return <LoadingSpinner text="Initializing editor..." />
+    return <LoadingSpinner text="Initializing AI features..." />
   }
 
   return (

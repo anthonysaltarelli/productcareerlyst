@@ -18,14 +18,15 @@ import * as jose from 'jose';
 
 export async function POST() {
   const requestId = crypto.randomUUID().slice(0, 8);
-  console.log(`[TipTap AI ${requestId}] Token generation request started`);
+  const startTime = Date.now();
+  console.log(`[TipTap AI ${requestId}] Token generation request started at ${new Date().toISOString()}`);
 
   try {
     // Log environment variable status (not values for security)
     const secret = process.env.TIPTAP_AI_SECRET;
     const appId = process.env.NEXT_PUBLIC_TIPTAP_AI_APP_ID;
 
-    console.log(`[TipTap AI ${requestId}] Environment check:`, {
+    console.log(`[TipTap AI ${requestId}] Environment check (+${Date.now() - startTime}ms):`, {
       hasSecret: !!secret,
       secretLength: secret?.length || 0,
       hasAppId: !!appId,
@@ -33,8 +34,13 @@ export async function POST() {
     });
 
     // Verify user is authenticated
+    console.log(`[TipTap AI ${requestId}] Creating Supabase client (+${Date.now() - startTime}ms)`);
     const supabase = await createClient();
+    console.log(`[TipTap AI ${requestId}] Supabase client created (+${Date.now() - startTime}ms)`);
+
+    console.log(`[TipTap AI ${requestId}] Getting user (+${Date.now() - startTime}ms)`);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log(`[TipTap AI ${requestId}] User retrieved (+${Date.now() - startTime}ms)`);
 
     console.log(`[TipTap AI ${requestId}] Auth check:`, {
       hasUser: !!user,

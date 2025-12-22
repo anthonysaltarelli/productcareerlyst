@@ -237,59 +237,58 @@ Follow this guide: https://tiptap.dev/docs/ui-components/templates/notion-like-e
   return TIPTAP_COLLAB_TOKEN
 }
 
+// Singleton to prevent duplicate fetches
+let aiTokenPromise: Promise<string | null> | null = null
+
 /**
- * Fetch AI JWT token from the API
+ * Fetch AI JWT token using Server Action
+ * This avoids browser fetch issues by running entirely on the server
  */
-export const fetchAiToken = async () => {
+export const fetchAiToken = async (): Promise<string | null> => {
   console.log("[TipTap Client] fetchAiToken called", {
     useJwtEndpoint: !!USE_JWT_TOKEN_API_ENDPOINT,
     hasAiAppId: !!TIPTAP_AI_APP_ID,
     aiAppId: TIPTAP_AI_APP_ID || "NOT_SET",
+    hasPromise: aiTokenPromise !== null,
   })
 
-  if (USE_JWT_TOKEN_API_ENDPOINT) {
+  // Return existing promise if fetch is in progress (deduplication)
+  if (aiTokenPromise) {
+    console.log("[TipTap Client] Returning existing fetch promise")
+    return aiTokenPromise
+  }
+
+  if (!USE_JWT_TOKEN_API_ENDPOINT) {
+    // Fallback for local development
+    if (!TIPTAP_AI_TOKEN) {
+      console.warn("[TipTap Client] No AI token available - AI features will be disabled")
+    } else {
+      console.warn("[TipTap Client] Using hardcoded token for local development only")
+    }
+    return TIPTAP_AI_TOKEN || null
+  }
+
+  // Create the promise and store it for deduplication
+  aiTokenPromise = (async (): Promise<string | null> => {
     try {
-      console.log("[TipTap Client] Fetching AI token from /api/tiptap/ai")
-      const response = await fetch(`/api/tiptap/ai`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
+      console.log("[TipTap Client] Fetching AI token via Server Action")
 
-      console.log("[TipTap Client] AI token response status:", response.status)
+      // Import the server action dynamically to avoid bundling issues
+      const { getAiToken } = await import("@/app/actions/tiptap")
+      const token = await getAiToken()
 
-      if (!response.ok) {
-        const errorBody = await response.text()
-        console.error("[TipTap Client] AI token fetch failed:", {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorBody,
-        })
-        throw new Error(`Failed to fetch token: ${response.status} - ${errorBody}`)
-      }
-
-      const data = await response.json()
       console.log("[TipTap Client] AI token received:", {
-        hasToken: !!data.token,
-        tokenLength: data.token?.length || 0,
-        tokenPreview: data.token ? `${data.token.slice(0, 20)}...` : "none",
+        hasToken: !!token,
+        tokenLength: token?.length || 0,
       })
-      return data.token
+      return token
     } catch (error) {
       console.error("[TipTap Client] Failed to fetch AI token:", error)
       return null
+    } finally {
+      aiTokenPromise = null
     }
-  }
+  })()
 
-  // Fallback for local development
-  if (!TIPTAP_AI_TOKEN) {
-    console.warn("[TipTap Client] No AI token available - AI features will be disabled")
-  } else {
-    console.warn(
-      "[TipTap Client] Using hardcoded token for local development only"
-    )
-  }
-
-  return TIPTAP_AI_TOKEN || null
+  return aiTokenPromise
 }
