@@ -29,36 +29,25 @@ export const useAiToken = () => {
   const [hasAi, setHasAi] = useState<boolean>(true)
   const [isLoadingToken, setIsLoadingToken] = useState<boolean>(true)
 
+  // Check if AI is disabled via URL param (?noAi=1)
   useEffect(() => {
     const noAiParam = getUrlParam("noAi")
     const aiEnabled = parseInt(noAiParam || "0") !== 1
-    console.log("[TipTap AiContext] Checking AI availability", {
-      noAiParam,
-      aiEnabled,
-    })
     setHasAi(aiEnabled)
     if (!aiEnabled) {
       setIsLoadingToken(false)
     }
   }, [])
 
+  // Fetch AI token when AI is enabled
   useEffect(() => {
     if (!hasAi) {
-      console.log("[TipTap AiContext] AI disabled via URL param, skipping token fetch")
       return
     }
 
     const getToken = async () => {
-      console.log("[TipTap AiContext] Starting AI token fetch...")
       setIsLoadingToken(true)
-      const startTime = Date.now()
       const token = await fetchAiToken()
-      const duration = Date.now() - startTime
-      console.log("[TipTap AiContext] AI token fetch complete", {
-        success: !!token,
-        tokenLength: token?.length || 0,
-        durationMs: duration,
-      })
       setAiToken(token)
       setIsLoadingToken(false)
     }

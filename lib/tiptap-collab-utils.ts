@@ -237,53 +237,48 @@ Follow this guide: https://tiptap.dev/docs/ui-components/templates/notion-like-e
   return TIPTAP_COLLAB_TOKEN
 }
 
-// Singleton to prevent duplicate fetches
+// Singleton to prevent duplicate fetches during React re-renders
 let aiTokenPromise: Promise<string | null> | null = null
 
 /**
  * Fetch AI JWT token using Server Action
- * This avoids browser fetch issues by running entirely on the server
+ *
+ * CRITICAL: This function MUST use a Server Action, NOT fetch() to an API route.
+ *
+ * Background:
+ * -----------
+ * In Next.js 15/16 with Turbopack, browser fetch() calls to API routes can hang
+ * indefinitely during React hydration. The request is made but never reaches the
+ * server. This appears to be a bug in how Turbopack handles concurrent requests
+ * during the hydration phase.
+ *
+ * Solution:
+ * ---------
+ * We use a Server Action (app/actions/tiptap.ts) instead. Server Actions use
+ * React's RSC protocol which doesn't have this issue. The dynamic import ensures
+ * the server action is properly resolved at runtime.
+ *
+ * DO NOT refactor this to use fetch('/api/tiptap/ai') - it will break!
  */
 export const fetchAiToken = async (): Promise<string | null> => {
-  console.log("[TipTap Client] fetchAiToken called", {
-    useJwtEndpoint: !!USE_JWT_TOKEN_API_ENDPOINT,
-    hasAiAppId: !!TIPTAP_AI_APP_ID,
-    aiAppId: TIPTAP_AI_APP_ID || "NOT_SET",
-    hasPromise: aiTokenPromise !== null,
-  })
-
   // Return existing promise if fetch is in progress (deduplication)
   if (aiTokenPromise) {
-    console.log("[TipTap Client] Returning existing fetch promise")
     return aiTokenPromise
   }
 
+  // When USE_JWT_TOKEN_API_ENDPOINT is not set, use hardcoded token (dev only)
   if (!USE_JWT_TOKEN_API_ENDPOINT) {
-    // Fallback for local development
-    if (!TIPTAP_AI_TOKEN) {
-      console.warn("[TipTap Client] No AI token available - AI features will be disabled")
-    } else {
-      console.warn("[TipTap Client] Using hardcoded token for local development only")
-    }
     return TIPTAP_AI_TOKEN || null
   }
 
   // Create the promise and store it for deduplication
   aiTokenPromise = (async (): Promise<string | null> => {
     try {
-      console.log("[TipTap Client] Fetching AI token via Server Action")
-
-      // Import the server action dynamically to avoid bundling issues
+      // Dynamic import of Server Action - this is required for proper bundling
       const { getAiToken } = await import("@/app/actions/tiptap")
-      const token = await getAiToken()
-
-      console.log("[TipTap Client] AI token received:", {
-        hasToken: !!token,
-        tokenLength: token?.length || 0,
-      })
-      return token
+      return await getAiToken()
     } catch (error) {
-      console.error("[TipTap Client] Failed to fetch AI token:", error)
+      console.error("[TipTap] Failed to fetch AI token:", error)
       return null
     } finally {
       aiTokenPromise = null
