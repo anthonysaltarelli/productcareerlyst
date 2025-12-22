@@ -527,14 +527,18 @@ function NotionEditorStandaloneContent({
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
-    // Give it a moment to fetch the AI token, then proceed
-    const timeout = setTimeout(() => setIsReady(true), 500)
-
-    // If we have a token already, proceed immediately
+    // If we have a token, proceed immediately
     if (aiToken !== null) {
       setIsReady(true)
-      clearTimeout(timeout)
+      return
     }
+
+    // Wait up to 2 seconds for the AI token to load
+    // If it doesn't arrive, proceed without it (AI features will be disabled)
+    const timeout = setTimeout(() => {
+      console.warn('AI token did not load in time, proceeding without AI features')
+      setIsReady(true)
+    }, 2000)
 
     return () => clearTimeout(timeout)
   }, [aiToken])

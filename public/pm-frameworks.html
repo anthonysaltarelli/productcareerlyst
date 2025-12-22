@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PM Interview Frameworks - Product Careerlyst</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #1a1a1a;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-radius: 2rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 0 0 rgba(0, 0, 0, 0.1);
+            border: 3px solid #1a1a1a;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .subtitle {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #666;
+        }
+
+        /* Quick Reference Grid */
+        .quick-reference {
+            background: white;
+            border-radius: 2rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 0 0 rgba(0, 0, 0, 0.1);
+            border: 3px solid #1a1a1a;
+        }
+
+        .quick-reference h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            color: #1a1a1a;
+        }
+
+        .framework-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .framework-card {
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            border: 3px solid #1a1a1a;
+            box-shadow: 0 10px 0 0 rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .framework-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .framework-card.purple {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .framework-card.orange {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .framework-card.green {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .framework-card.pink {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        .framework-card.blue {
+            background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+            color: white;
+        }
+
+        .framework-card h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .framework-card ul {
+            list-style: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .framework-card li {
+            padding: 0.4rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .framework-card li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            font-weight: 800;
+        }
+
+        /* Framework Details Section */
+        .framework-section {
+            background: white;
+            border-radius: 2rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 0 0 rgba(0, 0, 0, 0.1);
+            border: 3px solid #1a1a1a;
+        }
+
+        .framework-section h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            color: #1a1a1a;
+        }
+
+        .framework-section h3 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+
+        .framework-section p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .framework-section ul {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .framework-section li {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 0.75rem;
+        }
+
+        .framework-section strong {
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        /* Example Box */
+        .example-box {
+            background: linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%);
+            border-left: 5px solid #667eea;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 1rem;
+        }
+
+        .example-box h4 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        .example-box p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #333;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            border: 2px solid #1a1a1a;
+            box-shadow: 0 5px 0 0 rgba(0, 0, 0, 0.1);
+        }
+
+        /* Divider */
+        .divider {
+            height: 3px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            margin: 2rem 0;
+            border-radius: 2px;
+        }
+
+        /* Steps List */
+        .steps-list {
+            counter-reset: step-counter;
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .steps-list li {
+            counter-increment: step-counter;
+            padding-left: 3.5rem;
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .steps-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            border: 3px solid #1a1a1a;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            background: white;
+            border: 3px solid #1a1a1a;
+            border-radius: 1.5rem;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 0 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 0 0 rgba(0, 0, 0, 0.15);
+        }
+
+        .tab-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 10px 0 0 rgba(102, 126, 234, 0.3);
+        }
+
+        .framework-content {
+            display: none;
+        }
+
+        .framework-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Interactive Toggle */
+        .toggle-section {
+            margin-bottom: 1rem;
+        }
+
+        .toggle-header {
+            background: linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%);
+            border: 3px solid #1a1a1a;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            box-shadow: 0 8px 0 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .toggle-header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 0 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .toggle-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .toggle-icon {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #667eea;
+            transition: transform 0.3s;
+        }
+
+        .toggle-header.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .toggle-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+            padding: 0 1.5rem;
+        }
+
+        .toggle-content.active {
+            max-height: 2000px;
+            padding: 1.5rem;
+            padding-top: 1rem;
+        }
+
+        /* Copy Button */
+        .copy-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 3px solid #1a1a1a;
+            border-radius: 1rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 6px 0 0 rgba(0, 0, 0, 0.1);
+            margin-top: 1rem;
+        }
+
+        .copy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 0 rgba(0, 0, 0, 0.15);
+        }
+
+        .copy-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .copy-button.copied {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        /* Progress Tracker */
+        .progress-tracker {
+            background: white;
+            border-radius: 2rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 0 0 rgba(0, 0, 0, 0.1);
+            border: 3px solid #1a1a1a;
+        }
+
+        .progress-tracker h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            color: #1a1a1a;
+        }
+
+        .framework-checklist {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%);
+            border-radius: 1rem;
+            border: 2px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .checkbox-item:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .checkbox-item.checked {
+            background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+            border-color: #667eea;
+        }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #1a1a1a;
+            border-radius: 6px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .checkbox-item.checked .checkbox {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .checkbox-label {
+            font-weight: 600;
+            color: #333;
+            flex-grow: 1;
+        }
+
+        .progress-bar-container {
+            margin-top: 1.5rem;
+            background: #e9ecef;
+            height: 1rem;
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 2px solid #1a1a1a;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 0.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        /* Flashcard Style */
+        .flashcard {
+            perspective: 1000px;
+            margin-bottom: 1.5rem;
+            min-height: 300px;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            min-height: 300px;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            min-height: 300px;
+            backface-visibility: hidden;
+            border-radius: 2rem;
+            padding: 2.5rem;
+            border: 3px solid #1a1a1a;
+            box-shadow: 0 20px 0 0 rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .flashcard-front {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .flashcard-back {
+            background: white;
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .flashcard-hint {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        .flashcard-back p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header .subtitle {
+                font-size: 1rem;
+            }
+
+            .framework-section h2 {
+                font-size: 1.75rem;
+            }
+
+            .framework-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tab-nav {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>PM Interview Frameworks</h1>
+            <p class="subtitle">Master these frameworks to ace your product management interviews</p>
+        </div>
+
+        <!-- Progress Tracker -->
+        <div class="progress-tracker">
+            <h3>📚 Your Learning Progress</h3>
+            <div class="framework-checklist">
+                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                    <div class="checkbox"></div>
+                    <div class="checkbox-label">Master N+STAR+TL Framework</div>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                    <div class="checkbox"></div>
+                    <div class="checkbox-label">Practice Triangle Framework</div>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                    <div class="checkbox"></div>
+                    <div class="checkbox-label">Study Broad then Deep Approach</div>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                    <div class="checkbox"></div>
+                    <div class="checkbox-label">Prepare Product Critique Answer</div>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                    <div class="checkbox"></div>
+                    <div class="checkbox-label">Learn TROPIC Investigation Method</div>
+                </div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="progress-text" id="progressText">0% Complete</div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="quick-reference">
+            <h2>Interactive Framework Explorer</h2>
+            <div class="tab-nav">
+                <button class="tab-button active" onclick="switchTab('quick-ref')">Quick Reference</button>
+                <button class="tab-button" onclick="switchTab('flashcards')">Flashcards</button>
+                <button class="tab-button" onclick="switchTab('templates')">Copy Templates</button>
+            </div>
+
+            <!-- Quick Reference Tab -->
+            <div id="quick-ref" class="framework-content active">
+                <div class="framework-grid">
+                    <div class="framework-card purple">
+                        <h3>N+STAR+TL</h3>
+                        <ul>
+                            <li>Nugget</li>
+                            <li>Situation</li>
+                            <li>Task</li>
+                            <li>Action</li>
+                            <li>Result</li>
+                            <li>Takeaway</li>
+                            <li>Learning</li>
+                        </ul>
+                    </div>
+
+                    <div class="framework-card orange">
+                        <h3>Triangle</h3>
+                        <ul>
+                            <li>Summarize question</li>
+                            <li>Three things</li>
+                            <li>Go deep with each</li>
+                            <li>Close with summary</li>
+                        </ul>
+                    </div>
+
+                    <div class="framework-card green">
+                        <h3>Broad then Deep</h3>
+                        <ul>
+                            <li>Goal / Mission</li>
+                            <li>Users</li>
+                            <li>Pain Points</li>
+                            <li>Ideas</li>
+                            <li>Feature Priority</li>
+                            <li>Pitfalls / Tradeoffs</li>
+                            <li>Metrics</li>
+                        </ul>
+                    </div>
+
+                    <div class="framework-card pink">
+                        <h3>Product You Like</h3>
+                        <ul>
+                            <li>Goals</li>
+                            <li>Use Case</li>
+                            <li>User/Persona</li>
+                            <li>Current Solution</li>
+                            <li>What Can Be Improved</li>
+                            <li>Competitors</li>
+                            <li>Metrics</li>
+                        </ul>
+                    </div>
+
+                    <div class="framework-card blue">
+                        <h3>TROPIC</h3>
+                        <ul>
+                            <li>Time</li>
+                            <li>Region</li>
+                            <li>Other Features</li>
+                            <li>Platform</li>
+                            <li>Industry</li>
+                            <li>Competition</li>
+                            <li>Cannibalization</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flashcards Tab -->
+            <div id="flashcards" class="framework-content">
+                <p style="margin-bottom: 2rem; font-size: 1.1rem; font-weight: 600; color: #666;">Click each card to reveal the full framework breakdown!</p>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <h3>N+STAR+TL</h3>
+                            <p class="flashcard-hint">Click to reveal the 7 components →</p>
+                        </div>
+                        <div class="flashcard-back">
+                            <p><strong>Nugget</strong> → Situation → Task → Action → Result → Takeaway → Learning</p>
+                            <p style="margin-top: 1rem; font-size: 0.95rem; color: #666;">Perfect for behavioral interview questions. Start with a punchy summary, then walk through your story systematically.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <h3>Triangle Framework</h3>
+                            <p class="flashcard-hint">Click to see how to structure unexpected questions →</p>
+                        </div>
+                        <div class="flashcard-back">
+                            <p><strong>Summarize</strong> the question → Identify <strong>3 things</strong> → Go <strong>deep on each</strong> → <strong>Close</strong> with summary</p>
+                            <p style="margin-top: 1rem; font-size: 0.95rem; color: #666;">Great for open-ended questions. The "rule of three" makes your answer memorable and well-structured.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <h3>TROPIC</h3>
+                            <p class="flashcard-hint">Click to learn the diagnostic framework →</p>
+                        </div>
+                        <div class="flashcard-back">
+                            <p><strong>Time</strong> → Region → Other features → Platform → Industry → Competition → Cannibalization</p>
+                            <p style="margin-top: 1rem; font-size: 0.95rem; color: #666;">Use when diagnosing metric drops or product issues. Systematically investigate all potential causes.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Templates Tab -->
+            <div id="templates" class="framework-content">
+                <p style="margin-bottom: 2rem; font-size: 1.1rem; font-weight: 600; color: #666;">Click to copy ready-to-use templates for your interviews!</p>
+
+                <div class="toggle-section">
+                    <div class="toggle-header" onclick="toggleAccordion(this)">
+                        <h3>📝 N+STAR+TL Template</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="toggle-content">
+                        <div id="template-nstar" style="background: #f6f8fb; padding: 1.5rem; border-radius: 1rem; margin-top: 1rem; font-family: monospace; font-size: 0.9rem; line-height: 1.8;">
+<strong>Nugget:</strong> [One-sentence summary of the story]
+
+<strong>Situation:</strong> [Context and circumstances - keep it concise]
+
+<strong>Task:</strong> [Your specific role and responsibility]
+
+<strong>Action:</strong> [Specific actions YOU took - not your team]
+
+<strong>Result:</strong> [Quantifiable outcomes - use numbers!]
+
+<strong>Takeaway:</strong> [Key insight or lesson learned]
+
+<strong>Learning:</strong> [How you've applied this learning since]
+                        </div>
+                        <button class="copy-button" onclick="copyTemplate('template-nstar', this)">📋 Copy Template</button>
+                    </div>
+                </div>
+
+                <div class="toggle-section">
+                    <div class="toggle-header" onclick="toggleAccordion(this)">
+                        <h3>🔺 Triangle Framework Template</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="toggle-content">
+                        <div id="template-triangle" style="background: #f6f8fb; padding: 1.5rem; border-radius: 1rem; margin-top: 1rem; font-family: monospace; font-size: 0.9rem; line-height: 1.8;">
+<strong>Summarize:</strong> "To confirm, you're asking about [rephrase question]?"
+
+<strong>Three things:</strong> "I see three main aspects:
+1. [First aspect]
+2. [Second aspect]
+3. [Third aspect]"
+
+<strong>Deep dive on each:</strong>
+"Number one, [First aspect]: [Explanation, benefits, challenges]"
+"Number two, [Second aspect]: [Explanation, benefits, challenges]"
+"Number three, [Third aspect]: [Explanation, benefits, challenges]"
+
+<strong>Close:</strong> "In summary, [tie the three aspects to a common theme or insight]"
+                        </div>
+                        <button class="copy-button" onclick="copyTemplate('template-triangle', this)">📋 Copy Template</button>
+                    </div>
+                </div>
+
+                <div class="toggle-section">
+                    <div class="toggle-header" onclick="toggleAccordion(this)">
+                        <h3>🎯 Product Critique Template</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="toggle-content">
+                        <div id="template-product" style="background: #f6f8fb; padding: 1.5rem; border-radius: 1rem; margin-top: 1rem; font-family: monospace; font-size: 0.9rem; line-height: 1.8;">
+<strong>Product:</strong> [Name of product you use and love]
+
+<strong>Goal:</strong> [What problem does it solve?]
+
+<strong>Use Case:</strong> [Walk through a specific scenario]
+
+<strong>User/Persona:</strong> [Who are the primary users?]
+
+<strong>Current Solution:</strong> [How does the product address user needs?]
+
+<strong>Improvements:</strong> [3 areas for improvement with reasoning]
+
+<strong>Competitors:</strong> [Key competitors and differentiation]
+
+<strong>Metrics:</strong> [How would you measure success?]
+                        </div>
+                        <button class="copy-button" onclick="copyTemplate('template-product', this)">📋 Copy Template</button>
+                    </div>
+                </div>
+
+                <div class="toggle-section">
+                    <div class="toggle-header" onclick="toggleAccordion(this)">
+                        <h3>🔍 TROPIC Investigation Template</h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="toggle-content">
+                        <div id="template-tropic" style="background: #f6f8fb; padding: 1.5rem; border-radius: 1rem; margin-top: 1rem; font-family: monospace; font-size: 0.9rem; line-height: 1.8;">
+<strong>Problem:</strong> [State the metric drop or issue]
+
+<strong>Time:</strong> When did this occur? Sudden or gradual?
+
+<strong>Region:</strong> Specific to certain locations or global?
+
+<strong>Other Features:</strong> Any recent changes or launches?
+
+<strong>Platform:</strong> Web, iOS, Android - where is the issue?
+
+<strong>Industry:</strong> Broader market trends affecting us?
+
+<strong>Competition/Cannibalization:</strong> Are competitors winning?
+
+<strong>Hypothesis:</strong> [Based on above, what's the likely cause?]
+
+<strong>Next Steps:</strong> [Actions to investigate and resolve]
+                        </div>
+                        <button class="copy-button" onclick="copyTemplate('template-tropic', this)">📋 Copy Template</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- N+STAR+TL Framework -->
+        <div class="framework-section">
+            <span class="badge">Behavioral Interviews</span>
+            <h2>N + STAR + TL Framework</h2>
+            <p>When it comes to preparing for product management interviews, having a well-structured framework can make all the difference. One of the most popular interview frameworks is the STAR method, but for a more comprehensive approach, we can elevate it to the N + STAR + TL framework.</p>
+
+            <div class="divider"></div>
+
+            <h3>The Components</h3>
+            <ul>
+                <li><strong>Nugget (N):</strong> This is the summary or the punchline of your story. It's the quick, one-sentence overview of what happened. Use this as a hook to grab your interviewer's attention.</li>
+                <li><strong>Situation (S):</strong> Here, you describe the context or circumstances of your story. Give enough detail so that your interviewer can understand what was going on, but keep it concise.</li>
+                <li><strong>Task (T):</strong> Explain your specific role or responsibility in the situation. What were you expected to accomplish?</li>
+                <li><strong>Action (A):</strong> Detail the actions you took to address the task or problem. Be specific and focus on what you did, not your team or your boss.</li>
+                <li><strong>Result (R):</strong> Discuss the outcomes of your actions. Whenever possible, quantify these results with concrete numbers or percentages.</li>
+                <li><strong>Takeaway (T):</strong> Share what you learned or what insights you gained from the situation. This shows that you're reflective and continually learning.</li>
+                <li><strong>Learning (L):</strong> Expand on how you applied or plan to apply what you've learned to future tasks or challenges. This highlights your growth mindset and adaptability.</li>
+            </ul>
+
+            <div class="example-box">
+                <h4>Example in Action</h4>
+                <p><strong>Nugget:</strong> "Sure! Let me tell you about a time I led a cross-functional team to implement a new feature that increased user engagement by 20%."</p>
+                <p><strong>Situation:</strong> "When I was working at Company X as a product manager, we noticed that although we had a large user base, engagement was lower than industry standards."</p>
+                <p><strong>Task:</strong> "My task was to identify opportunities to increase user engagement and lead the team to implement changes."</p>
+                <p><strong>Action:</strong> "I initiated user research to understand our user needs better and worked closely with the engineering and design teams to introduce a new feature based on our findings."</p>
+                <p><strong>Result:</strong> "Within three months of launching the new feature, we saw a 20% increase in daily user engagement."</p>
+                <p><strong>Takeaway:</strong> "The big takeaway here is that this project was instrumental for me to understand the importance of user research in guiding product decisions and the value of cross-functional collaboration in implementing changes."</p>
+                <p><strong>Learning:</strong> "Since that project, I've continued to leverage user feedback and foster cross-functional collaboration to drive product improvements."</p>
+            </div>
+        </div>
+
+        <!-- Triangle Framework -->
+        <div class="framework-section">
+            <span class="badge">Structuring Answers</span>
+            <h2>Triangle Framework</h2>
+            <p>In a PM interview you may be asked a question you're not expecting. Structure is very important in your answer, and the Triangle Framework is one you could follow. It allows the interviewer to very easily understand your answer.</p>
+
+            <div class="divider"></div>
+
+            <h3>The Steps</h3>
+            <ol class="steps-list">
+                <li><strong>Summarize question:</strong> Begin by repeating the question in your own words to ensure that you and the interviewer are aligned on what's being asked. This step also allows you some time to gather your thoughts.</li>
+                <li><strong>Three things:</strong> Identify three main ideas or approaches to address the question. This can be three features, three steps, three stakeholders to consider, or three strategies, for example.</li>
+                <li><strong>Go deep with each:</strong> Next, expand on each of the three ideas or approaches you have identified. Explain why you chose these options, how they would work, and what potential challenges might arise. Remember to keep the focus on user needs and business value.</li>
+                <li><strong>Close:</strong> Summarize the three aspects of your answer and tie it to a common theme or takeaway.</li>
+            </ol>
+
+            <div class="example-box">
+                <h4>Example: "How is AI changing the technology landscape?"</h4>
+                <p><strong>Summarize question:</strong> "That's an interesting question! So, to confirm, you're asking about the transformative effects of AI on the current technology ecosystem, right?"</p>
+                <p><strong>Three things:</strong> "Broadly speaking, I see AI having a profound impact in three primary ways: 1. Personalized experiences. 2. Data analysis and insights. And 3. automation and efficiency."</p>
+                <p><strong>Go deep with each:</strong></p>
+                <p>"Number one is <strong>Personalized Experiences:</strong> AI algorithms can process large amounts of data to tailor individual user experiences. Whether it's social media feeds, product recommendations, or personalized content, AI is enabling unprecedented levels of customization. However, it also raises issues around data privacy and security."</p>
+                <p>"Number two is <strong>Data Analysis and Insights:</strong> AI has revolutionized data analysis. With AI, we can identify patterns and insights at a scale previously unimaginable. It's allowing businesses to make informed decisions, understand customer behavior, and predict trends. But again, ethical considerations around AI's use and potential biases in AI systems are important to acknowledge."</p>
+                <p>"Finally, number three is <strong>Automation and Efficiency:</strong> AI is automating tasks across various sectors, from manufacturing to customer service. This efficiency can lead to cost savings and increased productivity. But, it can also disrupt job markets and necessitate upskilling and reskilling of the workforce."</p>
+                <p><strong>Close:</strong> "All in all, AI is definitely drastically transforming the technology ecosystem. I'm excited to see where it takes us, but also cautious about the challenges that come with integrating AI deeply into our world."</p>
+            </div>
+        </div>
+
+        <!-- Broad then Deep Framework -->
+        <div class="framework-section">
+            <span class="badge">Product Strategy</span>
+            <h2>"Broad then Deep" Framework</h2>
+            <p>This framework provides a structured approach to discuss product management topics in interviews. It ensures you cover various aspects of the product and showcase your strategic and analytical thinking.</p>
+
+            <div class="divider"></div>
+
+            <h3>The Framework</h3>
+            <ul>
+                <li><strong>Goal / Mission:</strong> Before diving into the details, articulate the overarching goal or mission of the product or feature under discussion. This could be its intended purpose, the problem it aims to solve, or the value it intends to deliver to users. Consider a few possible goals or missions, choose the one that you feel is most important or compelling, and explain why you have chosen it.</li>
+                <li><strong>Users:</strong> Identify and describe the main user segments for the product or feature. Discuss their characteristics, preferences, and behaviors. Consider a few potential user groups, choose one that you find particularly significant, and explain why you're focusing on it.</li>
+                <li><strong>Pain Points:</strong> Discuss the main challenges or pain points these specific users are facing that the product or feature aims to address. Think of multiple pain points, choose the most critical one, and explain why you consider it the most important.</li>
+                <li><strong>Ideas:</strong> Present your ideas on how the product or feature can address these pain points. Demonstrate creativity, but also feasibility and alignment with the product's goal.</li>
+                <li><strong>Feature Priority:</strong> Prioritize these ideas or features based on factors such as their potential impact, feasibility, alignment with user needs, and business objectives. A popular method is the RICE framework (Reach, Impact, Confidence, Effort). Propose several priorities, select the one you feel is most strategic, and provide reasoning for your choice.</li>
+                <li><strong>Pitfalls / Tradeoffs:</strong> Discuss potential challenges, trade-offs, or downsides associated with your ideas or the prioritization of features. Show that you can think critically and anticipate issues. Identify multiple potential pitfalls or tradeoffs, choose the most significant one, and justify your choice.</li>
+                <li><strong>Metrics (Critical):</strong> Finally, identify the key metrics that you would track to measure the success of the product or feature. These should align with the product's goals and the users' needs. Consider several possible metrics, choose the most relevant one, and explain why it is important.</li>
+            </ul>
+        </div>
+
+        <!-- Product You Like Framework -->
+        <div class="framework-section">
+            <span class="badge">Product Critique</span>
+            <h2>"Product You Like" Interview Question Guide</h2>
+            <p>Product-related questions in PM interviews allow interviewers to understand your critical thinking, user empathy, and product sense. When asked to discuss a product you like, and what you would improve, remember to cover these aspects:</p>
+
+            <div class="divider"></div>
+
+            <h3>Key Components</h3>
+            <ul>
+                <li><strong>Product you like:</strong> Choose a product that you personally use and appreciate. It could be a digital product like a mobile app, website, or software, or a physical product. Make sure you are knowledgeable and passionate about the product as this allows you to give an in-depth and authentic analysis.</li>
+                <li><strong>Goals:</strong> Describe the overarching goal of the product. What problem does it aim to solve? How does it make life easier for its users? This showcases your understanding of the product's purpose.</li>
+                <li><strong>Use Case:</strong> Walk through a specific scenario where you or someone else would use this product. Detailing a specific use-case will make your explanation concrete and relatable.</li>
+                <li><strong>User/Persona:</strong> Discuss the primary users of the product. What are their characteristics, needs, and behaviors? Demonstrating a strong understanding of the user base shows your user empathy and ability to design for user needs.</li>
+                <li><strong>Current Solution:</strong> How does the product address the users' needs in the context of your chosen use case? Highlight the product's unique features and how they contribute to the user experience. This shows that you can appreciate good design and understand why certain features or approaches are effective.</li>
+                <li><strong>What can be improved:</strong> Identify areas where the product could be improved. Be thoughtful and constructive in your critique. Don't just point out flaws - suggest ways they could be addressed. This showcases your problem-solving ability and your drive to continuously improve the product.</li>
+                <li><strong>Competitors:</strong> Who are the key competitors of the product? How does the product differentiate itself from them? This displays your knowledge of the product landscape and competitive strategies.</li>
+                <li><strong>Metrics:</strong> Discuss the metrics that matter for the product. How would you measure the success of the product and your proposed improvements? This shows your ability to tie product decisions to measurable outcomes, which is a key skill for a PM.</li>
+            </ul>
+        </div>
+
+        <!-- TROPIC Framework -->
+        <div class="framework-section">
+            <span class="badge">Problem Investigation</span>
+            <h2>"TROPIC" Problem Investigation Framework</h2>
+            <p>The TROPIC framework is designed to help product managers analyze and diagnose product issues systematically. It encourages a broad and thorough investigation by considering factors across Time, Region, Other features, Platform, Industry, and Competition Cannibalization.</p>
+
+            <div class="divider"></div>
+
+            <h3>The Framework</h3>
+            <ul>
+                <li><strong>Time:</strong> When did the problem occur? Was there a sudden change or a gradual decline over a period? Analyzing the problem from a temporal perspective can help identify specific events or changes that could have caused the issue.</li>
+                <li><strong>Region:</strong> Is the problem occurring across all regions or is it localized? This can help determine whether the issue is tied to a specific demographic, cultural, or infrastructural factors in certain regions.</li>
+                <li><strong>Other features:</strong> Were there any other features or changes implemented around the time the issue started? Understanding this can help you pinpoint whether the issue is due to an internal change in the product or something external.</li>
+                <li><strong>Platform:</strong> Is the issue happening across all platforms (web, iOS, Android, etc.) or is it specific to one? This can help identify if the problem is linked to a certain technology or user behavior on a particular platform.</li>
+                <li><strong>Industry:</strong> Are there any larger industry trends or changes that might be impacting your product? This can give insight into macro-level factors influencing user behavior.</li>
+                <li><strong>Competition Cannibalization:</strong> Are competitors offering a similar feature or service that could be drawing users away? This could explain a drop in metrics and suggest a need to differentiate your product further.</li>
+            </ul>
+
+            <p style="margin-top: 2rem; font-weight: 600; color: #667eea;">Remember, the goal of the TROPIC framework is not just to identify the problem but to guide towards potential solutions. Once you've gathered insights, brainstorm on possible actions to address the problem.</p>
+        </div>
+
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tabId) {
+            // Remove active class from all tabs and buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.framework-content').forEach(content => content.classList.remove('active'));
+
+            // Add active class to selected tab
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Accordion toggle
+        function toggleAccordion(header) {
+            const content = header.nextElementSibling;
+            const isActive = header.classList.contains('active');
+
+            // Close all accordions
+            document.querySelectorAll('.toggle-header').forEach(h => h.classList.remove('active'));
+            document.querySelectorAll('.toggle-content').forEach(c => c.classList.remove('active'));
+
+            // Open clicked accordion if it wasn't active
+            if (!isActive) {
+                header.classList.add('active');
+                content.classList.add('active');
+            }
+        }
+
+        // Copy template to clipboard
+        function copyTemplate(templateId, button) {
+            const template = document.getElementById(templateId);
+            const text = template.innerText;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = '✓ Copied!';
+                button.classList.add('copied');
+
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Checkbox toggle with progress tracking
+        function toggleCheckbox(item) {
+            item.classList.toggle('checked');
+            const checkbox = item.querySelector('.checkbox');
+
+            if (item.classList.contains('checked')) {
+                checkbox.innerHTML = '✓';
+            } else {
+                checkbox.innerHTML = '';
+            }
+
+            updateProgress();
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const total = document.querySelectorAll('.checkbox-item').length;
+            const checked = document.querySelectorAll('.checkbox-item.checked').length;
+            const percentage = Math.round((checked / total) * 100);
+
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = percentage + '% Complete';
+
+            // Save to localStorage
+            localStorage.setItem('frameworkProgress', JSON.stringify({
+                checked: Array.from(document.querySelectorAll('.checkbox-item.checked')).map(item =>
+                    item.querySelector('.checkbox-label').textContent
+                )
+            }));
+        }
+
+        // Load saved progress on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('frameworkProgress');
+            if (saved) {
+                const data = JSON.parse(saved);
+                document.querySelectorAll('.checkbox-item').forEach(item => {
+                    const label = item.querySelector('.checkbox-label').textContent;
+                    if (data.checked.includes(label)) {
+                        item.classList.add('checked');
+                        item.querySelector('.checkbox').innerHTML = '✓';
+                    }
+                });
+                updateProgress();
+            }
+        });
+
+        // Add keyboard navigation for flashcards
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && e.target.closest('.flashcard')) {
+                e.preventDefault();
+                e.target.closest('.flashcard').classList.toggle('flipped');
+            }
+        });
+    </script>
+</body>
+</html>

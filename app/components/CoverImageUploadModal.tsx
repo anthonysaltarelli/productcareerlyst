@@ -251,7 +251,12 @@ const CoverImageUploadModal = ({
       const data = await response.json();
       
       if (page === 1) {
-        setUnsplashPhotos(data.photos);
+        // Deduplicate photos in case API returns duplicates
+        const uniquePhotos = data.photos.filter(
+          (photo: UnsplashPhoto, index: number, self: UnsplashPhoto[]) =>
+            index === self.findIndex((p) => p.id === photo.id)
+        );
+        setUnsplashPhotos(uniquePhotos);
       } else {
         setUnsplashPhotos(prev => {
           const existingIds = new Set(prev.map((p: UnsplashPhoto) => p.id));
