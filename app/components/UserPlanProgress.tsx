@@ -155,22 +155,17 @@ export const UserPlanProgress = ({ planData }: UserPlanProgressProps) => {
 
   return (
     <div className="mb-8">
-      {/* Plan Summary Header */}
-      <div className="p-6 rounded-[2rem] bg-white border-2 border-gray-200 shadow-sm mb-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-purple-100">
-              <Target className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <h2 className="text-xl md:text-2xl font-black text-gray-800">Your Plan</h2>
-              {planData.targetRole && (
-                <p className="text-sm font-semibold text-gray-500">
-                  Target: {formatTargetRole(planData.targetRole)}
-                  {planData.timeline && ` • ${formatTimeline(planData.timeline)}`}
-                </p>
-              )}
-            </div>
+      {/* Plan Summary Header - styled like DashboardWelcome but smaller */}
+      <div className="mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-black text-gray-800">Your Plan</h2>
+            {planData.targetRole && (
+              <p className="text-gray-600 font-medium">
+                Target: {formatTargetRole(planData.targetRole)}
+                {planData.timeline && ` • ${formatTimeline(planData.timeline)}`}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <div className="px-4 py-2 rounded-xl bg-gray-100 border border-gray-200">
@@ -181,7 +176,7 @@ export const UserPlanProgress = ({ planData }: UserPlanProgressProps) => {
           </div>
         </div>
         {planData.summary && (
-          <p className="text-gray-600 font-medium leading-relaxed">{planData.summary}</p>
+          <p className="text-gray-500 font-medium leading-relaxed text-sm">{planData.summary}</p>
         )}
       </div>
 
