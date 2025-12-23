@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { DashboardNavigation } from '@/app/components/DashboardNavigation'
+import { AuthStateListener } from '@/app/components/AuthStateListener'
 
 export default async function DashboardLayout({
   children,
@@ -19,6 +20,9 @@ export default async function DashboardLayout({
 
   return (
     <div className="h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 flex overflow-hidden">
+      {/* Auth state listener to keep browser client in sync with server session */}
+      <AuthStateListener />
+
       {/* Left Sidebar Navigation - Fixed and Sticky - Hidden on mobile */}
       <aside className="hidden md:flex w-72 h-screen bg-gradient-to-br from-slate-800 to-slate-900 border-r-2 border-slate-700 flex-col sticky top-0 flex-shrink-0">
         {/* Logo/Brand */}

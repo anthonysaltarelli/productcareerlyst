@@ -14,6 +14,7 @@ export default function NewMockInterviewPage() {
   const [error, setError] = useState<string | null>(null);
   const [hasBetaAccess, setHasBetaAccess] = useState<boolean | null>(null);
   const [showBetaModal, setShowBetaModal] = useState(false);
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
 
   // Redirect if feature flag is disabled
   useEffect(() => {
@@ -40,6 +41,17 @@ export default function NewMockInterviewPage() {
 
     checkBetaAccess();
   }, []);
+
+  // Timeout for loading state - prevent infinite spinner
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (aiVideoCoach === undefined || hasBetaAccess === null) {
+        setLoadingTimedOut(true);
+      }
+    }, 5000); // 5 second timeout
+
+    return () => clearTimeout(timeout);
+  }, [aiVideoCoach, hasBetaAccess]);
 
   const handleExitClick = () => {
     router.push('/dashboard/interview');
@@ -83,12 +95,41 @@ export default function NewMockInterviewPage() {
   };
 
   // Feature flag or beta access loading state
-  if (aiVideoCoach === undefined || hasBetaAccess === null) {
+  if ((aiVideoCoach === undefined || hasBetaAccess === null) && !loadingTimedOut) {
     return (
       <div className="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
           <p className="text-gray-400 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if loading timed out
+  if (loadingTimedOut && (aiVideoCoach === undefined || hasBetaAccess === null)) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center">
+        <div className="text-center max-w-md px-6">
+          <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-white mb-2">Loading took too long</h2>
+          <p className="text-gray-400 mb-6">
+            We&apos;re having trouble loading this page. Please try refreshing or come back later.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-700 transition-colors"
+            >
+              Refresh Page
+            </button>
+            <button
+              onClick={handleExitClick}
+              className="px-6 py-3 rounded-xl bg-slate-700 text-white font-bold hover:bg-slate-600 transition-colors"
+            >
+              Go Back
+            </button>
+          </div>
         </div>
       </div>
     );
