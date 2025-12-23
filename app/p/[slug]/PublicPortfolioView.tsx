@@ -541,7 +541,7 @@ const PageCard = ({
         {/* Title & Description overlay - bottom left */}
         <motion.div
           className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 md:p-6"
-          animate={{ y: isHovered ? -40 : 0 }}
+          animate={{ y: isHovered ? -56 : 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
           <h3 className="text-lg font-bold text-white sm:text-xl md:text-2xl">
