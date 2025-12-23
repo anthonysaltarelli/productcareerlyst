@@ -3,12 +3,12 @@ import { getDashboardStats } from '@/lib/utils/dashboard-stats'
 import { getUserSubscription } from '@/lib/utils/subscription'
 import { getUserPlanData } from '@/lib/utils/user-plan'
 import { DashboardWelcome } from '@/app/components/DashboardWelcome'
-import { DashboardStats } from '@/app/components/DashboardStats'
 import { UserPlanProgress } from '@/app/components/UserPlanProgress'
 import { SubscriptionPromotion } from '@/app/components/SubscriptionPromotion'
 import { AutoSyncSubscription } from '@/app/components/billing/AutoSyncSubscription'
 import { DashboardPageTracking } from '@/app/components/DashboardPageTracking'
 import { DashboardHomeContent } from '@/app/components/DashboardHomeContent'
+import { ExpandedDashboardMetrics } from '@/app/components/dashboard'
 
 export default async function DashboardHome() {
   const supabase = await createClient()
@@ -61,15 +61,10 @@ export default async function DashboardHome() {
         subscription={stats?.subscription || { plan: null, status: null, isActive: false }}
       />
 
-      {/* Stats Section - Always visible */}
-      <DashboardStats
-        stats={stats ? {
-          lessonsCompleted: stats.lessonsCompleted,
-          coursesCompleted: stats.coursesCompleted,
-          highestResumeScore: stats.highestResumeScore,
-          totalJobApplications: stats.totalJobApplications,
-        } : null}
-      />
+      {/* Expanded Metrics Section with Time Range Filtering */}
+      <div className="mb-8">
+        <ExpandedDashboardMetrics initialTimeRange="30d" />
+      </div>
 
       {/* User Plan Progress (from onboarding) */}
       {planData && <UserPlanProgress planData={planData} />}

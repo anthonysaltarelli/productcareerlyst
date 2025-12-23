@@ -6,6 +6,51 @@ import { markBaselineActionsComplete } from '@/lib/utils/baseline-actions';
 import { incrementWeeklyGoalProgress } from '@/lib/utils/weekly-goals';
 
 /**
+ * Track user's research access for a company
+ * Upserts into user_company_research table
+ */
+async function trackResearchAccess(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  companyId: string
+): Promise<void> {
+  try {
+    // Check if record exists
+    const { data: existing } = await supabase
+      .from('user_company_research')
+      .select('id, access_count')
+      .eq('user_id', userId)
+      .eq('company_id', companyId)
+      .single();
+
+    if (existing) {
+      // Update existing record
+      await supabase
+        .from('user_company_research')
+        .update({
+          last_accessed_at: new Date().toISOString(),
+          access_count: (existing.access_count || 0) + 1,
+        })
+        .eq('id', existing.id);
+    } else {
+      // Insert new record
+      await supabase
+        .from('user_company_research')
+        .insert({
+          user_id: userId,
+          company_id: companyId,
+          first_accessed_at: new Date().toISOString(),
+          last_accessed_at: new Date().toISOString(),
+          access_count: 1,
+        });
+    }
+  } catch (err) {
+    console.error('Error in trackResearchAccess:', err);
+    // Don't throw - tracking is not critical to the main operation
+  }
+}
+
+/**
  * GET /api/jobs/companies/[id]/research
  * Get all research vectors for a company
  */
@@ -71,10 +116,17 @@ export const GET = async (
       };
     });
 
-    // Mark baseline action complete when accessing existing research
-    // This covers the case where a user views research that was already generated
-    // Note: Weekly goal only increments on POST (new research generation), not on GET (viewing)
-    if (research && research.length > 0) {
+    // Check if there's any valid research
+    const hasValidResearch = research?.some((r) => isResearchValid(r.generated_at));
+
+    // Track research access and mark baseline action complete when accessing valid research
+    if (hasValidResearch) {
+      // Track this user's access to this company's research
+      trackResearchAccess(supabase, user.id, companyId).catch((err) => {
+        console.error('Error tracking research access (GET):', err);
+      });
+
+      // Mark baseline action complete
       markBaselineActionsComplete(user.id, 'company_researched').catch((err) => {
         console.error('Error marking company_researched baseline action (GET):', err);
       });
@@ -231,6 +283,11 @@ export const POST = async (
           );
         }
 
+        // Track research access for this user
+        trackResearchAccess(supabase, user.id, companyId).catch((err) => {
+          console.error('Error tracking research access (POST single):', err);
+        });
+
         // Mark baseline action complete for company research
         markBaselineActionsComplete(user.id, 'company_researched').catch((err) => {
           console.error('Error marking company_researched baseline action:', err);
@@ -328,6 +385,11 @@ export const POST = async (
         .catch((error) => {
           console.error('Fatal error in batch research generation:', error);
         });
+
+      // Track research access for this user (batch generation)
+      trackResearchAccess(supabase, user.id, companyId).catch((err) => {
+        console.error('Error tracking research access (POST batch):', err);
+      });
 
       // Mark baseline action complete for company research (multiple types)
       markBaselineActionsComplete(user.id, 'company_researched').catch((err) => {
