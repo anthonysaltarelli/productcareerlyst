@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyBotIDRequest } from '@/lib/botid/verify';
 
 // GET: Retrieve the current user's rating (if authenticated)
 export async function GET(request: NextRequest) {
@@ -40,15 +39,6 @@ export async function GET(request: NextRequest) {
 // POST: Create or update a rating (authentication optional)
 export async function POST(request: NextRequest) {
   try {
-    // Verify BotID first
-    const { verified, error } = await verifyBotIDRequest();
-    if (!verified) {
-      return NextResponse.json(
-        { error: error || 'Request verification failed. Please try again.' },
-        { status: 403 }
-      );
-    }
-
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 

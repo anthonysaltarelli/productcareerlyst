@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { render } from '@react-email/render';
 import { ContactNotification } from '@/app/components/emails/ContactNotification';
-import { verifyBotIDRequest } from '@/lib/botid/verify';
-
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const ADMIN_EMAILS = ['team@productcareerlyst.com'];
@@ -12,15 +10,6 @@ const ADMIN_EMAILS = ['team@productcareerlyst.com'];
 // POST /api/contact - Handle contact form submission
 export const POST = async (request: NextRequest) => {
   try {
-    // Verify BotID first
-    const { verified, error } = await verifyBotIDRequest();
-    if (!verified) {
-      return NextResponse.json(
-        { error: error || 'Request verification failed. Please try again.' },
-        { status: 403 }
-      );
-    }
-
     const supabase = await createClient();
     
     // Try to get user (may be null for unauthenticated users)

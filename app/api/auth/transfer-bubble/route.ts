@@ -4,7 +4,6 @@ import { getStripeClient } from '@/lib/stripe/client';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import { resolvePlanAndCadenceFromSubscription } from '@/lib/stripe/plan-utils';
-import { verifyBotIDRequest } from '@/lib/botid/verify';
 
 // Type alias to avoid conflict with our Subscription interface
 type StripeSubscription = Stripe.Subscription;
@@ -27,15 +26,6 @@ const supabaseAdmin = createSupabaseAdmin(
  */
 export const POST = async (request: NextRequest) => {
   try {
-    // Verify BotID first
-    const { verified, error } = await verifyBotIDRequest();
-    if (!verified) {
-      return NextResponse.json(
-        { error: error || 'Request verification failed. Please try again.' },
-        { status: 403 }
-      );
-    }
-
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
