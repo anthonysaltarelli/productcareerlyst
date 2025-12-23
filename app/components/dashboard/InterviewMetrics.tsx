@@ -102,31 +102,6 @@ export const InterviewMetrics = ({ metrics, loading = false }: InterviewMetricsP
           size="sm"
         />
       </div>
-
-      {/* Score trend if available */}
-      {metrics.scoreHistory.length >= 3 && (
-        <div className="mt-4 p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
-          <p className="text-sm font-semibold text-gray-700 mb-2">Score Trend (Last {metrics.scoreHistory.length} interviews)</p>
-          <div className="flex items-end gap-1 h-12">
-            {metrics.scoreHistory.map((score, i) => {
-              const heightPercent = (score / 4) * 100
-              const color = score >= 3.5 ? 'bg-green-500' : score >= 2.5 ? 'bg-blue-500' : score >= 1.5 ? 'bg-yellow-500' : 'bg-red-500'
-              return (
-                <div
-                  key={i}
-                  className={`flex-1 ${color} rounded-t transition-all duration-300`}
-                  style={{ height: `${heightPercent}%`, minHeight: '4px' }}
-                  title={`Score: ${score.toFixed(1)}`}
-                />
-              )
-            })}
-          </div>
-          <div className="flex justify-between mt-1">
-            <span className="text-xs text-gray-400">Oldest</span>
-            <span className="text-xs text-gray-400">Latest</span>
-          </div>
-        </div>
-      )}
     </MetricSection>
   )
 }

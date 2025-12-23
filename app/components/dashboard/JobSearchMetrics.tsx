@@ -101,7 +101,7 @@ export const JobSearchMetrics = ({ metrics, loading = false }: JobSearchMetricsP
         {barChartData.length > 0 && (
           <div className="col-span-2 p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
             <p className="text-xs font-semibold text-gray-700 mb-2">Status Breakdown</p>
-            <MiniBarChart data={barChartData} width={200} height={10} />
+            <MiniBarChart data={barChartData} height={12} />
             <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
               {Object.entries(metrics.applicationsByStatus)
                 .filter(([_, count]) => count > 0)

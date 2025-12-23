@@ -105,15 +105,13 @@ export const Sparkline = ({
 // Mini bar chart variant for status distributions
 interface MiniBarChartProps {
   data: { label: string; value: number; color: string }[]
-  width?: number
   height?: number
   className?: string
 }
 
 export const MiniBarChart = ({
   data,
-  width = 120,
-  height = 24,
+  height = 12,
   className = '',
 }: MiniBarChartProps) => {
   const total = data.reduce((sum, item) => sum + item.value, 0)
@@ -121,41 +119,34 @@ export const MiniBarChart = ({
   if (total === 0) {
     return (
       <div
-        className={`flex items-center justify-center rounded-full bg-gray-100 ${className}`}
-        style={{ width, height }}
+        className={`flex items-center justify-center rounded-full bg-gray-100 w-full ${className}`}
+        style={{ height }}
       >
         <span className="text-xs text-gray-400">No data</span>
       </div>
     )
   }
 
-  let currentX = 0
-
   return (
-    <svg
-      width={width}
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      className={`rounded-full overflow-hidden ${className}`}
+    <div
+      className={`w-full rounded-full overflow-hidden flex ${className}`}
+      style={{ height }}
     >
-      {data.map((item, index) => {
-        const segmentWidth = (item.value / total) * width
-        const x = currentX
-        currentX += segmentWidth
-
+      {data.map((item) => {
         if (item.value === 0) return null
+        const widthPercent = (item.value / total) * 100
 
         return (
-          <rect
+          <div
             key={item.label}
-            x={x}
-            y={0}
-            width={segmentWidth}
-            height={height}
-            fill={item.color}
+            style={{
+              width: `${widthPercent}%`,
+              backgroundColor: item.color,
+              height: '100%'
+            }}
           />
         )
       })}
-    </svg>
+    </div>
   )
 }

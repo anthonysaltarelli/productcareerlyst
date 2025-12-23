@@ -56,12 +56,11 @@ export interface ResumeMetrics {
 }
 
 export interface PortfolioMetrics {
-  pagesCreated: number;
-  previousPagesCreated: number | null;
-  ideasGenerated: number;
-  previousIdeasGenerated: number | null;
-  ideasFavorited: number;
-  favoriteRate: number; // percentage
+  isPublished: boolean;
+  totalPages: number;
+  publishedPages: number;
+  draftPages: number;
+  previousTotalPages: number | null;
 }
 
 export interface DashboardMetrics {
@@ -458,9 +457,10 @@ async function fetchInterviewData(
   prevEnd: Date | null
 ): Promise<InterviewMetrics> {
   // Get mock interviews
+  // Note: interview_mode is the column name, ai_evaluation contains the verdict
   const { data: allInterviews } = await supabase
     .from('mock_interviews')
-    .select('id, created_at, duration_seconds, interview_type, overall_verdict')
+    .select('id, created_at, duration_seconds, interview_mode, ai_evaluation')
     .eq('user_id', userId)
     .order('created_at', { ascending: true });
 
@@ -481,21 +481,34 @@ async function fetchInterviewData(
       })
     : null;
 
-  // Calculate scores (Strong Hire=4, Hire=3, No Hire=2, Strong No Hire=1)
+  // Calculate scores based on ai_evaluation.overallVerdict
+  // Verdicts: "Strong Hire"=4, "Hire"=3, "No Hire"=2, "Weak"=1
   const verdictToScore: Record<string, number> = {
     'Strong Hire': 4,
     'Hire': 3,
     'No Hire': 2,
-    'Strong No Hire': 1,
+    'Weak': 1,
+  };
+
+  // Helper to extract verdict from ai_evaluation JSONB
+  const getVerdict = (interview: typeof interviews[0]): string | null => {
+    const aiEval = interview.ai_evaluation as { overallVerdict?: string } | null;
+    return aiEval?.overallVerdict || null;
   };
 
   const currentScores = currentInterviews
-    .filter(i => i.overall_verdict && verdictToScore[i.overall_verdict])
-    .map(i => verdictToScore[i.overall_verdict]);
+    .map(i => {
+      const verdict = getVerdict(i);
+      return verdict && verdictToScore[verdict] ? verdictToScore[verdict] : null;
+    })
+    .filter((score): score is number => score !== null);
 
   const previousScores = previousInterviews
-    ?.filter(i => i.overall_verdict && verdictToScore[i.overall_verdict])
-    .map(i => verdictToScore[i.overall_verdict]) || null;
+    ?.map(i => {
+      const verdict = getVerdict(i);
+      return verdict && verdictToScore[verdict] ? verdictToScore[verdict] : null;
+    })
+    .filter((score): score is number => score !== null) || null;
 
   const averageScore = currentScores.length > 0
     ? currentScores.reduce((a, b) => a + b, 0) / currentScores.length
@@ -511,14 +524,19 @@ async function fetchInterviewData(
     0
   ) / 3600;
 
-  // Types practiced
-  const typesPracticed = new Set(currentInterviews.map(i => i.interview_type)).size;
+  // Types practiced (using interview_mode)
+  const typesPracticed = new Set(
+    currentInterviews.map(i => i.interview_mode).filter(Boolean)
+  ).size;
 
-  // Score history for sparkline (last 10 interviews)
+  // Score history for sparkline (last 10 interviews with scores)
   const recentScores = interviews
-    .filter(i => i.overall_verdict && verdictToScore[i.overall_verdict])
-    .slice(-10)
-    .map(i => verdictToScore[i.overall_verdict]);
+    .map(i => {
+      const verdict = getVerdict(i);
+      return verdict && verdictToScore[verdict] ? verdictToScore[verdict] : null;
+    })
+    .filter((score): score is number => score !== null)
+    .slice(-10);
 
   return {
     mockInterviewsCompleted: currentInterviews.length,
@@ -625,22 +643,33 @@ async function fetchPortfolioData(
   prevStart: Date | null,
   prevEnd: Date | null
 ): Promise<PortfolioMetrics> {
-  // Get portfolio pages
-  const { data: allPages } = await supabase
-    .from('portfolio_pages')
-    .select('id, created_at')
-    .eq('user_id', userId);
+  // Get portfolio with published status
+  const { data: portfolio } = await supabase
+    .from('portfolios')
+    .select('id, is_published')
+    .eq('user_id', userId)
+    .maybeSingle();
 
-  const pages = allPages || [];
+  const isPublished = portfolio?.is_published ?? false;
 
-  // Filter by date range
-  const currentPages = start
-    ? pages.filter(p => {
-        const date = new Date(p.created_at);
-        return date >= start && date <= end;
-      })
-    : pages;
+  // Get portfolio pages - must join through portfolio_id since pages don't have user_id
+  let pages: { id: string; created_at: string; is_published: boolean }[] = [];
 
+  if (portfolio?.id) {
+    const { data: allPages } = await supabase
+      .from('portfolio_pages')
+      .select('id, created_at, is_published')
+      .eq('portfolio_id', portfolio.id);
+
+    pages = allPages || [];
+  }
+
+  // Calculate page counts
+  const totalPages = pages.length;
+  const publishedPages = pages.filter(p => p.is_published).length;
+  const draftPages = totalPages - publishedPages;
+
+  // Filter by date range for previous period comparison
   const previousPages = prevStart && prevEnd
     ? pages.filter(p => {
         const date = new Date(p.created_at);
@@ -648,43 +677,11 @@ async function fetchPortfolioData(
       })
     : null;
 
-  // Get portfolio ideas
-  const { data: allIdeas } = await supabase
-    .from('portfolio_ideas')
-    .select('id, created_at')
-    .eq('user_id', userId);
-
-  const ideas = allIdeas || [];
-
-  const currentIdeas = start
-    ? ideas.filter(i => {
-        const date = new Date(i.created_at);
-        return date >= start && date <= end;
-      })
-    : ideas;
-
-  const previousIdeas = prevStart && prevEnd
-    ? ideas.filter(i => {
-        const date = new Date(i.created_at);
-        return date >= prevStart && date <= prevEnd;
-      })
-    : null;
-
-  // Get favorites
-  const { data: favorites } = await supabase
-    .from('portfolio_favorites')
-    .select('id')
-    .eq('user_id', userId);
-
-  const ideasFavorited = favorites?.length || 0;
-  const favoriteRate = ideas.length > 0 ? (ideasFavorited / ideas.length) * 100 : 0;
-
   return {
-    pagesCreated: currentPages.length,
-    previousPagesCreated: previousPages?.length ?? null,
-    ideasGenerated: currentIdeas.length,
-    previousIdeasGenerated: previousIdeas?.length ?? null,
-    ideasFavorited,
-    favoriteRate,
+    isPublished,
+    totalPages,
+    publishedPages,
+    draftPages,
+    previousTotalPages: previousPages?.length ?? null,
   };
 }
