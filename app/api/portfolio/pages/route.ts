@@ -111,7 +111,6 @@ export const POST = async (request: NextRequest) => {
         content: body.content || { type: 'doc', content: [] },
         display_order: body.display_order ?? nextOrder,
         is_published: body.is_published ?? false,
-        is_featured: body.is_featured ?? false,
         meta_title: body.meta_title || null,
         meta_description: body.meta_description || null,
         // Unsplash attribution fields

@@ -131,14 +131,10 @@ export default async function PublicPortfolioPage({ params, searchParams }: Page
     pages: (pages || []).filter((page) => page.category_id === category.id),
   })).filter((c) => c.pages.length > 0);
 
-  // Get featured pages
-  const featuredPages = (pages || []).filter((p) => p.is_featured);
-
   return (
     <PublicPortfolioView
       portfolio={portfolio}
       categories={categoriesWithPages}
-      featuredPages={featuredPages}
       isPreviewMode={showUnpublished}
     />
   );

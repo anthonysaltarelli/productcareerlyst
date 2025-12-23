@@ -89,7 +89,6 @@ export const PUT = async (request: NextRequest, context: RouteContext) => {
     if (body.content !== undefined) updateData.content = body.content;
     if (body.display_order !== undefined) updateData.display_order = body.display_order;
     if (body.is_published !== undefined) updateData.is_published = body.is_published;
-    if (body.is_featured !== undefined) updateData.is_featured = body.is_featured;
     if (body.meta_title !== undefined) updateData.meta_title = body.meta_title;
     if (body.meta_description !== undefined) updateData.meta_description = body.meta_description;
     // Unsplash attribution fields

@@ -767,11 +767,6 @@ const PageRow = ({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <h4 className="truncate font-medium text-gray-800">{page.title}</h4>
-          {page.is_featured && (
-            <span className="rounded bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-700">
-              Featured
-            </span>
-          )}
         </div>
         <p className="truncate text-sm text-gray-500">
           {page.description || 'No description'}

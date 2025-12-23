@@ -128,7 +128,6 @@ export interface PortfolioPage {
   content: TipTapContent; // TipTap JSON content
   display_order: number;
   is_published: boolean;
-  is_featured: boolean;
   meta_title?: string;
   meta_description?: string;
   created_at: string;
@@ -153,7 +152,6 @@ export interface PortfolioPageCreateInput {
   content?: TipTapContent;
   display_order?: number;
   is_published?: boolean;
-  is_featured?: boolean;
   meta_title?: string;
   meta_description?: string;
   // Unsplash attribution fields
@@ -174,7 +172,6 @@ export interface PortfolioPageUpdateInput {
   content?: TipTapContent;
   display_order?: number;
   is_published?: boolean;
-  is_featured?: boolean;
   meta_title?: string;
   meta_description?: string;
   // Unsplash attribution fields

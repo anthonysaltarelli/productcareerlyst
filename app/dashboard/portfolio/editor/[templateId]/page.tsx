@@ -911,11 +911,6 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
                         >
                           {page.is_published ? 'Published' : 'Draft'}
                         </span>
-                        {page.is_featured && (
-                          <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700">
-                            Featured
-                          </span>
-                        )}
                       </div>
                     </div>
 

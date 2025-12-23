@@ -636,7 +636,6 @@ const PageModal = ({
     category_id: page?.category_id || defaultCategoryId || '',
     cover_image_url: page?.cover_image_url || '',
     tags: page?.tags?.join(', ') || '',
-    is_featured: page?.is_featured || false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [slugError, setSlugError] = useState<string | null>(null);
@@ -698,7 +697,6 @@ const PageModal = ({
           category_id: formData.category_id || null,
           cover_image_url: formData.cover_image_url.trim() || null,
           tags,
-          is_featured: formData.is_featured,
         }),
       });
 
