@@ -606,7 +606,7 @@ export const TemplatesPageContent = ({
   }, []);
 
   return (
-    <div className="p-8 md:p-12">
+    <div className="min-h-screen bg-gray-50 p-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
       {/* Page view tracking */}
       <TemplatesPageTracking
         stats={stats}
@@ -615,16 +615,13 @@ export const TemplatesPageContent = ({
       />
 
       {/* Page Header */}
-      <div className="mb-8">
-        <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-pink-200 to-rose-200 shadow-[0_15px_0_0_rgba(236,72,153,0.3)] border-2 border-pink-300">
-          <span className="text-5xl mb-4 block">📚</span>
-          <h1 className="text-4xl md:text-5xl font-black text-gray-800 mb-3">
-            PM Resources
-          </h1>
-          <p className="text-xl text-gray-700 font-semibold">
-            Essential guides, templates, and tools for Product Managers
-          </p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-2">
+          PM Resources
+        </h1>
+        <p className="text-gray-600 font-medium">
+          Essential guides, templates, and tools for Product Managers
+        </p>
       </div>
 
       {/* Resources Grid */}

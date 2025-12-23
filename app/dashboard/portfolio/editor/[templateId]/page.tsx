@@ -380,7 +380,7 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
       </div>
     );
@@ -391,7 +391,7 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
     return (
       <>
         <MobileDashboardHeader title="Page Editor" />
-        <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-8">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-8">
           <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-red-100 text-4xl">
             ❌
           </div>
@@ -417,9 +417,9 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
   return (
     <>
       <MobileDashboardHeader title={page.title} />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 pt-16 md:pt-0">
+      <div className="min-h-screen bg-gray-50 pt-16 md:pt-0">
         {/* Header */}
-        <div className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur-sm">
+        <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
           <div className="mx-auto max-w-6xl px-4 py-3 md:px-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">

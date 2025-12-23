@@ -12,7 +12,6 @@ import { BillingPageTracking } from '@/app/components/billing/BillingPageTrackin
 import { TrialBillingStatus } from '@/app/components/billing/TrialBillingStatus';
 import { TrialUpgradeSection } from '@/app/components/billing/TrialUpgradeSection';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
-import { Sparkles, Rocket, Zap } from 'lucide-react';
 
 export default async function BillingPage() {
   const supabase = await createClient();
@@ -39,50 +38,42 @@ export default async function BillingPage() {
     return (
       <>
         <MobileDashboardHeader title="Billing" />
-        <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-12 px-4 pt-20 md:pt-12">
+        <div className="min-h-screen bg-gray-50 p-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
           <div className="max-w-6xl mx-auto">
             <BillingPageTracking subscription={subscription} accountCreatedAt={user.created_at} />
             <AutoSyncSubscription subscription={subscription} />
             <SuccessHandler />
-          
-          {/* Exciting Header */}
-          <div className="text-center mb-12">
-            <div className="flex justify-center items-center gap-3 mb-6">
-              <Sparkles className="w-12 h-12 text-purple-600 animate-pulse" />
-              <Rocket className="w-12 h-12 text-pink-600 animate-bounce" />
-              <Zap className="w-12 h-12 text-orange-600 animate-pulse" />
-            </div>
-            <h1 className="text-5xl md:text-6xl font-black bg-gradient-to-br from-purple-700 via-pink-600 to-orange-600 bg-clip-text text-transparent mb-4">
-              Unlock Your Career Potential
+
+          {/* Page Header */}
+          <div className="mb-6">
+            <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-2">
+              Billing & Subscription
             </h1>
-            <p className="text-2xl md:text-3xl text-gray-800 font-bold mb-4">
+            <p className="text-gray-600 font-medium">
               Choose the plan that accelerates your product management journey
-            </p>
-            <p className="text-lg text-gray-700 font-semibold max-w-2xl mx-auto">
-              Join thousands of product managers who are leveling up their careers with our comprehensive platform
             </p>
           </div>
 
           {/* Benefits Highlight */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-white/80 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-[0_12px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white rounded-[2rem] p-6 border-2 border-gray-200 shadow-sm">
               <div className="text-4xl mb-3">🚀</div>
-              <h3 className="text-xl font-black text-gray-900 mb-2">Unlimited Access</h3>
-              <p className="text-gray-700 font-semibold">
+              <h3 className="text-xl font-black text-gray-800 mb-2">Unlimited Access</h3>
+              <p className="text-gray-600 font-medium">
                 Get unlimited resume optimizations, job tracking, and company research
               </p>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-[0_12px_0_0_rgba(236,72,153,0.3)] border-2 border-pink-200">
+            <div className="bg-white rounded-[2rem] p-6 border-2 border-gray-200 shadow-sm">
               <div className="text-4xl mb-3">💼</div>
-              <h3 className="text-xl font-black text-gray-900 mb-2">Career Growth</h3>
-              <p className="text-gray-700 font-semibold">
+              <h3 className="text-xl font-black text-gray-800 mb-2">Career Growth</h3>
+              <p className="text-gray-600 font-medium">
                 Access exclusive courses, templates, and resources to advance your career
               </p>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-[0_12px_0_0_rgba(234,88,12,0.3)] border-2 border-orange-200">
+            <div className="bg-white rounded-[2rem] p-6 border-2 border-gray-200 shadow-sm">
               <div className="text-4xl mb-3">🎨</div>
-              <h3 className="text-xl font-black text-gray-900 mb-2">Product Portfolio</h3>
-              <p className="text-gray-700 font-semibold">
+              <h3 className="text-xl font-black text-gray-800 mb-2">Product Portfolio</h3>
+              <p className="text-gray-600 font-medium">
                 Launch a hosted product portfolio to showcase your experience and case studies
               </p>
             </div>
@@ -101,17 +92,18 @@ export default async function BillingPage() {
     return (
       <>
         <MobileDashboardHeader title="Billing" />
-        <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-8 px-4 pt-20 md:pt-8">
+        <div className="min-h-screen bg-gray-50 p-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
           <div className="max-w-6xl mx-auto">
             <BillingPageTracking subscription={subscription} accountCreatedAt={user.created_at} />
             <AutoSyncSubscription subscription={subscription} />
             <SuccessHandler />
-            
-            <div className="mb-8">
-              <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-2">
+
+            {/* Page Header */}
+            <div className="mb-6">
+              <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-2">
                 Billing & Subscription
               </h1>
-              <p className="text-gray-700 font-semibold">
+              <p className="text-gray-600 font-medium">
                 Manage your subscription and billing information
               </p>
             </div>
@@ -140,14 +132,16 @@ export default async function BillingPage() {
   return (
     <>
       <MobileDashboardHeader title="Billing" />
-      <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-8 px-4 pt-20 md:pt-8">
+      <div className="min-h-screen bg-gray-50 p-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
         <div className="max-w-4xl mx-auto">
           <BillingPageTracking subscription={subscription} accountCreatedAt={user.created_at} />
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-2">
+
+        {/* Page Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-2">
             Billing & Subscription
           </h1>
-          <p className="text-gray-700 font-semibold">
+          <p className="text-gray-600 font-medium">
             Manage your subscription and billing information
           </p>
         </div>

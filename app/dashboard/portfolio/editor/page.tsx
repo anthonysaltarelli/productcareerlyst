@@ -284,13 +284,13 @@ export default function PortfolioEditorPage() {
   if (state.isLoading) {
     return (
       <>
-        <DesktopOnlyFallback 
+        <DesktopOnlyFallback
           featureName="Portfolio Editor"
           description="The Portfolio Editor requires a larger screen to create and edit your portfolio effectively. Please access this feature from a desktop or laptop computer."
           pageTitle="Portfolio Editor"
         />
-        
-        <div className="hidden md:flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+
+        <div className="hidden md:flex min-h-screen items-center justify-center bg-gray-50">
           <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
         </div>
       </>
@@ -301,13 +301,13 @@ export default function PortfolioEditorPage() {
   if (!state.portfolio) {
     return (
       <>
-        <DesktopOnlyFallback 
+        <DesktopOnlyFallback
           featureName="Portfolio Editor"
           description="The Portfolio Editor requires a larger screen to create and edit your portfolio effectively. Please access this feature from a desktop or laptop computer."
           pageTitle="Portfolio Editor"
         />
-        
-        <div className="hidden md:flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+
+        <div className="hidden md:flex min-h-screen items-center justify-center bg-gray-50">
           <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
         </div>
       </>
@@ -327,9 +327,9 @@ export default function PortfolioEditorPage() {
       />
       
       {/* Desktop Two-Panel Layout */}
-      <div className="hidden md:flex h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="hidden md:flex h-screen bg-gray-50">
         {/* Left Sidebar */}
-        <div className="w-72 flex-shrink-0 overflow-y-auto border-r border-slate-200 bg-white/80 shadow-lg backdrop-blur-sm">
+        <div className="w-72 flex-shrink-0 overflow-y-auto border-r border-gray-200 bg-white shadow-sm">
           <PortfolioEditorSidebar
             selectedSection={selectedSection}
             onSectionChange={setSelectedSection}

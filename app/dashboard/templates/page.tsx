@@ -26,18 +26,16 @@ export default async function TemplatesPage() {
 
   return (
     <>
-      <MobileDashboardHeader title="PM Templates" />
-      <div className="pt-16 md:pt-0">
-        <TemplatesPageContent
-          stats={stats}
-          subscription={subscription ? {
-            plan: subscription.plan,
-            status: subscription.status,
-            isActive: subscription.status === 'active' || subscription.status === 'trialing',
-          } : null}
-          userCreatedAt={userCreatedAt}
-        />
-      </div>
+      <MobileDashboardHeader title="PM Resources" />
+      <TemplatesPageContent
+        stats={stats}
+        subscription={subscription ? {
+          plan: subscription.plan,
+          status: subscription.status,
+          isActive: subscription.status === 'active' || subscription.status === 'trialing',
+        } : null}
+        userCreatedAt={userCreatedAt}
+      />
     </>
   );
 }

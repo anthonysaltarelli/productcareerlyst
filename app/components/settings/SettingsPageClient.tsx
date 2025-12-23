@@ -157,13 +157,13 @@ export const SettingsPageClient = ({
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-4 md:py-8 px-4">
+    <div className="min-h-screen bg-gray-50 p-6 pt-4 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-2">
+        <div className="mb-6">
+          <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-2">
             Settings
           </h1>
-          <p className="text-gray-700 font-semibold text-sm md:text-base">
+          <p className="text-gray-600 font-medium">
             Manage your profile, account, and preferences
           </p>
         </div>
@@ -179,9 +179,9 @@ export const SettingsPageClient = ({
                   className={`flex-shrink-0 px-6 py-3 rounded-[1rem] font-semibold transition-all duration-200 whitespace-nowrap ${
                     activeTab === tab.id
                       ? tab.id === 'logout'
-                        ? 'bg-gradient-to-br from-red-500 to-orange-500 text-white shadow-[0_4px_0_0_rgba(239,68,68,0.4)]'
-                        : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_4px_0_0_rgba(147,51,234,0.4)]'
-                      : 'bg-white/80 backdrop-blur-sm text-gray-700 border-2 border-gray-200'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-purple-600 text-white'
+                      : 'bg-white text-gray-700 border-2 border-gray-200'
                   }`}
                   eventName="User Switched Settings Tab"
                   buttonId={tab.buttonId}
@@ -207,18 +207,18 @@ export const SettingsPageClient = ({
         <div className="flex flex-col md:flex-row gap-6">
           {/* Desktop: Sub-left Navigation */}
           <aside className="hidden md:block w-64 flex-shrink-0">
-            <nav className="bg-white/80 backdrop-blur-sm rounded-[2rem] p-4 shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
+            <nav className="bg-white rounded-[2rem] p-4 shadow-sm border-2 border-gray-200">
               {tabs.map((tab, index) => (
                 <TrackedButton
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`w-full text-left px-4 py-3 rounded-[1rem] font-semibold transition-all duration-200 ${
+                  className={`w-full text-left px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
                     index < tabs.length - 1 ? 'mb-2' : ''
                   } ${
                     activeTab === tab.id
                       ? tab.id === 'logout'
-                        ? 'bg-gradient-to-br from-red-500 to-orange-500 text-white shadow-[0_4px_0_0_rgba(239,68,68,0.4)]'
-                        : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_4px_0_0_rgba(147,51,234,0.4)]'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-purple-600 text-white'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                   eventName="User Switched Settings Tab"
@@ -243,7 +243,7 @@ export const SettingsPageClient = ({
 
           {/* Content Area */}
           <div className="flex-1 w-full">
-            <div className="bg-white/80 backdrop-blur-sm rounded-[2rem] p-4 md:p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
+            <div className="bg-white rounded-[2rem] p-4 md:p-8 shadow-sm border-2 border-gray-200">
               {activeTab === 'profile' && (
                 <ProfileInformation
                   stats={stats}

@@ -342,57 +342,52 @@ export default function ResumeLanding({ versions, isLoadingVersions = false, onE
   }
 
   return (
-    <div className="p-8 md:p-12">
+    <div className="min-h-screen bg-gray-50 p-6 pt-6 md:p-8 lg:p-12">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_20px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300">
-            <div className="inline-block px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm font-bold mb-4">
-              📄 RESUME BUILDER
-            </div>
-            <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-br from-blue-700 to-cyan-600 bg-clip-text text-transparent mb-4 leading-tight">
-              Craft Your Perfect Resume 🎯
-            </h1>
-            <p className="text-xl text-gray-700 font-semibold">
-              Create multiple versions for different jobs. Stand out, get hired.
-            </p>
-          </div>
+        {/* Page Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-2">
+            Resume Builder
+          </h1>
+          <p className="text-gray-600 font-medium">
+            Create multiple versions for different jobs. Stand out, get hired.
+          </p>
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="p-6 rounded-[2rem] bg-gradient-to-br from-green-200 to-emerald-200 shadow-[0_10px_0_0_rgba(22,163,74,0.3)] border-2 border-green-300 text-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="p-5 rounded-[2rem] bg-white border-2 border-gray-200 shadow-sm text-center">
             {(() => {
               const scores = Object.values(analysisScores);
-              const averageScore = scores.length > 0 
+              const averageScore = scores.length > 0
                 ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
                 : null;
-              
+
               return averageScore !== null ? (
-                <p className="text-4xl font-black text-green-600 mb-2">{averageScore}</p>
+                <p className="text-3xl font-black text-green-600 mb-1">{averageScore}<span className="text-lg text-gray-400">/100</span></p>
               ) : (
-                <p className="text-2xl font-black text-green-600 mb-2">—</p>
+                <p className="text-2xl font-black text-gray-400 mb-1">—</p>
               );
             })()}
-            <p className="text-sm font-bold text-gray-700">Resume Score</p>
+            <p className="text-sm font-semibold text-gray-600">Resume Score</p>
           </div>
 
-          <div className="p-6 rounded-[2rem] bg-gradient-to-br from-blue-200 to-cyan-200 shadow-[0_10px_0_0_rgba(37,99,235,0.3)] border-2 border-blue-300 text-center">
-            <p className="text-4xl font-black text-blue-600 mb-2">{versions.length}</p>
-            <p className="text-sm font-bold text-gray-700">Resume Versions</p>
+          <div className="p-5 rounded-[2rem] bg-white border-2 border-gray-200 shadow-sm text-center">
+            <p className="text-3xl font-black text-blue-600 mb-1">{versions.length}</p>
+            <p className="text-sm font-semibold text-gray-600">Resume Versions</p>
           </div>
 
-          <div className="p-6 rounded-[2rem] bg-gradient-to-br from-purple-200 to-pink-200 shadow-[0_10px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-300 text-center">
-            <p className="text-4xl font-black text-purple-600 mb-2">Good</p>
-            <p className="text-sm font-bold text-gray-700">ATS Compatible</p>
+          <div className="p-5 rounded-[2rem] bg-white border-2 border-gray-200 shadow-sm text-center">
+            <p className="text-3xl font-black text-purple-600 mb-1">Good</p>
+            <p className="text-sm font-semibold text-gray-600">ATS Compatible</p>
           </div>
         </div>
 
         {/* Master Resumes Section */}
         <div className="mb-8">
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-3xl font-black text-gray-800">📋 Master Resumes</h2>
-            <div className="flex gap-3">
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 className="text-2xl font-black text-gray-800">Master Resumes</h2>
+            <div className="flex gap-2">
               {onImportMaster && (
                 <button
                   onClick={async () => {
@@ -403,16 +398,16 @@ export default function ResumeLanding({ versions, isLoadingVersions = false, onE
                     });
                     setIsImportModalOpen(true);
                   }}
-                  className="px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200"
+                  className="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 font-bold text-white transition-colors text-sm"
                   aria-label="Import existing resume"
                 >
-                  📥 Import Resume
+                  Import Resume
                 </button>
               )}
               {onCreateMaster && (
                 <button
                   onClick={onCreateMaster}
-                  className="px-8 py-3 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_6px_0_0_rgba(37,99,235,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(37,99,235,0.6)] font-black text-white transition-all duration-200"
+                  className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 font-bold text-white transition-colors text-sm"
                   aria-label="Create new master resume"
                 >
                   + Create Master
@@ -422,15 +417,15 @@ export default function ResumeLanding({ versions, isLoadingVersions = false, onE
           </div>
 
           {masterResumes.length === 0 ? (
-            <div className="text-center py-12 px-6 rounded-[2rem] bg-gradient-to-br from-slate-100 to-slate-200 border-2 border-slate-300">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-200 to-cyan-200 rounded-[1.5rem] border-2 border-blue-400 mb-4">
-                <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center py-10 px-6 rounded-[2rem] bg-white border-2 border-gray-200 shadow-sm">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-xl mb-4">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-black text-gray-800 mb-2">No Master Resumes</h3>
-              <p className="text-gray-600 font-medium mb-4">Import an existing resume or create a new one from scratch.</p>
-              <div className="flex gap-3 justify-center">
+              <h3 className="text-lg font-bold text-gray-800 mb-2">No Master Resumes</h3>
+              <p className="text-gray-600 font-medium text-sm mb-4">Import an existing resume or create a new one from scratch.</p>
+              <div className="flex gap-2 justify-center">
                 {onImportMaster && (
                   <button
                     onClick={async () => {
@@ -441,16 +436,16 @@ export default function ResumeLanding({ versions, isLoadingVersions = false, onE
                       });
                       setIsImportModalOpen(true);
                     }}
-                    className="px-6 py-2 rounded-[1.5rem] bg-gradient-to-br from-green-500 to-emerald-500 shadow-[0_6px_0_0_rgba(22,163,74,0.6)] border-2 border-green-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(22,163,74,0.6)] font-black text-white transition-all duration-200"
+                    className="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 font-bold text-white transition-colors text-sm"
                     aria-label="Import existing resume"
                   >
-                    📥 Import Resume
+                    Import Resume
                   </button>
                 )}
                 {onCreateMaster && (
                   <button
                     onClick={onCreateMaster}
-                    className="px-6 py-2 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_6px_0_0_rgba(37,99,235,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(37,99,235,0.6)] font-black text-white transition-all duration-200"
+                    className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 font-bold text-white transition-colors text-sm"
                     aria-label="Create new master resume"
                   >
                     + Start from Scratch
@@ -490,12 +485,12 @@ export default function ResumeLanding({ versions, isLoadingVersions = false, onE
 
         {/* Job-Specific Resumes Section */}
         <div className="mb-8">
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-3xl font-black text-gray-800">📄 Job-Specific Resumes</h2>
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 className="text-2xl font-black text-gray-800">Job-Specific Resumes</h2>
             {masterResumes.length > 0 && (
               <button
                 onClick={() => setIsCloneModalOpen(true)}
-                className="px-8 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200"
+                className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 font-bold text-white transition-colors text-sm"
               >
                 + Create from Master
               </button>
@@ -503,18 +498,18 @@ export default function ResumeLanding({ versions, isLoadingVersions = false, onE
           </div>
 
           {jobSpecificResumes.length === 0 ? (
-            <div className="text-center py-12 px-6 rounded-[2rem] bg-gradient-to-br from-slate-100 to-slate-200 border-2 border-slate-300">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-200 to-pink-200 rounded-[1.5rem] border-2 border-purple-400 mb-4">
-                <svg className="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center py-10 px-6 rounded-[2rem] bg-white border-2 border-gray-200 shadow-sm">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-xl mb-4">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-black text-gray-800 mb-2">No Job-Specific Resumes</h3>
-              <p className="text-gray-600 font-medium mb-4">Clone a master resume to create a tailored version for specific jobs.</p>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">No Job-Specific Resumes</h3>
+              <p className="text-gray-600 font-medium text-sm mb-4">Clone a master resume to create a tailored version for specific jobs.</p>
               {masterResumes.length > 0 && (
                 <button
                   onClick={() => setIsCloneModalOpen(true)}
-                  className="px-6 py-2 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200"
+                  className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 font-bold text-white transition-colors text-sm"
                 >
                   + Create from Master
                 </button>
@@ -604,26 +599,26 @@ export default function ResumeLanding({ versions, isLoadingVersions = false, onE
         )}
 
         {/* Help Section */}
-        <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-slate-700 to-slate-900 shadow-[0_20px_0_0_rgba(15,23,42,0.4)] border-2 border-slate-800">
-          <h3 className="text-2xl font-black text-white mb-4">🎯 Getting Started</h3>
-          <p className="text-gray-300 font-medium text-lg mb-6">
+        <div className="p-6 rounded-[2rem] bg-white border-2 border-gray-200 shadow-sm">
+          <h3 className="text-lg font-black text-gray-800 mb-2">Getting Started</h3>
+          <p className="text-gray-600 font-medium text-sm mb-4">
             Your Master Resumes contain all your experiences and bullets. Create job-specific
             versions by cloning a master and tailoring it for each application.
           </p>
-          <div className="flex gap-4">
-            <Link 
+          <div className="flex flex-wrap gap-3">
+            <Link
               href="/dashboard/courses/resume-linkedin"
-              className="px-6 py-3 rounded-[1.5rem] bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_6px_0_0_rgba(147,51,234,0.6)] border-2 border-purple-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.6)] font-black text-white transition-all duration-200"
+              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 font-bold text-white transition-colors text-sm"
             >
-              📺 Watch Tutorial
+              Watch Tutorial
             </Link>
-            <a 
+            <a
               href="https://docs.google.com/document/d/1TgMhFSh1PLJ4q8rSskt7iQi4GzaNzDgUA5Gt7HH0o5c/edit"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-3 rounded-[1.5rem] bg-white/10 border-2 border-slate-600 hover:bg-white/20 font-bold text-white transition-all duration-200"
+              className="px-4 py-2 rounded-xl border-2 border-gray-200 hover:bg-gray-50 font-bold text-gray-700 transition-colors text-sm"
             >
-              📚 View Documentation
+              View Documentation
             </a>
           </div>
         </div>
@@ -665,34 +660,34 @@ function ResumeCard({ version, onEdit, isMaster, analysisScore, onCloneToJobSpec
   }, []);
 
   return (
-    <div className="rounded-[2rem] bg-gradient-to-br from-slate-100 to-slate-200 shadow-[0_10px_0_0_rgba(51,65,85,0.3)] border-2 border-slate-300 hover:translate-y-1 hover:shadow-[0_6px_0_0_rgba(51,65,85,0.3)] transition-all duration-200 overflow-visible relative flex flex-col h-full">
+    <div className="p-6 rounded-[2rem] bg-white border-2 border-gray-200 hover:border-purple-300 shadow-sm hover:shadow-md transition-all duration-200 overflow-visible relative flex flex-col h-full">
       {/* Card Header */}
-      <div className="p-6 flex-1 flex flex-col">
-        <div className="flex items-start justify-between mb-4">
+      <div className="flex-1 flex flex-col">
+        <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-xl font-black text-gray-800">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-lg font-bold text-gray-800">
                 {version.name}
               </h3>
               {isMaster && (
-                <span className="px-3 py-1 text-xs font-bold bg-gradient-to-br from-blue-400 to-cyan-400 text-white rounded-[0.75rem] border-2 border-blue-500">
+                <span className="px-2 py-0.5 text-xs font-bold bg-blue-100 text-blue-700 rounded-lg">
                   MASTER
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-600 font-medium">
+            <p className="text-sm text-gray-500 font-medium">
               Modified: {formatDate(version.updated_at)}
             </p>
 
             {/* Job Application Link */}
             {jobApplication && (
               <div className="mt-2 flex items-center gap-2 text-sm">
-                <div className="px-3 py-1 bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-300 rounded-[0.75rem]">
-                  <span className="font-bold text-purple-700">
+                <div className="px-2 py-1 bg-purple-50 border border-purple-200 rounded-lg">
+                  <span className="font-semibold text-purple-700">
                     {jobApplication.title}
                   </span>
                   <span className="text-purple-600"> at </span>
-                  <span className="font-bold text-purple-700">
+                  <span className="font-semibold text-purple-700">
                     {jobApplication.company?.name || 'Unknown'}
                   </span>
                 </div>
@@ -703,15 +698,15 @@ function ResumeCard({ version, onEdit, isMaster, analysisScore, onCloneToJobSpec
 
         {/* Score */}
         <div className="mt-auto">
-          <div className="bg-white rounded-[1rem] p-4 border-2 border-slate-300">
-            <p className="text-xs text-gray-600 font-bold mb-1">Resume Score</p>
+          <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
+            <p className="text-xs text-gray-500 font-semibold mb-1">Resume Score</p>
             {analysisScore !== undefined ? (
-              <p className="text-3xl font-black text-gray-800">
+              <p className="text-2xl font-black text-gray-800">
                 {analysisScore}
-                <span className="text-lg text-gray-500 font-semibold">/100</span>
+                <span className="text-sm text-gray-400 font-semibold">/100</span>
               </p>
             ) : (
-              <p className="text-lg font-medium text-gray-400 italic">
+              <p className="text-sm font-medium text-gray-400">
                 No analysis yet
               </p>
             )}
@@ -720,12 +715,12 @@ function ResumeCard({ version, onEdit, isMaster, analysisScore, onCloneToJobSpec
       </div>
 
       {/* Card Actions */}
-      <div className="p-4 bg-white/60 flex gap-2 rounded-b-[2rem]">
+      <div className="mt-4 flex gap-2">
         <button
           onClick={() => onEdit(version.id)}
-          className="flex-1 px-4 py-2 rounded-[1rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_4px_0_0_rgba(37,99,235,0.6)] border-2 border-blue-600 hover:translate-y-0.5 hover:shadow-[0_2px_0_0_rgba(37,99,235,0.6)] font-black text-white transition-all duration-200 text-sm"
+          className="flex-1 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 font-bold text-white transition-colors text-sm"
         >
-          Edit →
+          Edit Resume
         </button>
 
         {/* Master Resume Menu */}
@@ -733,21 +728,21 @@ function ResumeCard({ version, onEdit, isMaster, analysisScore, onCloneToJobSpec
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="px-4 py-2 rounded-[1rem] bg-white hover:bg-gray-50 text-gray-700 font-bold border-2 border-slate-300 shadow-[0_4px_0_0_rgba(51,65,85,0.3)] hover:translate-y-0.5 hover:shadow-[0_2px_0_0_rgba(51,65,85,0.3)] transition-all duration-200 text-sm flex items-center"
+              className="px-3 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold transition-colors text-sm flex items-center"
             >
               <MoreVertical className="w-5 h-5" />
             </button>
 
             {/* Dropdown Menu */}
             {isMenuOpen && (
-              <div className="absolute right-0 bottom-full mb-2 w-64 bg-white rounded-xl shadow-2xl border-2 border-slate-300 overflow-hidden z-10">
+              <div className="absolute right-0 bottom-full mb-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-10">
                 <button
                   onClick={() => {
                     setIsMenuOpen(false);
                     onDownloadPDF?.(version);
                   }}
                   disabled={isDownloadingPDF || isDownloadingDocx}
-                  className={`w-full px-4 py-3 text-left font-medium text-gray-700 border-b border-gray-200 flex items-center gap-2 ${
+                  className={`w-full px-4 py-2.5 text-left font-medium text-gray-700 border-b border-gray-100 flex items-center gap-2 text-sm ${
                     isDownloadingPDF || isDownloadingDocx ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
                   }`}
                   aria-label="Download resume as PDF"
@@ -758,7 +753,7 @@ function ResumeCard({ version, onEdit, isMaster, analysisScore, onCloneToJobSpec
                       Generating PDF...
                     </>
                   ) : (
-                    <>📄 Download PDF</>
+                    'Download PDF'
                   )}
                 </button>
                 <button
@@ -767,7 +762,7 @@ function ResumeCard({ version, onEdit, isMaster, analysisScore, onCloneToJobSpec
                     onDownloadDocx?.(version);
                   }}
                   disabled={isDownloadingPDF || isDownloadingDocx}
-                  className={`w-full px-4 py-3 text-left font-medium text-gray-700 border-b border-gray-200 flex items-center gap-2 ${
+                  className={`w-full px-4 py-2.5 text-left font-medium text-gray-700 border-b border-gray-100 flex items-center gap-2 text-sm ${
                     isDownloadingPDF || isDownloadingDocx ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
                   }`}
                   aria-label="Download resume as DOCX"
@@ -778,7 +773,7 @@ function ResumeCard({ version, onEdit, isMaster, analysisScore, onCloneToJobSpec
                       Generating DOCX...
                     </>
                   ) : (
-                    <>📝 Download DOCX</>
+                    'Download DOCX'
                   )}
                 </button>
                 <button
@@ -786,27 +781,27 @@ function ResumeCard({ version, onEdit, isMaster, analysisScore, onCloneToJobSpec
                     setIsMenuOpen(false);
                     onCloneToMaster?.();
                   }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 font-medium text-gray-700 border-b border-gray-200 flex items-center gap-2"
+                  className="w-full px-4 py-2.5 text-left hover:bg-gray-50 font-medium text-gray-700 border-b border-gray-100 text-sm"
                 >
-                  📋 Clone to New Master Resume
+                  Clone to New Master
                 </button>
                 <button
                   onClick={() => {
                     setIsMenuOpen(false);
                     onCloneToJobSpecific?.();
                   }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 font-medium text-gray-700 border-b border-gray-200 flex items-center gap-2"
+                  className="w-full px-4 py-2.5 text-left hover:bg-gray-50 font-medium text-gray-700 border-b border-gray-100 text-sm"
                 >
-                  📄 Clone to New Job-Specific Resume
+                  Clone to Job-Specific
                 </button>
                 <button
                   onClick={() => {
                     setIsMenuOpen(false);
                     onDelete?.(version.id, version.name);
                   }}
-                  className="w-full px-4 py-3 text-left hover:bg-red-50 font-medium text-red-600 flex items-center gap-2"
+                  className="w-full px-4 py-2.5 text-left hover:bg-red-50 font-medium text-red-600 text-sm"
                 >
-                  🗑️ Delete Master Resume
+                  Delete Resume
                 </button>
               </div>
             )}
@@ -815,13 +810,13 @@ function ResumeCard({ version, onEdit, isMaster, analysisScore, onCloneToJobSpec
 
         {/* Job-Specific PDF Button */}
         {!isMaster && (
-          <button 
+          <button
             onClick={() => onDownloadPDF?.(version)}
             disabled={isDownloadingPDF}
-            className={`px-4 py-2 rounded-[1rem] bg-white text-gray-700 font-bold border-2 border-slate-300 shadow-[0_4px_0_0_rgba(51,65,85,0.3)] transition-all duration-200 text-sm flex items-center gap-1.5 ${
-              isDownloadingPDF 
-                ? 'opacity-50 cursor-not-allowed' 
-                : 'hover:bg-gray-50 hover:translate-y-0.5 hover:shadow-[0_2px_0_0_rgba(51,65,85,0.3)]'
+            className={`px-3 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-bold transition-colors text-sm flex items-center gap-1.5 ${
+              isDownloadingPDF
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:bg-gray-200'
             }`}
             aria-label="Download resume as PDF"
           >

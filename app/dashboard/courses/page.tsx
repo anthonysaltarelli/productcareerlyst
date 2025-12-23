@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server';
-import Link from 'next/link';
 import { CoursesPageTracking } from '@/app/components/CoursesPageTracking';
 import { TrackedLink } from '@/app/components/TrackedLink';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
@@ -80,44 +79,6 @@ const getCoursesWithCategories = async (): Promise<Category[]> => {
   return categoriesWithCounts.filter(cat => cat.courses.length > 0);
 };
 
-const colorSchemes = [
-  {
-    gradient: 'from-blue-200 to-cyan-200',
-    border: 'border-blue-300',
-    shadow: 'shadow-[0_10px_0_0_rgba(37,99,235,0.3)] hover:shadow-[0_6px_0_0_rgba(37,99,235,0.3)]'
-  },
-  {
-    gradient: 'from-purple-200 to-pink-200',
-    border: 'border-purple-300',
-    shadow: 'shadow-[0_10px_0_0_rgba(147,51,234,0.3)] hover:shadow-[0_6px_0_0_rgba(147,51,234,0.3)]'
-  },
-  {
-    gradient: 'from-green-200 to-emerald-200',
-    border: 'border-green-300',
-    shadow: 'shadow-[0_10px_0_0_rgba(22,163,74,0.3)] hover:shadow-[0_6px_0_0_rgba(22,163,74,0.3)]'
-  },
-  {
-    gradient: 'from-orange-200 to-yellow-200',
-    border: 'border-orange-300',
-    shadow: 'shadow-[0_10px_0_0_rgba(234,88,12,0.3)] hover:shadow-[0_6px_0_0_rgba(234,88,12,0.3)]'
-  },
-  {
-    gradient: 'from-violet-200 to-purple-200',
-    border: 'border-violet-300',
-    shadow: 'shadow-[0_10px_0_0_rgba(124,58,237,0.3)] hover:shadow-[0_6px_0_0_rgba(124,58,237,0.3)]'
-  },
-  {
-    gradient: 'from-pink-200 to-rose-200',
-    border: 'border-pink-300',
-    shadow: 'shadow-[0_10px_0_0_rgba(236,72,153,0.3)] hover:shadow-[0_6px_0_0_rgba(236,72,153,0.3)]'
-  },
-  {
-    gradient: 'from-teal-200 to-cyan-200',
-    border: 'border-teal-300',
-    shadow: 'shadow-[0_10px_0_0_rgba(20,184,166,0.3)] hover:shadow-[0_6px_0_0_rgba(20,184,166,0.3)]'
-  }
-];
-
 const categoryEmojis: Record<string, string> = {
   'career-preparation': '🎯',
   'interview-mastery': '💼',
@@ -133,22 +94,19 @@ export default async function CoursesPage() {
   return (
     <>
       <MobileDashboardHeader title="Courses" />
-      <div className="p-6 pt-20 md:p-12 md:pt-12">
-        <CoursesPageTracking 
+      <div className="min-h-screen bg-gray-50 p-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
+        <CoursesPageTracking
           totalCategories={totalCategories}
           totalCourses={totalCourses}
         />
       {/* Page Header */}
-      <div className="mb-8">
-        <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-indigo-200 to-purple-200 shadow-[0_15px_0_0_rgba(99,102,241,0.3)] border-2 border-indigo-300">
-          <span className="text-5xl mb-4 block">📚</span>
-          <h1 className="text-4xl md:text-5xl font-black text-gray-800 mb-3">
-            PM Courses
-          </h1>
-          <p className="text-xl text-gray-700 font-semibold">
-            Structured learning paths to master product management
-          </p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-2">
+          PM Courses
+        </h1>
+        <p className="text-gray-600 font-medium">
+          Structured learning paths to master product management
+        </p>
       </div>
 
       {/* Course Categories */}
@@ -163,19 +121,15 @@ export default async function CoursesPage() {
                 <p className="text-gray-600 font-medium mb-4">{category.description}</p>
               )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {category.courses.map((course, courseIndex) => {
-                  const colorScheme = colorSchemes[(categoryIndex * 3 + courseIndex) % colorSchemes.length];
-                  return (
-            <CourseCard
-                      key={course.id}
-                      course={course}
-                      colorScheme={colorScheme}
-                      categoryName={category.name}
-                      categoryIndex={categoryIndex}
-                      courseIndex={courseIndex}
-                    />
-                  );
-                })}
+                {category.courses.map((course, courseIndex) => (
+                  <CourseCard
+                    key={course.id}
+                    course={course}
+                    categoryName={category.name}
+                    categoryIndex={categoryIndex}
+                    courseIndex={courseIndex}
+                  />
+                ))}
               </div>
           </div>
           ))}
@@ -225,13 +179,27 @@ export default async function CoursesPage() {
       )}
 
       {/* Coming Soon Banner */}
-      <div className="mt-8 p-8 rounded-[2.5rem] bg-gradient-to-br from-slate-700 to-slate-900 shadow-[0_15px_0_0_rgba(15,23,42,0.4)] border-2 border-slate-800 text-center">
-        <p className="text-2xl font-black text-white mb-2">
-          🚀 More courses launching soon!
+      <div className="mt-8 p-6 rounded-[2rem] bg-white border-2 border-gray-200 shadow-sm text-center">
+        <p className="text-lg font-black text-gray-800 mb-1">
+          Want more courses or lessons?
         </p>
-        <p className="text-gray-400 font-medium">
-          We're constantly adding new content. Check back regularly for updates.
+        <p className="text-gray-500 font-medium text-sm mb-4">
+          Let us know what content you'd like to see! Submit your requests in the Product Feedback tab.
         </p>
+        <TrackedLink
+          href="/dashboard/feature-requests"
+          linkId="dashboard-courses-request-content-button"
+          eventName="User Clicked Request Content Button"
+          eventProperties={{
+            'Link Section': 'Dashboard Courses Page',
+            'Link Position': 'Coming Soon Banner',
+            'Link Type': 'Button',
+            'Link Text': 'Request Course Content',
+          }}
+          className="inline-block px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 font-bold text-white transition-colors text-sm"
+        >
+          Request Course Content →
+        </TrackedLink>
       </div>
       </div>
     </>
@@ -240,17 +208,11 @@ export default async function CoursesPage() {
 
 const CourseCard = ({
   course,
-  colorScheme,
   categoryName,
   categoryIndex,
   courseIndex
 }: {
   course: Course;
-  colorScheme: {
-    gradient: string;
-    border: string;
-    shadow: string;
-  };
   categoryName: string;
   categoryIndex: number;
   courseIndex: number;
@@ -274,19 +236,19 @@ const CourseCard = ({
         'Link Type': 'Course Card',
         'Link Text': 'Start Course →',
       }}
-      className={`p-6 rounded-[2rem] bg-gradient-to-br ${colorScheme.gradient} ${colorScheme.shadow} border-2 ${colorScheme.border} hover:translate-y-1 transition-all duration-200 cursor-pointer h-full block`}
+      className="p-6 rounded-[2rem] bg-white border-2 border-gray-200 hover:border-purple-300 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer h-full block"
     >
-      <h3 className="text-xl font-bold text-gray-800 mb-2">{course.title}</h3>
-      <p className="text-gray-700 font-medium text-sm mb-4 line-clamp-2">
+      <h3 className="text-lg font-bold text-gray-800 mb-2">{course.title}</h3>
+      <p className="text-gray-600 font-medium text-sm mb-4 line-clamp-2">
         {course.description}
       </p>
 
-      <div className="flex items-center gap-4 text-sm font-bold text-gray-600 mb-4">
+      <div className="flex items-center gap-4 text-sm font-medium text-gray-500 mb-4">
         <span>⏱️ {course.length}</span>
         <span>📝 {course.lesson_count} lessons</span>
       </div>
 
-      <div className="w-full px-6 py-3 rounded-[1.5rem] bg-white/80 hover:bg-white border-2 border-gray-300 font-black text-gray-800 transition-all duration-200 text-center">
+      <div className="w-full px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 font-bold text-white transition-colors text-center text-sm">
         Start Course →
       </div>
     </TrackedLink>

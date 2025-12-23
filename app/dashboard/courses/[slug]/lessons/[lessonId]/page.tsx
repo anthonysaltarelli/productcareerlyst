@@ -186,10 +186,10 @@ export default async function LessonPage({
 
   return (
     <LessonsPageMobileGate lessonTitle={lesson.title}>
-      <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100">
-      <MobileDashboardHeader 
-        title={lesson.title} 
-        showBackButton 
+      <div className="min-h-screen bg-gray-50">
+      <MobileDashboardHeader
+        title={lesson.title}
+        showBackButton
         backHref={`/dashboard/courses`}
         backLabel="Courses"
       />

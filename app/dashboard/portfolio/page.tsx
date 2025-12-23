@@ -15,7 +15,17 @@ export default function ProductPortfolioPage() {
     <>
       <MobileDashboardHeader title="Product Portfolio" />
       <PortfolioPageTracking pageName="Product Portfolio" />
-      <div className="p-4 pt-20 md:p-12 md:pt-12">
+      <div className="min-h-screen bg-gray-50 p-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
+        {/* Page Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-2">
+            Product Portfolio
+          </h1>
+          <p className="text-gray-600 font-medium">
+            Build and showcase your PM portfolio with case studies
+          </p>
+        </div>
+
         {/* Two Column Layout */}
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Main Content - Left Column */}
