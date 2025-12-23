@@ -17,6 +17,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import PreviewBanner from '@/app/components/PreviewBanner';
+import { Tilt } from '@/components/ui/tilt';
 
 // Custom Substack icon (lucide-react doesn't have one)
 const SubstackIcon = ({ className }: { className?: string }) => (
@@ -523,12 +524,22 @@ const FeaturedPageCard = ({
   isPreviewMode?: boolean;
 }) => {
   const previewSuffix = isPreviewMode ? '?preview=true' : '';
-  
+
   return (
-    <Link
-      href={`/p/${portfolioSlug}/${page.slug}${previewSuffix}`}
-      className="group relative overflow-hidden rounded-2xl shadow-sm ring-1 ring-gray-100 transition-[transform,box-shadow] duration-300 ease-out will-change-transform hover:-translate-y-1 hover:shadow-xl sm:rounded-[24px] md:rounded-[32px]"
+    <Tilt
+      rotationFactor={6}
+      isRevese
+      springOptions={{
+        stiffness: 26.7,
+        damping: 4.1,
+        mass: 0.2,
+      }}
+      className="group rounded-2xl sm:rounded-[24px] md:rounded-[32px]"
     >
+      <Link
+        href={`/p/${portfolioSlug}/${page.slug}${previewSuffix}`}
+        className="block overflow-hidden rounded-2xl shadow-sm ring-1 ring-gray-100 transition-shadow duration-300 ease-out hover:shadow-xl sm:rounded-[24px] md:rounded-[32px]"
+      >
       {/* Cover Image with Overlays */}
       {/* Mobile: taller aspect ratio for better content visibility, Desktop: 2:1 */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 sm:aspect-[2/1]">
@@ -536,7 +547,7 @@ const FeaturedPageCard = ({
           <img
             src={page.cover_image_url}
             alt={page.title}
-            className="h-full w-full object-cover transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.03]"
+            className="h-full w-full object-cover"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 text-4xl sm:text-5xl">
@@ -591,7 +602,8 @@ const FeaturedPageCard = ({
           <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
         </div>
       </div>
-    </Link>
+      </Link>
+    </Tilt>
   );
 };
 
@@ -605,12 +617,22 @@ const PageCard = ({
   isPreviewMode?: boolean;
 }) => {
   const previewSuffix = isPreviewMode ? '?preview=true' : '';
-  
+
   return (
-    <Link
-      href={`/p/${portfolioSlug}/${page.slug}${previewSuffix}`}
-      className="group w-full max-w-3xl overflow-hidden rounded-2xl shadow-sm ring-1 ring-gray-100 transition-[transform,box-shadow] duration-300 ease-out will-change-transform hover:-translate-y-1 hover:shadow-xl sm:rounded-[24px] md:rounded-[32px]"
+    <Tilt
+      rotationFactor={6}
+      isRevese
+      springOptions={{
+        stiffness: 26.7,
+        damping: 4.1,
+        mass: 0.2,
+      }}
+      className="group w-full max-w-3xl rounded-2xl sm:rounded-[24px] md:rounded-[32px]"
     >
+      <Link
+        href={`/p/${portfolioSlug}/${page.slug}${previewSuffix}`}
+        className="block overflow-hidden rounded-2xl shadow-sm ring-1 ring-gray-100 transition-shadow duration-300 ease-out hover:shadow-xl sm:rounded-[24px] md:rounded-[32px]"
+      >
       {/* Cover Image with Title, Description & Tags Overlay */}
       {/* Mobile: taller aspect ratio for better content visibility, Desktop: 2:1 */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 sm:aspect-[2/1]">
@@ -618,7 +640,7 @@ const PageCard = ({
           <img
             src={page.cover_image_url}
             alt={page.title}
-            className="h-full w-full object-cover transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.03]"
+            className="h-full w-full object-cover"
           />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-gray-800 to-gray-900" />
@@ -667,6 +689,7 @@ const PageCard = ({
           </div>
         )}
       </div>
-    </Link>
+      </Link>
+    </Tilt>
   );
 };
