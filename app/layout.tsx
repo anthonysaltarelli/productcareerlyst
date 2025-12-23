@@ -104,7 +104,7 @@ export default function RootLayout({
             </ConditionalLayout>
           </AmplitudeProvider>
         </LaunchDarklyProvider>
-        <Analytics />
+        <Analytics debug={false} />
       </body>
     </html>
   );
