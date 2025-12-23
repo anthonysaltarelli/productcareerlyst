@@ -14,9 +14,11 @@ import {
   ArrowDown,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
 } from 'lucide-react';
 import PreviewBanner from '@/app/components/PreviewBanner';
 import { Tilt } from '@/components/ui/tilt';
+import { motion } from 'framer-motion';
 
 // Custom Substack icon (lucide-react doesn't have one)
 const SubstackIcon = ({ className }: { className?: string }) => (
@@ -500,6 +502,7 @@ const PageCard = ({
   isPreviewMode?: boolean;
 }) => {
   const previewSuffix = isPreviewMode ? '?preview=true' : '';
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <Tilt
@@ -515,10 +518,14 @@ const PageCard = ({
       <Link
         href={`/p/${portfolioSlug}/${page.slug}${previewSuffix}`}
         className="block overflow-hidden rounded-2xl shadow-sm ring-1 ring-gray-100 transition-shadow duration-300 ease-out hover:shadow-xl sm:rounded-[24px] md:rounded-[32px]"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
       {/* Cover Image with Title, Description & Tags Overlay */}
       {/* Mobile: taller aspect ratio for better content visibility, Desktop: 2:1 */}
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 sm:aspect-[2/1]">
+      <div
+        className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 sm:aspect-[2/1]"
+      >
         {page.cover_image_url ? (
           <img
             src={page.cover_image_url}
@@ -530,9 +537,13 @@ const PageCard = ({
         )}
         {/* Gradient overlay - stronger on mobile for better text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent sm:from-black/70 sm:via-black/30" />
-        
+
         {/* Title & Description overlay - bottom left */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 md:p-6">
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 md:p-6"
+          animate={{ y: isHovered ? -40 : 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
           <h3 className="text-lg font-bold text-white sm:text-xl md:text-2xl">
             {page.title}
           </h3>
@@ -541,8 +552,24 @@ const PageCard = ({
               {page.description}
             </p>
           )}
-        </div>
-        
+        </motion.div>
+
+        {/* View More button - appears on hover */}
+        <motion.div
+          className="absolute bottom-0 left-0 p-4 pt-8 sm:p-5 sm:pt-10 md:p-6 md:pt-12"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{
+            y: isHovered ? 0 : 20,
+            opacity: isHovered ? 1 : 0
+          }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-gray-900 backdrop-blur-sm sm:gap-2 sm:px-4 sm:py-2 sm:text-sm">
+            View More
+            <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+          </span>
+        </motion.div>
+
         {/* Tags overlay - top right (matching detail page style) */}
         {page.tags.length > 0 && (
           <div className="absolute right-3 top-3 flex max-w-[60%] flex-wrap justify-end gap-1 sm:right-4 sm:top-4 sm:max-w-none sm:gap-1.5 md:right-5 md:top-5 md:gap-2">
@@ -561,7 +588,7 @@ const PageCard = ({
             )}
           </div>
         )}
-        
+
         {/* Draft badge overlay in preview mode */}
         {isPreviewMode && !page.is_published && (
           <div className="absolute left-3 top-3 sm:left-4 sm:top-4">
