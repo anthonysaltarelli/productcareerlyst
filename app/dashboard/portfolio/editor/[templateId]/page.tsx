@@ -2,12 +2,12 @@
 
 import { use, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  ArrowLeft, 
-  Loader2, 
-  Eye, 
-  EyeOff, 
-  Settings, 
+import {
+  ArrowLeft,
+  Loader2,
+  Eye,
+  EyeOff,
+  Settings,
   ExternalLink,
   Image as ImageIcon,
   Tag,
@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { JSONContent } from '@tiptap/react';
+import { authenticatedFetch } from '@/lib/utils/authenticated-fetch';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 import CoverImageUploadModal from '@/app/components/CoverImageUploadModal';
 import { 
@@ -120,7 +121,8 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
   const handleSaveContent = useCallback(async (content: JSONContent) => {
     setIsSavingContent(true);
     try {
-      const response = await fetch(`/api/portfolio/pages/${pageId}`, {
+      // Use authenticatedFetch to ensure fresh auth cookies before save
+      const response = await authenticatedFetch(`/api/portfolio/pages/${pageId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content }),
@@ -170,7 +172,7 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
 
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/portfolio/pages/${pageId}`, {
+      const response = await authenticatedFetch(`/api/portfolio/pages/${pageId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_published: !page.is_published }),
@@ -193,7 +195,7 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
 
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/portfolio/pages/${pageId}`, {
+      const response = await authenticatedFetch(`/api/portfolio/pages/${pageId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [field]: value }),
@@ -321,7 +323,7 @@ export default function PortfolioPageEditorPage({ params }: PageProps) {
         updatePayload.unsplash_download_location = null;
       }
 
-      const response = await fetch(`/api/portfolio/pages/${pageId}`, {
+      const response = await authenticatedFetch(`/api/portfolio/pages/${pageId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatePayload),
