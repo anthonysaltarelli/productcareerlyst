@@ -210,8 +210,8 @@ const PaymentFormContent = ({
       <PaymentElement />
 
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 border-2 border-red-200">
-          <p className="text-red-700 font-semibold">{error}</p>
+        <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+          <p className="text-red-700 text-sm">{error}</p>
         </div>
       )}
 
@@ -230,11 +230,11 @@ const PaymentFormContent = ({
             'Payment Method Type': 'card',
           });
         }}
-        className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black text-lg hover:from-purple-700 hover:to-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+        className="w-full py-3.5 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {loading ? (
           <>
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
             Processing...
           </>
         ) : (
@@ -591,7 +591,8 @@ export default function SelectBillingPage() {
     <>
       <MobileDashboardHeader title="Select Billing" />
       <div className="min-h-screen bg-gray-50 px-4 py-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
+          {/* Back Button */}
           <TrackedButton
             onClick={() => router.back()}
             buttonId="select-billing-page-back-button"
@@ -603,18 +604,18 @@ export default function SelectBillingPage() {
               'Plan Selected': plan!,
               'Billing Cycle Selected': selectedBilling,
             }}
-            className="flex items-center gap-2 text-gray-700 font-semibold mb-6 hover:text-purple-600 transition-colors"
+            className="flex items-center gap-2 text-gray-500 font-medium mb-6 hover:text-gray-700 transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
             Back
           </TrackedButton>
 
           {/* Page Header */}
-          <div className="mb-6">
-            <h1 className="text-2xl md:text-4xl font-black text-gray-800 mb-2">
+          <div className="mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
               {showPaymentForm ? 'Complete Your Subscription' : 'Choose Your Billing Cycle'}
             </h1>
-            <p className="text-sm md:text-base text-gray-600 font-medium">
+            <p className="text-gray-500">
               {showPaymentForm
                 ? `Enter your payment details to start your ${planData.name} plan`
                 : `Select how you'd like to be billed for the ${planData.name} plan`
@@ -624,206 +625,114 @@ export default function SelectBillingPage() {
 
           {!showPaymentForm ? (
             <>
-              {/* Promo Code Section */}
-            <div className="max-w-xl mx-auto mb-8">
-              <button
-                type="button"
-                onClick={() => setShowCouponInput(!showCouponInput)}
-                className="flex items-center gap-2 text-gray-600 font-semibold hover:text-purple-600 transition-colors mx-auto"
-                aria-expanded={showCouponInput}
-                aria-controls="coupon-input-section"
-              >
-                <Tag className="w-4 h-4" />
-                Have a promo code?
-                {showCouponInput ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-              </button>
-              
-              {showCouponInput && (
-                <div 
-                  id="coupon-input-section"
-                  className="mt-4 bg-white rounded-2xl p-4 border-2 border-gray-200 shadow-sm"
-                >
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={couponCode}
-                      onChange={(e) => {
-                        setCouponCode(e.target.value.toUpperCase());
-                        setCouponError(null);
-                        setAppliedCoupon(null);
+              {/* Billing Options */}
+              <div className="space-y-3 mb-6">
+                {(['monthly', 'quarterly', 'yearly'] as const).map((billing) => {
+                  const billingData = planData[billing];
+                  const isSelected = selectedBilling === billing;
+                  const monthlyEquivalent =
+                    billing === 'monthly'
+                      ? billingData.price
+                      : billing === 'quarterly'
+                        ? billingData.price / 3
+                        : billingData.price / 12;
+                  const isYearly = billing === 'yearly';
+                  const hasSavings = 'savings' in billingData && billingData.savings;
+
+                  return (
+                    <button
+                      key={billing}
+                      onClick={() => {
+                        trackEvent('User Selected Billing Cycle', {
+                          'Button Section': 'Billing Cycle Selection Section',
+                          'Button Position': `${billingLabels[billing]} Billing Card`,
+                          'Billing Cycle Selected': billing,
+                          'Plan Selected': plan!,
+                          'Price': billingData.price,
+                          'Monthly Equivalent': monthlyEquivalent,
+                          'Savings Percentage': hasSavings ? billingData.savings : null,
+                          'Card Position': billing === 'monthly' ? 'First Card' : billing === 'quarterly' ? 'Second Card' : 'Third Card',
+                          'Is Yearly': isYearly,
+                          'Is Most Popular Badge': isYearly,
+                        });
+                        setSelectedBilling(billing);
                       }}
-                      placeholder="Enter promo code"
-                      className="flex-1 px-4 py-2.5 border-2 border-gray-200 rounded-xl font-semibold text-gray-900 placeholder:text-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
-                      aria-label="Promo code"
-                      disabled={!!appliedCoupon}
-                    />
-                    {!appliedCoupon ? (
-                      <button
-                        type="button"
-                        onClick={handleApplyCoupon}
-                        disabled={validatingCoupon || !couponCode.trim()}
-                        className="px-5 py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                      >
-                        {validatingCoupon ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                          'Apply'
-                        )}
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleClearCoupon}
-                        className="px-4 py-2.5 text-gray-500 hover:text-gray-700 bg-gray-100 rounded-xl transition-colors flex items-center gap-1"
-                        aria-label="Remove promo code"
-                      >
-                        <X className="w-5 h-5" />
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                  
-                  {validatingCoupon && (
-                    <p className="mt-3 text-sm text-gray-600 font-semibold flex items-center gap-1.5">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Validating promo code...
-                    </p>
-                  )}
-                  {couponError && (
-                    <p className="mt-3 text-sm text-red-600 font-semibold flex items-center gap-1.5">
-                      <AlertCircle className="w-4 h-4" />
-                      {couponError}
-                    </p>
-                  )}
-                  {appliedCoupon && (
-                    <p className="mt-3 text-sm text-green-600 font-semibold flex items-center gap-1.5">
-                      <CheckCircle className="w-4 h-4" />
-                      Promo code "{appliedCoupon.couponName || appliedCoupon.couponId || couponCode}" applied!
-                      {appliedCoupon.percentOff ? ` (${appliedCoupon.percentOff}% off)` : null}
-                      {!appliedCoupon.percentOff && appliedCoupon.amountOff ? ` ($${(appliedCoupon.amountOff / 100).toFixed(2)} off)` : null}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
+                      className={`w-full p-4 md:px-6 md:py-5 rounded-xl border-2 transition-all ${
+                        isSelected
+                          ? 'border-purple-600 bg-purple-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        {/* Left side: Radio + Content */}
+                        <div className="flex items-start gap-3">
+                          {/* Radio Button */}
+                          <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
+                            isSelected ? 'border-purple-600 bg-purple-600' : 'border-gray-300'
+                          }`}>
+                            {isSelected && <Check className="w-3 h-3 text-white" />}
+                          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {(['monthly', 'quarterly', 'yearly'] as const).map((billing) => {
-                const billingData = planData[billing];
-                const isSelected = selectedBilling === billing;
-                const monthlyEquivalent =
-                  billing === 'monthly'
-                    ? billingData.price
-                    : billing === 'quarterly'
-                      ? billingData.price / 3
-                      : billingData.price / 12;
-
-                const isYearly = billing === 'yearly';
-
-                return (
-                  <button
-                    key={billing}
-                    onClick={() => {
-                      trackEvent('User Selected Billing Cycle', {
-                        'Button Section': 'Billing Cycle Selection Section',
-                        'Button Position': `${billingLabels[billing]} Billing Card`,
-                        'Billing Cycle Selected': billing,
-                        'Plan Selected': plan!,
-                        'Price': billingData.price,
-                        'Monthly Equivalent': monthlyEquivalent,
-                        'Savings Percentage': 'savings' in billingData ? billingData.savings : null,
-                        'Card Position': billing === 'monthly' ? 'First Card' : billing === 'quarterly' ? 'Second Card' : 'Third Card',
-                        'Is Yearly': isYearly,
-                        'Is Most Popular Badge': isYearly,
-                      });
-                      setSelectedBilling(billing);
-                    }}
-                    className={`relative p-8 rounded-[2.5rem] border-2 transition-all text-left ${
-                      isSelected
-                        ? 'border-purple-500 bg-white ring-4 ring-purple-200 shadow-xl'
-                        : 'border-gray-200 bg-white hover:border-purple-300 shadow-lg'
-                    } ${isYearly ? 'ring-2 ring-purple-300' : ''}`}
-                  >
-                    {'savings' in billingData && billingData.savings && (
-                      <div className="absolute -top-3 -right-3 px-4 py-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white text-sm font-bold shadow-lg">
-                        {billingData.savings} OFF
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="font-black text-2xl text-gray-900">
-                        {billingLabels[billing]}
-                      </div>
-                      {isSelected && (
-                        <div className="p-2 rounded-full bg-purple-600">
-                          <Check className="w-6 h-6 text-white" />
+                          {/* Billing Info */}
+                          <div className="text-left">
+                            <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
+                              <span className="font-semibold text-gray-900">{billingLabels[billing]}</span>
+                              {isYearly && (
+                                <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 text-[10px] md:text-xs font-semibold">
+                                  Best Value
+                                </span>
+                              )}
+                              {hasSavings && (
+                                <span className="px-1.5 py-0.5 rounded bg-green-100 text-green-700 text-[10px] md:text-xs font-semibold">
+                                  {billingData.savings} off
+                                </span>
+                              )}
+                            </div>
+                            {billing !== 'monthly' && (
+                              <p className="text-xs md:text-sm text-gray-500 mt-0.5">
+                                {appliedCoupon
+                                  ? `$${(calculateDiscountedPrice(billingData.price) / (billing === 'quarterly' ? 3 : 12)).toFixed(0)}/month`
+                                  : `$${monthlyEquivalent.toFixed(0)}/month`
+                                }
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <div className="text-4xl font-black text-purple-600">
-                        {appliedCoupon ? (
-                          <>
-                            <span className="text-gray-400 line-through text-2xl mr-2">
-                              ${billingData.price}
-                            </span>
-                            ${calculateDiscountedPrice(billingData.price)}
-                          </>
-                        ) : (
-                          `$${billingData.price}`
-                        )}
-                        {billing === 'monthly' && '/mo'}
-                        {billing === 'quarterly' && '/3mo'}
-                        {billing === 'yearly' && '/yr'}
-                      </div>
-                      {billing !== 'monthly' && (
-                        <div className="text-lg text-gray-600 font-semibold">
+
+                        {/* Price - Right aligned */}
+                        <div className="text-right flex-shrink-0">
                           {appliedCoupon ? (
-                            <>
-                              <span className="text-gray-400 line-through text-sm mr-1">
-                                ${monthlyEquivalent.toFixed(0)}
+                            <div className="flex flex-col items-end">
+                              <span className="text-gray-400 line-through text-xs">
+                                ${billingData.price}
                               </span>
-                              ${(calculateDiscountedPrice(billingData.price) / (billing === 'quarterly' ? 3 : 12)).toFixed(0)}/mo
-                            </>
+                              <span className="font-bold text-gray-900">
+                                ${calculateDiscountedPrice(billingData.price)}
+                                <span className="text-gray-500 font-normal text-sm">
+                                  {billing === 'monthly' && '/mo'}
+                                  {billing === 'quarterly' && '/qtr'}
+                                  {billing === 'yearly' && '/yr'}
+                                </span>
+                              </span>
+                            </div>
                           ) : (
-                            `$${monthlyEquivalent.toFixed(0)}/mo`
+                            <span className="font-bold text-gray-900">
+                              ${billingData.price}
+                              <span className="text-gray-500 font-normal text-sm">
+                                {billing === 'monthly' && '/mo'}
+                                {billing === 'quarterly' && '/qtr'}
+                                {billing === 'yearly' && '/yr'}
+                              </span>
+                            </span>
                           )}
                         </div>
-                      )}
-                      {billing === 'yearly' && (
-                        <div className="pt-2 text-sm text-green-600 font-bold">
-                          Best Value - Save {plan === 'learn' ? '42' : '40'}% annually
-                        </div>
-                      )}
-                      {appliedCoupon && (
-                        <div className="pt-1 text-sm text-purple-600 font-bold flex items-center gap-1">
-                          <Tag className="w-3 h-3" />
-                          {appliedCoupon.percentOff 
-                            ? `${appliedCoupon.percentOff}% off` 
-                            : appliedCoupon.amountOff 
-                              ? `$${(appliedCoupon.amountOff / 100).toFixed(2)} off`
-                              : 'Discount applied'}
-                        </div>
-                      )}
-                    </div>
-                    {isYearly && (
-                      <div className="mt-4 pt-4 border-t-2 border-gray-200">
-                        <div className="flex justify-center">
-                          <span className="px-4 py-1 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold">
-                            MOST POPULAR
-                          </span>
-                        </div>
                       </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                    </button>
+                  );
+                })}
+              </div>
 
-            <div className="flex justify-center">
+              {/* Continue Button */}
               <TrackedButton
                 onClick={handleContinue}
                 buttonId="select-billing-page-continue-payment-button"
@@ -838,222 +747,206 @@ export default function SelectBillingPage() {
                   'Monthly Equivalent': monthlyEquivalent,
                   'Savings Percentage': 'savings' in planData[selectedBilling] ? planData[selectedBilling].savings : null,
                 }}
-                className="px-12 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black text-lg hover:from-purple-700 hover:to-pink-700 transition-colors shadow-lg hover:shadow-xl"
+                className="w-full py-3.5 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors"
               >
                 Continue to Payment
               </TrackedButton>
-            </div>
-          </>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Order Summary */}
-            <div className="bg-white rounded-[2.5rem] shadow-lg border-2 border-gray-200 p-8">
-              <h2 className="text-2xl font-black text-gray-900 mb-6">Order Summary</h2>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center pb-4 border-b-2 border-gray-200">
-                  <span className="text-gray-700 font-semibold">
-                    {planData.name} Plan ({billingLabels[selectedBilling]})
-                  </span>
-                  <span className="text-gray-900 font-bold text-lg">
-                    ${price}
-                    {selectedBilling === 'monthly' && '/mo'}
-                    {selectedBilling === 'quarterly' && '/3mo'}
-                    {selectedBilling === 'yearly' && '/yr'}
-                  </span>
-                </div>
-                {selectedBilling !== 'monthly' && (
-                  <div className="flex justify-between items-center text-sm pb-4 border-b-2 border-gray-200">
-                    <span className="text-gray-600">Monthly equivalent</span>
-                    <span className="text-gray-700 font-semibold">
-                      ${monthlyEquivalent.toFixed(0)}/mo
-                    </span>
+            </>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+              {/* Payment Form - Takes more space */}
+              <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8 order-2 lg:order-1">
+                <h2 className="text-lg font-semibold text-gray-900 mb-6">Payment Details</h2>
+                {isProcessing ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Loader2 className="w-10 h-10 animate-spin text-purple-600 mb-4" />
+                    <p className="font-medium text-gray-700">Processing your subscription...</p>
+                    <p className="text-sm text-gray-500 mt-1">This will just take a moment</p>
                   </div>
-                )}
-                {appliedCoupon && (
-                  <div className="flex justify-between items-center pb-4 border-b-2 border-gray-200">
-                    <span className="text-green-600 font-semibold flex items-center gap-2">
-                      <Tag className="w-4 h-4" />
-                      Discount ({appliedCoupon.couponName || appliedCoupon.couponId || 'Promo'})
-                    </span>
-                    <span className="text-green-600 font-bold">
-                      -{appliedCoupon.percentOff 
-                        ? `${appliedCoupon.percentOff}%` 
-                        : appliedCoupon.amountOff 
-                          ? `$${(appliedCoupon.amountOff / 100).toFixed(2)}`
-                          : 'Discount'}
-                    </span>
+                ) : loadingClientSecret || !clientSecret ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Loader2 className="w-10 h-10 animate-spin text-purple-600 mb-4" />
+                    <p className="font-medium text-gray-700">Loading payment form...</p>
                   </div>
+                ) : (
+                  <Elements
+                    stripe={stripePromise}
+                    options={{
+                      clientSecret,
+                      appearance: {
+                        theme: 'stripe',
+                        variables: {
+                          colorPrimary: '#9333ea',
+                          colorBackground: '#ffffff',
+                          colorText: '#1f2937',
+                          colorDanger: '#ef4444',
+                          fontFamily: 'system-ui, sans-serif',
+                          spacingUnit: '4px',
+                          borderRadius: '8px',
+                        },
+                      },
+                    }}
+                  >
+                    <PaymentFormContent
+                      plan={plan}
+                      billingCadence={selectedBilling}
+                      onSuccess={handleSuccess}
+                      clientSecret={clientSecret}
+                      couponCode={appliedCoupon ? couponCode : ''}
+                    />
+                  </Elements>
                 )}
-                <div className="pt-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-900 font-bold text-xl">Total</span>
-                    <div className="text-right">
-                      {appliedCoupon ? (
-                        <>
-                          <span className="text-gray-400 line-through text-lg mr-2">
-                            ${price}
-                          </span>
-                          <span className="text-purple-600 font-black text-2xl">
-                            ${calculateDiscountedPrice(price)}
-                            {selectedBilling === 'monthly' && '/mo'}
-                            {selectedBilling === 'quarterly' && '/3mo'}
-                            {selectedBilling === 'yearly' && '/yr'}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-purple-600 font-black text-2xl">
-                          ${price}
-                          {selectedBilling === 'monthly' && '/mo'}
-                          {selectedBilling === 'quarterly' && '/3mo'}
-                          {selectedBilling === 'yearly' && '/yr'}
+              </div>
+
+              {/* Order Summary - Sidebar */}
+              <div className="lg:col-span-2 order-1 lg:order-2">
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sticky top-8">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
+
+                  <div className="space-y-3 pb-4 border-b border-gray-200">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">{planData.name} Plan</span>
+                      <span className="font-medium text-gray-900">${price}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Billing cycle</span>
+                      <span className="text-gray-700">{billingLabels[selectedBilling]}</span>
+                    </div>
+                    {selectedBilling !== 'monthly' && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Monthly equivalent</span>
+                        <span className="text-gray-700">${monthlyEquivalent.toFixed(0)}/mo</span>
+                      </div>
+                    )}
+                    {appliedCoupon && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-green-600 flex items-center gap-1">
+                          <Tag className="w-3 h-3" />
+                          Discount
                         </span>
-                      )}
+                        <span className="text-green-600 font-medium">
+                          -{appliedCoupon.percentOff
+                            ? `${appliedCoupon.percentOff}%`
+                            : appliedCoupon.amountOff
+                              ? `$${(appliedCoupon.amountOff / 100).toFixed(2)}`
+                              : ''}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="py-4 border-b border-gray-200">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-gray-900">Total</span>
+                      <span className="text-xl font-bold text-gray-900">
+                        {appliedCoupon ? (
+                          <>${calculateDiscountedPrice(price)}</>
+                        ) : (
+                          <>${price}</>
+                        )}
+                        <span className="text-sm font-normal text-gray-500">
+                          {selectedBilling === 'monthly' && '/mo'}
+                          {selectedBilling === 'quarterly' && '/quarter'}
+                          {selectedBilling === 'yearly' && '/year'}
+                        </span>
+                      </span>
                     </div>
                   </div>
-                </div>
-              </div>
-              
-              {/* Promo Code Section in Order Summary */}
-              {!appliedCoupon && (
-                <div className="mt-6 pt-6 border-t-2 border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => setShowCouponInput(!showCouponInput)}
-                    className="flex items-center gap-2 text-gray-600 font-semibold hover:text-purple-600 transition-colors text-sm"
-                    aria-expanded={showCouponInput}
-                  >
-                    <Tag className="w-4 h-4" />
-                    Have a promo code?
-                    {showCouponInput ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </button>
-                  
-                  {showCouponInput && (
-                    <div className="mt-3">
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={couponCode}
-                          onChange={(e) => {
-                            setCouponCode(e.target.value.toUpperCase());
-                            setCouponError(null);
-                          }}
-                          placeholder="Enter promo code"
-                          className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg font-semibold text-gray-900 placeholder:text-gray-400 focus:border-purple-500 focus:outline-none transition-colors text-sm"
-                          aria-label="Promo code"
-                        />
+
+                  {/* Promo Code Section in Order Summary */}
+                  {!appliedCoupon && (
+                    <div className="py-4 border-b border-gray-200">
+                      <button
+                        type="button"
+                        onClick={() => setShowCouponInput(!showCouponInput)}
+                        className="flex items-center gap-2 text-gray-500 text-sm hover:text-gray-700 transition-colors"
+                        aria-expanded={showCouponInput}
+                      >
+                        <Tag className="w-4 h-4" />
+                        Add promo code
+                      </button>
+
+                      {showCouponInput && (
+                        <div className="mt-3">
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={couponCode}
+                              onChange={(e) => {
+                                setCouponCode(e.target.value.toUpperCase());
+                                setCouponError(null);
+                              }}
+                              placeholder="Enter code"
+                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:border-purple-500 focus:outline-none transition-colors"
+                              aria-label="Promo code"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleApplyCoupon}
+                              disabled={validatingCoupon || !couponCode.trim()}
+                              className="px-3 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              {validatingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply'}
+                            </button>
+                          </div>
+                          {couponError && (
+                            <p className="mt-2 text-xs text-red-600 flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              {couponError}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {appliedCoupon && (
+                    <div className="py-4 border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-green-600 flex items-center gap-1">
+                          <CheckCircle className="w-4 h-4" />
+                          Discount applied
+                        </p>
                         <button
                           type="button"
-                          onClick={handleApplyCoupon}
-                          disabled={validatingCoupon || !couponCode.trim()}
-                          className="px-4 py-2 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1 text-sm"
+                          onClick={handleClearCoupon}
+                          className="text-xs text-gray-500 hover:text-red-500 transition-colors"
                         >
-                          {validatingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply'}
+                          Remove
                         </button>
                       </div>
-                      {couponError && (
-                        <p className="mt-2 text-xs text-red-600 font-semibold flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" />
-                          {couponError}
-                        </p>
-                      )}
                     </div>
                   )}
-                </div>
-              )}
-              {appliedCoupon && (
-                <div className="mt-6 pt-6 border-t-2 border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-green-600 font-semibold flex items-center gap-1.5">
-                      <CheckCircle className="w-4 h-4" />
-                      {appliedCoupon.percentOff 
-                        ? `${appliedCoupon.percentOff}% discount applied`
-                        : appliedCoupon.amountOff 
-                          ? `$${(appliedCoupon.amountOff / 100).toFixed(2)} discount applied`
-                          : 'Discount applied'}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleClearCoupon}
-                      className="text-xs text-gray-500 hover:text-red-500 font-semibold transition-colors"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              )}
 
-              {/* What's Included */}
-              <div className="mt-8 pt-8 border-t-2 border-gray-200">
-                <h3 className="font-bold text-lg text-gray-900 mb-4">What's Included:</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                    <span className="text-gray-700">All Course Lessons</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                    <span className="text-gray-700">All Resources</span>
-                  </div>
-                  {plan === 'accelerate' && (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                        <span className="text-gray-700">Hosted Product Portfolio</span>
+                  {/* What's Included */}
+                  <div className="pt-4">
+                    <h3 className="font-medium text-gray-900 mb-3 text-sm">What's included:</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+                        <span className="text-gray-600">All Course Lessons</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                        <span className="text-gray-700 font-bold">Unlimited Everything</span>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+                        <span className="text-gray-600">All Resources</span>
                       </div>
-                    </>
-                  )}
+                      {plan === 'accelerate' && (
+                        <>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+                            <span className="text-gray-600">Product Portfolio</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
+                            <span className="text-gray-700 font-medium">Unlimited Everything</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Payment Form */}
-            <div className="bg-white rounded-[2.5rem] shadow-lg border-2 border-gray-200 p-8">
-              {isProcessing ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="w-12 h-12 animate-spin text-purple-600 mb-4" />
-                  <p className="text-lg font-semibold text-gray-700">Processing your subscription...</p>
-                  <p className="text-sm text-gray-500 mt-2">This will just take a moment</p>
-                </div>
-              ) : loadingClientSecret || !clientSecret ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="w-12 h-12 animate-spin text-purple-600 mb-4" />
-                  <p className="text-lg font-semibold text-gray-700">Loading payment form...</p>
-                </div>
-              ) : (
-                <Elements
-                  stripe={stripePromise}
-                  options={{
-                    clientSecret,
-                    appearance: {
-                      theme: 'stripe',
-                      variables: {
-                        colorPrimary: '#9333ea',
-                        colorBackground: '#ffffff',
-                        colorText: '#1f2937',
-                        colorDanger: '#ef4444',
-                        fontFamily: 'system-ui, sans-serif',
-                        spacingUnit: '4px',
-                        borderRadius: '12px',
-                      },
-                    },
-                  }}
-                >
-                  <PaymentFormContent 
-                    plan={plan} 
-                    billingCadence={selectedBilling} 
-                    onSuccess={handleSuccess}
-                    clientSecret={clientSecret}
-                    couponCode={appliedCoupon ? couponCode : ''}
-                  />
-                </Elements>
-              )}
-            </div>
-          </div>
-        )}
+          )}
         </div>
       </div>
     </>
