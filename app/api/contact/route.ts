@@ -18,7 +18,56 @@ export const POST = async (request: NextRequest) => {
 
     // Parse request body
     const body = await request.json();
-    const { firstName, lastName, email, message } = body;
+    const { firstName, lastName, email, message, recaptchaToken } = body;
+
+    // Verify reCAPTCHA Enterprise token
+    const recaptchaApiKey = process.env.RECAPTCHA_API_KEY;
+    const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+    const recaptchaProjectId = process.env.RECAPTCHA_PROJECT_ID;
+
+    if (recaptchaApiKey && recaptchaSiteKey && recaptchaProjectId) {
+      if (!recaptchaToken) {
+        return NextResponse.json(
+          { error: 'reCAPTCHA verification failed. Please try again.' },
+          { status: 400 }
+        );
+      }
+
+      const recaptchaResponse = await fetch(
+        `https://recaptchaenterprise.googleapis.com/v1/projects/${recaptchaProjectId}/assessments?key=${recaptchaApiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: {
+              token: recaptchaToken,
+              expectedAction: 'contact_submit',
+              siteKey: recaptchaSiteKey,
+            },
+          }),
+        }
+      );
+
+      const recaptchaData = await recaptchaResponse.json();
+
+      // Check if token is valid and score is acceptable (0.5 threshold)
+      const isValidToken = recaptchaData.tokenProperties?.valid;
+      const score = recaptchaData.riskAnalysis?.score ?? 0;
+      const action = recaptchaData.tokenProperties?.action;
+
+      if (!isValidToken || score < 0.5) {
+        console.warn('reCAPTCHA Enterprise verification failed:', {
+          valid: isValidToken,
+          score,
+          action,
+          invalidReason: recaptchaData.tokenProperties?.invalidReason,
+        });
+        return NextResponse.json(
+          { error: 'reCAPTCHA verification failed. Please try again.' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Validate required fields
     if (!firstName || typeof firstName !== 'string' || firstName.trim() === '') {
