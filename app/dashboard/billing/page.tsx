@@ -38,7 +38,7 @@ export default async function BillingPage() {
     return (
       <>
         <MobileDashboardHeader title="Billing" />
-        <div className="min-h-screen bg-gray-50 p-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
+        <div className="min-h-screen bg-gray-50 px-4 py-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
           <div className="max-w-6xl mx-auto">
             <BillingPageTracking subscription={subscription} accountCreatedAt={user.created_at} />
             <AutoSyncSubscription subscription={subscription} />
@@ -46,16 +46,16 @@ export default async function BillingPage() {
 
           {/* Page Header */}
           <div className="mb-6">
-            <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-2">
+            <h1 className="text-2xl md:text-4xl font-black text-gray-800 mb-2">
               Billing & Subscription
             </h1>
-            <p className="text-gray-600 font-medium">
+            <p className="text-sm md:text-base text-gray-600 font-medium">
               Choose the plan that accelerates your product management journey
             </p>
           </div>
 
-          {/* Benefits Highlight */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Benefits Highlight - Hidden on mobile for cleaner view */}
+          <div className="hidden md:grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-[2rem] p-6 border-2 border-gray-200 shadow-sm">
               <div className="text-4xl mb-3">🚀</div>
               <h3 className="text-xl font-black text-gray-800 mb-2">Unlimited Access</h3>
@@ -92,7 +92,7 @@ export default async function BillingPage() {
     return (
       <>
         <MobileDashboardHeader title="Billing" />
-        <div className="min-h-screen bg-gray-50 p-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
+        <div className="min-h-screen bg-gray-50 px-4 py-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
           <div className="max-w-6xl mx-auto">
             <BillingPageTracking subscription={subscription} accountCreatedAt={user.created_at} />
             <AutoSyncSubscription subscription={subscription} />
@@ -100,10 +100,10 @@ export default async function BillingPage() {
 
             {/* Page Header */}
             <div className="mb-6">
-              <h1 className="text-3xl md:text-4xl font-black text-gray-800 mb-2">
+              <h1 className="text-2xl md:text-4xl font-black text-gray-800 mb-2">
                 Billing & Subscription
               </h1>
-              <p className="text-gray-600 font-medium">
+              <p className="text-sm md:text-base text-gray-600 font-medium">
                 Manage your subscription and billing information
               </p>
             </div>

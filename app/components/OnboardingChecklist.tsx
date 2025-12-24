@@ -144,18 +144,18 @@ export const OnboardingChecklist = ({ progress }: OnboardingChecklistProps) => {
     <div className="mb-8">
       <div className="rounded-2xl border-2 border-gray-200 bg-white shadow-sm overflow-hidden">
         {/* Header */}
-        <div className="p-5 bg-gradient-to-r from-purple-50 via-pink-50 to-orange-50 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+        <div className="p-4 sm:p-5 bg-gradient-to-r from-purple-50 via-pink-50 to-orange-50 border-b border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white flex-shrink-0">
                 <Rocket className="w-5 h-5" />
               </div>
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">Get Started with Product Careerlyst</h2>
+              <div className="min-w-0">
+                <h2 className="text-base sm:text-lg font-bold text-gray-900">Get Started with Product Careerlyst</h2>
                 <p className="text-sm text-gray-600">Complete these steps to unlock your full potential</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
               {/* Progress badge */}
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-gray-200 shadow-sm">
                 <span className="text-sm font-bold text-gray-700">{completedCount}/{totalCount}</span>
@@ -166,26 +166,28 @@ export const OnboardingChecklist = ({ progress }: OnboardingChecklistProps) => {
                   />
                 </div>
               </div>
-              {/* Collapse/Expand button */}
-              <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="p-2 rounded-lg hover:bg-white/50 transition-colors"
-              >
-                {isExpanded ? (
-                  <ChevronUp className="w-5 h-5 text-gray-500" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-500" />
-                )}
-              </button>
-              {/* Minimize button */}
-              <button
-                onClick={handleMinimize}
-                disabled={isMinimizing}
-                className="p-2 rounded-lg hover:bg-white/50 transition-colors disabled:opacity-50"
-                title="Minimize onboarding"
-              >
-                <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
-              </button>
+              <div className="flex items-center gap-1">
+                {/* Collapse/Expand button */}
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="p-2 rounded-lg hover:bg-white/50 transition-colors"
+                >
+                  {isExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-gray-500" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-500" />
+                  )}
+                </button>
+                {/* Minimize button */}
+                <button
+                  onClick={handleMinimize}
+                  disabled={isMinimizing}
+                  className="p-2 rounded-lg hover:bg-white/50 transition-colors disabled:opacity-50"
+                  title="Minimize onboarding"
+                >
+                  <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

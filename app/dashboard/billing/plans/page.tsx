@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getUserSubscription } from '@/lib/utils/subscription';
 import { PlanComparison } from '@/app/components/billing/PlanComparison';
 import { PlansPageTracking } from '@/app/components/billing/PlansPageTracking';
+import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 
 export default async function PlansPage() {
   const supabase = await createClient();
@@ -15,21 +16,26 @@ export default async function PlansPage() {
   const subscription = await getUserSubscription(user.id);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
-        <PlansPageTracking subscription={subscription} accountCreatedAt={user.created_at} />
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-4">
-            Choose Your Plan
-          </h1>
-          <p className="text-gray-700 font-semibold text-lg">
-            Select the plan that's right for you
-          </p>
-        </div>
+    <>
+      <MobileDashboardHeader title="Choose Plan" />
+      <div className="min-h-screen bg-gray-50 px-4 py-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
+        <div className="max-w-6xl mx-auto">
+          <PlansPageTracking subscription={subscription} accountCreatedAt={user.created_at} />
 
-        <PlanComparison />
+          {/* Page Header */}
+          <div className="mb-6">
+            <h1 className="text-2xl md:text-4xl font-black text-gray-800 mb-2">
+              Choose Your Plan
+            </h1>
+            <p className="text-sm md:text-base text-gray-600 font-medium">
+              Select the plan that's right for you
+            </p>
+          </div>
+
+          <PlanComparison />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

@@ -109,11 +109,11 @@ export const PlanComparison = ({ hideContinueButtons = false }: PlanComparisonPr
   };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 md:space-y-12">
       {/* Plan Cards at the Top */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto">
         {/* Learn Plan Card */}
-        <div className="bg-white rounded-[2.5rem] shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200 p-8 flex flex-col hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(0,0,0,0.1)] transition-all duration-200 cursor-pointer">
+        <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_8px_0_0_rgba(0,0,0,0.1)] md:shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200 p-5 md:p-8 flex flex-col hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(0,0,0,0.1)] md:hover:shadow-[0_8px_0_0_rgba(0,0,0,0.1)] transition-all duration-200 cursor-pointer">
           <div className="text-center flex-grow flex flex-col">
             <div>
               <h3 className="text-3xl font-black text-gray-900 mb-2">{learnPlan.name}</h3>
@@ -166,7 +166,7 @@ export const PlanComparison = ({ hideContinueButtons = false }: PlanComparisonPr
         </div>
 
         {/* Accelerate Plan Card */}
-        <div className="relative bg-white rounded-[2.5rem] shadow-[0_12px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-500 p-8 hover:translate-y-1 hover:shadow-[0_8px_0_0_rgba(147,51,234,0.3)] transition-all duration-200 cursor-pointer">
+        <div className="relative bg-white rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_8px_0_0_rgba(147,51,234,0.3)] md:shadow-[0_12px_0_0_rgba(147,51,234,0.3)] border-2 border-purple-500 p-5 md:p-8 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(147,51,234,0.3)] md:hover:shadow-[0_8px_0_0_rgba(147,51,234,0.3)] transition-all duration-200 cursor-pointer">
           {acceleratePlan.popular && (
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span className="px-6 py-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold shadow-[0_6px_0_0_rgba(147,51,234,0.4)]">
@@ -230,23 +230,18 @@ export const PlanComparison = ({ hideContinueButtons = false }: PlanComparisonPr
       </div>
 
       {/* Detailed Comparison Table Below */}
-      <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] overflow-hidden p-8 shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse table-fixed">
-          <colgroup>
-            <col style={{ width: '40%' }} />
-            <col style={{ width: '30%' }} />
-            <col style={{ width: '30%' }} />
-          </colgroup>
+      <div className="max-w-4xl mx-auto bg-white rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden p-3 md:p-8 shadow-[0_8px_0_0_rgba(0,0,0,0.1)] md:shadow-[0_12px_0_0_rgba(0,0,0,0.1)] border-2 border-gray-200">
+        <div className="overflow-x-auto -mx-1 md:mx-0">
+          <table className="w-full border-collapse min-w-[320px]">
           <thead>
             <tr>
-              <th className="text-left py-4 px-6 font-bold text-lg text-gray-900">
+              <th className="text-left py-3 md:py-4 px-2 md:px-6 font-bold text-sm md:text-lg text-gray-900 w-[45%] md:w-[40%]">
                 Features
               </th>
-              <th className="text-center py-4 px-6 font-bold text-lg text-gray-900">
+              <th className="text-center py-3 md:py-4 px-1 md:px-6 font-bold text-sm md:text-lg text-gray-900 w-[27.5%] md:w-[30%]">
                 {learnPlan.name}
               </th>
-              <th className="text-center py-4 px-6 font-bold text-lg text-purple-600">
+              <th className="text-center py-3 md:py-4 px-1 md:px-6 font-bold text-sm md:text-lg text-purple-600 w-[27.5%] md:w-[30%]">
                 {acceleratePlan.name}
               </th>
             </tr>
@@ -257,35 +252,31 @@ export const PlanComparison = ({ hideContinueButtons = false }: PlanComparisonPr
               const learnValue = getFeatureValue(learnPlan, feature.key);
 
               return (
-                <tr 
-                  key={feature.key} 
+                <tr
+                  key={feature.key}
                   className="border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
                   onClick={() => handleFeatureRowClick(feature, index)}
                 >
-                  <td className="py-3 px-6 font-bold text-sm text-gray-900">
+                  <td className="py-2.5 md:py-3 px-2 md:px-6 font-semibold text-xs md:text-sm text-gray-900">
                     {feature.label}
                   </td>
-                  <td className="py-3 px-6 text-center">
+                  <td className="py-2.5 md:py-3 px-1 md:px-6 text-center">
                     {learnValue === 'included' && (
-                      <span className="text-green-600 font-bold">✓</span>
+                      <Check className="w-4 h-4 md:w-5 md:h-5 text-green-600 mx-auto" />
                     )}
                     {learnValue === 'not-included' && (
-                      <div className="flex justify-center items-center">
-                        <X className="w-5 h-5 text-gray-400" strokeWidth={2.5} />
-                      </div>
+                      <X className="w-4 h-4 md:w-5 md:h-5 text-gray-400 mx-auto" strokeWidth={2.5} />
                     )}
                   </td>
-                  <td className="py-3 px-6 text-center">
+                  <td className="py-2.5 md:py-3 px-1 md:px-6 text-center">
                     {accelerateValue === 'included' && (
-                      <span className="text-green-600 font-bold">✓</span>
+                      <Check className="w-4 h-4 md:w-5 md:h-5 text-green-600 mx-auto" />
                     )}
                     {accelerateValue === 'unlimited' && (
-                      <span className="text-sm font-bold text-purple-600">Unlimited</span>
+                      <span className="text-xs md:text-sm font-bold text-purple-600">Unlimited</span>
                     )}
                     {accelerateValue === 'not-included' && (
-                      <div className="flex justify-center items-center">
-                        <X className="w-5 h-5 text-gray-400" strokeWidth={2.5} />
-                      </div>
+                      <X className="w-4 h-4 md:w-5 md:h-5 text-gray-400 mx-auto" strokeWidth={2.5} />
                     )}
                   </td>
                 </tr>

@@ -8,6 +8,7 @@ import { Check, ArrowLeft, Loader2, Tag, ChevronDown, ChevronUp, X, AlertCircle,
 import { TrackedButton } from '@/app/components/TrackedButton';
 import { trackEvent } from '@/lib/amplitude/client';
 import { createClient } from '@/lib/supabase/client';
+import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 
 // Type for coupon details
 interface CouponDetails {
@@ -587,40 +588,43 @@ export default function SelectBillingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        <TrackedButton
-          onClick={() => router.back()}
-          buttonId="select-billing-page-back-button"
-          eventName="User Clicked Back Button"
-          eventProperties={{
-            'Button Section': 'Page Header',
-            'Button Position': 'Top left of page',
-            'Button Text': 'Back',
-            'Plan Selected': plan!,
-            'Billing Cycle Selected': selectedBilling,
-          }}
-          className="flex items-center gap-2 text-gray-700 font-semibold mb-8 hover:text-purple-600 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back
-        </TrackedButton>
+    <>
+      <MobileDashboardHeader title="Select Billing" />
+      <div className="min-h-screen bg-gray-50 px-4 py-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
+        <div className="max-w-4xl mx-auto">
+          <TrackedButton
+            onClick={() => router.back()}
+            buttonId="select-billing-page-back-button"
+            eventName="User Clicked Back Button"
+            eventProperties={{
+              'Button Section': 'Page Header',
+              'Button Position': 'Top left of page',
+              'Button Text': 'Back',
+              'Plan Selected': plan!,
+              'Billing Cycle Selected': selectedBilling,
+            }}
+            className="flex items-center gap-2 text-gray-700 font-semibold mb-6 hover:text-purple-600 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back
+          </TrackedButton>
 
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-br from-purple-700 to-pink-600 bg-clip-text text-transparent mb-4">
-            {showPaymentForm ? 'Complete Your Subscription' : 'Choose Your Billing Cycle'}
-          </h1>
-          <p className="text-lg text-gray-700 font-semibold">
-            {showPaymentForm 
-              ? `Enter your payment details to start your ${planData.name} plan`
-              : `Select how you'd like to be billed for the ${planData.name} plan`
-            }
-          </p>
-        </div>
+          {/* Page Header */}
+          <div className="mb-6">
+            <h1 className="text-2xl md:text-4xl font-black text-gray-800 mb-2">
+              {showPaymentForm ? 'Complete Your Subscription' : 'Choose Your Billing Cycle'}
+            </h1>
+            <p className="text-sm md:text-base text-gray-600 font-medium">
+              {showPaymentForm
+                ? `Enter your payment details to start your ${planData.name} plan`
+                : `Select how you'd like to be billed for the ${planData.name} plan`
+              }
+            </p>
+          </div>
 
-        {!showPaymentForm ? (
-          <>
-            {/* Promo Code Section */}
+          {!showPaymentForm ? (
+            <>
+              {/* Promo Code Section */}
             <div className="max-w-xl mx-auto mb-8">
               <button
                 type="button"
@@ -1050,7 +1054,8 @@ export default function SelectBillingPage() {
             </div>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

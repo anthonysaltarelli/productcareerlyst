@@ -86,10 +86,10 @@ export const MetricCard = ({
             </p>
             {trend !== null && <TrendIndicator trend={trend} />}
           </div>
-          <p className={`${s.labelSize} font-semibold text-gray-700 mt-1`}>{label}</p>
+          <p className={`${s.labelSize} font-semibold text-gray-700 mt-1 leading-tight`}>{label}</p>
         </div>
         {sparklineData && sparklineData.length > 1 && (
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 hidden sm:block">
             <Sparkline
               data={sparklineData}
               width={64}

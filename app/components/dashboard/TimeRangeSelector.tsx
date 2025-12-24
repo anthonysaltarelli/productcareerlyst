@@ -9,29 +9,30 @@ interface TimeRangeSelectorProps {
   onChange: (range: TimeRange) => void
 }
 
-const ranges: { value: TimeRange; label: string }[] = [
-  { value: '7d', label: 'Last 7 days' },
-  { value: '30d', label: 'Last 30 days' },
-  { value: '90d', label: 'Last 90 days' },
-  { value: 'all', label: 'All time' },
+const ranges: { value: TimeRange; label: string; shortLabel: string }[] = [
+  { value: '7d', label: 'Last 7 days', shortLabel: '7d' },
+  { value: '30d', label: 'Last 30 days', shortLabel: '30d' },
+  { value: '90d', label: 'Last 90 days', shortLabel: '90d' },
+  { value: 'all', label: 'All time', shortLabel: 'All' },
 ]
 
 export const TimeRangeSelector = ({ value, onChange }: TimeRangeSelectorProps) => {
   return (
-    <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl w-fit">
+    <div className="flex items-center gap-0.5 sm:gap-1 p-1 bg-gray-100 rounded-xl w-fit">
       {ranges.map((range) => (
         <button
           key={range.value}
           onClick={() => onChange(range.value)}
           className={`
-            px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200
+            px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200
             ${value === range.value
               ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }
           `}
         >
-          {range.label}
+          <span className="sm:hidden">{range.shortLabel}</span>
+          <span className="hidden sm:inline">{range.label}</span>
         </button>
       ))}
     </div>

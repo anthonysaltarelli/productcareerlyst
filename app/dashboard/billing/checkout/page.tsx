@@ -6,6 +6,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { CheckoutFlow } from '@/app/components/billing/CheckoutFlow';
 import { trackEvent } from '@/lib/amplitude/client';
 import { createClient } from '@/lib/supabase/client';
+import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
@@ -70,21 +71,27 @@ export default function CheckoutPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-700 font-semibold">Loading checkout...</p>
+      <>
+        <MobileDashboardHeader title="Checkout" />
+        <div className="min-h-screen bg-gray-50 pt-16 md:pt-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-700 font-semibold">Loading checkout...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-purple-100 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <CheckoutFlow plan={plan!} billingCadence={billingCadence!} />
+    <>
+      <MobileDashboardHeader title="Checkout" />
+      <div className="min-h-screen bg-gray-50 px-4 py-6 pt-20 md:p-8 lg:p-12 md:pt-8 lg:pt-12">
+        <div className="max-w-4xl mx-auto">
+          <CheckoutFlow plan={plan!} billingCadence={billingCadence!} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
