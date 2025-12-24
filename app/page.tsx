@@ -45,17 +45,15 @@ export default function Home() {
                     'Button Section': 'Hero Section',
                     'Button Position': 'Center of Hero Card',
                     'Button Type': 'Primary CTA',
-                    'Button Text': 'Start free',
+                    'Button Text': 'Get Started',
                     'Button Context': 'Below headline and outcome highlights',
                     'Page Section': 'Above the fold',
                   }}
                 >
-                  Start free
+                  Get Started
                 </TrackedButton>
                 </div>
-                <p className="text-center text-xs sm:text-sm text-gray-600 font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-0">
-                  <span>No credit card required</span>
-                  <span className="hidden sm:inline mx-2">•</span>
+                <p className="text-center text-xs sm:text-sm text-gray-600 font-medium">
                   <span>Trusted by thousands of PMs</span>
                 </p>
               </div>

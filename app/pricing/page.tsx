@@ -426,7 +426,7 @@ export default function PricingPage() {
                   eventProperties={{
                     'Button Section': 'Pricing Page Plan Cards',
                     'Button Position': 'Learn Plan Card',
-                    'Button Text': 'Try for Free',
+                    'Button Text': 'Get Started',
                     'Plan Selected': 'learn',
                     'Billing Period': billingPeriod,
                     'Monthly Equivalent': getMonthlyEquivalent(plans.learn),
@@ -435,7 +435,7 @@ export default function PricingPage() {
                   onClick={() => handlePlanSelect('learn')}
                   className="w-full px-6 py-3.5 rounded-[1.5rem] bg-white border-2 border-purple-400 text-purple-600 font-black hover:bg-purple-50 transition-all duration-200 shadow-[0_6px_0_0_rgba(147,51,234,0.3)] hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.3)]"
                 >
-                  Try for Free
+                  Get Started
                 </TrackedButton>
               </div>
             </div>
@@ -503,7 +503,7 @@ export default function PricingPage() {
                 eventProperties={{
                   'Button Section': 'Pricing Page Plan Cards',
                   'Button Position': 'Accelerate Plan Card',
-                  'Button Text': 'Try for Free',
+                  'Button Text': 'Get Started',
                   'Plan Selected': 'accelerate',
                   'Billing Period': billingPeriod,
                   'Monthly Equivalent': getMonthlyEquivalent(plans.accelerate),
@@ -513,7 +513,7 @@ export default function PricingPage() {
                 onClick={() => handlePlanSelect('accelerate')}
                 className="w-full px-6 py-3.5 rounded-[1.5rem] bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-[0_6px_0_0_rgba(147,51,234,0.5)] hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(147,51,234,0.5)]"
               >
-                Try for Free
+                Get Started
               </TrackedButton>
             </div>
           </div>
@@ -684,7 +684,7 @@ export default function PricingPage() {
                 Do you offer refunds?
               </h3>
               <p className="text-sm sm:text-base text-gray-700 font-medium">
-                We offer a 7-day money-back guarantee if you're not completely satisfied with your purchase. Just reach out to our support team.
+                If you're not satisfied with your purchase, reach out to our support team and we'll work with you to make it right.
               </p>
             </div>
           </div>
@@ -707,12 +707,12 @@ export default function PricingPage() {
               'Button Section': 'Pricing Page Final CTA',
               'Button Position': 'Center of Final CTA Card',
               'Button Type': 'Final CTA',
-              'Button Text': 'START YOUR FREE TRIAL →',
+              'Button Text': 'GET STARTED →',
               'Button Context': 'After pricing table and testimonials',
               'Page Section': 'Below the fold',
             }}
           >
-            START YOUR FREE TRIAL →
+            GET STARTED →
           </TrackedButton>
         </div>
       </div>

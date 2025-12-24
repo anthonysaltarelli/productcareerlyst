@@ -79,29 +79,29 @@ const PortfolioLandingPage = () => {
                     <p className="text-xs sm:text-sm font-bold text-gray-700">to set up your portfolio</p>
                   </div>
                   <div className="text-center p-3 sm:p-4 rounded-[1rem] sm:rounded-[1.5rem] bg-white/60 backdrop-blur-sm border-2 border-emerald-200">
-                    <div className="text-2xl sm:text-3xl font-black text-emerald-700 mb-1">Free</div>
-                    <p className="text-xs sm:text-sm font-bold text-gray-700">7-day trial to start</p>
+                    <div className="text-2xl sm:text-3xl font-black text-emerald-700 mb-1">Easy</div>
+                    <p className="text-xs sm:text-sm font-bold text-gray-700">No design skills needed</p>
                   </div>
                 </div>
 
                 <TrackedButton
                   href="/auth/sign-up"
                   className="block w-full px-6 py-4 sm:px-10 sm:py-6 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-emerald-500 to-teal-500 shadow-[0_8px_0_0_rgba(16,185,129,0.6)] sm:shadow-[0_10px_0_0_rgba(16,185,129,0.6)] border-2 border-emerald-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(16,185,129,0.6)] sm:hover:shadow-[0_6px_0_0_rgba(16,185,129,0.6)] text-lg sm:text-xl font-black text-white transition-all duration-200 text-center mb-3 sm:mb-4"
-                  eventName="User Clicked Start Free Trial Button"
+                  eventName="User Clicked Get Started Button"
                   buttonId="portfolio-landing-hero-cta"
                   eventProperties={{
                     'Button Section': 'Hero Section',
                     'Button Position': 'Center of Hero Card',
                     'Button Type': 'Primary CTA',
-                    'Button Text': 'Start Your Free Trial →',
+                    'Button Text': 'Get Started →',
                     'Button Context': 'Below headline and stats highlights',
                     'Page Section': 'Above the fold',
                   }}
                 >
-                  Start Your Free Trial →
+                  Get Started →
                 </TrackedButton>
                 <p className="text-center text-xs sm:text-sm text-gray-600 font-medium">
-                  7-day free trial included
+                  Trusted by thousands of PMs
                 </p>
               </div>
             </div>
@@ -852,23 +852,23 @@ const PortfolioLandingPage = () => {
               Ready to Stand Out?
             </h2>
             <p className="text-base sm:text-lg text-emerald-100 font-medium mb-6 max-w-2xl mx-auto">
-              Join the top 1% of PM candidates who have a professional portfolio. Start your free trial today.
+              Join the top 1% of PM candidates who have a professional portfolio.
             </p>
             <TrackedButton
               href="/auth/sign-up"
               className="inline-block px-8 py-4 sm:px-12 sm:py-5 rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-[0_6px_0_0_rgba(0,0,0,0.2)] border-2 border-gray-200 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(0,0,0,0.2)] text-lg sm:text-xl font-black text-emerald-600 transition-all duration-200"
-              eventName="User Clicked Start Free Trial Button"
+              eventName="User Clicked Get Started Button"
               buttonId="portfolio-landing-mid-page-cta"
               eventProperties={{
                 'Button Section': 'Mid-Page CTA Section',
                 'Button Position': 'Center of CTA Card',
                 'Button Type': 'Primary CTA',
-                'Button Text': 'Start Your Free Trial →',
+                'Button Text': 'Get Started →',
                 'Button Context': 'After features section',
                 'Page Section': 'Below the fold',
               }}
             >
-              Start Your Free Trial →
+              Get Started →
             </TrackedButton>
           </div>
         </div>
@@ -903,8 +903,8 @@ const PortfolioLandingPage = () => {
             />
             
             <FAQItem
-              question="Is the Portfolio Editor included in the free trial?"
-              answer="Yes! The Portfolio Editor is part of the Accelerate plan, and you get full access during your 7-day free trial."
+              question="Is the Portfolio Editor included in the Accelerate plan?"
+              answer="Yes! The Portfolio Editor is included in the Accelerate plan, giving you full access to create and publish your professional portfolio."
             />
             
             <FAQItem
@@ -925,21 +925,21 @@ const PortfolioLandingPage = () => {
           <TrackedButton
             href="/auth/sign-up"
             className="inline-block px-8 py-4 sm:px-10 sm:py-5 md:px-14 md:py-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 shadow-[0_6px_0_0_rgba(16,185,129,0.7)] sm:shadow-[0_8px_0_0_rgba(16,185,129,0.7)] md:shadow-[0_10px_0_0_rgba(16,185,129,0.7)] border-2 border-emerald-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(16,185,129,0.7)] sm:hover:shadow-[0_4px_0_0_rgba(16,185,129,0.7)] md:hover:shadow-[0_6px_0_0_rgba(16,185,129,0.7)] text-base sm:text-lg md:text-xl font-black text-white transition-all duration-200 mb-4 sm:mb-6"
-            eventName="User Clicked Start Free Trial Button"
+            eventName="User Clicked Get Started Button"
             buttonId="portfolio-landing-final-cta"
             eventProperties={{
               'Button Section': 'Final CTA Section',
               'Button Position': 'Center of Final CTA Card',
               'Button Type': 'Final CTA',
-              'Button Text': 'START YOUR FREE TRIAL →',
+              'Button Text': 'GET STARTED →',
               'Button Context': 'After FAQ section, bottom of page',
               'Page Section': 'Below the fold',
             }}
           >
-            START YOUR FREE TRIAL →
+            GET STARTED →
           </TrackedButton>
           <p className="text-sm sm:text-base text-gray-400 font-medium px-2">
-            7-day free trial • Cancel anytime
+            Trusted by thousands of PMs
           </p>
         </div>
       </div>

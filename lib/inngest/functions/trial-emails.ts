@@ -3,6 +3,9 @@ import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 import { getAllFlows, generateFlowTriggerId } from '@/lib/email/flows';
 import { scheduleSequence } from '@/lib/email/service';
 
+// Feature flag to disable trial emails (trial functionality removed from onboarding)
+const TRIAL_EMAILS_ENABLED = false;
+
 // Get service role Supabase client for admin operations
 const getSupabaseAdmin = () => {
   return createSupabaseAdmin(
@@ -33,6 +36,12 @@ export const triggerTrialSequence = inngest.createFunction(
     const { userId, email: emailAddress, subscriptionId } = event.data;
 
     console.log('[Inngest] triggerTrialSequence called', { userId, emailAddress, subscriptionId });
+
+    // Feature flag check - trial emails disabled
+    if (!TRIAL_EMAILS_ENABLED) {
+      console.log('[Inngest] Trial emails are disabled - skipping sequence');
+      return { success: false, reason: 'trial emails disabled' };
+    }
 
     // Step 1: Get the trial_sequence flow
     const trialSequenceFlow = await step.run('get-trial-flow', async () => {

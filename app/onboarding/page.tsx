@@ -6,15 +6,13 @@ import { createClient } from '@/lib/supabase/client';
 import { useOnboardingProgress } from '@/lib/hooks/useOnboardingProgress';
 import { PersonalInfoStep } from '@/app/components/onboarding/PersonalInfoStep';
 import { GoalsAndChallengesStep } from '@/app/components/onboarding/GoalsAndChallengesStep';
-import { PortfolioStep } from '@/app/components/onboarding/PortfolioStep';
 import { PageTracking } from '@/app/components/PageTracking';
 import { trackEvent } from '@/lib/amplitude/client';
 
-// Simplified onboarding flow - 3 steps only
+// Simplified onboarding flow - 2 steps only (trial removed)
 const ALL_STEPS = [
   { id: 'personal_info', name: 'Personal Info' },
   { id: 'goals', name: 'Goals & Challenges' },
-  { id: 'portfolio', name: 'Portfolio' },
 ] as const;
 
 export default function OnboardingPage() {
@@ -272,10 +270,7 @@ export default function OnboardingPage() {
             <PersonalInfoStep onNext={handleNext} />
           )}
           {currentStep.id === 'goals' && (
-            <GoalsAndChallengesStep onNext={handleNext} onBack={handleBack} />
-          )}
-          {currentStep.id === 'portfolio' && (
-            <PortfolioStep onNext={handleNext} onBack={handleBack} />
+            <GoalsAndChallengesStep onBack={handleBack} />
           )}
         </div>
       </div>

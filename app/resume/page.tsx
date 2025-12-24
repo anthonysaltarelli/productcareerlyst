@@ -76,21 +76,21 @@ const ResumeLandingPage = () => {
                 <TrackedButton
                   href="/auth/sign-up"
                   className="block w-full px-6 py-4 sm:px-10 sm:py-6 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_8px_0_0_rgba(37,99,235,0.6)] sm:shadow-[0_10px_0_0_rgba(37,99,235,0.6)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(37,99,235,0.6)] sm:hover:shadow-[0_6px_0_0_rgba(37,99,235,0.6)] text-lg sm:text-xl font-black text-white transition-all duration-200 text-center mb-3 sm:mb-4"
-                  eventName="User Clicked Try For Free Button"
+                  eventName="User Clicked Get Started Button"
                   buttonId="resume-landing-hero-cta"
                   eventProperties={{
                     'Button Section': 'Hero Section',
                     'Button Position': 'Center of Hero Card',
                     'Button Type': 'Primary CTA',
-                    'Button Text': 'Try for free →',
+                    'Button Text': 'Get Started →',
                     'Button Context': 'Below headline and stats highlights',
                     'Page Section': 'Above the fold',
                   }}
                 >
-                  Try for free →
+                  Get Started →
                 </TrackedButton>
                 <p className="text-center text-xs sm:text-sm text-gray-600 font-medium">
-                  Cancel anytime • Full access during trial
+                  Trusted by thousands of PMs
                 </p>
               </div>
             </div>
@@ -633,18 +633,18 @@ const ResumeLandingPage = () => {
             <TrackedButton
               href="/auth/sign-up"
               className="inline-block px-8 py-4 sm:px-12 sm:py-5 rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-[0_6px_0_0_rgba(0,0,0,0.2)] border-2 border-gray-200 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(0,0,0,0.2)] text-lg sm:text-xl font-black text-blue-600 transition-all duration-200"
-              eventName="User Clicked Try For Free Button"
+              eventName="User Clicked Get Started Button"
               buttonId="resume-landing-mid-page-cta"
               eventProperties={{
                 'Button Section': 'Mid-Page CTA Section',
                 'Button Position': 'Center of CTA Card',
                 'Button Type': 'Primary CTA',
-                'Button Text': 'Try for free →',
+                'Button Text': 'Get Started →',
                 'Button Context': 'After features section',
                 'Page Section': 'Below the fold',
               }}
             >
-              Try for free →
+              Get Started →
             </TrackedButton>
           </div>
         </div>
@@ -718,8 +718,8 @@ const ResumeLandingPage = () => {
             />
 
             <FAQItem
-              question="Is the Resume Editor included in the free trial?"
-              answer="Yes! You get full access to the Resume Editor during your trial, including AI analysis, bullet optimization, and job-specific customization. You can cancel anytime if it's not right for you."
+              question="Is the Resume Editor included in the Accelerate plan?"
+              answer="Yes! The Resume Editor is included in the Accelerate plan, giving you full access to AI analysis, bullet optimization, and job-specific customization."
             />
 
             <FAQItem
@@ -745,21 +745,21 @@ const ResumeLandingPage = () => {
           <TrackedButton
             href="/auth/sign-up"
             className="inline-block px-8 py-4 sm:px-10 sm:py-5 md:px-14 md:py-6 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 shadow-[0_6px_0_0_rgba(37,99,235,0.7)] sm:shadow-[0_8px_0_0_rgba(37,99,235,0.7)] md:shadow-[0_10px_0_0_rgba(37,99,235,0.7)] border-2 border-blue-600 hover:translate-y-1 hover:shadow-[0_3px_0_0_rgba(37,99,235,0.7)] sm:hover:shadow-[0_4px_0_0_rgba(37,99,235,0.7)] md:hover:shadow-[0_6px_0_0_rgba(37,99,235,0.7)] text-base sm:text-lg md:text-xl font-black text-white transition-all duration-200 mb-4 sm:mb-6"
-            eventName="User Clicked Try For Free Button"
+            eventName="User Clicked Get Started Button"
             buttonId="resume-landing-final-cta"
             eventProperties={{
               'Button Section': 'Final CTA Section',
               'Button Position': 'Center of Final CTA Card',
               'Button Type': 'Final CTA',
-              'Button Text': 'TRY FOR FREE →',
+              'Button Text': 'GET STARTED →',
               'Button Context': 'After FAQ section, bottom of page',
               'Page Section': 'Below the fold',
             }}
           >
-            TRY FOR FREE →
+            GET STARTED →
           </TrackedButton>
           <p className="text-sm sm:text-base text-gray-400 font-medium px-2">
-            Cancel anytime • Full access during trial
+            Trusted by thousands of PMs
           </p>
         </div>
       </div>

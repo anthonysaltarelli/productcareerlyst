@@ -24,31 +24,38 @@ export const SignUpModal = ({
     setMounted(true)
   }, [])
 
+  // Handle escape key press
   useEffect(() => {
+    if (!isOpen) return
+
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose()
       }
     }
 
-    if (isOpen) {
-      // Save current scroll position before locking
-      scrollPositionRef.current = window.scrollY
-      
-      document.addEventListener('keydown', handleEscape)
-      
-      // Lock body scroll - use a more robust method for iOS Safari
-      document.body.style.overflow = 'hidden'
-      document.body.style.position = 'fixed'
-      document.body.style.top = `-${scrollPositionRef.current}px`
-      document.body.style.left = '0'
-      document.body.style.right = '0'
-      document.body.style.width = '100%'
-    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [isOpen, onClose])
+
+  // Handle body scroll lock - separate effect with only isOpen dependency
+  // This prevents cleanup from running when onClose callback reference changes
+  useEffect(() => {
+    if (!isOpen) return
+
+    // Save current scroll position before locking
+    const scrollY = window.scrollY
+    scrollPositionRef.current = scrollY
+
+    // Lock body scroll - use a more robust method for iOS Safari
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.left = '0'
+    document.body.style.right = '0'
+    document.body.style.width = '100%'
 
     return () => {
-      document.removeEventListener('keydown', handleEscape)
-      
       // Restore body scroll
       document.body.style.overflow = ''
       document.body.style.position = ''
@@ -56,13 +63,11 @@ export const SignUpModal = ({
       document.body.style.left = ''
       document.body.style.right = ''
       document.body.style.width = ''
-      
+
       // Restore scroll position
-      if (scrollPositionRef.current > 0) {
-        window.scrollTo(0, scrollPositionRef.current)
-      }
+      window.scrollTo(0, scrollPositionRef.current)
     }
-  }, [isOpen, onClose])
+  }, [isOpen])
 
   if (!isOpen || !mounted) return null
 

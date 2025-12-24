@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useOnboardingProgress } from '@/lib/hooks/useOnboardingProgress';
 import { trackEvent } from '@/lib/amplitude/client';
 
 interface GoalsAndChallengesStepProps {
-  onNext: () => void;
   onBack: () => void;
-  onSkip?: () => void;
 }
 
 const TARGET_ROLES = [
@@ -51,12 +50,12 @@ const INTERVIEW_CONFIDENCE_LABELS = [
   { value: 5, label: 'Very confident' },
 ] as const;
 
-export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesStepProps) => {
-  const { progress, updateStep } = useOnboardingProgress();
+export const GoalsAndChallengesStep = ({ onBack }: GoalsAndChallengesStepProps) => {
+  const router = useRouter();
+  const { progress, updateStep, markComplete } = useOnboardingProgress();
   const [targetRole, setTargetRole] = useState<string>('');
   const [targetRoleInput, setTargetRoleInput] = useState<string>('');
   const [timeline, setTimeline] = useState<string>('');
-  const [struggles, setStruggles] = useState<string>('');
   const [jobSearchStage, setJobSearchStage] = useState<string>('');
   const [interviewConfidence, setInterviewConfidence] = useState<number | null>(null);
   const [isTargetRoleDropdownOpen, setIsTargetRoleDropdownOpen] = useState<boolean>(false);
@@ -74,7 +73,6 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
         setTargetRoleInput(saved.targetRole);
       }
       if (saved.timeline) setTimeline(saved.timeline);
-      if (saved.struggles) setStruggles(saved.struggles);
       if (saved.jobSearchStage) setJobSearchStage(saved.jobSearchStage);
       if (saved.interviewConfidence) setInterviewConfidence(saved.interviewConfidence);
     }
@@ -156,8 +154,6 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
   const canProceed =
     targetRole !== '' &&
     timeline !== '' &&
-    struggles.trim().length >= 20 &&
-    struggles.trim().length <= 500 &&
     jobSearchStage !== '' &&
     interviewConfidence !== null;
 
@@ -165,18 +161,14 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
     const missing: string[] = [];
     if (!targetRole) missing.push('Target Role');
     if (!timeline) missing.push('Timeline');
-    if (struggles.trim().length < 20) missing.push('Struggles (at least 20 characters)');
-    if (struggles.trim().length > 500) missing.push('Struggles (reduce to 500 characters or less)');
     if (!jobSearchStage) missing.push('Job Search Stage');
     if (interviewConfidence === null) missing.push('Interview Confidence');
     return missing;
   };
 
   const missingFields = getMissingFields();
-  const strugglesCharCount = struggles.length;
-  const strugglesCharStatus = strugglesCharCount < 20 ? 'too_short' : strugglesCharCount > 500 ? 'too_long' : 'good';
 
-  const handleContinue = useCallback(async () => {
+  const handleFinish = useCallback(async () => {
     if (!canProceed || isSaving) return;
 
     setIsSaving(true);
@@ -184,7 +176,6 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
       const stepData = {
         targetRole,
         timeline,
-        struggles,
         jobSearchStage,
         interviewConfidence,
       };
@@ -200,16 +191,29 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
         'Timeline': timeline,
         'Job Search Stage': jobSearchStage,
         'Interview Confidence': interviewConfidence,
-        'Struggles Length': struggles.length,
       });
 
-      onNext();
+      // Mark onboarding as complete
+      await markComplete();
+
+      // Track onboarding completion
+      trackEvent('Onboarding Completed', {
+        'Page Route': '/onboarding',
+        'Final Step': 'goals',
+        'Target Role': targetRole,
+        'Timeline': timeline,
+      });
+
+      // Redirect to dashboard
+      router.push('/dashboard');
+      router.refresh();
     } catch (error) {
-      console.error('Error saving goals:', error);
+      console.error('Error finishing onboarding:', error);
+      alert('There was an error completing setup. Please try again.');
     } finally {
       setIsSaving(false);
     }
-  }, [canProceed, isSaving, targetRole, timeline, struggles, jobSearchStage, interviewConfidence, updateStep, onNext]);
+  }, [canProceed, isSaving, targetRole, timeline, jobSearchStage, interviewConfidence, updateStep, markComplete, router]);
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-8">
@@ -363,48 +367,6 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
           </div>
         </div>
 
-        {/* Struggles */}
-        <div>
-          <label htmlFor="struggles" className="block text-base md:text-lg font-bold text-gray-900 mb-2">
-            What have you been struggling with the most? *
-          </label>
-
-          <textarea
-            id="struggles"
-            value={struggles}
-            onChange={(e) => setStruggles(e.target.value)}
-            placeholder="Tell us about your biggest challenges in your PM career journey..."
-            rows={6}
-            maxLength={500}
-            className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 font-semibold resize-none ${
-              strugglesCharStatus === 'too_short'
-                ? 'border-yellow-300 focus:border-yellow-500 focus:ring-yellow-200'
-                : strugglesCharStatus === 'too_long'
-                  ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
-                  : 'border-gray-200 focus:border-purple-500 focus:ring-purple-200'
-            }`}
-          />
-          <div className="mt-2 flex items-center justify-between">
-            <p className="text-sm text-gray-500 font-medium">
-              {strugglesCharCount < 20
-                ? `Please provide more detail (at least 20 characters, ${20 - strugglesCharCount} more needed)`
-                : strugglesCharCount > 500
-                  ? 'Please keep it to 500 characters or less'
-                  : 'Great! This helps us create a better plan for you.'}
-            </p>
-            <span
-              className={`text-sm font-semibold ${
-                strugglesCharStatus === 'too_short'
-                  ? 'text-yellow-600'
-                  : strugglesCharStatus === 'too_long'
-                    ? 'text-red-600'
-                    : 'text-gray-500'
-              }`}
-            >
-              {strugglesCharCount}/500
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* Navigation */}
@@ -415,11 +377,11 @@ export const GoalsAndChallengesStep = ({ onNext, onBack }: GoalsAndChallengesSte
           onMouseLeave={() => setShowTooltip(false)}
         >
           <button
-            onClick={handleContinue}
+            onClick={handleFinish}
             disabled={!canProceed || isSaving}
             className="w-full sm:w-auto px-6 md:px-8 py-3 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-black rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm md:text-base"
           >
-            {isSaving ? 'Saving...' : 'Continue →'}
+            {isSaving ? 'Finishing...' : 'Finish'}
           </button>
           {showTooltip && !canProceed && missingFields.length > 0 && (
             <div className="absolute bottom-full right-0 mb-2 px-4 py-3 bg-gray-900 text-white text-sm font-semibold rounded-lg shadow-xl z-50 min-w-[200px] sm:min-w-[250px]">

@@ -84,16 +84,13 @@ const InterviewPrepLandingPage = () => {
                     'Button Section': 'Hero Section',
                     'Button Position': 'Center of Hero Card',
                     'Button Type': 'Primary CTA',
-                    'Button Text': 'Try for free →',
+                    'Button Text': 'Get Started →',
                     'Button Context': 'Below headline and stats highlights',
                     'Page Section': 'Above the fold',
                   }}
                 >
-                  Try for free →
+                  Get Started →
                 </TrackedButton>
-                <p className="text-center text-xs sm:text-sm text-gray-600 font-medium">
-                  7-day free trial • No credit card required
-                </p>
               </div>
             </div>
           </div>
@@ -639,12 +636,12 @@ const InterviewPrepLandingPage = () => {
                 'Button Section': 'Mid-Page CTA Section',
                 'Button Position': 'Center of CTA Card',
                 'Button Type': 'Primary CTA',
-                'Button Text': 'Try for free →',
+                'Button Text': 'Get Started →',
                 'Button Context': 'After features section',
                 'Page Section': 'Below the fold',
               }}
             >
-              Try for free →
+              Get Started →
             </TrackedButton>
           </div>
         </div>
@@ -780,16 +777,13 @@ const InterviewPrepLandingPage = () => {
               'Button Section': 'Final CTA Section',
               'Button Position': 'Center of Final CTA Card',
               'Button Type': 'Final CTA',
-              'Button Text': 'TRY FOR FREE →',
+              'Button Text': 'GET STARTED →',
               'Button Context': 'After FAQ section, bottom of page',
               'Page Section': 'Below the fold',
             }}
           >
-            TRY FOR FREE →
+            GET STARTED →
           </TrackedButton>
-          <p className="text-sm sm:text-base text-gray-400 font-medium px-2">
-            7-day free trial • No credit card required
-          </p>
         </div>
       </div>
     </div>

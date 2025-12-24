@@ -382,8 +382,8 @@ const PMResourcesPage = () => {
                     <p className="text-xs sm:text-sm font-bold text-gray-700">Career Categories</p>
                   </div>
                   <div className="text-center p-3 sm:p-4 rounded-[1rem] sm:rounded-[1.5rem] bg-white/60 backdrop-blur-sm border-2 border-amber-200">
-                    <div className="text-2xl sm:text-3xl font-black text-amber-700 mb-1">Free</div>
-                    <p className="text-xs sm:text-sm font-bold text-gray-700">Trial to start</p>
+                    <div className="text-2xl sm:text-3xl font-black text-amber-700 mb-1">Proven</div>
+                    <p className="text-xs sm:text-sm font-bold text-gray-700">Battle-tested frameworks</p>
                   </div>
                 </div>
 
@@ -628,8 +628,8 @@ const PMResourcesPage = () => {
 
           <div className="space-y-3 sm:space-y-4 max-w-3xl mx-auto">
             <FAQItem
-              question="Are these resources really free?"
-              answer="You get access to all resources with a free trial! After that, they're included in our Learn plan ($12/mo) or Accelerate plan ($20/mo) which includes everything else."
+              question="Are these resources included in my subscription?"
+              answer="Yes! All resources are included in both our Learn plan ($12/mo) and Accelerate plan ($20/mo). The Accelerate plan includes additional AI-powered tools and features."
             />
 
             <FAQItem
@@ -679,7 +679,7 @@ const PMResourcesPage = () => {
             GET FREE ACCESS NOW →
           </TrackedButton>
           <p className="text-sm sm:text-base text-gray-400 font-medium px-2">
-            Free trial included • Cancel anytime
+            Trusted by thousands of PMs
           </p>
         </div>
       </div>
