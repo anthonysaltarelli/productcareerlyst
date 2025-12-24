@@ -2398,6 +2398,7 @@ export default function ResumeEditorPage({ params }: Props) {
             usageLimit={usageInfo.limit}
             userPlan={userPlan}
             isAnalyzing={isAnalyzing}
+            onShowUpgradeModal={() => setShowAccelerateModal(true)}
           />
         </div>
       </div>

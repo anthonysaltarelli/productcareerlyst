@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { getDashboardStats } from '@/lib/utils/dashboard-stats'
 import { getUserSubscription } from '@/lib/utils/subscription'
-import { getUserPlanData } from '@/lib/utils/user-plan'
+import { getOnboardingProgress } from '@/lib/utils/onboarding-progress'
 import { DashboardWelcome } from '@/app/components/DashboardWelcome'
-import { UserPlanProgress } from '@/app/components/UserPlanProgress'
+import { OnboardingChecklist } from '@/app/components/OnboardingChecklist'
 import { SubscriptionPromotion } from '@/app/components/SubscriptionPromotion'
 import { AutoSyncSubscription } from '@/app/components/billing/AutoSyncSubscription'
 import { DashboardPageTracking } from '@/app/components/DashboardPageTracking'
@@ -34,8 +34,8 @@ export default async function DashboardHome() {
   // Get subscription for auto-sync component
   const subscription = await getUserSubscription(user.id)
 
-  // Get user's plan data (from onboarding)
-  const planData = await getUserPlanData(user.id)
+  // Get onboarding progress
+  const onboardingProgress = await getOnboardingProgress(user.id)
 
   // Get user creation date for tracking
   const userCreatedAt = user.created_at
@@ -59,15 +59,16 @@ export default async function DashboardHome() {
       <DashboardWelcome
         firstName={profile?.first_name || null}
         subscription={stats?.subscription || { plan: null, status: null, isActive: false }}
+        onboardingProgress={onboardingProgress}
       />
+
+      {/* Onboarding Checklist */}
+      <OnboardingChecklist progress={onboardingProgress} />
 
       {/* Expanded Metrics Section with Time Range Filtering */}
       <div className="mb-8">
         <ExpandedDashboardMetrics initialTimeRange="30d" />
       </div>
-
-      {/* User Plan Progress (from onboarding) */}
-      {planData && <UserPlanProgress planData={planData} />}
 
       {/* Subscription Promotion (only shows if not subscribed) */}
       {stats && (

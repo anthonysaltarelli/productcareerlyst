@@ -57,7 +57,7 @@ export const SubscriptionPromotion = ({ subscription, stats }: SubscriptionPromo
                 <span className="text-2xl">🚀</span>
               </div>
               <h2 className="text-2xl md:text-3xl font-black text-white">
-                Upgrade to Premium
+                Upgrade to Accelerate
               </h2>
             </div>
             <p className="text-purple-100 font-medium mb-4">

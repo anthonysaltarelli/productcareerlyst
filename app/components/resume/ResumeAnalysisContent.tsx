@@ -55,6 +55,7 @@ type Props = {
   usageLimit?: number;
   userPlan?: 'learn' | 'accelerate' | null;
   isAnalyzing?: boolean;
+  onShowUpgradeModal?: () => void;
 };
 
 const formatDate = (dateString: string): string => {
@@ -108,6 +109,7 @@ export default function ResumeAnalysisContent({
   usageLimit = 30,
   userPlan = null,
   isAnalyzing = false,
+  onShowUpgradeModal,
 }: Props) {
   const [expandedRecommendations, setExpandedRecommendations] = useState<Set<number>>(new Set());
   const [currentLoadingMessage, setCurrentLoadingMessage] = useState(0);
@@ -229,6 +231,32 @@ export default function ResumeAnalysisContent({
   const gradeColor = getGradeColor(grade);
   const isOnboardingAnalysis = analysis.analysisType === 'onboarding';
 
+  // Locked content overlay component for onboarding analysis
+  const LockedContentOverlay = ({ children, title }: { children: React.ReactNode; title: string }) => (
+    <div className="relative min-h-[280px]">
+      <div className="blur-[6px] pointer-events-none select-none opacity-60 min-h-[280px]">
+        {children}
+      </div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-white/90 to-slate-50/90 backdrop-blur-[2px] rounded-2xl border-2 border-slate-200 p-8">
+        <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <h4 className="text-lg font-bold text-gray-900 mb-2">{title}</h4>
+        <p className="text-sm text-gray-600 text-center max-w-xs mb-4">
+          Upgrade to Accelerate to unlock full resume analysis
+        </p>
+        <button
+          onClick={onShowUpgradeModal}
+          className="px-6 py-2.5 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold text-sm rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg"
+        >
+          Upgrade to View
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* Onboarding Analysis Banner - Show if this is a limited analysis */}
@@ -243,18 +271,15 @@ export default function ResumeAnalysisContent({
             <div className="flex-1">
               <h3 className="text-lg font-bold text-gray-900 mb-1">Quick Analysis Preview</h3>
               <p className="text-sm text-gray-700 mb-3">
-                This is a quick analysis from onboarding. Run a full analysis to get detailed recommendations, 
+                This is a quick analysis from onboarding. Upgrade to Accelerate to get detailed recommendations,
                 ATS compatibility scores, category explanations, and more.
               </p>
-              {onReAnalyze && userPlan === 'accelerate' && (
-                <button
-                  onClick={onReAnalyze}
-                  disabled={isAnalyzing || usageRemaining === 0}
-                  className="px-4 py-2 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold text-sm rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isAnalyzing ? 'Analyzing...' : 'Run Full Analysis'}
-                </button>
-              )}
+              <button
+                onClick={onShowUpgradeModal}
+                className="px-4 py-2 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold text-sm rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all"
+              >
+                Upgrade to Unlock Full Analysis
+              </button>
             </div>
           </div>
         </div>
@@ -308,101 +333,144 @@ export default function ResumeAnalysisContent({
         </div>
       </div>
 
-      {/* Category Scores */}
-      <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Category Scores</h3>
-        <div className="space-y-4">
-          {Object.entries(analysis.categoryScores).map(([key, score]) => {
-            const categoryGrade = scoreToGrade(score);
-            const categoryColor = getGradeColor(categoryGrade);
-            const description = analysis.categoryDescriptions?.[key as keyof typeof analysis.categoryDescriptions];
-            const categoryName = key
-              .replace(/([A-Z])/g, ' $1')
-              .replace(/^./, str => str.toUpperCase())
-              .trim();
-
-            return (
-              <div
-                key={key}
-                className="p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-slate-200"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-base font-bold text-gray-700">{categoryName}</span>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-sm font-bold px-3 py-1 rounded border ${categoryColor}`}>
-                      {categoryGrade}
-                    </span>
-                    <span className="text-xl font-black text-gray-900">{score}</span>
-                  </div>
-                </div>
-                <div className="w-full bg-white/50 rounded-full h-2.5 overflow-hidden mb-3">
-                  <div
-                    className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2.5 rounded-full transition-all"
-                    style={{ width: `${score}%` }}
-                  />
-                </div>
-                {description ? (
-                  <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
-                ) : isOnboardingAnalysis ? (
-                  <p className="text-sm text-gray-400 italic">Run full analysis for detailed explanation</p>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Keyword Analysis */}
-      {analysis.keywordAnalysis && (
-        <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">Keyword Analysis</h3>
-          
-          {/* Show summary only if we have present keywords data (full analysis) */}
-          {!isOnboardingAnalysis && analysis.keywordAnalysis.present && (
-            <div className="mb-6 p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-slate-200">
-              {(() => {
-                const presentKeywords = analysis.keywordAnalysis.present.filter(item => (item.count || 0) > 0).length;
-                const totalExpected = presentKeywords + analysis.keywordAnalysis.missing.length;
-                const coverage = totalExpected > 0 ? Math.round((presentKeywords / totalExpected) * 100) : 0;
-                
-                return (
-                  <div>
-                    <span className="text-sm font-bold text-gray-700">PM Keywords Found</span>
-                    <p className="text-lg font-bold text-gray-900 mt-2">
-                      {presentKeywords} of {totalExpected} expected keywords ({coverage}% coverage)
-                    </p>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-
-          {/* For onboarding analysis, show only missing keywords */}
-          {isOnboardingAnalysis ? (
-            <div>
-              <h4 className="text-sm font-bold text-gray-700 mb-3">Missing Keywords</h4>
-              <p className="text-sm text-gray-600 mb-4">
-                Add these keywords to strengthen your resume for PM roles:
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {analysis.keywordAnalysis.missing.length > 0 ? (
-                  analysis.keywordAnalysis.missing.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className={`inline-flex items-center px-3 py-1.5 border rounded-lg text-xs font-medium shadow-sm hover:shadow-md transition-shadow ${getPriorityColor(item.priority || 'medium')}`}
-                    >
-                      {item.keyword}
+      {/* Category Scores - Locked for onboarding analysis */}
+      {isOnboardingAnalysis ? (
+        <LockedContentOverlay title="Category Breakdown">
+          <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">Category Scores</h3>
+            <div className="space-y-4">
+              {/* Static placeholder content - no real data */}
+              {['Action Verbs', 'Accomplishments', 'Quantification', 'Impact', 'Conciseness'].map((categoryName, idx) => (
+                <div
+                  key={categoryName}
+                  className="p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-slate-200"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-base font-bold text-gray-700">{categoryName}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-bold px-3 py-1 rounded border text-green-700 bg-green-100 border-green-300">
+                        A
+                      </span>
+                      <span className="text-xl font-black text-gray-900">--</span>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500">All expected keywords present!</p>
-                )}
-              </div>
-              <p className="text-sm text-gray-400 italic mt-4">
-                Run full analysis to see which keywords are already present in your resume.
-              </p>
+                  </div>
+                  <div className="w-full bg-white/50 rounded-full h-2.5 overflow-hidden mb-3">
+                    <div
+                      className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2.5 rounded-full transition-all"
+                      style={{ width: '75%' }}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed">Detailed explanation available with full analysis</p>
+                </div>
+              ))}
             </div>
-          ) : (
+          </div>
+        </LockedContentOverlay>
+      ) : (
+        <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
+          <h3 className="text-xl font-bold text-gray-900 mb-6">Category Scores</h3>
+          <div className="space-y-4">
+            {Object.entries(analysis.categoryScores).map(([key, score]) => {
+              const categoryGrade = scoreToGrade(score);
+              const categoryColor = getGradeColor(categoryGrade);
+              const description = analysis.categoryDescriptions?.[key as keyof typeof analysis.categoryDescriptions];
+              const categoryName = key
+                .replace(/([A-Z])/g, ' $1')
+                .replace(/^./, str => str.toUpperCase())
+                .trim();
+
+              return (
+                <div
+                  key={key}
+                  className="p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-slate-200"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-base font-bold text-gray-700">{categoryName}</span>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-sm font-bold px-3 py-1 rounded border ${categoryColor}`}>
+                        {categoryGrade}
+                      </span>
+                      <span className="text-xl font-black text-gray-900">{score}</span>
+                    </div>
+                  </div>
+                  <div className="w-full bg-white/50 rounded-full h-2.5 overflow-hidden mb-3">
+                    <div
+                      className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2.5 rounded-full transition-all"
+                      style={{ width: `${score}%` }}
+                    />
+                  </div>
+                  {description && (
+                    <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Keyword Analysis - Locked for onboarding analysis */}
+      {analysis.keywordAnalysis && (
+        isOnboardingAnalysis ? (
+          <LockedContentOverlay title="Keyword Analysis">
+            <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
+              <h3 className="text-xl font-bold text-gray-900 mb-6">Keyword Analysis</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="text-sm font-bold text-gray-700 mb-3">Present Keywords</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {['Product Strategy', 'Roadmap', 'Metrics', 'A/B Testing'].map((keyword, idx) => (
+                      <div
+                        key={idx}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 text-green-700 rounded-lg text-xs font-medium"
+                      >
+                        <span className="font-semibold">{keyword}</span>
+                        <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded font-bold text-[10px]">
+                          2
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-gray-700 mb-3">Missing Keywords</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {['User Research', 'Sprint Planning', 'OKRs'].map((keyword, idx) => (
+                      <div
+                        key={idx}
+                        className="inline-flex items-center px-3 py-1.5 border rounded-lg text-xs font-medium text-orange-700 bg-orange-50 border-orange-200"
+                      >
+                        {keyword}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </LockedContentOverlay>
+        ) : (
+          <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">Keyword Analysis</h3>
+
+            {analysis.keywordAnalysis.present && (
+              <div className="mb-6 p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-slate-200">
+                {(() => {
+                  const presentKeywords = analysis.keywordAnalysis.present.filter(item => (item.count || 0) > 0).length;
+                  const totalExpected = presentKeywords + analysis.keywordAnalysis.missing.length;
+                  const coverage = totalExpected > 0 ? Math.round((presentKeywords / totalExpected) * 100) : 0;
+
+                  return (
+                    <div>
+                      <span className="text-sm font-bold text-gray-700">PM Keywords Found</span>
+                      <p className="text-lg font-bold text-gray-900 mt-2">
+                        {presentKeywords} of {totalExpected} expected keywords ({coverage}% coverage)
+                      </p>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Present Keywords */}
               <div>
@@ -455,12 +523,26 @@ export default function ResumeAnalysisContent({
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )
       )}
 
-      {/* ATS Compatibility - Only show for full analysis */}
-      {analysis.atsCompatibility && (
+      {/* ATS Compatibility - Locked for onboarding, show for full analysis */}
+      {isOnboardingAnalysis ? (
+        <LockedContentOverlay title="ATS Compatibility">
+          <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">ATS Compatibility</h3>
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-sm font-bold px-3 py-1.5 rounded border text-green-700 bg-green-100 border-green-300">
+                Good
+              </span>
+            </div>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Your resume format is compatible with most Applicant Tracking Systems. The structure and formatting follow best practices for ATS parsing.
+            </p>
+          </div>
+        </LockedContentOverlay>
+      ) : analysis.atsCompatibility && (
         <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
           <h3 className="text-xl font-bold text-gray-900 mb-4">ATS Compatibility</h3>
           <div className="flex items-center gap-3 mb-4">
@@ -472,8 +554,40 @@ export default function ResumeAnalysisContent({
         </div>
       )}
 
-      {/* Recommendations - Only show for full analysis */}
-      {analysis.recommendations && analysis.recommendations.length > 0 && (
+      {/* Recommendations - Locked for onboarding, show for full analysis */}
+      {isOnboardingAnalysis ? (
+        <LockedContentOverlay title="Personalized Recommendations">
+          <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">Recommendations</h3>
+            <div className="space-y-3">
+              {[
+                { priority: 1, title: 'Add more quantifiable metrics', impact: 'high' },
+                { priority: 2, title: 'Strengthen action verbs in experience section', impact: 'high' },
+                { priority: 3, title: 'Include more PM-specific keywords', impact: 'medium' },
+              ].map((rec) => (
+                <div
+                  key={rec.priority}
+                  className="border-2 border-slate-200 rounded-xl overflow-hidden bg-gradient-to-br from-white to-slate-50 p-5"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-xl flex items-center justify-center font-bold text-base shadow-sm">
+                      {rec.priority}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <h4 className="text-base font-bold text-gray-900">{rec.title}</h4>
+                        <span className={`text-xs font-bold px-3 py-1 rounded-lg border ${getImpactColor(rec.impact as 'high' | 'medium' | 'low')}`}>
+                          {rec.impact.charAt(0).toUpperCase() + rec.impact.slice(1)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </LockedContentOverlay>
+      ) : analysis.recommendations && analysis.recommendations.length > 0 && (
         <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-sm">
           <h3 className="text-xl font-bold text-gray-900 mb-6">Recommendations</h3>
           <div className="space-y-3">
@@ -542,27 +656,24 @@ export default function ResumeAnalysisContent({
 
       {/* For onboarding analysis, show upgrade prompt at the bottom */}
       {isOnboardingAnalysis && (
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200 rounded-2xl p-6 shadow-sm">
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-8 shadow-sm">
           <div className="text-center">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Want More Insights?</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Run a full analysis to unlock ATS compatibility scores, personalized recommendations, 
-              detailed category explanations, and keyword density metrics.
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Unlock Full Resume Analysis</h3>
+            <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto">
+              Get detailed category breakdowns, keyword analysis, ATS compatibility scores,
+              and personalized recommendations to improve your resume.
             </p>
-            {onReAnalyze && userPlan === 'accelerate' && (
-              <button
-                onClick={onReAnalyze}
-                disabled={isAnalyzing || usageRemaining === 0}
-                className="px-6 py-3 bg-gradient-to-br from-purple-500 to-blue-500 text-white font-bold rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isAnalyzing ? 'Analyzing...' : 'Run Full Analysis'}
-              </button>
-            )}
-            {userPlan !== 'accelerate' && (
-              <p className="text-sm text-purple-700 font-semibold mt-2">
-                Upgrade to Accelerate to access full analysis features
-              </p>
-            )}
+            <button
+              onClick={onShowUpgradeModal}
+              className="px-8 py-3 bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg"
+            >
+              Upgrade to Accelerate
+            </button>
           </div>
         </div>
       )}

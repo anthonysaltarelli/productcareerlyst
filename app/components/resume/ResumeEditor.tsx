@@ -50,6 +50,7 @@ type Props = {
   usageLimit?: number;
   userPlan?: 'learn' | 'accelerate' | null;
   isAnalyzing?: boolean;
+  onShowUpgradeModal?: () => void;
 };
 
 export default function ResumeEditor({
@@ -89,6 +90,7 @@ export default function ResumeEditor({
   usageLimit = 30,
   userPlan = null,
   isAnalyzing = false,
+  onShowUpgradeModal,
 }: Props) {
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
@@ -747,6 +749,7 @@ export default function ResumeEditor({
             usageLimit={usageLimit}
             userPlan={userPlan}
             isAnalyzing={isAnalyzing}
+            onShowUpgradeModal={onShowUpgradeModal}
           />
         );
 
