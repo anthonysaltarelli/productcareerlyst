@@ -137,16 +137,17 @@ function generateDailyBreakdown(
 function calculateLearningStreak(completionDates: Date[]): number {
   if (completionDates.length === 0) return 0;
 
-  // Get unique days
-  const uniqueDays = new Set(
+  // Get unique days as timestamps (midnight of each day)
+  const uniqueDayTimestamps = new Set(
     completionDates.map(d => {
       const date = new Date(d);
-      return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      date.setHours(0, 0, 0, 0);
+      return date.getTime();
     })
   );
 
-  const sortedDays = Array.from(uniqueDays)
-    .map(s => new Date(s.split('-').map(Number).join('/')))
+  const sortedDays = Array.from(uniqueDayTimestamps)
+    .map(ts => new Date(ts))
     .sort((a, b) => b.getTime() - a.getTime());
 
   let streak = 0;
@@ -281,14 +282,16 @@ async function fetchLearningData(
   });
 
   let coursesCompleted = 0;
-  let coursesStarted = 0;
   lessonsByCourse.forEach((lessonIds) => {
     const completedInCourse = Array.from(lessonIds).filter(id => completedLessonIds.has(id)).length;
-    if (completedInCourse > 0) coursesStarted++;
     if (completedInCourse === lessonIds.size && lessonIds.size > 0) {
       coursesCompleted++;
     }
   });
+
+  // Calculate lesson-based completion rate (all time, not time-bound)
+  const totalLessons = allLessons.length;
+  const totalCompletedLessons = completedLessonIds.size;
 
   // Watch time
   const totalWatchTimeSeconds = currentProgress.reduce(
@@ -320,7 +323,7 @@ async function fetchLearningData(
     totalWatchTimeSeconds,
     previousWatchTimeSeconds,
     learningStreak,
-    courseCompletionRate: coursesStarted > 0 ? (coursesCompleted / coursesStarted) * 100 : 0,
+    courseCompletionRate: totalLessons > 0 ? (totalCompletedLessons / totalLessons) * 100 : 0,
     dailyLessons,
   };
 }
