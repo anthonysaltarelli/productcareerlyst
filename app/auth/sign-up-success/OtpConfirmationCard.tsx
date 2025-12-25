@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { trackEvent } from '@/lib/amplitude/client'
 import { createClient } from '@/lib/supabase/client'
 import { getSiteUrl } from '@/lib/utils/site-url'
@@ -19,15 +19,6 @@ export const OtpConfirmationCard = () => {
   const [resending, setResending] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
 
-  const maskedEmail = useMemo(() => {
-    if (!emailParam) return ''
-    const [local, domain] = emailParam.split('@')
-    if (!domain) return emailParam
-    if (local.length <= 2) {
-      return `${local[0] ?? ''}***@${domain}`
-    }
-    return `${local[0]}***${local.slice(-1)}@${domain}`
-  }, [emailParam])
 
   const handleSubmit = useCallback(
     (event: React.FormEvent) => {
@@ -164,7 +155,7 @@ export const OtpConfirmationCard = () => {
         ) : (
           <p className="text-gray-700 font-semibold text-lg mb-6">
             We sent a 6-digit OTP to{' '}
-            <span className="font-black text-emerald-700">{maskedEmail}</span>. Enter it below to activate your account.
+            <span className="font-black text-emerald-700">{emailParam}</span>. Enter it below to activate your account.
           </p>
         )}
       </div>
