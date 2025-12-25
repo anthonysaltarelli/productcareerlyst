@@ -18,7 +18,20 @@ export const POST = async (request: NextRequest) => {
 
     // Parse request body
     const body = await request.json();
-    const { firstName, lastName, email, message, recaptchaToken } = body;
+    const { firstName, lastName, email, message, recaptchaToken, website } = body;
+
+    // Honeypot check - if filled, it's a bot
+    // Return fake success to not alert the bot
+    if (website) {
+      console.warn('Honeypot triggered - bot detected', { email });
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Thank you for contacting us! We will get back to you soon.',
+        },
+        { status: 201 }
+      );
+    }
 
     // Verify reCAPTCHA Enterprise token
     const recaptchaApiKey = process.env.RECAPTCHA_API_KEY;
@@ -50,12 +63,12 @@ export const POST = async (request: NextRequest) => {
 
       const recaptchaData = await recaptchaResponse.json();
 
-      // Check if token is valid and score is acceptable (0.5 threshold)
+      // Check if token is valid and score is acceptable (0.7 threshold)
       const isValidToken = recaptchaData.tokenProperties?.valid;
       const score = recaptchaData.riskAnalysis?.score ?? 0;
       const action = recaptchaData.tokenProperties?.action;
 
-      if (!isValidToken || score < 0.5) {
+      if (!isValidToken || score < 0.7) {
         console.warn('reCAPTCHA Enterprise verification failed:', {
           valid: isValidToken,
           score,

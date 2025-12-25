@@ -18,6 +18,7 @@ const ContactForm = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [honeypot, setHoneypot] = useState('');
 
   const { executeRecaptcha } = useGoogleReCaptcha();
 
@@ -143,6 +144,7 @@ const ContactForm = () => {
           email: email.trim(),
           message: message.trim(),
           recaptchaToken,
+          website: honeypot,
         }),
       });
 
@@ -206,6 +208,23 @@ const ContactForm = () => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Honeypot field - hidden from humans, bots will fill it */}
+        <input
+          type="text"
+          name="website"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
+          style={{
+            position: 'absolute',
+            left: '-9999px',
+            opacity: 0,
+            height: 0,
+            width: 0,
+          }}
+          aria-hidden="true"
+        />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <label
