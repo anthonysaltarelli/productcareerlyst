@@ -14,6 +14,9 @@ export const SignUpForm = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  // Honeypot fields - bots will fill these, real users won't see them
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const router = useRouter()
 
   const handleTogglePassword = () => {
@@ -24,6 +27,13 @@ export const SignUpForm = () => {
     e.preventDefault()
     setError(null)
     setLoading(true)
+
+    // Honeypot check - if either field is filled, it's a bot
+    if (firstName || lastName) {
+      // Silently "succeed" to not tip off the bot
+      router.push(`/auth/sign-up-success?email=${encodeURIComponent(email.trim())}`)
+      return
+    }
 
     try {
       const supabase = createClient()
@@ -86,6 +96,39 @@ export const SignUpForm = () => {
 
       {/* Email/Password Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Honeypot fields - hidden from real users, bots will fill them */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            left: '-9999px',
+            top: '-9999px',
+            opacity: 0,
+            pointerEvents: 'none',
+          }}
+        >
+          <label htmlFor="firstName">First Name</label>
+          <input
+            type="text"
+            id="firstName"
+            name="firstName"
+            autoComplete="off"
+            tabIndex={-1}
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
+          <label htmlFor="lastName">Last Name</label>
+          <input
+            type="text"
+            id="lastName"
+            name="lastName"
+            autoComplete="off"
+            tabIndex={-1}
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+          />
+        </div>
+
         {error && (
           <div className="p-4 rounded-[1rem] bg-gradient-to-br from-red-200 to-orange-200 border-2 border-red-300">
             <p className="text-red-700 font-semibold">{error}</p>
