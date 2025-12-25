@@ -268,6 +268,17 @@ export default function ResumeVersionSidebar({
               <p className="text-xs text-gray-400">Click below to analyze your resume</p>
             </div>
           )}
+          {analysisScore !== null && analysisScore !== undefined && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSectionChange('analysis');
+              }}
+              className="w-full px-4 py-2.5 text-sm font-bold rounded-xl transition-all bg-white text-blue-600 border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 shadow-sm mb-2"
+            >
+              View Analysis Results
+            </button>
+          )}
           {onAnalyzeResume && (
             <button
               onClick={(e) => {
