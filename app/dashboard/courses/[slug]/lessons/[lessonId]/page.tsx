@@ -18,6 +18,7 @@ interface Lesson {
   prioritization: string;
   requires_subscription: boolean;
   course_id: string;
+  duration_minutes?: number | null;
 }
 
 interface Course {
@@ -80,7 +81,7 @@ const getLessonDataOptimized = async (lessonId: string) => {
   const [lessonsResult, progressResult] = await Promise.all([
     supabase
       .from('lessons')
-      .select('id, title, video_url, prioritization, requires_subscription, course_id')
+      .select('id, title, video_url, prioritization, requires_subscription, course_id, duration_minutes')
       .eq('course_id', lesson.course_id)
       .order('prioritization', { ascending: true }),
     userResult.data.user
