@@ -10,16 +10,19 @@ import { PremiumLessonGate } from '@/app/components/PremiumLessonGate';
 import { getUserPlan } from '@/lib/utils/subscription';
 import { MobileDashboardHeader } from '@/app/components/MobileDashboardHeader';
 import { LessonsPageMobileGate } from '@/app/components/LessonsPageMobileGate';
+import { TipTapReadOnlyWrapper } from '@/app/components/TipTapReadOnlyWrapper';
+import type { JSONContent } from '@tiptap/react';
 
 interface Lesson {
   id: string;
   title: string;
-  video_url: string;
+  video_url: string | null;
   prioritization: string;
   requires_subscription: boolean;
   course_id: string;
   duration_minutes?: number | null;
   short_description?: string | null;
+  content?: JSONContent | null;
 }
 
 interface Course {
@@ -56,6 +59,7 @@ const getLessonDataOptimized = async (lessonId: string) => {
         course_id,
         short_description,
         duration_minutes,
+        content,
         courses (
           id,
           title,
@@ -139,7 +143,8 @@ const getLessonDataOptimized = async (lessonId: string) => {
       requires_subscription: lesson.requires_subscription,
       course_id: lesson.course_id,
       short_description: lesson.short_description,
-      duration_minutes: lesson.duration_minutes
+      duration_minutes: lesson.duration_minutes,
+      content: lesson.content as JSONContent | null
     },
     course: {
       ...course,
@@ -292,14 +297,16 @@ export default async function LessonPage({
               />
             ) : (
               <>
-            {/* Video Player */}
-            <LessonPlayer
-              videoUrl={lesson.video_url}
-              lessonId={lesson.id}
-              courseId={course.id}
-              lessonTitle={lesson.title}
-              courseTitle={course.title}
-            />
+            {/* Video Player - Only show if lesson has video */}
+            {lesson.video_url && (
+              <LessonPlayer
+                videoUrl={lesson.video_url}
+                lessonId={lesson.id}
+                courseId={course.id}
+                lessonTitle={lesson.title}
+                courseTitle={course.title}
+              />
+            )}
               </>
             )}
 
@@ -389,6 +396,19 @@ export default async function LessonPage({
                   </TrackedLink>
                 )}
               </div>
+
+              {/* Written Lesson Content - Only show if content exists */}
+              {lesson.content &&
+               lesson.content.type === 'doc' &&
+               Array.isArray(lesson.content.content) &&
+               lesson.content.content.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <TipTapReadOnlyWrapper
+                    content={lesson.content}
+                    className="prose prose-gray max-w-none"
+                  />
+                </div>
+              )}
             </div>
             )}
           </div>

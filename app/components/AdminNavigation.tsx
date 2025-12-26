@@ -1,6 +1,6 @@
 'use client'
 
-import { BarChart3, Mail } from 'lucide-react'
+import { BarChart3, Mail, BookOpen } from 'lucide-react'
 import { NavLink } from '@/app/components/NavLink'
 
 interface AdminNavigationProps {
@@ -34,6 +34,23 @@ export const AdminNavigation = ({ fullScreen = false, onNavClick }: AdminNavigat
       >
         <BarChart3 className={iconClass} />
         <span>Stats</span>
+      </NavLink>
+      <NavLink
+        href="/admin/courses"
+        eventName="Admin Clicked Navigation Link"
+        linkId={fullScreen ? 'mobile-admin-nav-courses-link' : 'admin-nav-courses-link'}
+        eventProperties={{
+          'Link Text': 'Courses',
+          'Link Destination': '/admin/courses',
+          'Link Section': fullScreen ? 'Mobile Navigation' : 'Sidebar Navigation',
+          'Link Position': 'Main Navigation',
+          'Link Type': 'Navigation Link',
+        }}
+        className={baseNavLinkClass}
+        onClick={onNavClick}
+      >
+        <BookOpen className={iconClass} />
+        <span>Courses</span>
       </NavLink>
       <NavLink
         href="/admin/nps"
