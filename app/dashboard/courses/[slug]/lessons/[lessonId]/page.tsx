@@ -265,8 +265,19 @@ export default async function LessonPage({
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 w-full">
+        {/* Sidebar - Course Lessons (Left on desktop) */}
+        <div className="lg:col-span-1 order-2 lg:order-1">
+          <LessonNavigator
+            lessons={course.lessons}
+            currentLessonId={lesson.id}
+            courseSlug={slug}
+            courseId={course.id}
+            initialProgress={progressMap}
+          />
+        </div>
+
+        {/* Main Content (Right on desktop) */}
+        <div className="lg:col-span-2 w-full order-1 lg:order-2">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full">
             {/* Show gate if premium lesson and no access, otherwise show video */}
             {shouldShowGate ? (
@@ -282,8 +293,8 @@ export default async function LessonPage({
             ) : (
               <>
             {/* Video Player */}
-            <LessonPlayer 
-              videoUrl={lesson.video_url} 
+            <LessonPlayer
+              videoUrl={lesson.video_url}
               lessonId={lesson.id}
               courseId={course.id}
               lessonTitle={lesson.title}
@@ -316,7 +327,7 @@ export default async function LessonPage({
               <div className="flex flex-col md:flex-row md:items-center md:justify-center gap-3 md:gap-4 pt-6 border-t border-gray-200">
                 {/* Completion Button - First on mobile, center on desktop */}
                 <div className="w-full md:w-auto md:flex-shrink-0 md:order-2">
-                  <LessonContentWrapper 
+                  <LessonContentWrapper
                     lessonId={lesson.id}
                     courseId={course.id}
                     lessonTitle={lesson.title}
@@ -381,17 +392,6 @@ export default async function LessonPage({
             </div>
             )}
           </div>
-        </div>
-
-        {/* Sidebar - Course Lessons */}
-        <div className="lg:col-span-1">
-          <LessonNavigator
-            lessons={course.lessons}
-            currentLessonId={lesson.id}
-            courseSlug={slug}
-            courseId={course.id}
-            initialProgress={progressMap}
-          />
         </div>
         </div>
       </div>
