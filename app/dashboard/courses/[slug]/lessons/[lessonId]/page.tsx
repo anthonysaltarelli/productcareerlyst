@@ -19,6 +19,7 @@ interface Lesson {
   requires_subscription: boolean;
   course_id: string;
   duration_minutes?: number | null;
+  short_description?: string | null;
 }
 
 interface Course {
@@ -53,6 +54,8 @@ const getLessonDataOptimized = async (lessonId: string) => {
         prioritization,
         requires_subscription,
         course_id,
+        short_description,
+        duration_minutes,
         courses (
           id,
           title,
@@ -81,7 +84,7 @@ const getLessonDataOptimized = async (lessonId: string) => {
   const [lessonsResult, progressResult] = await Promise.all([
     supabase
       .from('lessons')
-      .select('id, title, video_url, prioritization, requires_subscription, course_id, duration_minutes')
+      .select('id, title, video_url, prioritization, requires_subscription, course_id, duration_minutes, short_description')
       .eq('course_id', lesson.course_id)
       .order('prioritization', { ascending: true }),
     userResult.data.user
@@ -134,7 +137,9 @@ const getLessonDataOptimized = async (lessonId: string) => {
       video_url: lesson.video_url,
       prioritization: lesson.prioritization,
       requires_subscription: lesson.requires_subscription,
-      course_id: lesson.course_id
+      course_id: lesson.course_id,
+      short_description: lesson.short_description,
+      duration_minutes: lesson.duration_minutes
     },
     course: {
       ...course,
@@ -268,6 +273,8 @@ export default async function LessonPage({
               <PremiumLessonGate
                 lessonTitle={lesson.title}
                 lessonId={lesson.id}
+                lessonDescription={lesson.short_description}
+                lessonDuration={lesson.duration_minutes}
                 courseTitle={course.title}
                 courseId={course.id}
                 currentPlan={userPlan}
@@ -291,6 +298,9 @@ export default async function LessonPage({
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 mb-2">{lesson.title}</h1>
+                  {lesson.short_description && (
+                    <p className="text-gray-600 mb-2">{lesson.short_description}</p>
+                  )}
                   <p className="text-sm text-gray-500">
                     Lesson {lesson.prioritization} of {course.lessons.length}
                   </p>

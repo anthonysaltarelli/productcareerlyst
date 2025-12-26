@@ -31,6 +31,7 @@ export interface Lesson {
   prioritization: string;
   requires_subscription: boolean;
   duration_minutes: number | null;
+  short_description: string | null;
   created_at: string;
   updated_at: string;
 }

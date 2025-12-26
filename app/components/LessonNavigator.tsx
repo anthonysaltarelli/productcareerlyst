@@ -10,6 +10,7 @@ interface Lesson {
   prioritization: string;
   requires_subscription: boolean;
   duration_minutes?: number | null;
+  short_description?: string | null;
 }
 
 interface ProgressMap {
@@ -95,11 +96,16 @@ const LessonNavigator = ({
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className={`
-                    text-sm line-clamp-2
-                    ${isCurrentLesson ? 'text-indigo-900 font-medium' : 'text-gray-700'}
+                    text-sm line-clamp-2 font-medium
+                    ${isCurrentLesson ? 'text-indigo-900' : 'text-gray-700'}
                   `}>
                     {lesson.title}
                   </p>
+                  {lesson.short_description && (
+                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                      {lesson.short_description}
+                    </p>
+                  )}
                   <div className="flex items-center gap-2 mt-1">
                     {lesson.duration_minutes && (
                       <span className="inline-flex items-center gap-1 text-xs text-gray-500">

@@ -13,6 +13,8 @@ interface Lesson {
   title: string
   prioritization: string
   requires_subscription: boolean
+  short_description: string | null
+  duration_minutes: number | null
 }
 
 interface Course {
@@ -217,7 +219,7 @@ export default function CoursesPage() {
         const supabase = createClient()
         const { data: lessons } = await supabase
           .from('lessons')
-          .select('id, title, prioritization, requires_subscription')
+          .select('id, title, prioritization, requires_subscription, short_description, duration_minutes')
           .eq('course_id', courseId)
 
         if (lessons) {
@@ -243,11 +245,14 @@ export default function CoursesPage() {
     setExpandedCourses(newExpanded)
   }
 
-  const handleLessonClick = (lessonTitle: string, courseTitle?: string, courseId?: string) => {
+  const handleLessonClick = (lessonTitle: string, courseTitle?: string, courseId?: string, requiresSubscription?: boolean) => {
     // Show modal immediately - don't wait for tracking
+    const isPremium = requiresSubscription === true
     setModalContent({
       title: 'Create a Free Account',
-      description: `Sign up to watch "${lessonTitle}" and access all our courses and lessons. It's completely free!`
+      description: isPremium
+        ? `Sign up to watch "${lessonTitle}". This is a premium lesson that requires a subscription.`
+        : `Sign up to watch "${lessonTitle}" for free. Create an account to access all our free lessons!`
     })
     setModalOpen(true)
     
@@ -377,21 +382,36 @@ export default function CoursesPage() {
                               {course.lessons.map((lesson) => (
                                 <div
                                   key={lesson.id}
-                                  onClick={() => handleLessonClick(lesson.title, course.title, course.id)}
+                                  onClick={() => handleLessonClick(lesson.title, course.title, course.id, lesson.requires_subscription)}
                                   className="p-3 rounded-[1rem] bg-white/80 hover:bg-white border-2 border-gray-200 cursor-pointer transition-all duration-200"
                                   role="button"
                                   tabIndex={0}
                                   aria-label={`${lesson.prioritization}. ${lesson.title}${lesson.requires_subscription ? ' (Premium)' : ''}`}
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
-                                      handleLessonClick(lesson.title, course.title, course.id)
+                                      handleLessonClick(lesson.title, course.title, course.id, lesson.requires_subscription)
                                     }
                                   }}
                                 >
-                                  <div className="flex items-center justify-between gap-2">
-                                    <span className="text-gray-900 font-medium">
-                                      {lesson.prioritization}. {lesson.title}
-                                    </span>
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <span className="text-gray-900 font-semibold">
+                                        {lesson.prioritization}. {lesson.title}
+                                      </span>
+                                      {lesson.short_description && (
+                                        <p className="text-gray-600 text-sm mt-1 line-clamp-2">
+                                          {lesson.short_description}
+                                        </p>
+                                      )}
+                                      {lesson.duration_minutes && (
+                                        <span className="inline-flex items-center gap-1 text-xs text-gray-500 mt-1">
+                                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          {lesson.duration_minutes} min
+                                        </span>
+                                      )}
+                                    </div>
                                     {lesson.requires_subscription && (
                                       <span className="flex-shrink-0 text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold">
                                         Premium
@@ -426,7 +446,7 @@ export default function CoursesPage() {
             🚀 Ready to Start Learning?
           </p>
           <p className="text-gray-400 font-medium mb-6">
-            Create a free account to access all courses and lessons
+            Create a free account to access free lessons and preview premium content
           </p>
           <TrackedButton
             href="/auth/sign-up"
