@@ -210,13 +210,21 @@ export const TipTapReadOnly = ({ content, className = '' }: TipTapReadOnlyProps)
           line-height: 1.5;
         }
         
-        /* Style blockquotes */
+        /* Style blockquotes - minimal Notion-style */
         .tiptap-readonly-wrapper blockquote {
-          border-left: 4px solid #7c3aed;
+          border-left: 3px solid #e5e7eb;
           padding-left: 1rem;
+          margin: 0.5rem 0;
           margin-left: 0;
-          color: #4b5563;
-          font-style: italic;
+        }
+
+        .tiptap-readonly-wrapper blockquote::before {
+          display: none !important;
+        }
+
+        .tiptap-readonly-wrapper blockquote p {
+          margin: 0;
+          color: inherit;
         }
         
         /* Style task lists */
