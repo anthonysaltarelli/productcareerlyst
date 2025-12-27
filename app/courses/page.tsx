@@ -393,18 +393,23 @@ export default function CoursesPage() {
                                     }
                                   }}
                                 >
-                                  <div className="flex items-start justify-between gap-2">
-                                    <div className="flex-1 min-w-0">
-                                      <span className="text-gray-900 font-semibold">
-                                        {lesson.prioritization}. {lesson.title}
-                                      </span>
-                                      {lesson.short_description && (
-                                        <p className="text-gray-600 text-sm mt-1 line-clamp-2">
-                                          {lesson.short_description}
-                                        </p>
+                                  <div className="flex-1 min-w-0">
+                                    <span className="text-gray-900 font-semibold">
+                                      {lesson.prioritization}. {lesson.title}
+                                    </span>
+                                    {lesson.short_description && (
+                                      <p className="text-gray-600 text-sm mt-1">
+                                        {lesson.short_description}
+                                      </p>
+                                    )}
+                                    <div className="flex items-center gap-2 mt-1">
+                                      {lesson.requires_subscription && (
+                                        <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold">
+                                          Premium
+                                        </span>
                                       )}
                                       {lesson.duration_minutes && (
-                                        <span className="inline-flex items-center gap-1 text-xs text-gray-500 mt-1">
+                                        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
                                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                           </svg>
@@ -412,11 +417,6 @@ export default function CoursesPage() {
                                         </span>
                                       )}
                                     </div>
-                                    {lesson.requires_subscription && (
-                                      <span className="flex-shrink-0 text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold">
-                                        Premium
-                                      </span>
-                                    )}
                                   </div>
                                 </div>
                               ))}
